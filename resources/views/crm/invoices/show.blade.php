@@ -417,13 +417,12 @@
                                         {!! nl2br(e($invoice->comment ?? '--')) !!}
                                     </td>
                                     <td data-label="Bank Details" style="vertical-align: top; background: #fafafa;">
-                                        @if ($user && method_exists($user, 'bankDetails') && $user->bankDetails->isNotEmpty())
-                                            @php $bank = $user->bankDetails->first(); @endphp
-                                            <div><strong>Bank:</strong> {{ $bank->bank_name ?? '--' }}</div>
-                                            <div><strong>Account Name:</strong> {{ $bank->account_name ?? '--' }}</div>
-                                            <div><strong>Account No.:</strong> {{ $bank->account_number ?? '--' }}</div>
-                                            <div><strong>IFSC:</strong> {{ $bank->ifsc_code ?? '--' }}</div>
-                                            <div><strong>Branch:</strong> {{ $bank->branch_name ?? '--' }}</div>
+                                        @if (!empty($settings['bank_name']) || !empty($settings['account_number']))
+                                            <div><strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}</div>
+                                            <div><strong>Account Name:</strong> {{ $settings['account_name'] ?? '--' }}</div>
+                                            <div><strong>Account No.:</strong> {{ $settings['account_number'] ?? '--' }}</div>
+                                            <div><strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}</div>
+                                            <div><strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}</div>
                                         @else
                                             <div style="color:#666;">No bank details available.</div>
                                         @endif

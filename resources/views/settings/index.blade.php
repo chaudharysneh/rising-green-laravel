@@ -30,7 +30,13 @@
                 <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab"
                         data-bs-target="#smtp" type="button" role="tab">Email SMTP</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#keys" type="button" role="tab">Keys</button></li>
+                        data-bs-target="#tax" type="button" role="tab">Tax</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                        data-bs-target="#subsidy" type="button" role="tab">Subsidy</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                        data-bs-target="#bank-details" type="button" role="tab">Bank Details</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                        data-bs-target="#google-connection" type="button" role="tab">Google Connection</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
                         data-bs-target="#whatsapp-configure" type="button" role="tab">WhatsApp Configure Settings</button>
                 </li>
@@ -85,54 +91,251 @@
                 </form>
             </div>
 
-            <div class="tab-pane fade" id="keys" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data"
-                    id="keysSettingsForm">
-                    @csrf
-                    @method('PUT')
+            <div class="tab-pane fade" id="tax" role="tabpanel">
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <div class="card-header border-bottom-0 py-3 px-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                            <div>
+                                <h4 class="fw-bold mb-0">Tax Settings</h4>
+                                <p class="text-muted small mb-0">Configure tax types and rates for your products and services.</p>
+                            </div>
+                            <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal" data-bs-target="#addTaxModal">
+                                <i class="bi bi-plus-lg me-1"></i>Add Tax
+                            </button>
+                        </div>
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <h6 class="fw-bold mb-0">Manage Tax Types and Rates</h6>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="taxTable">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4 text-center" style="width: 80px;">#</th>
+                                        <th class="text-center">Tax Name</th>
+                                        <th class="text-center">Rate (%)</th>
+                                        <th class="text-center pe-4" style="width: 170px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($taxes as $index => $tax)
+                                        <tr data-tax-id="{{ $tax->id }}">
+                                            <td class="ps-4 text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center">{{ $tax->name }}</td>
+                                            <td class="text-center">{{ $tax->rate }}%</td>
+                                            <td class="text-center pe-4">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" 
+                                                        onclick="editTax({{ $tax->id }}, '{{ $tax->name }}', {{ $tax->rate }})"
+                                                        title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="deleteTax({{ $tax->id }})"
+                                                        title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr id="noTaxRow">
+                                            <td colspan="4" class="text-center text-muted py-4">No tax configurations found.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer border-top-0 py-4 px-4">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                These tax configurations will be available when creating products, estimates, and invoices.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="subsidy" role="tabpanel">
+                <form id="subsidyForm" novalidate>
                     <div class="settings-panel">
-                        <div class="settings-panel-head">Keys</div>
+                        <div class="settings-panel-head" style="background-color: #5cb85c; color: white;">Subsidy Details</div>
                         <div class="settings-panel-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Firebase Key</label>
-                                    <input type="file" name="firebase_key_file" class="form-control settings-file-input">
-                                    <div class="settings-inline-help mt-2">Upload your Firebase service credential file if
-                                        required.</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Google Client ID</label>
-                                    <input type="text" name="google_client_id" class="form-control"
-                                        value="{{ $settings['google_client_id']->value ?? '' }}"
-                                        placeholder="Google OAuth Client ID">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Google Client Secret</label>
-                                    <input type="text" name="google_client_secret" class="form-control"
-                                        value="{{ $settings['google_client_secret']->value ?? '' }}"
-                                        placeholder="Google OAuth Client Secret">
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label">Google Redirect URI</label>
-                                    <input type="text" name="google_redirect_uri" class="form-control"
-                                        value="{{ $settings['google_redirect_uri']->value ?? '' }}"
-                                        placeholder="{{ route('google.callback') }}">
-                                    <div class="settings-inline-help mt-2">
-                                        <i class="bi bi-info-circle me-1"></i>
-                                        Recommended URI for Google Console: <code class="bg-light px-1">{{ route('google.callback') }}</code>
-                                    </div>
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-3">Residential Subsidy</h6>
+                                <div class="row g-3">
+                                    @foreach($subsidies as $subsidy)
+                                        @if(str_starts_with($subsidy->category, 'residential'))
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">
+                                                    @if($subsidy->category == 'residential_0_2')
+                                                        0 - 2 kW
+                                                    @elseif($subsidy->category == 'residential_2_3')
+                                                        2 - 3 kW
+                                                    @elseif($subsidy->category == 'residential_above_3')
+                                                        Above 3 kW
+                                                    @endif
+                                                </label>
+                                                <input type="number" 
+                                                       class="form-control subsidy-input" 
+                                                       id="subsidy_{{ $subsidy->id }}"
+                                                       data-subsidy-id="{{ $subsidy->id }}"
+                                                       value="{{ $subsidy->amount }}" 
+                                                       step="0.01" 
+                                                       min="0"
+                                                       placeholder="Enter amount">
+                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error"></div>
+                                            </div>
+                                        @endif
+                                    @endforeach
                                 </div>
                             </div>
-                            <div
-                                class="d-flex justify-content-between align-items-center flex-wrap gap-3 settings-keys-actions">
-                                <span id="keysSettingsStatus" class="settings-form-status"></span>
-                                <button type="submit" class="btn btn-primary settings-submit-btn"><i
-                                        class="bi bi-send-fill me-1"></i> Submit</button>
+
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-3">Common Meter</h6>
+                                <div class="row g-3">
+                                    @foreach($subsidies as $subsidy)
+                                        @if($subsidy->category == 'common_meter')
+                                            <div class="col-md-4">
+                                                <input type="number" 
+                                                       class="form-control subsidy-input" 
+                                                       id="subsidy_{{ $subsidy->id }}"
+                                                       data-subsidy-id="{{ $subsidy->id }}"
+                                                       value="{{ $subsidy->amount }}" 
+                                                       step="0.01" 
+                                                       min="0"
+                                                       placeholder="Enter amount">
+                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error"></div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="subsidyStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-success settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">Save Subsidy</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
+
+            <div class="tab-pane fade" id="bank-details" role="tabpanel">
+                <form action="{{ route('settings.update') }}" method="POST" id="bankDetailsForm" novalidate>
+                    @csrf
+                    @method('PUT')
+                    <div class="settings-panel">
+                        <div class="settings-panel-head">Bank Details</div>
+                        <div class="settings-panel-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Bank Name</label>
+                                    <input type="text" name="bank_name" id="bank_name" class="form-control"
+                                        value="{{ old('bank_name', $settings['bank_name']->value ?? '') }}" placeholder="Enter bank name">
+                                    <div class="invalid-feedback" id="bank_name-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Account Name</label>
+                                    <input type="text" name="account_name" id="account_name" class="form-control"
+                                        value="{{ old('account_name', $settings['account_name']->value ?? '') }}" placeholder="Enter account holder name">
+                                    <div class="invalid-feedback" id="account_name-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Account Number</label>
+                                    <input type="text" name="account_number" id="account_number" class="form-control"
+                                        value="{{ old('account_number', $settings['account_number']->value ?? '') }}" placeholder="Enter account number">
+                                    <div class="invalid-feedback" id="account_number-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">IFSC Code</label>
+                                    <input type="text" name="ifsc_code" id="ifsc_code" class="form-control"
+                                        value="{{ old('ifsc_code', $settings['ifsc_code']->value ?? '') }}" placeholder="Enter IFSC code">
+                                    <div class="invalid-feedback" id="ifsc_code-error"></div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-semibold">Branch Name</label>
+                                    <input type="text" name="branch_name" id="branch_name" class="form-control"
+                                        value="{{ old('branch_name', $settings['branch_name']->value ?? '') }}" placeholder="Enter branch name">
+                                    <div class="invalid-feedback" id="branch_name-error"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="bankDetailsStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-primary settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">Save Bank Details</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="google-connection" role="tabpanel">
+                <form action="{{ route('settings.update') }}" method="POST" id="googleConnectionForm" novalidate>
+                    @csrf
+                    @method('PUT')
+                    <div class="settings-panel">
+                        <div class="settings-panel-head">Google Connection Settings</div>
+                        <div class="settings-panel-body">
+                            <!-- Connect to Google Section -->
+                            <div class="mb-4 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-light rounded-circle p-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-google" style="font-size: 24px; color: #4285f4;"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">Connect To Google</h6>
+                                            <small class="text-muted">
+                                                @if(!empty($settings['google_client_id']->value ?? ''))
+                                                    <span class="text-success">Connected</span>
+                                                @else
+                                                    <span class="text-danger">Not connected</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-success" id="connectToGoogleBtn">
+                                        <i class="bi bi-link-45deg me-1"></i>Connect to Google
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Google OAuth Credentials Section -->
+                            <h6 class="fw-semibold mb-3">Google OAuth Credentials</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Google Client ID</label>
+                                    <input type="text" name="google_client_id" id="google_client_id" class="form-control"
+                                        value="{{ old('google_client_id', $settings['google_client_id']->value ?? '') }}"
+                                        placeholder="Enter Google Client ID">
+                                    <div class="invalid-feedback" id="google_client_id-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Google Client Secret</label>
+                                    <input type="password" name="google_client_secret" id="google_client_secret" class="form-control"
+                                        value="{{ old('google_client_secret', $settings['google_client_secret']->value ?? '') }}"
+                                        placeholder="Enter Google Client Secret">
+                                    <div class="invalid-feedback" id="google_client_secret-error"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="googleConnectionStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-success settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">Save Google Credentials</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <div class="tab-pane fade" id="whatsapp-configure" role="tabpanel">
                 <div class="settings-panel">
                     <div class="settings-panel-head">WhatsApp Configure Settings</div>
@@ -461,12 +664,706 @@
         </div>
     </div>
 
+    <!-- Add Tax Modal -->
+    <div class="modal fade" id="addTaxModal" tabindex="-1" aria-labelledby="addTaxModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTaxModalLabel">Add Tax</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addTaxForm" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="taxType" class="form-label fw-semibold">Tax Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="taxType" name="name">
+                                <option value="">Select Tax</option>
+                                <option value="GST (CGST + SGST)">GST (CGST + SGST)</option>
+                                <option value="GST (IGST)">GST (IGST)</option>
+                            </select>
+                            <div class="invalid-feedback" id="name-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taxRate" class="form-label fw-semibold">Tax Rate (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="taxRate" name="rate" 
+                                   placeholder="Enter rate" step="0.01" min="0" max="100">
+                            <div class="invalid-feedback" id="rate-error"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark-blue">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Tax Modal -->
+    <div class="modal fade" id="editTaxModal" tabindex="-1" aria-labelledby="editTaxModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTaxModalLabel">Edit Tax</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editTaxForm" novalidate>
+                    <input type="hidden" id="editTaxId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editTaxType" class="form-label fw-semibold">Tax Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editTaxType" name="name">
+                                <option value="">Select Tax</option>
+                                <option value="GST (CGST + SGST)">GST (CGST + SGST)</option>
+                                <option value="GST (IGST)">GST (IGST)</option>
+                            </select>
+                            <div class="invalid-feedback" id="edit-name-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaxRate" class="form-label fw-semibold">Tax Rate (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="editTaxRate" name="rate" 
+                                   placeholder="Enter rate" step="0.01" min="0" max="100">
+                            <div class="invalid-feedback" id="edit-rate-error"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark-blue">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">Update</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
             window.settingsPageConfig = {
                 apiSettingsIndex: @json(route('api.settings.index')),
                 apiSettingsUpdate: @json(route('api.settings.update')),
+                taxStoreUrl: @json(route('settings.taxes.store')),
+                taxUpdateUrl: @json(route('settings.taxes.update', ':id')),
+                taxDestroyUrl: @json(route('settings.taxes.destroy', ':id')),
+                subsidyUpdateUrl: @json(route('settings.subsidies.update', ':id')),
             };
+
+            // Tax Management Functions
+            function editTax(id, name, rate) {
+                document.getElementById('editTaxId').value = id;
+                document.getElementById('editTaxType').value = name;
+                document.getElementById('editTaxRate').value = rate;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editTaxModal'));
+                modal.show();
+            }
+
+            function deleteTax(id) {
+                showDeleteConfirm('You won\'t be able to revert this!', {
+                    title: 'Are you sure?',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const url = window.settingsPageConfig.taxDestroyUrl.replace(':id', id);
+                        
+                        fetch(url, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Remove row from table
+                                const row = document.querySelector(`tr[data-tax-id="${id}"]`);
+                                if (row) {
+                                    row.remove();
+                                    
+                                    // Show "no tax" message if table is empty
+                                    const tbody = document.querySelector('#taxTable tbody');
+                                    if (tbody.children.length === 0) {
+                                        tbody.innerHTML = '<tr id="noTaxRow"><td colspan="4" class="text-center text-muted py-4">No tax configurations found.</td></tr>';
+                                    } else {
+                                        // Update row numbers
+                                        updateRowNumbers();
+                                    }
+                                }
+                                
+                                // Show success message
+                                showAlert('success', data.message || 'Tax deleted successfully.');
+                            } else {
+                                showAlert('error', data.message || 'Failed to delete tax.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAlert('error', 'An error occurred while deleting the tax.');
+                        });
+                    }
+                });
+            }
+
+            function updateRowNumbers() {
+                const rows = document.querySelectorAll('#taxTable tbody tr[data-tax-id]');
+                rows.forEach((row, index) => {
+                    row.querySelector('td:first-child').textContent = index + 1;
+                });
+            }
+
+            function clearFormErrors(form) {
+                const fields = form === document.getElementById('addTaxForm') 
+                    ? ['name', 'rate'] 
+                    : ['edit-name', 'edit-rate'];
+                
+                fields.forEach(field => {
+                    const input = form.querySelector(`[name="${field.replace('edit-', '')}"]`);
+                    const errorDiv = document.getElementById(`${field}-error`);
+                    
+                    if (input) input.classList.remove('is-invalid');
+                    if (errorDiv) errorDiv.textContent = '';
+                });
+            }
+
+            function showFormErrors(form, errors) {
+                const isEditForm = form === document.getElementById('editTaxForm');
+                
+                Object.keys(errors).forEach(field => {
+                    const errorId = isEditForm ? `edit-${field}` : field;
+                    const input = form.querySelector(`[name="${field}"]`);
+                    const errorDiv = document.getElementById(`${errorId}-error`);
+                    
+                    if (input) {
+                        input.classList.add('is-invalid');
+                    }
+                    
+                    if (errorDiv) {
+                        errorDiv.textContent = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+                    }
+                });
+            }
+
+            // Clear errors on input change for Add Tax form
+            ['taxType', 'taxRate'].forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`${this.name}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                    input.addEventListener('change', function() {
+                        this.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`${this.name}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                }
+            });
+
+            // Clear errors on input change for Edit Tax form
+            ['editTaxType', 'editTaxRate'].forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`edit-${this.name}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                    input.addEventListener('change', function() {
+                        this.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`edit-${this.name}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                }
+            });
+
+            // Add Tax Form Handler
+            document.getElementById('addTaxForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const form = this;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const spinner = submitBtn.querySelector('.spinner-border');
+                const btnText = submitBtn.querySelector('.btn-text');
+                
+                // Clear previous errors
+                clearFormErrors(form);
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                spinner.classList.remove('d-none');
+                btnText.textContent = 'Saving...';
+                
+                const formData = new FormData(form);
+                
+                fetch(window.settingsPageConfig.taxStoreUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addTaxModal'));
+                        modal.hide();
+                        
+                        // Reset form
+                        form.reset();
+                        
+                        // Add new row to table
+                        const tbody = document.querySelector('#taxTable tbody');
+                        const noTaxRow = document.getElementById('noTaxRow');
+                        
+                        if (noTaxRow) {
+                            noTaxRow.remove();
+                        }
+                        
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-tax-id', data.tax.id);
+                        newRow.innerHTML = `
+                            <td class="ps-4 text-center">${tbody.children.length + 1}</td>
+                            <td class="text-center">${data.tax.name}</td>
+                            <td class="text-center">${data.tax.rate}%</td>
+                            <td class="text-center pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" 
+                                        onclick="editTax(${data.tax.id}, '${data.tax.name}', ${data.tax.rate})"
+                                        title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteTax(${data.tax.id})"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        
+                        tbody.appendChild(newRow);
+                        updateRowNumbers();
+                        
+                        // Show success message
+                        showAlert('success', data.message || 'Tax added successfully.');
+                    } else {
+                        if (data.errors) {
+                            showFormErrors(form, data.errors);
+                        } else {
+                            showAlert('error', data.message || 'Failed to add tax.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'An error occurred while adding the tax.');
+                })
+                .finally(() => {
+                    // Hide loading state
+                    submitBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                    btnText.textContent = 'Save';
+                });
+            });
+
+            // Edit Tax Form Handler
+            document.getElementById('editTaxForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const form = this;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const spinner = submitBtn.querySelector('.spinner-border');
+                const btnText = submitBtn.querySelector('.btn-text');
+                const taxId = document.getElementById('editTaxId').value;
+                
+                // Clear previous errors
+                clearFormErrors(form);
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                spinner.classList.remove('d-none');
+                btnText.textContent = 'Updating...';
+                
+                const formData = new FormData(form);
+                const url = window.settingsPageConfig.taxUpdateUrl.replace(':id', taxId);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('editTaxModal'));
+                        modal.hide();
+                        
+                        // Update row in table
+                        const row = document.querySelector(`tr[data-tax-id="${taxId}"]`);
+                        if (row) {
+                            const cells = row.querySelectorAll('td');
+                            cells[1].textContent = data.tax.name;
+                            cells[2].textContent = data.tax.rate + '%';
+                            
+                            // Update onclick handlers
+                            const editBtn = row.querySelector('.btn-outline-primary');
+                            const deleteBtn = row.querySelector('.btn-outline-danger');
+                            
+                            editBtn.setAttribute('onclick', `editTax(${data.tax.id}, '${data.tax.name}', ${data.tax.rate})`);
+                            deleteBtn.setAttribute('onclick', `deleteTax(${data.tax.id})`);
+                        }
+                        
+                        // Show success message
+                        showAlert('success', data.message || 'Tax updated successfully.');
+                    } else {
+                        if (data.errors) {
+                            showFormErrors(form, data.errors);
+                        } else {
+                            showAlert('error', data.message || 'Failed to update tax.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'An error occurred while updating the tax.');
+                })
+                .finally(() => {
+                    // Hide loading state
+                    submitBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                    btnText.textContent = 'Update';
+                });
+            });
+
+            // Bank Details Form Handler
+            const bankDetailsForm = document.getElementById('bankDetailsForm');
+            if (bankDetailsForm) {
+                bankDetailsForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const form = this;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const spinner = submitBtn.querySelector('.spinner-border');
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const statusSpan = document.getElementById('bankDetailsStatus');
+                    
+                    // Clear previous errors
+                    ['bank_name', 'account_name', 'account_number', 'ifsc_code', 'branch_name'].forEach(field => {
+                        const input = document.getElementById(field);
+                        const errorDiv = document.getElementById(`${field}-error`);
+                        if (input) input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    spinner.classList.remove('d-none');
+                    btnText.textContent = 'Saving...';
+                    statusSpan.textContent = '';
+                    
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                try {
+                                    return JSON.parse(text);
+                                } catch (e) {
+                                    throw new Error('Server returned an error');
+                                }
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.errors) {
+                            Object.keys(data.errors).forEach(field => {
+                                const input = document.getElementById(field);
+                                const errorDiv = document.getElementById(`${field}-error`);
+                                
+                                if (input) input.classList.add('is-invalid');
+                                if (errorDiv) {
+                                    errorDiv.textContent = Array.isArray(data.errors[field]) 
+                                        ? data.errors[field][0] 
+                                        : data.errors[field];
+                                }
+                            });
+                            showAlert('error', data.message || 'Please fix the errors and try again.');
+                        } else {
+                            showAlert('success', 'Bank details saved successfully.');
+                            statusSpan.textContent = 'Saved successfully!';
+                            statusSpan.className = 'settings-form-status text-success';
+                            
+                            setTimeout(() => {
+                                statusSpan.textContent = '';
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('error', 'An error occurred while saving bank details.');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        spinner.classList.add('d-none');
+                        btnText.textContent = 'Save Bank Details';
+                    });
+                });
+
+                // Clear errors on input change for bank details
+                ['bank_name', 'account_name', 'account_number', 'ifsc_code', 'branch_name'].forEach(fieldId => {
+                    const input = document.getElementById(fieldId);
+                    if (input) {
+                        input.addEventListener('input', function() {
+                            this.classList.remove('is-invalid');
+                            const errorDiv = document.getElementById(`${fieldId}-error`);
+                            if (errorDiv) errorDiv.textContent = '';
+                        });
+                    }
+                });
+            }
+
+            // Subsidy Form Handler
+            const subsidyForm = document.getElementById('subsidyForm');
+            if (subsidyForm) {
+                subsidyForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const form = this;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const spinner = submitBtn.querySelector('.spinner-border');
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const statusSpan = document.getElementById('subsidyStatus');
+                    
+                    // Clear previous errors
+                    document.querySelectorAll('.subsidy-input').forEach(input => {
+                        input.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`${input.id}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    spinner.classList.remove('d-none');
+                    btnText.textContent = 'Saving...';
+                    statusSpan.textContent = '';
+                    
+                    // Get all subsidy inputs
+                    const subsidyInputs = document.querySelectorAll('.subsidy-input');
+                    const updatePromises = [];
+                    
+                    subsidyInputs.forEach(input => {
+                        const subsidyId = input.dataset.subsidyId;
+                        const amount = input.value;
+                        
+                        const formData = new FormData();
+                        formData.append('amount', amount);
+                        formData.append('_method', 'PUT');
+                        
+                        const url = window.settingsPageConfig.subsidyUpdateUrl.replace(':id', subsidyId);
+                        
+                        const promise = fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.success && data.errors) {
+                                // Handle validation errors for this specific input
+                                Object.keys(data.errors).forEach(field => {
+                                    input.classList.add('is-invalid');
+                                    const errorDiv = document.getElementById(`${input.id}-error`);
+                                    if (errorDiv) {
+                                        errorDiv.textContent = Array.isArray(data.errors[field]) 
+                                            ? data.errors[field][0] 
+                                            : data.errors[field];
+                                    }
+                                });
+                                return { success: false };
+                            }
+                            return data;
+                        });
+                        
+                        updatePromises.push(promise);
+                    });
+                    
+                    // Wait for all updates to complete
+                    Promise.all(updatePromises)
+                        .then(results => {
+                            const allSuccess = results.every(result => result.success !== false);
+                            
+                            if (allSuccess) {
+                                showAlert('success', 'Subsidy details saved successfully.');
+                                statusSpan.textContent = 'Saved successfully!';
+                                statusSpan.className = 'settings-form-status text-success';
+                                
+                                setTimeout(() => {
+                                    statusSpan.textContent = '';
+                                }, 3000);
+                            } else {
+                                showAlert('error', 'Some subsidy values could not be saved. Please check the errors.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAlert('error', 'An error occurred while saving subsidy details.');
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            spinner.classList.add('d-none');
+                            btnText.textContent = 'Save Subsidy';
+                        });
+                });
+
+                // Clear errors on input change for subsidy
+                document.querySelectorAll('.subsidy-input').forEach(input => {
+                    input.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(`${this.id}-error`);
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                });
+            }
+
+            // Google Connection Form Handler
+            const googleConnectionForm = document.getElementById('googleConnectionForm');
+            if (googleConnectionForm) {
+                googleConnectionForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const form = this;
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const spinner = submitBtn.querySelector('.spinner-border');
+                    const btnText = submitBtn.querySelector('.btn-text');
+                    const statusSpan = document.getElementById('googleConnectionStatus');
+                    
+                    // Clear previous errors
+                    ['google_client_id', 'google_client_secret'].forEach(field => {
+                        const input = document.getElementById(field);
+                        const errorDiv = document.getElementById(`${field}-error`);
+                        if (input) input.classList.remove('is-invalid');
+                        if (errorDiv) errorDiv.textContent = '';
+                    });
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    spinner.classList.remove('d-none');
+                    btnText.textContent = 'Saving...';
+                    statusSpan.textContent = '';
+                    
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                try {
+                                    return JSON.parse(text);
+                                } catch (e) {
+                                    throw new Error('Server returned an error');
+                                }
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.errors) {
+                            Object.keys(data.errors).forEach(field => {
+                                const input = document.getElementById(field);
+                                const errorDiv = document.getElementById(`${field}-error`);
+                                
+                                if (input) input.classList.add('is-invalid');
+                                if (errorDiv) {
+                                    errorDiv.textContent = Array.isArray(data.errors[field]) 
+                                        ? data.errors[field][0] 
+                                        : data.errors[field];
+                                }
+                            });
+                            showAlert('error', data.message || 'Please fix the errors and try again.');
+                        } else {
+                            showAlert('success', 'Google credentials saved successfully.');
+                            statusSpan.textContent = 'Saved successfully!';
+                            statusSpan.className = 'settings-form-status text-success';
+                            
+                            setTimeout(() => {
+                                statusSpan.textContent = '';
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('error', 'An error occurred while saving Google credentials.');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        spinner.classList.add('d-none');
+                        btnText.textContent = 'Save Google Credentials';
+                    });
+                });
+
+                // Clear errors on input change for Google Connection
+                ['google_client_id', 'google_client_secret'].forEach(fieldId => {
+                    const input = document.getElementById(fieldId);
+                    if (input) {
+                        input.addEventListener('input', function() {
+                            this.classList.remove('is-invalid');
+                            const errorDiv = document.getElementById(`${fieldId}-error`);
+                            if (errorDiv) errorDiv.textContent = '';
+                        });
+                    }
+                });
+
+                // Connect to Google button handler
+                const connectBtn = document.getElementById('connectToGoogleBtn');
+                if (connectBtn) {
+                    connectBtn.addEventListener('click', function() {
+                        // Check if credentials are saved
+                        const clientId = document.getElementById('google_client_id').value;
+                        const clientSecret = document.getElementById('google_client_secret').value;
+                        
+                        if (!clientId || !clientSecret) {
+                            showAlert('warning', 'Please save Google credentials first before connecting.');
+                            return;
+                        }
+                        
+                        // Redirect to Google OAuth
+                        window.location.href = '/auth/google';
+                    });
+                }
+            }
         </script>
         <script
             src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/js/setting.js') }}?v={{ filemtime(public_path('assets/js/setting.js')) }}"></script>

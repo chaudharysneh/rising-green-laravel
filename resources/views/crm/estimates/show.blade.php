@@ -453,17 +453,12 @@
                                         {!! nl2br(e($estimate->comment ?? '--')) !!}
                                     </td>
                                     <td data-label="Bank Details" style="vertical-align: top; background: #fafafa;">
-                                        @if ($user && $user->bankDetails)
-                                            @php $bank = $user->bankDetails->first(); @endphp
-                                            @if ($bank)
-                                                <div><strong>Bank:</strong> {{ $bank->bank_name ?? '--' }}</div>
-                                                <div><strong>Account Name:</strong> {{ $bank->account_name ?? '--' }}</div>
-                                                <div><strong>Account No.:</strong> {{ $bank->account_number ?? '--' }}</div>
-                                                <div><strong>IFSC:</strong> {{ $bank->ifsc_code ?? '--' }}</div>
-                                                <div><strong>Branch:</strong> {{ $bank->branch_name ?? '--' }}</div>
-                                            @else
-                                                <div style="color:#666;">No bank details available.</div>
-                                            @endif
+                                        @if (!empty($settings['bank_name']) || !empty($settings['account_number']))
+                                            <div><strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}</div>
+                                            <div><strong>Account Name:</strong> {{ $settings['account_name'] ?? '--' }}</div>
+                                            <div><strong>Account No.:</strong> {{ $settings['account_number'] ?? '--' }}</div>
+                                            <div><strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}</div>
+                                            <div><strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}</div>
                                         @else
                                             <div style="color:#666;">No bank details available.</div>
                                         @endif
@@ -815,17 +810,12 @@
                             {!! nl2br(e($estimate->comment ?? '--')) !!}
                         </td>
                         <td data-label="Bank Details" style="vertical-align: top; background: #fafafa;">
-                            @if ($user && $user->bankDetails)
-                                @php $bank = $user->bankDetails->first(); @endphp
-                                @if ($bank)
-                                    <div><strong>Bank:</strong> {{ $bank->bank_name ?? '--' }}</div>
-                                    <div><strong>Account Name:</strong> {{ $bank->account_name ?? '--' }}</div>
-                                    <div><strong>Account No.:</strong> {{ $bank->account_number ?? '--' }}</div>
-                                    <div><strong>IFSC:</strong> {{ $bank->ifsc_code ?? '--' }}</div>
-                                    <div><strong>Branch:</strong> {{ $bank->branch_name ?? '--' }}</div>
-                                @else
-                                    <div style="color:#666;">No bank details available.</div>
-                                @endif
+                            @if (!empty($settings['bank_name']) || !empty($settings['account_number']))
+                                <div><strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}</div>
+                                <div><strong>Account Name:</strong> {{ $settings['account_name'] ?? '--' }}</div>
+                                <div><strong>Account No.:</strong> {{ $settings['account_number'] ?? '--' }}</div>
+                                <div><strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}</div>
+                                <div><strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}</div>
                             @else
                                 <div style="color:#666;">No bank details available.</div>
                             @endif

@@ -74,9 +74,9 @@
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-percent me-2"></i>Tax Type</label>
                     <select name="tax_type" id="tax_type" class="form-select">
                         <option value="">Select Tax</option>
-                        <option value="GST (CGST + SGST)" @selected(old('tax_type', $product?->tax_type) == 'GST (CGST + SGST)')>GST (CGST + SGST)</option>
-                        <option value="GST (IGST)" @selected(old('tax_type', $product?->tax_type) == 'GST (IGST)')>GST (IGST)</option>
-                        <option value="GST (custom)" @selected(old('tax_type', $product?->tax_type) == 'GST (custom)')>GST (custom)</option>
+                        @foreach($taxes->groupBy('name') as $taxName => $taxGroup)
+                            <option value="{{ $taxName }}" @selected(old('tax_type', $product?->tax_type) == $taxName)>{{ $taxName }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -260,109 +260,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const taxRateSelect = document.getElementById('tax_rate');
     const currentTaxRate = "{{ old('tax_rate', $product?->tax_rate) }}";
 
-    // Tax Rate options based on Tax Type
-    const taxRateOptions = {
-        'GST (CGST + SGST)': [
-            { value: '5', label: 'GST (CGST + SGST) (5.00%)' },
-            { value: '12', label: 'GST (CGST + SGST) (12.00%)' },
-            { value: '10', label: 'GST (CGST + SGST) (10.00%)' },
-            { value: '8', label: 'GST (CGST + SGST) (8.00%)' }
-        ],
-        'GST (IGST)': [
-            { value: '18', label: 'GST (IGST) (18.00%)' }
-        ],
-        'GST (custom)': [
-            { value: '', label: 'Enter custom rate' }
-        ]
-    };
+    // Tax data from backend
+    const taxData = @json($taxes->groupBy('name'));
 
     function updateTaxRateOptions() {
         const selectedTaxType = taxTypeSelect.value;
-        const options = taxRateOptions[selectedTaxType] || [];
+        const taxes = taxData[selectedTaxType] || [];
 
         // Clear existing options except the first one
         taxRateSelect.innerHTML = '<option value="">Select Rate</option>';
 
-        // Add new options
-        options.forEach(option => {
+        // Add new options from database
+        taxes.forEach(tax => {
             const optionElement = document.createElement('option');
-            optionElement.value = option.value;
-            optionElement.textContent = option.label;
+            optionElement.value = tax.rate;
+            optionElement.textContent = `${tax.name} (${tax.rate}%)`;
             // Check if this option should be selected
-            if (option.value === currentTaxRate) {
+            if (tax.rate == currentTaxRate) {
                 optionElement.selected = true;
             }
             taxRateSelect.appendChild(optionElement);
         });
 
         // If current tax rate doesn't match any predefined option, add it as a custom option
-        if (currentTaxRate && !options.some(option => option.value === currentTaxRate)) {
+        if (currentTaxRate && !taxes.some(tax => tax.rate == currentTaxRate)) {
             const customOption = document.createElement('option');
             customOption.value = currentTaxRate;
             customOption.textContent = `${selectedTaxType} (${currentTaxRate}%)`;
             customOption.selected = true;
             taxRateSelect.appendChild(customOption);
-        }
-
-        // If GST (custom), show input field with % symbol
-        if (selectedTaxType === 'GST (custom)') {
-            const parentDiv = taxRateSelect.parentElement;
-            
-            // Create input group wrapper
-            const inputGroup = document.createElement('div');
-            inputGroup.className = 'input-group';
-            inputGroup.id = 'tax_rate_custom_group';
-            
-            // Create input field
-            const customInput = document.createElement('input');
-            customInput.type = 'number';
-            customInput.name = 'tax_rate';
-            customInput.id = 'tax_rate_custom';
-            customInput.className = 'form-control';
-            customInput.placeholder = 'Enter custom rate';
-            customInput.step = '0.01';
-            customInput.min = '0';
-            customInput.max = '100';
-            customInput.value = currentTaxRate || '';
-            
-            // Create % symbol span
-            const percentSpan = document.createElement('span');
-            percentSpan.className = 'input-group-text';
-            percentSpan.textContent = '%';
-            
-            // Append to input group
-            inputGroup.appendChild(customInput);
-            inputGroup.appendChild(percentSpan);
-            
-            // Replace select with input group
-            parentDiv.replaceChild(inputGroup, taxRateSelect);
-            
-            // Add event listener for error clearing
-            customInput.addEventListener('input', function() {
-                clearFieldError('tax_rate', this);
-            });
-        } else {
-            // If switching back from custom, restore the select
-            const customGroup = document.getElementById('tax_rate_custom_group');
-            if (customGroup) {
-                const parentDiv = customGroup.parentElement;
-                const newSelect = document.createElement('select');
-                newSelect.name = 'tax_rate';
-                newSelect.id = 'tax_rate';
-                newSelect.className = 'form-select';
-                newSelect.innerHTML = taxRateSelect.innerHTML;
-                parentDiv.replaceChild(newSelect, customGroup);
-                
-                // Update reference and re-attach event listener
-                const newTaxTypeSelect = document.getElementById('tax_type');
-                newTaxTypeSelect.removeEventListener('change', updateTaxRateOptions);
-                newTaxTypeSelect.addEventListener('change', updateTaxRateOptions);
-                
-                // Add event listener for error clearing
-                newSelect.addEventListener('change', function() {
-                    clearFieldError('tax_rate', this);
-                });
-            }
         }
     }
 
