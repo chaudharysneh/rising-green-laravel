@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BomProduct;
 use App\Models\Category;
+use App\Models\Tax;
 use App\Models\Technology;
 use App\Models\Warranty;
 use Illuminate\Support\Facades\Storage;
@@ -49,6 +50,7 @@ class BomProductController extends Controller
             'categories' => Category::query()->orderBy('name')->get(),
             'technologies' => Technology::query()->orderBy('title')->get(),
             'warranties' => Warranty::query()->orderBy('title')->get(),
+            'taxes' => Tax::active()->orderBy('name')->orderBy('rate')->get(),
         ];
     }
 }

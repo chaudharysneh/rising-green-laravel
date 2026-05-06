@@ -292,19 +292,14 @@
                         <div style="font-size: 13px; color: #555;">{!! nl2br(e($estimate->comment ?? '--')) !!}</div>
                     </td>
                     <td style="vertical-align: top; padding: 15px; background: #fff; border: 1px solid #eee;">
-                        @if($user && $user->bankDetails)
-                            @php $bank = $user->bankDetails->first(); @endphp
-                            @if($bank)
-                                <div style="font-size: 13px; line-height: 1.6;">
-                                    <strong>Bank:</strong> {{ $bank->bank_name ?? '--' }}<br>
-                                    <strong>A/c Name:</strong> {{ $bank->account_name ?? '--' }}<br>
-                                    <strong>A/c No.:</strong> {{ $bank->account_number ?? '--' }}<br>
-                                    <strong>IFSC:</strong> {{ $bank->ifsc_code ?? '--' }}<br>
-                                    <strong>Branch:</strong> {{ $bank->branch_name ?? '--' }}
-                                </div>
-                            @else
-                                <div style="color:#999; font-size: 12px;">No bank details available.</div>
-                            @endif
+                        @if(!empty($settings['bank_name']) || !empty($settings['account_number']))
+                            <div style="font-size: 13px; line-height: 1.6;">
+                                <strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}<br>
+                                <strong>A/c Name:</strong> {{ $settings['account_name'] ?? '--' }}<br>
+                                <strong>A/c No.:</strong> {{ $settings['account_number'] ?? '--' }}<br>
+                                <strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}<br>
+                                <strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}
+                            </div>
                         @else
                             <div style="color:#999; font-size: 12px;">No bank details available.</div>
                         @endif

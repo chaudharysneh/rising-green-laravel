@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Models\Tax;
+use App\Models\Subsidy;
 use App\Models\WhatsappMessageTemplate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,8 +21,10 @@ class SettingController extends Controller
         $settings = Setting::all()->keyBy('key');
         $whatsappTemplates = WhatsappMessageTemplate::visibleForSettings()->orderBy('name')->get();
         $whatsappModuleOptions = $this->whatsappModuleOptions();
+        $taxes = Tax::orderBy('name')->orderBy('rate')->get();
+        $subsidies = Subsidy::orderBy('category')->get();
 
-        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions'));
+        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions', 'taxes', 'subsidies'));
     }
 
     public function update(Request $request)
@@ -28,6 +32,13 @@ class SettingController extends Controller
         try {
             $this->persistSettings($request);
         } catch (ValidationException $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
             return back()->withErrors($e->errors())->withInput();
         } catch (Throwable $e) {
             Log::error('Settings update failed', [
@@ -38,7 +49,23 @@ class SettingController extends Controller
                 'line' => $e->getLine(),
             ]);
 
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => config('app.debug')
+                        ? $e->getMessage()
+                        : 'Settings save failed. Check logs for details.',
+                ], 500);
+            }
+
             return back()->with('error', 'Settings save failed. Check logs for details.');
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Settings saved successfully!',
+            ]);
         }
 
         return back()->with('success', 'Settings saved successfully!');
@@ -116,6 +143,12 @@ class SettingController extends Controller
             'google_client_secret' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'google_redirect_uri' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'firebase_key_file' => ['sometimes', 'nullable', 'file', 'mimes:json', 'max:2048'],
+            // Bank Details
+            'bank_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'account_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'account_number' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'ifsc_code' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'branch_name' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
         foreach ($validated as $key => $value) {
@@ -180,5 +213,199 @@ class SettingController extends Controller
             'customer_welcome_message' => 'Customer Welcome Message',
             'customer_profile_updated' => 'Customer Profile Updated',
         ];
+    }
+
+    /**
+     * Store a new tax
+     */
+    public function storeTax(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            ]);
+
+            $tax = Tax::create($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tax added successfully.',
+                'tax' => $tax
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            Log::error('Tax creation failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create tax.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Update a tax
+     */
+    public function updateTax(Request $request, Tax $tax): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            ]);
+
+            $tax->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tax updated successfully.',
+                'tax' => $tax->fresh()
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            Log::error('Tax update failed', [
+                'tax_id' => $tax->id,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update tax.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a tax
+     */
+    public function destroyTax(Tax $tax): JsonResponse
+    {
+        try {
+            $tax->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tax deleted successfully.'
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Tax deletion failed', [
+                'tax_id' => $tax->id,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete tax.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get taxes for API
+     */
+    public function getTaxes(): JsonResponse
+    {
+        try {
+            $taxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $taxes->groupBy('name')
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to fetch taxes', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch taxes.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Update a subsidy
+     */
+    public function updateSubsidy(Request $request, Subsidy $subsidy): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'amount' => ['required', 'numeric', 'min:0'],
+            ]);
+
+            $subsidy->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Subsidy updated successfully.',
+                'subsidy' => $subsidy->fresh()
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            Log::error('Subsidy update failed', [
+                'subsidy_id' => $subsidy->id,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update subsidy.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get subsidies for API
+     */
+    public function getSubsidies(): JsonResponse
+    {
+        try {
+            $subsidies = Subsidy::active()->orderBy('category')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $subsidies->keyBy('category')
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to fetch subsidies', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch subsidies.',
+            ], 500);
+        }
     }
 }

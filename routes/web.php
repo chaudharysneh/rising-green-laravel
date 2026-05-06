@@ -169,6 +169,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 
+    // Tax management routes
+    Route::post('/settings/taxes', [SettingController::class, 'storeTax'])->name('settings.taxes.store');
+    Route::put('/settings/taxes/{tax}', [SettingController::class, 'updateTax'])->name('settings.taxes.update');
+    Route::delete('/settings/taxes/{tax}', [SettingController::class, 'destroyTax'])->name('settings.taxes.destroy');
+    Route::get('/api/taxes', [SettingController::class, 'getTaxes'])->name('api.taxes.index');
+
+    // Subsidy management routes
+    Route::put('/settings/subsidies/{subsidy}', [SettingController::class, 'updateSubsidy'])->name('settings.subsidies.update');
+    Route::get('/api/subsidies', [SettingController::class, 'getSubsidies'])->name('api.subsidies.index');
+
 
     Route::resource('tasks', TaskController::class)->only(['index', 'create', 'show', 'edit'])->middleware('matrix_permission:view_tasks');
     Route::get('tasks-export', [TaskController::class, 'export'])->middleware('matrix_permission:view_tasks')->name('tasks.export');
