@@ -67,7 +67,6 @@
                             </label>
                             <textarea name="description" id="description" rows="1" class="form-control" required>{{ old('description', $ticket->description) }}</textarea>
                             <div class="invalid-feedback" id="description-error"></div>
-                            <small class="text-muted">Maximum 2000 characters</small>
                         </div>
 
                         <div class="col-md-6">

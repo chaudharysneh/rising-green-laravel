@@ -391,6 +391,17 @@
 // =========================================== Submit ===========================================
 
 $(document).ready(function () {
+    // Ensure Tom Select is initialized for customer dropdown
+    if (window.TomSelect && window.initCrmRemoteSelect) {
+        const customerSelect = document.getElementById('customer_id');
+        if (customerSelect && !customerSelect.tomselect) {
+            window.initCrmRemoteSelect('#customer_id', {
+                searchType: 'customer',
+                placeholder: 'Select Customer'
+            });
+        }
+    }
+    
     function showToast(message, type = "info") {
         const mappedType =
             {

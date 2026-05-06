@@ -33,6 +33,18 @@ class PurchaseController extends ApiBaseController
 
     public function store(Request $request)
     {
+        // Check if we have multiple products or single product
+        $hasMultipleProducts = $request->has('products') && is_array($request->products);
+        
+        if ($hasMultipleProducts) {
+            return $this->storeMultipleProducts($request);
+        } else {
+            return $this->storeSingleProduct($request);
+        }
+    }
+
+    private function storeSingleProduct(Request $request)
+    {
         $validator = Validator::make($request->all(), $this->rules(), $this->messages());
 
         if ($validator->fails()) {
@@ -81,6 +93,85 @@ class PurchaseController extends ApiBaseController
             'success' => true,
             'message' => 'Purchase created successfully.',
             'data' => $this->serialize($purchase),
+        ], 201);
+    }
+
+    private function storeMultipleProducts(Request $request)
+    {
+        // Validate basic fields
+        $basicValidator = Validator::make($request->all(), [
+            'customer_id' => ['required', 'exists:vendors,id'],
+            'invoice_date' => ['required', 'date'],
+            'comment' => ['nullable', 'string'],
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.product_id' => ['required', 'exists:products,id'],
+            'products.*.quantity' => ['required', 'integer', 'min:1'],
+        ], [
+            'customer_id.required' => 'Please select a vendor.',
+            'customer_id.exists' => 'Please select a valid vendor.',
+            'invoice_date.required' => 'Please select invoice date.',
+            'products.required' => 'Please add at least one product.',
+            'products.*.product_id.required' => 'Please select a product.',
+            'products.*.product_id.exists' => 'Please select a valid product.',
+            'products.*.quantity.required' => 'Please enter quantity.',
+            'products.*.quantity.min' => 'Quantity must be at least 1.',
+        ]);
+
+        if ($basicValidator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $basicValidator->errors(),
+            ], 422);
+        }
+
+        $data = $basicValidator->validated();
+        $createdPurchases = [];
+
+        // Generate base IN number
+        $lastPurchase = Purchase::latest('invoice_id')->first();
+        $baseNumber = ($lastPurchase ? intval($lastPurchase->invoice_no) : 0) + 1;
+
+        foreach ($data['products'] as $index => $productData) {
+            $purchaseData = [
+                'customer_id' => $data['customer_id'],
+                'product_id' => $productData['product_id'],
+                'invoice_date' => $data['invoice_date'],
+                'quantity' => $productData['quantity'],
+                'price' => 0, // Default values
+                'gst' => 0,
+                'discount' => 0,
+                'total' => 0,
+                'status' => 'pending',
+                'comment' => $data['comment'] ?? null,
+                'user_id' => auth()->id(),
+                'created_by' => auth()->id(),
+                'invoice_no' => str_pad($baseNumber + $index, 6, '0', STR_PAD_LEFT),
+            ];
+
+            $purchase = Purchase::create($purchaseData);
+
+            // Create inventory record for Material IN (increase stock)
+            $quantity = $productData['quantity'];
+            $latestInventory = ProductInventory::where('product_id', $productData['product_id'])->latest()->first();
+            $currentStock = ($latestInventory?->current_stock ?? 0) + $quantity;
+
+            ProductInventory::create([
+                'product_id' => $productData['product_id'],
+                'initial_stock' => $quantity,
+                'current_stock' => $currentStock,
+                'type' => 'increase',
+                'date' => now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+
+            $purchase->load(['vendor', 'product', 'creator']);
+            $createdPurchases[] = $this->serialize($purchase);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => count($createdPurchases) . ' Material IN entries created successfully.',
+            'data' => $createdPurchases,
         ], 201);
     }
 

@@ -147,7 +147,15 @@
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-tags text-muted me-2"></i>Make:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->category?->name ?? '-' }}</span>
+                                            <span class="detail-view-value">
+                                                @if($bomProduct->categories && $bomProduct->categories->count() > 0)
+                                                    @foreach($bomProduct->categories as $category)
+                                                        <span class="badge bg-light text-dark border me-1 mb-1">{{ $category->name }}</span>
+                                                    @endforeach
+                                                @else
+                                                    -
+                                                @endif
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

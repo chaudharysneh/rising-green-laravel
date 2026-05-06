@@ -89,10 +89,9 @@
                             <label class="form-label fw-semibold">Meeting Type </label>
                             <select name="meeting_type" id="meeting_type" class="form-select" required>
                                 <option value="">Select Meeting Type</option>
-                                <option value="online">Online</option>
-                                <option value="offline">Offline</option>
-                                <option value="phone">Phone Call</option>
-                                <option value="video">Video Conference</option>
+                                <option value="virtual">Virtual</option>
+                                <option value="in-person">In-person</option>
+                                <option value="telephonic">Telephonic</option>
                             </select>
                             <div class="invalid-feedback" id="meeting_type-error"></div>
                         </div>

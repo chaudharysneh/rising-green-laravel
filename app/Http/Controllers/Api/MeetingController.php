@@ -91,7 +91,7 @@ class MeetingController extends ApiBaseController
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'scheduled_at' => ['required', 'date'],
-            'meeting_type' => ['required', 'in:online,offline,phone,video'],
+            'meeting_type' => ['required', 'in:virtual,in-person,telephonic'],
             'status' => ['required', 'in:scheduled,completed,cancelled'],
             'address' => ['nullable', 'string', 'max:255'],
             'agenda' => ['required', 'string'],
@@ -112,7 +112,7 @@ class MeetingController extends ApiBaseController
             'scheduled_at.date' => 'Please enter a valid date and time format.',
 
             'meeting_type.required' => 'Meeting type is required.',
-            'meeting_type.in' => 'Please select a valid meeting type (Online, Offline, Phone, or Video).',
+            'meeting_type.in' => 'Please select a valid meeting type (Virtual, In-person, or Telephonic).',
 
             'status.required' => 'Please select a status.',
             'status.in' => 'Please select a valid status (Scheduled, Completed, or Cancelled).',
@@ -279,7 +279,7 @@ class MeetingController extends ApiBaseController
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'scheduled_at' => ['required', 'date'],
-            'meeting_type' => ['required', 'in:online,offline,phone,video'],
+            'meeting_type' => ['required', 'in:virtual,in-person,telephonic'],
             'status' => ['required', 'in:scheduled,completed,cancelled'],
             'address' => ['nullable', 'string', 'max:255'],
             'agenda' => ['required', 'string'],
@@ -300,7 +300,7 @@ class MeetingController extends ApiBaseController
             'scheduled_at.date' => 'Please enter a valid date and time format.',
 
             'meeting_type.required' => 'Meeting type is required.',
-            'meeting_type.in' => 'Please select a valid meeting type (Online, Offline, Phone, or Video).',
+            'meeting_type.in' => 'Please select a valid meeting type (Virtual, In-person, or Telephonic).',
 
             'status.required' => 'Please select a status.',
             'status.in' => 'Please select a valid status (Scheduled, Completed, or Cancelled).',

@@ -44,7 +44,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Customer </label>
                             <select name="customer_id" id="customer_id" class="form-select"
-                                data-search-url="{{ route('customers.search.estimate.api') }}" data-search-type="customer"
+                                data-search-url="{{ route('customers.search.api') }}" data-search-type="customer"
                                 data-search-placeholder="Select Customer" required>
                                 <option value="">Select Customer</option>
                                 @foreach ($customers as $customer)
