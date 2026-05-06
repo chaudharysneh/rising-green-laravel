@@ -256,6 +256,8 @@ class ProfileController extends Controller
             'social_instagram' => $request->input('social_instagram'),
             'social_facebook' => $request->input('social_facebook'),
             'social_linkedin' => $request->input('social_linkedin'),
+            'phone' => $request->input('phone'),
+            'email' => $request->input('email'),
         ];
 
         foreach ($settingsToUpdate as $key => $value) {
@@ -304,6 +306,8 @@ class ProfileController extends Controller
             'social_instagram',
             'social_facebook',
             'social_linkedin',
+            'phone',
+            'email',
         ])->pluck('value', 'key');
     }
 }

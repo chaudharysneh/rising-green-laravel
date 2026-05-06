@@ -25,6 +25,8 @@ class PdfbuilderController extends Controller
             'social_instagram',
             'social_facebook',
             'social_linkedin',
+            'phone',
+            'email',
         ])->pluck('value', 'key');
     }
 
@@ -48,6 +50,21 @@ class PdfbuilderController extends Controller
             'companyQrCodePath' => $this->resolvePublicStoragePath($settings['company_qr_code_path'] ?? null),
             'profileUser' => $user,
         ];
+    }
+
+    private function getEstimateDetails(?string $estimateNo): ?\App\Models\Estimate
+    {
+        if (!$estimateNo || $estimateNo === '--') {
+            return null;
+        }
+
+        try {
+            return \App\Models\Estimate::with('customer')
+                ->where('estimate_no', $estimateNo)
+                ->first();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -403,6 +420,9 @@ class PdfbuilderController extends Controller
         $template->update($updateData);
 
         // Generate PDF
+        $estimateNo = $request->input('estimate_no') ?? $request->query('estimate_no') ?? '--';
+        $estdata = $this->getEstimateDetails($estimateNo);
+
         $pdfData = array_merge($updateData, $this->pdfCompanyData(), [
             'template_id' => $template->id,
             'quotation_html' => $request->input('quotation_html', ''),
@@ -419,6 +439,8 @@ class PdfbuilderController extends Controller
             'paymentTerms' => $paymentTerms,
             'environmentImpact' => $environmentImpact,
             'footer' => $footer,
+            'estimate_no' => $estimateNo,
+            'estdata' => $estdata,
         ]);
 
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
@@ -463,6 +485,9 @@ class PdfbuilderController extends Controller
         //     ]);
         // }
 
+        $estimateNo = request()->query('estimate_no') ?? '--';
+        $estdata = $this->getEstimateDetails($estimateNo);
+
         $form_data = $template->form_data ?? [];
         $pdfData = array_merge($this->pdfCompanyData(), [
             'before_blocks' => $form_data['before_blocks'] ?? [],
@@ -479,8 +504,10 @@ class PdfbuilderController extends Controller
             'footer_image' => asset('/assets/pdfFooter.png'),
             'template_id' => $template->id,
             'template_name' => $template->template_name,
-            'user' => Auth::user()->id,
+            'user' => Auth::user(),
             'generated_at' => now()->format('d M Y h:i A'),
+            'estimate_no' => $estimateNo,
+            'estdata' => $estdata,
         ]);
 
         // dd($pdfData);
@@ -665,6 +692,9 @@ class PdfbuilderController extends Controller
         $template = PdfBuilderForm::create($data);
 
         // PDF generation logic (same as update)
+        $estimateNo = $request->input('estimate_no') ?? $request->query('estimate_no') ?? '--';
+        $estdata = $this->getEstimateDetails($estimateNo);
+
         $pdfData = array_merge($data, $this->pdfCompanyData(), [
             'template_id' => $template->id,
             'quotation_html' => '',
@@ -681,11 +711,19 @@ class PdfbuilderController extends Controller
             'paymentTerms' => $paymentTerms,
             'environmentImpact' => $environmentImpact,
             'footer' => $footer,
+            'estimate_no' => $estimateNo,
+            'estdata' => $estdata,
         ]);
 
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
         $pdfFileName = 'pdf_' . $template->id . '_' . time() . '.pdf';
         $pdfFilePath = 'uploads/pdfs/' . $pdfFileName;
+
+        $pdfDir = public_path('uploads/pdfs/');
+        if (!File::isDirectory($pdfDir)) {
+            File::makeDirectory($pdfDir, 0777, true);
+        }
+
         $pdf->save(public_path($pdfFilePath));
 
         $template->update(['pdf_file' => $pdfFilePath]);

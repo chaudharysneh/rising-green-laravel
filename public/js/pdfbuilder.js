@@ -1,6 +1,6 @@
 /**
  * PDF Builder consolidated JS
- * Combines list and form logic, modernizes delete functionality
+ * Combines list, form wizard step logic, block toggles, dynamic block addition, and submissions.
  */
 (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
@@ -89,9 +89,6 @@
                     </td>
                 </tr>`;
             }).join("");
-
-            // Re-attach expand logic is done via delegation now or in renderRows
-            // We use delegation for simplicity like meeting.js
         }
 
         let timer;
@@ -186,7 +183,7 @@
         fetchTemplates();
     }
 
-    // ✅ DELETE FUNCTION (Modernized like meeting.js)
+    // ✅ DELETE FUNCTION
     function deleteTemplate(id, button) {
         window.showDeleteConfirm("You won't be able to revert this!").then((result) => {
             if (!result.isConfirmed) return;
@@ -220,270 +217,353 @@
     }
 
     // ==================== FORM / CREATE / EDIT LOGIC ====================
-    function initPdfForm() {
-        const form = document.getElementById('pdf-builder-form');
-        const beforeContainer = document.getElementById('before-blocks-container');
-        const afterContainer = document.getElementById('after-blocks-container');
-        const addBeforeBtn = document.getElementById('add-before-block');
-        const addAfterBtn = document.getElementById('add-after-block');
+    let editorCount = 0;
+    let blockSeq = 0;
+    window.__pdfWizardPendingEditors = window.__pdfWizardPendingEditors || [];
+    window.__pdfWizardIsMobile = window.matchMedia ? window.matchMedia('(max-width: 767px)').matches : (window.innerWidth <= 767);
+    window.__pdfWizardCurrentStep = 1;
 
-        if (!form && !beforeContainer && !afterContainer) return;
+    function setBlockEnabled(targetSelector, enabled) {
+        const body = document.querySelector(targetSelector);
+        if (!body) return;
 
-        // Handle Header Image Preview
-        const headerImgInput = document.getElementById('header_img_input');
-        if (headerImgInput) {
-            headerImgInput.addEventListener('change', function(e) {
-                const preview = document.getElementById('header_img_preview');
-                const file = e.target.files[0];
-                if (file && preview) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        preview.src = event.target.result;
-                        preview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+        body.classList.toggle('d-none', !enabled);
 
-        // Initialize CKEditor for existing textareas
-        document.querySelectorAll('.ckeditor-textarea').forEach(textarea => {
-            initCKEditor(textarea.id);
+        const fields = body.querySelectorAll('input, select, textarea, button');
+        fields.forEach((el) => {
+            el.disabled = !enabled;
         });
+    }
 
-        function initCKEditor(id) {
-            if (typeof CKEDITOR !== 'undefined') {
-                if (CKEDITOR.instances[id]) {
-                    CKEDITOR.instances[id].destroy();
-                }
-                CKEDITOR.replace(id, {
-                    height: 200,
-                });
+    function initBlockToggles() {
+        document.querySelectorAll('.block-toggle').forEach((toggle) => {
+            const target = toggle.getAttribute('data-target');
+            const activeInputSel = toggle.getAttribute('data-active-input');
+            const activeInput = activeInputSel ? document.querySelector(activeInputSel) : null;
+            if (!target) return;
+            if (activeInput) {
+                activeInput.value = toggle.checked ? '1' : '0';
             }
-        }
-
-        function createBlock(type, index) {
-            const id = `${type}_${Date.now()}`;
-            const block = document.createElement('div');
-            block.className = 'card mb-4 border shadow-none block-item position-relative';
-            block.innerHTML = `
-                <div class="card-body p-4 pt-5">
-                    <button type="button" class="btn btn-danger btn-sm remove-block position-absolute" style="top: 15px; right: 15px;">
-                        <i class="fa-solid fa-trash-can me-1"></i> Remove
-                    </button>
-                    
-                    <div class="mb-4">
-                        <label class="form-label d-flex align-items-center gap-2 mb-2 fw-semibold">
-                            <i class="fa-solid fa-image text-primary"></i> Image
-                        </label>
-                        <div class="upload-drag-area p-4 border border-dashed rounded-4 text-center bg-light cursor-pointer position-relative">
-                            <input type="file" name="${type}_image[${id}]" class="form-control d-none file-input-capture" accept="image/*">
-                            <input type="hidden" name="${type}_id[]" value="${id}">
-                            <div class="upload-placeholder">
-                                <i class="fa-solid fa-cloud-arrow-up fs-1 text-primary mb-2"></i>
-                                <p class="mb-0 text-muted">Drag & drop files or <span class="text-primary fw-bold">Browse</span></p>
-                            </div>
-                            <div class="preview-area d-none">
-                                <img src="" class="img-fluid rounded-3 mb-2" style="max-height: 150px;">
-                                <p class="filename mb-0 small text-muted"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label d-flex align-items-center gap-2 mb-2 fw-semibold">
-                            <i class="fa-solid fa-heading text-primary"></i> Title
-                        </label>
-                        <input type="text" name="${type}_title[]" class="form-control rounded-3" placeholder="Enter title">
-                    </div>
-
-                    <div class="mb-0">
-                        <label class="form-label d-flex align-items-center gap-2 mb-2 fw-semibold">
-                            <i class="fa-solid fa-align-left text-primary"></i> Content
-                        </label>
-                        <textarea name="${type}_content[]" id="editor_${id}" class="form-control ckeditor-textarea"></textarea>
-                    </div>
-                </div>
-            `;
-
-            // Handle File Input Trigger
-            const dragArea = block.querySelector('.upload-drag-area');
-            const fileInput = block.querySelector('.file-input-capture');
-            const previewArea = block.querySelector('.preview-area');
-            const placeholder = block.querySelector('.upload-placeholder');
-            const previewImg = block.querySelector('.preview-area img');
-            const filenameTxt = block.querySelector('.filename');
-
-            dragArea.addEventListener('click', () => fileInput.click());
-            
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
-                        filenameTxt.textContent = fileInput.files[0].name;
-                        placeholder.classList.add('d-none');
-                        previewArea.classList.remove('d-none');
-                    }
-                    reader.readAsDataURL(this.files[0]);
+            setBlockEnabled(target, !!toggle.checked);
+            toggle.addEventListener('change', function () {
+                if (activeInput) {
+                    activeInput.value = this.checked ? '1' : '0';
                 }
-            });
-
-            // Handle Remove
-            block.querySelector('.remove-block').addEventListener('click', () => {
-                if (confirm('Are you sure you want to remove this block?')) {
-                    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[`editor_${id}`]) {
-                        CKEDITOR.instances[`editor_${id}`].destroy();
-                    }
-                    block.remove();
-                }
-            });
-
-            return block;
-        }
-
-        if (addBeforeBtn) {
-            addBeforeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const block = createBlock('before');
-                beforeContainer.appendChild(block);
-                initCKEditor(block.querySelector('.ckeditor-textarea').id);
-            });
-        }
-
-        if (addAfterBtn) {
-            addAfterBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const block = createBlock('after');
-                afterContainer.appendChild(block);
-                initCKEditor(block.querySelector('.ckeditor-textarea').id);
-            });
-        }
-
-        // Handle existing blocks removal
-        document.querySelectorAll('.remove-block').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to remove this block?')) {
-                    const block = this.closest('.block-item');
-                    const textarea = block.querySelector('.ckeditor-textarea');
-                    if (textarea && typeof CKEDITOR !== 'undefined' && CKEDITOR.instances[textarea.id]) {
-                        CKEDITOR.instances[textarea.id].destroy();
-                    }
-                    block.remove();
-                }
+                setBlockEnabled(target, !!this.checked);
             });
         });
+    }
 
-        // Handle existing image triggers
-        document.querySelectorAll('.upload-drag-area').forEach(dragArea => {
-            const fileInput = dragArea.querySelector('.file-input-capture');
-            if (fileInput) {
-                dragArea.addEventListener('click', () => fileInput.click());
-                fileInput.addEventListener('change', function() {
-                    const previewImg = dragArea.querySelector('.preview-area img');
-                    const filenameTxt = dragArea.querySelector('.filename');
-                    const placeholder = dragArea.querySelector('.upload-placeholder');
-                    const previewArea = dragArea.querySelector('.preview-area');
+    function initCkeditorIfPresent(textareaId) {
+        if (!window.CKEDITOR) return;
+        const el = document.getElementById(textareaId);
+        if (!el) return;
+        if (CKEDITOR.instances && CKEDITOR.instances[textareaId]) return;
+        CKEDITOR.replace(textareaId);
+    }
 
-                    if (this.files && this.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            if (previewImg) previewImg.src = e.target.result;
-                            if (filenameTxt) filenameTxt.textContent = fileInput.files[0].name;
-                            if (placeholder) placeholder.classList.add('d-none');
-                            if (previewArea) previewArea.classList.remove('d-none');
-                        }
-                        reader.readAsDataURL(this.files[0]);
-                    }
-                });
+    function initEditorsForPdfStep(stepNum) {
+        if (stepNum === 1) {
+            initCkeditorIfPresent('company_description');
+        }
+        if (stepNum === 3) {
+            initCkeditorIfPresent('components_description');
+        }
+        if (stepNum === 4) {
+            initCkeditorIfPresent('environment_impact_content');
+            if (Array.isArray(window.__pdfWizardPendingEditors) && window.__pdfWizardPendingEditors.length) {
+                const pending = window.__pdfWizardPendingEditors.slice();
+                window.__pdfWizardPendingEditors.length = 0;
+                pending.forEach((id) => initCkeditorIfPresent(id));
             }
-        });
-
-        if (form) {
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                if (!form.checkValidity()) {
-                    form.classList.add('was-validated');
-                    return;
-                }
-
-                if (typeof CKEDITOR !== 'undefined') {
-                    Object.values(CKEDITOR.instances).forEach(instance => instance.updateElement());
-                }
-
-                const submitButton = form.querySelector('button[type="submit"]');
-                const formData = new FormData(form);
-
-                form.querySelectorAll('.is-invalid').forEach(element => element.classList.remove('is-invalid'));
-
-                if (typeof window.buttonLoader === 'function' && submitButton) {
-                    window.buttonLoader($(submitButton), 'Saving...', true);
-                }
-
-                $.ajax({
-                    url: form.getAttribute('action'),
-                    type: form.getAttribute('method') || 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                    },
-                    success: function (response) {
-                        if (typeof window.buttonLoader === 'function' && submitButton) {
-                            window.buttonLoader($(submitButton), '', false);
-                        }
-
-                        if (typeof window.showAlert === 'function') {
-                            window.showAlert('success', response.message || 'Template saved successfully.', '', response.redirect || '/pdfbuilder');
-                        }
-                    },
-                    error: function (xhr) {
-                        if (typeof window.buttonLoader === 'function' && submitButton) {
-                            window.buttonLoader($(submitButton), '', false);
-                        }
-
-                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                            Object.entries(xhr.responseJSON.errors).forEach(([key, messages]) => {
-                                const field = form.querySelector(`[name="${key}"]`);
-                                const errorElement = document.getElementById(`${key}-error`);
-
-                                if (field) {
-                                    field.classList.add('is-invalid');
-                                }
-
-                                if (errorElement) {
-                                    errorElement.textContent = messages[0];
-                                }
-                            });
-
-                            form.classList.add('was-validated');
-                            return;
-                        }
-
-                        if (typeof window.showAlert === 'function') {
-                            window.showAlert('error', xhr.responseJSON?.message || 'Something went wrong');
-                        }
-                    }
-                });
-            });
         }
     }
+
+    function syncAllCkeditorsToTextareas() {
+        if (!window.CKEDITOR || !CKEDITOR.instances) return;
+        Object.keys(CKEDITOR.instances).forEach((key) => {
+            CKEDITOR.instances[key].updateElement();
+        });
+    }
+
+    function handleCompanyFileDrop(event, dropArea, type) {
+        event.preventDefault();
+        dropArea.classList.remove('bg-secondary-subtle');
+        const fileInput = dropArea.querySelector('input[type=file]');
+        fileInput.files = event.dataTransfer.files;
+        showCompanyFileName(fileInput, type);
+    }
+
+    function showCompanyFileName(input, type) {
+        const fileNameContainer = input.closest('.mb-3').querySelector(`.company-file-name-${type}`);
+        fileNameContainer.textContent = input.files.length > 0 ?
+            "Selected file: " + input.files[0].name :
+            (input.previousElementSibling && input.previousElementSibling.tagName === 'DIV' ? 'Current file uploaded' : '');
+    }
+
+    function addServiceRow() {
+        const container = document.getElementById('services-container');
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'row g-2 align-items-center mb-2 service-row';
+        row.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="services_left[]" placeholder="Service">
+            </div>
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="services_right[]" placeholder="Details">
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeServiceRow(this)">Remove</button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    function removeServiceRow(btn) {
+        const row = btn.closest('.service-row');
+        if (!row) return;
+        const container = document.getElementById('services-container');
+        if (!container) return;
+        const rows = container.querySelectorAll('.service-row');
+        if (rows.length <= 1) {
+            row.querySelectorAll('input').forEach(i => i.value = '');
+            return;
+        }
+        row.remove();
+    }
+
+    function initPdfForm() {
+        const form = document.getElementById('pdf-builder-form');
+        if (!form) return;
+
+        initBlockToggles();
+
+        if (window.__pdfWizardIsMobile) {
+            initEditorsForPdfStep(1);
+        } else {
+            initCkeditorIfPresent('company_description');
+            initCkeditorIfPresent('components_description');
+            initCkeditorIfPresent('environment_impact_content');
+        }
+
+        const isMobile = !!window.__pdfWizardIsMobile;
+        if (isMobile) {
+            const totalSteps = 4;
+            const $steps = document.querySelectorAll('.pdf-mobile-step');
+            const $stepItems = document.querySelectorAll('.pdf-step-item');
+            const prevBtn = document.getElementById('pdf-prev-step');
+            const prevInlineBtn = document.getElementById('pdf-prev-step-inline');
+            const nextBtn = document.getElementById('pdf-next-step');
+            const nav = document.querySelector('.pdf-step-navigation');
+
+            const clearStep1Errors = () => {
+                const tErr = document.getElementById('template_name-error');
+                const fErr = document.getElementById('first_img-error');
+                if (tErr) tErr.textContent = '';
+                if (fErr) fErr.textContent = '';
+                const templateNameEl = document.getElementById('template_name');
+                if (templateNameEl) templateNameEl.classList.remove('is-invalid');
+                const fileInput = document.querySelector('input[name="first_img"]');
+                if (fileInput) fileInput.classList.remove('is-invalid');
+            };
+
+            const validateStep1 = () => {
+                clearStep1Errors();
+                let ok = true;
+
+                const templateNameEl = document.getElementById('template_name');
+                const templateName = templateNameEl ? String(templateNameEl.value || '').trim() : '';
+                if (!templateName) {
+                    const tErr = document.getElementById('template_name-error');
+                    if (tErr) tErr.textContent = 'Template Name is required.';
+                    if (templateNameEl) templateNameEl.classList.add('is-invalid');
+                    ok = false;
+                }
+
+                const existing = (document.getElementById('first_img_existing')?.value || '').trim();
+                const fileInput = document.querySelector('input[name="first_img"]');
+                const hasNew = !!(fileInput && fileInput.files && fileInput.files.length > 0);
+                if (!hasNew && !existing) {
+                    const fErr = document.getElementById('first_img-error');
+                    if (fErr) fErr.textContent = 'Header Image (First Page) is required.';
+                    if (fileInput) fileInput.classList.add('is-invalid');
+                    ok = false;
+                }
+
+                if (!ok) {
+                    const firstErr = document.querySelector('#template_name-error:not(:empty), #first_img-error:not(:empty)');
+                    if (firstErr) {
+                        const y = firstErr.getBoundingClientRect().top + window.scrollY - 120;
+                        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                    }
+                }
+                return ok;
+            };
+
+            const scrollToTop = () => {
+                const indicator = document.querySelector('.pdf-step-indicator');
+                if (!indicator) return;
+                window.scrollTo({ top: Math.max(0, indicator.getBoundingClientRect().top + window.scrollY - 10), behavior: 'smooth' });
+            };
+
+            const update = () => {
+                const current = window.__pdfWizardCurrentStep || 1;
+
+                $steps.forEach((el) => {
+                    const s = parseInt(el.getAttribute('data-step') || '0', 10);
+                    el.classList.toggle('active', s === current);
+                });
+
+                $stepItems.forEach((el) => {
+                    const s = parseInt(el.getAttribute('data-step') || '0', 10);
+                    el.classList.toggle('active', s === current);
+                    el.classList.toggle('completed', s < current);
+                });
+
+                if (prevBtn) prevBtn.style.display = (current <= 1) ? 'none' : '';
+                if (nav) nav.style.display = (current >= totalSteps) ? 'none' : '';
+                if (nextBtn) nextBtn.textContent = 'Next';
+
+                initEditorsForPdfStep(current);
+                scrollToTop();
+            };
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if ((window.__pdfWizardCurrentStep || 1) === 1) {
+                        if (!validateStep1()) return;
+                    }
+                    if ((window.__pdfWizardCurrentStep || 1) < totalSteps) {
+                        window.__pdfWizardCurrentStep = (window.__pdfWizardCurrentStep || 1) + 1;
+                        update();
+                    }
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if ((window.__pdfWizardCurrentStep || 1) > 1) {
+                        window.__pdfWizardCurrentStep = (window.__pdfWizardCurrentStep || 1) - 1;
+                        update();
+                    }
+                });
+            }
+
+            if (prevInlineBtn) {
+                prevInlineBtn.addEventListener('click', () => {
+                    if ((window.__pdfWizardCurrentStep || 1) > 1) {
+                        window.__pdfWizardCurrentStep = (window.__pdfWizardCurrentStep || 1) - 1;
+                        update();
+                    }
+                });
+            }
+
+            window.__pdfWizardCurrentStep = 1;
+            update();
+
+            const templateNameEl = document.getElementById('template_name');
+            if (templateNameEl) templateNameEl.addEventListener('input', clearStep1Errors);
+            const fileInput = document.querySelector('input[name="first_img"]');
+            if (fileInput) fileInput.addEventListener('change', clearStep1Errors);
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            syncAllCkeditorsToTextareas();
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            const formData = new FormData(form);
+
+            form.querySelectorAll('.is-invalid').forEach(element => element.classList.remove('is-invalid'));
+            form.querySelectorAll('[id$="-error"]').forEach(element => {
+                element.textContent = '';
+                element.classList.remove('d-block');
+            });
+
+            if (typeof window.buttonLoader === 'function' && submitButton) {
+                window.buttonLoader($(submitButton), 'Saving...', true);
+            }
+
+            $.ajax({
+                url: form.getAttribute('action'),
+                type: form.getAttribute('method') || 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                success: function (response) {
+                    if (typeof window.buttonLoader === 'function' && submitButton) {
+                        window.buttonLoader($(submitButton), '', false);
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('success', response.message || 'Template saved successfully.', '', response.redirect || '/pdfbuilder');
+                    }
+                },
+                error: function (xhr) {
+                    if (typeof window.buttonLoader === 'function' && submitButton) {
+                        window.buttonLoader($(submitButton), '', false);
+                    }
+
+                    if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                        Object.entries(xhr.responseJSON.errors).forEach(([key, messages]) => {
+                            const field = form.querySelector(`[name="${key}"]`);
+                            const errorElement = document.getElementById(`${key}-error`);
+
+                            if (field) {
+                                field.classList.add('is-invalid');
+                            }
+
+                            if (errorElement) {
+                                errorElement.textContent = messages[0];
+                            }
+                        });
+
+                        form.classList.add('was-validated');
+                        return;
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('error', xhr.responseJSON?.message || 'Something went wrong');
+                    }
+                }
+            });
+        });
+
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('.cke_notification_warning').forEach(el => el.style.display = 'none');
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Expose functions globally for inline HTML event bindings
+    
+    
+    
+    
+    window.addServiceRow = addServiceRow;
+    window.removeServiceRow = removeServiceRow;
+    window.handleCompanyFileDrop = handleCompanyFileDrop;
+    window.showCompanyFileName = showCompanyFileName;
 
     // ==================== GLOBAL INITIALIZATION ====================
     $(document).ready(function () {
         initPdfList();
         initPdfForm();
 
-        // Standardized delete handler using delegation
         $(document).on("click", ".delete-btn", function () {
             deleteTemplate($(this).data("id"), this);
         });
 
-        // Expand handler using delegation
         $(document).on("click", ".btn-user-expand", function () {
             const id = this.dataset.templateId;
             const detailsRow = document.getElementById(`details-${id}`);
@@ -500,7 +580,4 @@
             }
         });
     });
-
-    // Expose necessary functions globally if needed
-    window.deleteTemplate = deleteTemplate;
 })();

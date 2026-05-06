@@ -1,254 +1,846 @@
-<div class="card shadow-sm border-0 followup-form-card overflow-hidden">
-    <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <h1 class="h4 mb-1 fw-semibold">Manage PDF Template</h1>
-                <p class="text-muted small mb-0">Create or edit your custom PDF template record.</p>
+@php
+    $formData = [];
+    if (isset($template) && isset($template->form_data)) {
+        $formData = is_array($template->form_data) ? $template->form_data : (json_decode($template->form_data, true) ?: []);
+    }
+
+    $companyInfo = $companyInfo ?? (isset($template->company_information) ? (is_array($template->company_information) ? $template->company_information : json_decode($template->company_information, true)) : []);
+    $companyInfo = is_array($companyInfo) ? $companyInfo : [];
+
+    $timeLine = $timeLine ?? (isset($template->time_line) ? (is_array($template->time_line) ? $template->time_line : json_decode($template->time_line, true)) : []);
+    $timeLine = is_array($timeLine) ? $timeLine : [];
+
+    $paymentTerms = $paymentTerms ?? (
+        isset($template->payment_terms)
+            ? (is_array($template->payment_terms) ? $template->payment_terms : json_decode($template->payment_terms, true))
+            : ($formData['payment_terms'] ?? [])
+    );
+    $paymentTerms = is_array($paymentTerms) ? $paymentTerms : [];
+
+    $environmentImpact = $environmentImpact ?? (
+        isset($template->environment_impact)
+            ? (is_array($template->environment_impact) ? $template->environment_impact : json_decode($template->environment_impact, true))
+            : ($formData['environment_impact'] ?? [])
+    );
+    $environmentImpact = is_array($environmentImpact) ? $environmentImpact : [];
+
+    $footer = $footer ?? (
+        isset($template->footer)
+            ? (is_array($template->footer) ? $template->footer : json_decode($template->footer, true))
+            : ($formData['footer'] ?? [])
+    );
+    $footer = is_array($footer) ? $footer : [];
+
+    $components = $components ?? (
+        isset($template->components)
+            ? (is_array($template->components) ? $template->components : json_decode($template->components, true))
+            : ($formData['components'] ?? [])
+    );
+    $components = is_array($components) ? $components : [];
+
+    $generationSection = $formData['generation'] ?? [];
+    $generationSection = is_array($generationSection) ? $generationSection : [];
+
+    $ongridRoiSection = $formData['ongrid_roi'] ?? [];
+    $ongridRoiSection = is_array($ongridRoiSection) ? $ongridRoiSection : [];
+@endphp
+
+@push('styles')
+<style>
+    .border-dashed-blue {
+        border: 3px dashed #4b9349;
+    }
+
+    .bg-blue {
+        background: #bdc5f121;
+    }
+
+    /* 🔵 CKEditor Styling */
+    .cke {
+        border-radius: 6px !important;
+        overflow: hidden;
+    }
+
+    .cke_top {
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .cke_bottom {
+        border-radius: 0 0 8px 8px !important;
+    }
+
+    /* Light border for form blocks */
+    .block {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px 18px 0 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .company-info-block {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .time-line-block {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .payment-terms-block{
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .environment-impact-block{
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;   
+    }
+    .footer-block{
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 18px;
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .addmore:focus {
+        color: white;
+    }   
+
+    .text-primary
+    {
+        color: #4b9349 !important;
+    }
+    .btn-outline-primary
+    {
+        color: #4b9349 !important;
+        border-color: #4b9349 !important;
+    }
+    .btn-outline-primary:not(:disabled):not(.disabled).active, .btn-outline-primary:not(:disabled):not(.disabled):active, .show>.btn-outline-primary.dropdown-toggle{
+        background-color:#4b9349 !important;
+    }
+    .btn-check:focus+.btn, .btn:focus{
+        background-color:#4b9349 !important;
+    }
+
+    /* Mobile-only multi-step wizard (do not affect desktop) */
+    @media (max-width: 767px) {
+        .pdf-mobile-step {
+            display: none;
+        }
+        .pdf-mobile-step.active {
+            display: block;
+        }
+        .pdf-step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 12px 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .pdf-step-item {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            min-width: 0;
+        }
+        .pdf-step-number {
+            width: 30px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 6px;
+            color: #6c757d;
+        }
+        .pdf-step-item.active .pdf-step-number {
+            color: #4b9349;
+        }
+        .pdf-step-item.completed .pdf-step-number {
+            color: #28a745;
+        }
+        .pdf-step-title {
+            font-size: 11px;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pdf-step-item.active .pdf-step-title {
+            color: #4b9349;
+            font-weight: 700;
+        }
+        .pdf-step-item.completed .pdf-step-title {
+            color: #28a745;
+        }
+        .pdf-step-connector {
+            width: 24px;
+            height: 2px;
+            background: #dee2e6;
+            margin: 0 6px;
+            flex: 0 0 auto;
+        }
+        .pdf-step-navigation {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 12px;
+            background: #fff;
+            border-top: 1px solid #dee2e6;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        .pdf-step-navigation button {
+            min-width: 110px;
+        }
+        /* leave room for sticky nav */
+        form.pdfbuilder-wizard-form {
+            padding-bottom: 72px;
+        }
+    }
+
+    /* Desktop: show everything, hide wizard UI */
+    @media (min-width: 768px) {
+        .pdf-mobile-step {
+            display: block !important;
+        }
+        .pdf-step-indicator,
+        .pdf-step-navigation {
+            display: none !important;
+        }
+        form.pdfbuilder-wizard-form {
+            padding-bottom: 0;
+        }
+        #pdf-next-step .btn:focus, #pdf-next-step .btn:active{
+            background-color: #4b9349 !important;
+        }
+    }
+</style>
+@endpush
+
+<div class="container-fluid p-0">
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden pdfbuilder-form-card">
+        <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h1 class="h4 mb-1 fw-semibold">Manage PDF Template</h1>
+                    <p class="text-muted small mb-0">Create or edit your custom PDF template record.</p>
+                </div>
+                <a href="{{ route('pdfbuilder.index') }}" class="btn btn-dark back-btn">
+                    <i class="fa-solid fa-angle-left pe-1"></i>
+                    <span>Back</span>
+                </a>
             </div>
-            <a href="{{ route('pdfbuilder.index') }}" class="btn btn-dark-blue">
-                <i class="fa-solid fa-angle-left pe-2"></i>
-                <span>Back</span>
-            </a>
         </div>
-    </div>
-
-    <div class="card-body p-3 p-md-4">
-        <form action="{{ $action }}" method="POST" enctype="multipart/form-data" id="pdf-builder-form" class="needs-validation pdf-builder-form" novalidate>
-            @csrf
-            @if(isset($edit_mode))
-                <input type="hidden" name="id" value="{{ $template->id }}">
-            @endif
-
-            <div class="row g-3 g-md-4">
-                <!-- Template Name -->
-                <div class="col-12 col-md-12 mb-2">
-                    <label class="form-label fw-medium d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-file-signature text-primary"></i> Template Name 
-                    </label>
-                    <input type="text" name="template_name" class="form-control" 
-                           value="{{ $template->template_name ?? old('template_name') }}" required placeholder="Enter template name">
-                    <div class="invalid-feedback" id="template_name-error">Template name is required.</div>
-                </div>
-
-                <!-- Header Image -->
-                <div class="col-12 col-md-12 mb-2">
-                    <label class="form-label fw-medium d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-image text-primary"></i> Header Image (First Page)
-                    </label>
-                    <div class="input-group">
-                        <input type="file" name="first_img" id="header_img_input" class="form-control" accept="image/*">
-                    </div>
-                    <p class="text-muted small mt-1 mb-0">If empty, default header will be used.</p>
-                    <div class="mt-2" id="header_img_preview_container">
-                        @if(isset($template) && $template->first_img)
-                            @php
-                                $headerImagePath = $template->first_img;
-                                // Ensure path starts with /
-                                if (!str_starts_with($headerImagePath, '/')) {
-                                    $headerImagePath = '/' . $headerImagePath;
-                                }
-                            @endphp
-                            <img id="header_img_preview" src="{{ asset($headerImagePath) }}" class="img-thumbnail rounded-3" style="max-height: 80px;">
-                        @else
-                            <img id="header_img_preview" src="#" class="img-thumbnail rounded-3" style="max-height: 80px; display: none;">
+        <div class="card-body p-3 p-md-4">
+                    <form action="{{ $action }}" method="post" enctype="multipart/form-data" id="pdf-builder-form" class="m-3 pdfbuilder-wizard-form needs-validation" novalidate>
+                        @csrf
+                        @if (isset($edit_mode) && $edit_mode)
+                            <input type="hidden" name="id" value="{{ $template->id }}">
                         @endif
-                    </div>
-                </div>
-            </div>
 
-            <hr class="my-4 opacity-50">
-
-            <!-- Before Quotation Section -->
-            <div class="mb-5">
-                <h5 class="text-primary fw-bold mb-4 d-flex align-items-center gap-2">Before Quotation :</h5>
-                <div id="before-blocks-container">
-                    @foreach($before_blocks ?? [] as $index => $block)
-                        @php
-                            $beforeImagePreview = $block['image_url'] ?? '';
-                        @endphp
-                        <div class="card mb-4 border shadow-none block-item position-relative rounded-4 bg-light bg-opacity-50">
-                            <div class="card-body p-4 pt-5">
-                                <button type="button" class="btn btn-danger btn-sm remove-block position-absolute rounded-pill px-3" style="top: 15px; right: 15px;">
-                                    <i class="fa-solid fa-trash-can me-1"></i> Remove
-                                </button>
-                                
-                                <div class="row g-4">
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-image text-primary"></i> Image
-                                        </label>
-                                        <div class="upload-drag-area p-4 border border-dashed rounded-4 text-center bg-white cursor-pointer position-relative">
-                                            <input type="file" name="before_image[{{ $block['id'] ?? $index }}]" class="form-control d-none file-input-capture" accept="image/*">
-                                            <input type="hidden" name="before_id[]" value="{{ $block['id'] ?? $index }}">
-                                            @if(!empty($beforeImagePreview))
-                                                <input type="hidden" name="before_image_old[{{ $block['id'] ?? $index }}]" value="{{ $beforeImagePreview }}">
-                                            @endif
-                                            
-                                            <div class="upload-placeholder {{ !empty($beforeImagePreview) ? 'd-none' : '' }}">
-                                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                                                <p class="mb-0 text-muted small">Drag & drop files or <span class="text-primary fw-bold">Browse</span></p>
-                                            </div>
-                                            <div class="preview-area {{ empty($beforeImagePreview) ? 'd-none' : '' }}">
-                                                <img src="{{ $beforeImagePreview }}" class="img-fluid rounded-3 mb-2" style="max-height: 120px;">
-                                                <p class="filename mb-0 small text-muted text-truncate">{{ basename($beforeImagePreview) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-heading text-primary"></i> Title
-                                        </label>
-                                        <input type="text" name="before_title[]" class="form-control" value="{{ $block['title'] ?? '' }}" placeholder="Enter title">
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-align-left text-primary"></i> Content
-                                        </label>
-                                        <textarea name="before_content[]" id="editor_before_{{ $index }}" class="form-control ckeditor-textarea">{{ $block['content'] ?? '' }}</textarea>
-                                    </div>
-                                </div>
+                        <!-- Step Indicator (Mobile Only) -->
+                        <div class="pdf-step-indicator">
+                            <div class="pdf-step-item active" data-step="1">
+                                <div class="pdf-step-number">1</div>
+                                <span class="pdf-step-title d-none">Basic</span>
+                            </div>
+                            <div class="pdf-step-connector"></div>
+                            <div class="pdf-step-item" data-step="2">
+                                <div class="pdf-step-number">2</div>
+                                <span class="pdf-step-title d-none">ROI</span>
+                            </div>
+                            <div class="pdf-step-connector"></div>
+                            <div class="pdf-step-item" data-step="3">
+                                <div class="pdf-step-number">3</div>
+                                <span class="pdf-step-title d-none">Terms</span>
+                            </div>
+                            <div class="pdf-step-connector"></div>
+                            <div class="pdf-step-item" data-step="4">
+                                <div class="pdf-step-number">4</div>
+                                <span class="pdf-step-title d-none">Footer</span>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-                <button type="button" id="add-before-block" class="btn btn-outline-dark-blue">
-                    <i class="fa-solid fa-plus me-1"></i> Add Before Quotation Block
-                </button>
-            </div>
 
-            <hr class="my-4 opacity-50">
-
-            <!-- After Quotation Section -->
-            <div class="mb-5">
-                <h5 class="text-primary fw-bold mb-4 d-flex align-items-center gap-2">After Quotation :</h5>
-                <div id="after-blocks-container">
-                    @foreach($after_blocks ?? [] as $index => $block)
-                        @php
-                            $afterImagePreview = $block['image_url'] ?? '';
-                        @endphp
-                        <div class="card mb-4 border shadow-none block-item position-relative rounded-4 bg-light bg-opacity-50">
-                            <div class="card-body p-4 pt-5">
-                                <button type="button" class="btn btn-danger btn-sm remove-block position-absolute rounded-pill px-3" style="top: 15px; right: 15px;">
-                                    <i class="fa-solid fa-trash-can me-1"></i> Remove
-                                </button>
-                                
-                                <div class="row g-4">
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-image text-primary"></i> Image
-                                        </label>
-                                        <div class="upload-drag-area p-4 border border-dashed rounded-4 text-center bg-white cursor-pointer position-relative">
-                                            <input type="file" name="after_image[{{ $block['id'] ?? $index }}]" class="form-control d-none file-input-capture" accept="image/*">
-                                            <input type="hidden" name="after_id[]" value="{{ $block['id'] ?? $index }}">
-                                            @if(!empty($afterImagePreview))
-                                                <input type="hidden" name="after_image_old[{{ $block['id'] ?? $index }}]" value="{{ $afterImagePreview }}">
-                                            @endif
-
-                                            <div class="upload-placeholder {{ !empty($afterImagePreview) ? 'd-none' : '' }}">
-                                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                                                <p class="mb-0 text-muted small">Drag & drop files or <span class="text-primary fw-bold">Browse</span></p>
-                                            </div>
-                                            <div class="preview-area {{ empty($afterImagePreview) ? 'd-none' : '' }}">
-                                                <img src="{{ $afterImagePreview }}" class="img-fluid rounded-3 mb-2" style="max-height: 120px;">
-                                                <p class="filename mb-0 small text-muted text-truncate">{{ basename($afterImagePreview) }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-heading text-primary"></i> Title
-                                        </label>
-                                        <input type="text" name="after_title[]" class="form-control" value="{{ $block['title'] ?? '' }}" placeholder="Enter title">
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                            <i class="fa-solid fa-align-left text-primary"></i> Content
-                                        </label>
-                                        <textarea name="after_content[]" id="editor_after_{{ $index }}" class="form-control ckeditor-textarea">{{ $block['content'] ?? '' }}</textarea>
-                                    </div>
-                                </div>
+                        <!-- STEP 1 -->
+                        <div class="pdf-mobile-step active" data-step="1">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="template_name" class="form-label"><i class="fa-solid fa-file-pdf"></i> Template Name</label>
+                                <input type="text" id="template_name" name="template_name" class="form-control" value="{{ old('template_name', $template->template_name ?? '') }}" required>
+                                <div class="invalid-feedback text-danger small mt-1" id="template_name-error"></div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-                <button type="button" id="add-after-block" class="btn btn-outline-dark-blue">
-                    <i class="fa-solid fa-plus me-2"></i> Add After Quotation Block
-                </button>
-            </div>
 
-            <hr class="my-5 opacity-50">
-
-            <!-- Thank You Page Section -->
-            <div class="mb-5">
-                <h5 class="text-primary fw-bold mb-4 d-flex align-items-center gap-2">
-                    Thank You Page Section :
-                </h5>
-                <div class="card border shadow-none rounded-4 bg-light bg-opacity-50">
-                    <div class="card-body p-4">
-                        <div class="row g-4">
-                            <div class="col-12 col-md-6 mb-2">
-                                <div class="form-check form-switch pt-2">
-                                    <input class="form-check-input" type="checkbox" name="footer_active" id="footer_active" value="1" {{ ($footer['active'] ?? 1) ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-medium" for="footer_active">Show Thank You Page</label>
+                        <!-- Header image (first page) upload -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label"><i class="fas fa-image"></i> Header Image (First Page)</label>
+                                @if (isset($edit_mode) && $edit_mode && !empty($template->first_img))
+                                    <div class="mb-2">
+                                        <span class="small text-muted d-block">Current image (kept if you do not upload a new one):</span>
+                                        <img src="{{ asset($template->first_img) }}" alt="Current header image" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                    </div>
+                                @else
+                                    <div class="mb-2">
+                                        <span class="small text-muted d-block">If not uploaded, the default header will be used.</span>
+                                    </div>
+                                @endif
+                                <input type="hidden" id="first_img_existing" value="{{ $template->first_img ?? '' }}">
+                                <input type="file" name="first_img" accept="image/*" class="form-control">
+                                <div class="invalid-feedback text-danger small mt-1" id="first_img-error"></div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <!-- COMPANY INFORMATION SECTION -->
+                        <div class="company-info-block mt-4" id="block-company-info">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-building"></i> Company Information</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="company_info_active" name="company_info_active" value="{{ (int)($companyInfo['active'] ?? 1) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-company-info"
+                                           data-target="#block-company-info-body"
+                                           data-active-input="#company_info_active"
+                                           {{ ((int)($companyInfo['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-company-info">Active/Inactive</label>
                                 </div>
                             </div>
+
+                            <div id="block-company-info-body" class="block-body">
                             
-                            <div class="col-12">
-                                <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-heading text-primary"></i> Thank You Title
-                                </label>
-                                <input type="text" name="footer_title" class="form-control" value="{{ $footer['title'] ?? 'THANK YOU' }}" placeholder="Enter title (e.g. THANK YOU)">
+                            <!-- Textarea for company description -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label class="form-label"><i class="fas fa-align-left"></i> Company Description</label>
+                                    <textarea class="form-control" id="company_description" name="company_description" rows="4" placeholder="Enter company description...">{{ $companyInfo['company_description'] ?? '' }}</textarea>
+                                </div>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label fw-medium d-flex align-items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-align-left text-primary"></i> Thank You Message
-                                </label>
-                                <textarea name="footer_sub_title" id="editor_footer" class="form-control ckeditor-textarea">{{ $footer['sub_title'] ?? '' }}</textarea>
+                            <!-- Three input fields -->
+                            <div class="row mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-phone"></i> Total capacity installed</label>
+                                    <input type="number" class="form-control" name="company_capacity_installed" value="{{ $companyInfo['company_capacity_installed'] ?? '' }}" placeholder="Enter total capacity installed">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-envelope"></i> Happy customers</label>
+                                    <input type="number" class="form-control" name="happy_customers" value="{{ $companyInfo['happy_customers'] ?? '' }}" placeholder="Enter happy customers">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-globe"></i> Cities</label>
+                                    <input type="number" class="form-control" name="cities" value="{{ $companyInfo['cities'] ?? '' }}" placeholder="Enter cities">
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Additional Sections -->
-            {{-- <div class="accordion mb-5" id="moreSectionsAccordion">
-                <div class="accordion-item border rounded-4 overflow-hidden mb-3">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed fw-bold text-dark-blue p-4 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMore">
-                            <i class="fa-solid fa-circle-plus me-2"></i> Additional Configuration (Company Info, Timeline, etc.)
-                        </button>
-                    </h2>
-                    <div id="collapseMore" class="accordion-collapse collapse" data-bs-parent="#moreSectionsAccordion">
-                        <div class="accordion-body p-4">
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-medium">Form Title</label>
-                                    <input type="text" name="form_title" class="form-control" value="{{ $template->form_title ?? old('form_title') }}">
+                            <!-- Three image uploads -->
+                            <div class="row mb-4">
+                                <!-- Image 1 -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image 1</label>
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image1']))
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Current Image 1:</span>
+                                            <img src="{{ asset($companyInfo['image1']) }}" alt="Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <input type="hidden" name="image1_old" value="{{ $companyInfo['image1'] }}">
+                                        </div>
+                                    @endif
+                                    <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
+                                         style="cursor: pointer; min-height: 100px; display: flex; flex-direction: column; justify-content: center;"
+                                         onclick="this.querySelector('input[type=file]').click()"
+                                         ondragover="event.preventDefault(); this.classList.add('bg-secondary-subtle');"
+                                         ondragleave="this.classList.remove('bg-secondary-subtle');"
+                                         ondrop="handleCompanyFileDrop(event, this, 'image1')">
+                                        <i class="fas fa-cloud-upload-alt mb-2 text-primary"></i>
+                                        <p class="mb-1 small">Drag & drop or <span class="text-primary text-decoration-underline">Browse</span></p>
+                                        <input type="file" class="d-none" name="image1" accept="image/*" onchange="showCompanyFileName(this, 'image1')">
+                                    </div>
+                                    <div class="mt-1 text-success small company-file-name-image1">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($companyInfo['image1'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+
+                                <!-- Image 2 -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image 2</label>
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image2']))
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Current Image 2:</span>
+                                            <img src="{{ asset($companyInfo['image2']) }}" alt="Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <input type="hidden" name="image2_old" value="{{ $companyInfo['image2'] }}">
+                                        </div>
+                                    @endif
+                                    <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
+                                         style="cursor: pointer; min-height: 100px; display: flex; flex-direction: column; justify-content: center;"
+                                         onclick="this.querySelector('input[type=file]').click()"
+                                         ondragover="event.preventDefault(); this.classList.add('bg-secondary-subtle');"
+                                         ondragleave="this.classList.remove('bg-secondary-subtle');"
+                                         ondrop="handleCompanyFileDrop(event, this, 'image2')">
+                                        <i class="fas fa-cloud-upload-alt mb-2 text-primary"></i>
+                                        <p class="mb-1 small">Drag & drop or <span class="text-primary text-decoration-underline">Browse</span></p>
+                                        <input type="file" class="d-none" name="image2" accept="image/*" onchange="showCompanyFileName(this, 'image2')">
+                                    </div>
+                                    <div class="mt-1 text-success small company-file-name-image2">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($companyInfo['image2'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+
+                                <!-- Image 3 -->
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image 3</label>
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image3']))
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Current Image 3:</span>
+                                            <img src="{{ asset($companyInfo['image3']) }}" alt="Image 3" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <input type="hidden" name="image3_old" value="{{ $companyInfo['image3'] }}">
+                                        </div>
+                                    @endif
+                                    <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
+                                         style="cursor: pointer; min-height: 100px; display: flex; flex-direction: column; justify-content: center;"
+                                         onclick="this.querySelector('input[type=file]').click()"
+                                         ondragover="event.preventDefault(); this.classList.add('bg-secondary-subtle');"
+                                         ondragleave="this.classList.remove('bg-secondary-subtle');"
+                                         ondrop="handleCompanyFileDrop(event, this, 'image3')">
+                                        <i class="fas fa-cloud-upload-alt mb-2 text-primary"></i>
+                                        <p class="mb-1 small">Drag & drop or <span class="text-primary text-decoration-underline">Browse</span></p>
+                                        <input type="file" class="d-none" name="image3" accept="image/*" onchange="showCompanyFileName(this, 'image3')">
+                                    </div>
+                                    <div class="mt-1 text-success small company-file-name-image3">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($companyInfo['image3'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div> --}}
+                        <hr class="my-4">
+                        </div>
 
-            <!-- Submit -->
-            <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
-                <a href="{{ route('pdfbuilder.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
-                <button type="submit" class="btn btn-dark-blue" id="submitBtn">
-                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
-                    <span id="btnText">Submit</span>
-                </button>
+                        <!-- STEP 2 -->
+                        <div class="pdf-mobile-step" data-step="2">
+
+                        <!-- GENERATION SECTION -->
+                        <div class="time-line-block mt-4" id="block-generation">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-chart-bar"></i> Generation</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="generation_active" name="generation_active" value="{{ (int)($generationSection['active'] ?? 1) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-generation"
+                                           data-target="#block-generation-body"
+                                           data-active-input="#generation_active"
+                                           {{ ((int)($generationSection['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-generation">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-generation-body" class="block-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-heading"></i> Title</label>
+                                        <input type="text" class="form-control" name="generation_title" value="{{ $generationSection['title'] ?? '' }}" placeholder="GENERATION">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-text-width"></i> Sub Title</label>
+                                        <input type="text" class="form-control" name="generation_sub_title" value="{{ $generationSection['sub_title'] ?? '' }}" placeholder="ROUND THE YEAR GENERATION">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-sticky-note"></i> Note</label>
+                                        <input type="text" class="form-control" name="generation_note" value="{{ $generationSection['note'] ?? '' }}" placeholder="Generation figures are indicative...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+
+                        <!-- ONGRID ROI SECTION -->
+                        <div class="time-line-block mt-4" id="block-ongrid-roi">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-chart-line"></i> Ongrid ROI</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="ongrid_roi_active" name="ongrid_roi_active" value="{{ (int)($ongridRoiSection['active'] ?? 1) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-ongrid-roi"
+                                           data-target="#block-ongrid-roi-body"
+                                           data-active-input="#ongrid_roi_active"
+                                           {{ ((int)($ongridRoiSection['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-ongrid-roi">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-ongrid-roi-body" class="block-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-heading"></i> Title</label>
+                                        <input type="text" class="form-control" name="ongrid_roi_title" value="{{ $ongridRoiSection['title'] ?? '' }}" placeholder="ROI">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-text-width"></i> Sub Title</label>
+                                        <input type="text" class="form-control" name="ongrid_roi_sub_title" value="{{ $ongridRoiSection['sub_title'] ?? '' }}" placeholder="Ongrid ROI">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label"><i class="fas fa-percent"></i> Residential starts %</label>
+                                        <input type="number" step="0.01" min="0" class="form-control" name="residential_starts_percent" value="{{ $ongridRoiSection['residential_starts_percent'] ?? '' }}" placeholder="e.g. 80">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label"><i class="fas fa-sticky-note"></i> Note</label>
+                                        <input type="text" class="form-control" name="ongrid_roi_note" value="{{ $ongridRoiSection['note'] ?? '' }}" placeholder="Optional note for ROI page">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+
+                        <!-- Time line section -->
+                        <div class="time-line-block mt-4" id="block-timeline">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i>OFFER & TERMS</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="timeline_active" name="timeline_active" value="{{ (int)($timeLine['active'] ?? 1) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-timeline"
+                                           data-target="#block-timeline-body"
+                                           data-active-input="#timeline_active"
+                                           {{ ((int)($timeLine['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-timeline">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-timeline-body" class="block-body">
+                            <div class="row mb-4">
+                            <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i>MainTitle</label>
+                                    <input type="text" class="form-control" name="main_title" value="{{ $timeLine['main_title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i>Title</label>
+                                    <input type="text" class="form-control" name="title" value="{{ $timeLine['title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image</label>
+                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image1']))
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Current Image:</span>
+                                            <img src="{{ asset($timeLine['image1']) }}" alt="Timeline Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <input type="hidden" name="timeline_image1_old" value="{{ $timeLine['image1'] }}">
+                                        </div>
+                                    @endif
+                                    <input type="file" class="form-control" name="timeline_image1" accept="image/*" onchange="showCompanyFileName(this, 'timeline_image1')">
+                                    <div class="mt-1 text-success small company-file-name-timeline_image1">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($timeLine['image1'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i> Title </label>
+                                    <input type="text" class="form-control" name="title2" value="{{ $timeLine['title2'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image</label>
+                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image2']))
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Current Image:</span>
+                                            <img src="{{ asset($timeLine['image2']) }}" alt="Timeline Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <input type="hidden" name="timeline_image2_old" value="{{ $timeLine['image2'] }}">
+                                        </div>
+                                    @endif
+                                    <input type="file" class="form-control" name="timeline_image2" accept="image/*" onchange="showCompanyFileName(this, 'timeline_image2')">
+                                    <div class="mt-1 text-success small company-file-name-timeline_image2">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($timeLine['image2'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-align-left"></i> Note</label>
+                                    <input type="text" class="form-control" name="timeline_note" value="{{ $timeLine['note'] ?? '' }}" placeholder="Enter note">
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        </div>
+
+                        <!-- STEP 3 -->
+                        <div class="pdf-mobile-step" data-step="3">
+
+                        <!-- COMPONENTS SECTION -->
+                        <div class="time-line-block mt-4" id="block-components">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-solar-panel"></i> Components</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="components_active" name="components_active" value="{{ (int)($components['active'] ?? 1) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-components"
+                                           data-target="#block-components-body"
+                                           data-active-input="#components_active"
+                                           {{ ((int)($components['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-components">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-components-body" class="block-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label"><i class="fas fa-heading"></i> Title</label>
+                                        <input type="text"
+                                               class="form-control"
+                                               name="components_title"
+                                               value="{{ $components['title'] ?? '' }}"
+                                               placeholder="Enter title">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
+                                        <textarea class="form-control"
+                                                  id="components_description"
+                                                  name="components_description"
+                                                  rows="4"
+                                                  placeholder="Enter description...">{{ $components['description'] ?? '' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+
+                        <!-- PAYMENT TERMS -->
+                        <div class="payment-terms-block mt-4" id="block-payment-terms">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i> Payment Terms</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="payment_terms_active" name="payment_terms_active" value="{{ (int)(($paymentTerms['active'] ?? 1)) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-payment-terms"
+                                           data-target="#block-payment-terms-body"
+                                           data-active-input="#payment_terms_active"
+                                           {{ ((int)(($paymentTerms['active'] ?? 1)) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-payment-terms">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-payment-terms-body" class="block-body">
+                            <div class="row mb-4">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i>SCOPE</label>
+                                    <input type="text" class="form-control" name="scope" value="{{ $paymentTerms['scope'] ?? '' }}" placeholder="Enter scope">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-list"></i> What we cover under our services</label>
+                                    @php
+                                        $servicesRows = [];
+                                        $rawServices = $paymentTerms['services'] ?? [];
+                                        if (is_array($rawServices)) {
+                                            foreach ($rawServices as $row) {
+                                                if (is_array($row)) {
+                                                    $servicesRows[] = [
+                                                        'left' => (string)($row['left'] ?? ''),
+                                                        'right' => (string)($row['right'] ?? ''),
+                                                    ];
+                                                } else {
+                                                    $servicesRows[] = [
+                                                        'left' => (string)$row,
+                                                        'right' => '',
+                                                    ];
+                                                }
+                                            }
+                                        }
+                                        if (empty($servicesRows)) {
+                                            $servicesRows = [['left' => '', 'right' => '']];
+                                        }
+                                    @endphp
+                                    <div id="services-container">
+                                        @foreach ($servicesRows as $sr)
+                                            <div class="row g-2 align-items-center mb-2 service-row">
+                                                <div class="col-md-5">
+                                                    <input type="text" class="form-control" name="services_left[]" value="{{ $sr['left'] ?? '' }}" placeholder="Service">
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <input type="text" class="form-control" name="services_right[]" value="{{ $sr['right'] ?? '' }}" placeholder="Details">
+                                                </div>
+                                                <div class="col-md-2 text-end">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeServiceRow(this)">Remove</button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <button type="button" class="btn btn-outline-dark-blue btn-sm mt-2" onclick="addServiceRow()">
+                                        <i class="fa fa-plus"></i> Add More
+                                    </button>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i>Note</label>
+                                    <input type="text" class="form-control" name="payment_terms_note" value="{{ $paymentTerms['note'] ?? '' }}" placeholder="Enter note">
+                                </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i> Title</label>
+                                    <input type="text" class="form-control" name="payment_terms_title" value="{{ $paymentTerms['title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image</label>
+                                     @if (isset($edit_mode) && $edit_mode && !empty($paymentTerms['image']))
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Current Image:</span>
+                                             <img src="{{ asset($paymentTerms['image']) }}" alt="Payment Terms Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <input type="hidden" name="payment_terms_image_old" value="{{ $paymentTerms['image'] }}">
+                                         </div>
+                                     @endif
+                                    <input type="file" class="form-control" name="payment_terms_image" accept="image/*" onchange="showCompanyFileName(this, 'payment_terms_image')">
+                                    <div class="mt-1 text-success small company-file-name-payment_terms_image">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($paymentTerms['image'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        </div>
+
+                        <!-- STEP 4 -->
+                        <div class="pdf-mobile-step" data-step="4">
+                        <!-- ENVIRONMENT IMPACT -->
+                        <div class="environment-impact-block mt-4" id="block-environment-impact">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i> Environment Impact</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="environment_impact_active" name="environment_impact_active" value="{{ (int)(($environmentImpact['active'] ?? 1)) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-environment-impact"
+                                           data-target="#block-environment-impact-body"
+                                           data-active-input="#environment_impact_active"
+                                           {{ ((int)(($environmentImpact['active'] ?? 1)) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-environment-impact">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-environment-impact-body" class="block-body">
+                                <div class="row mb-4">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-clock"></i> Title</label>
+                                    <input type="text" class="form-control" name="environment_impact_title" value="{{ $environmentImpact['title'] ?? '' }}" placeholder="Enter title">
+                                </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-align-left"></i> Content</label>
+                                    <textarea class="form-control" id="environment_impact_content" name="environment_impact_content" rows="4" placeholder="Enter content...">{{ $environmentImpact['content'] ?? '' }}</textarea>
+                                </div>
+                            <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image</label>
+                                     @if (isset($edit_mode) && $edit_mode && !empty($environmentImpact['image']))
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Current Image:</span>
+                                             <img src="{{ asset($environmentImpact['image']) }}" alt="Environment Impact Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <input type="hidden" name="environment_impact_image_old" value="{{ $environmentImpact['image'] }}">
+                                         </div>
+                                     @endif
+                                    <input type="file" class="form-control" name="environment_impact_image" accept="image/*" onchange="showCompanyFileName(this, 'environment_impact_image')">
+                                    <div class="mt-1 text-success small company-file-name-environment_impact_image">
+                                        {{ (isset($edit_mode) && $edit_mode && !empty($environmentImpact['image'])) ? 'Current file uploaded' : '' }}
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <!-- footer -->
+                        <div class="footer-block mt-4" id="block-footer">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i> Footer</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="footer_active" name="footer_active" value="{{ (int)(($footer['active'] ?? 1)) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-footer"
+                                           data-target="#block-footer-body"
+                                           data-active-input="#footer_active"
+                                           {{ ((int)(($footer['active'] ?? 1)) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-footer">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-footer-body" class="block-body">
+                                <div class="row mb-4">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-image"></i> Image</label>
+                                     @if (isset($edit_mode) && $edit_mode && !empty($footer['image']))
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Current Image:</span>
+                                             <img src="{{ asset($footer['image']) }}" alt="Footer Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <input type="hidden" name="footer_image_old" value="{{ $footer['image'] }}">
+                                         </div>
+                                     @endif
+                                        <input type="file" class="form-control" name="footer_image" accept="image/*" onchange="showCompanyFileName(this, 'footer_image')">
+                                        <div class="mt-1 text-success small company-file-name-footer_image">
+                                            {{ (isset($edit_mode) && $edit_mode && !empty($footer['image'])) ? 'Current file uploaded' : '' }}
+                                        </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                            <label class="form-label"><i class="fas fa-clock"></i> Title</label>
+                                            <input type="text" class="form-control" name="footer_title" value="{{ $footer['title'] ?? '' }}" placeholder="Enter title">
+                                        </div>
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label"><i class="fas fa-clock"></i> Sub Title</label>
+                                            <input type="text" class="form-control" name="footer_sub_title" value="{{ $footer['sub_title'] ?? '' }}" placeholder="Enter sub title">
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between justify-content-md-end align-items-center mt-4">
+                            <!-- Mobile-only inline previous (only visible in Step 4) -->
+                            <button type="button" class="btn btn-secondary d-md-none" id="pdf-prev-step-inline">
+                                Previous
+                            </button>
+                            <button type="submit" class="btn btn-dark-blue" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
+                                <i class="fa fa-file-pdf"></i> <span id="btnText">Save Template</span>
+                            </button>
+                        </div>
+                        </div>
+
+                        <!-- Step Navigation Buttons (Mobile Only) -->
+                        <div class="pdf-step-navigation">
+                            <button type="button" class="btn btn-secondary" id="pdf-prev-step" style="display:none;">
+                                Previous
+                            </button>
+                            <button type="button" class="btn btn-dark-blue" id="pdf-next-step">
+                                Next
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
 
 @push('scripts')
 <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
-<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . '/js/pdfbuilder.js') }}"></script>
+<script id="pdfbuilder-data" type="application/json">
+{
+    "edit_mode": {{ isset($edit_mode) && $edit_mode ? "true" : "false" }}
+}
+</script>
+<script src="{{ asset('js/pdfbuilder.js') }}"></script>
 @endpush
