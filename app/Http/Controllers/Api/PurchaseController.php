@@ -1,0 +1,207 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\ProductInventory;
+use App\Models\Purchase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class PurchaseController extends ApiBaseController
+{
+    public function index(Request $request)
+    {
+        $search = trim((string) $request->get('search', ''));
+        $perPage = max(1, min((int) $request->get('per_page', 10), 100));
+
+        $purchases = Purchase::with(['vendor', 'product', 'creator'])
+            ->when($search !== '', fn ($query) => $query->where('invoice_no', 'like', "%{$search}%")
+                ->orWhere('invoice_name', 'like', "%{$search}%")
+                ->orWhereHas('vendor', fn ($q) => $q->where('name', 'like', "%{$search}%")))
+            ->latest()
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        $purchases->getCollection()->transform(fn (Purchase $purchase) => $this->serialize($purchase));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Purchases retrieved successfully.',
+            'data' => $purchases,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), $this->rules(), $this->messages());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $data['user_id'] = auth()->id();
+        $data['created_by'] = auth()->id();
+
+        // Generate IN number
+        $lastPurchase = Purchase::latest('invoice_id')->first();
+        $nextNumber = ($lastPurchase ? intval($lastPurchase->invoice_no) : 0) + 1;
+        $data['invoice_no'] = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+        // Calculate total if not provided
+        if (!isset($data['total']) || $data['total'] == 0) {
+            $subtotal = ($data['price'] ?? 0) * ($data['quantity'] ?? 1);
+            $gst = ($subtotal * ($data['gst'] ?? 0)) / 100;
+            $discount = $data['discount'] ?? 0;
+            $data['total'] = $subtotal + $gst - $discount;
+        }
+
+        $purchase = Purchase::create($data);
+
+        // Create inventory record for Material IN (increase stock)
+        $quantity = $data['quantity'] ?? 0;
+        $latestInventory = ProductInventory::where('product_id', $data['product_id'])->latest()->first();
+        $currentStock = ($latestInventory?->current_stock ?? 0) + $quantity;
+
+        ProductInventory::create([
+            'product_id' => $data['product_id'],
+            'initial_stock' => $quantity,
+            'current_stock' => $currentStock,
+            'type' => 'increase',
+            'date' => now()->toDateString(),
+            'created_by' => auth()->id(),
+        ]);
+
+        $purchase->load(['vendor', 'product', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Purchase created successfully.',
+            'data' => $this->serialize($purchase),
+        ], 201);
+    }
+
+    public function show(Purchase $purchase)
+    {
+        $purchase->load(['vendor', 'product', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Purchase retrieved successfully.',
+            'data' => $this->serialize($purchase),
+        ]);
+    }
+
+    public function update(Request $request, Purchase $purchase)
+    {
+        $validator = Validator::make($request->all(), $this->rules($purchase), $this->messages());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $data['updated_by'] = auth()->id();
+
+        // Calculate total if not provided
+        if (!isset($data['total']) || $data['total'] == 0) {
+            $subtotal = ($data['price'] ?? $purchase->price) * ($data['quantity'] ?? $purchase->quantity);
+            $gst = ($subtotal * ($data['gst'] ?? $purchase->gst)) / 100;
+            $discount = $data['discount'] ?? $purchase->discount;
+            $data['total'] = $subtotal + $gst - $discount;
+        }
+
+        $purchase->update($data);
+        $purchase->load(['vendor', 'product', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Purchase updated successfully.',
+            'data' => $this->serialize($purchase),
+        ]);
+    }
+
+    public function destroy(Purchase $purchase)
+    {
+        $purchase->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Purchase deleted successfully.',
+        ]);
+    }
+
+    private function rules(?Purchase $purchase = null): array
+    {
+        return [
+            'customer_id' => ['required', 'exists:vendors,id'],
+            'product_id' => ['required', 'exists:products,id'],
+            'invoice_date' => ['required', 'date'],
+            'due_date' => ['nullable', 'date'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'gst' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', 'in:pending,approved,rejected,completed'],
+            'comment' => ['nullable', 'string'],
+            'attach_file' => ['nullable', 'file', 'max:5120'],
+        ];
+    }
+
+    private function messages(): array
+    {
+        return [
+            'customer_id.required' => 'Please select a vendor.',
+            'customer_id.exists' => 'Please select a valid vendor.',
+            'product_id.required' => 'Please select a product.',
+            'product_id.exists' => 'Please select a valid product.',
+            'invoice_date.required' => 'Please select invoice date.',
+            'quantity.required' => 'Please enter quantity.',
+            'quantity.min' => 'Quantity must be at least 1.',
+            'price.required' => 'Please enter price.',
+        ];
+    }
+
+    private function serialize(Purchase $purchase): array
+    {
+        return [
+            'invoice_id' => $purchase->invoice_id,
+            'customer_id' => $purchase->customer_id,
+            'vendor_id' => $purchase->customer_id,
+            'vendor' => $purchase->vendor ? [
+                'id' => $purchase->vendor->id,
+                'name' => $purchase->vendor->name,
+            ] : null,
+            'product_id' => $purchase->product_id,
+            'product' => $purchase->product ? [
+                'id' => $purchase->product->id,
+                'name' => $purchase->product->name,
+            ] : null,
+            'invoice_no' => $purchase->invoice_no,
+            'invoice_date' => optional($purchase->invoice_date)?->format('Y-m-d'),
+            'due_date' => optional($purchase->due_date)?->format('Y-m-d'),
+            'quantity' => $purchase->quantity,
+            'price' => $purchase->price,
+            'gst' => $purchase->gst,
+            'discount' => $purchase->discount,
+            'total' => $purchase->total,
+            'amount' => $purchase->amount,
+            'status' => $purchase->status,
+            'comment' => $purchase->comment,
+            'created_by' => $purchase->created_by,
+            'creator' => $purchase->creator ? [
+                'id' => $purchase->creator->id,
+                'name' => $purchase->creator->name,
+            ] : null,
+            'created_at' => optional($purchase->created_at)?->toIso8601String(),
+            'updated_at' => optional($purchase->updated_at)?->toIso8601String(),
+        ];
+    }
+}

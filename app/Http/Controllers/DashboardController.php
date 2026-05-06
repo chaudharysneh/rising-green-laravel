@@ -1,0 +1,295 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Lead;
+use App\Models\Customer;
+use App\Models\Booking;
+use App\Models\Deal;
+use App\Models\Stage;
+use App\Models\Task;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
+use App\Models\FollowUp;
+use Carbon\Carbon;
+
+class DashboardController extends Controller
+{
+    public function index(): View
+    {
+        $stages = $this->buildLeadBoard();
+        $canViewCustomers = Customer::query()->visibleToUser(auth()->user())->exists();
+
+        return view('dashboard.index', [
+            'stats' => $this->buildStats(),
+            'stages' => $stages,
+            'canViewCustomers' => $canViewCustomers,
+        ]);
+    }
+
+    public function apiStats(): JsonResponse
+    {
+        return response()->json($this->buildStats());
+    }
+
+    public function apiLeadBoard(): JsonResponse
+    {
+        if (!auth()->user()?->hasMatrixPermission('view_leads')) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->buildLeadBoard()->map(function ($stage) {
+                return [
+                    'id' => $stage->id,
+                    'name' => $stage->name,
+                    'count' => $stage->leads_count,
+                    'leads' => collect($stage->leads)->map(function (Lead $lead) {
+                        return [
+                            'id' => $lead->id,
+                            'name' => $lead->name,
+                            'email' => $lead->email,
+                            'phone' => $lead->phone,
+                            'assigned_to' => $lead->assignedUser?->name,
+                            'created_at' => optional($lead->created_at)->toIso8601String(),
+                        ];
+                    })->values(),
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function apiTasksWidget(): JsonResponse
+    {
+        if (!auth()->user()?->hasMatrixPermission('view_tasks')) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        $tasks = Task::query()
+            ->with([
+                'assignedUser:id,name',
+                'customer:id,name',
+                'project:id,customer_id',
+                'project.customer:id,name',
+            ])
+            ->latest()
+            ->take(5)
+            ->get(['id', 'title', 'priority', 'status', 'assigned_user_id', 'related_type', 'related_id', 'project_id', 'due_date']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $tasks->map(function (Task $task) {
+                return [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'priority' => $task->priority,
+                    'status' => $task->status,
+                    'assigned_to' => $task->assignedUser?->name,
+                    'customer' => $task->customer?->name ?? $task->project?->customer?->name,
+                    'due_date' => optional($task->due_date)->format('d M Y'),
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function apiTrend(): JsonResponse
+    {
+        $months = collect(range(5, 0))->map(function (int $offset) {
+            $dt = Carbon::now()->subMonths($offset)->startOfMonth();
+
+            return [
+                'label' => $dt->format('M Y'),
+                'start' => $dt->copy()->startOfMonth(),
+                'end' => $dt->copy()->endOfMonth(),
+            ];
+        })->push([
+                    'label' => Carbon::now()->format('M Y'),
+                    'start' => Carbon::now()->copy()->startOfMonth(),
+                    'end' => Carbon::now()->copy()->endOfMonth(),
+                ])->values();
+
+        $user = auth()->user();
+        $canLeads = $user?->hasMatrixPermission('view_leads') ?? false;
+        $canFollowups = $user?->hasMatrixPermission('view_followups') ?? false;
+        $customersQuery = Customer::query()->visibleToUser($user);
+        $canCustomers = $customersQuery->exists();
+        $canDeals = $user?->hasMatrixPermission('view_deals') ?? false;
+
+        $emptySeries = $months->map(fn() => 0)->values();
+
+        $countByRange = function (string $modelClass) use ($months) {
+            return $months->map(function (array $month) use ($modelClass) {
+                return $modelClass::query()
+                    ->whereBetween('created_at', [$month['start'], $month['end']])
+                    ->count();
+            })->values();
+        };
+        $countCustomersByRange = function () use ($months, $user) {
+            return $months->map(function (array $month) use ($user) {
+                return Customer::query()
+                    ->visibleToUser($user)
+                    ->whereBetween('created_at', [$month['start'], $month['end']])
+                    ->count();
+            })->values();
+        };
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'labels' => $months->pluck('label')->values(),
+                'datasets' => [
+                    'leads' => $canLeads ? $countByRange(Lead::class) : $emptySeries,
+                    'followups' => $canFollowups ? $countByRange(FollowUp::class) : $emptySeries,
+                    'customers' => $canCustomers ? $countCustomersByRange() : $emptySeries,
+                    'deals' => $canDeals ? $countByRange(Deal::class) : $emptySeries,
+                ],
+            ],
+        ]);
+    }
+
+    public function apiCustomerReport(Request $request): JsonResponse
+    {
+        if (!Customer::query()->visibleToUser(auth()->user())->exists()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'year' => (int) ($request->get('year') ?: now()->year),
+                    'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    'series' => collect(range(1, 12))->map(fn() => 0)->values(),
+                ],
+            ]);
+        }
+
+        $year = (int) ($request->get('year') ?: now()->year);
+        $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        $series = collect(range(1, 12))->map(function (int $month) use ($year) {
+            return Customer::query()
+                ->visibleToUser(auth()->user())
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count();
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'year' => $year,
+                'labels' => $labels,
+                'series' => $series,
+            ],
+        ]);
+    }
+
+    public function apiDealsWidget(): JsonResponse
+    {
+        if (!auth()->user()?->hasMatrixPermission('view_deals')) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        $deals = Deal::query()
+            ->with([
+                'status:id,name,color',
+                'customer:id,name',
+                'assignedUser:id,name',
+            ])
+            ->latest()
+            ->take(4)
+            ->get(['id', 'title', 'amount', 'probability', 'status_id', 'customer_id', 'assigned_user_id', 'expected_close_date']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $deals->map(function (Deal $deal) {
+                return [
+                    'id' => $deal->id,
+                    'name' => $deal->title,
+                    'amount' => (float) $deal->amount,
+                    'probability' => $deal->probability,
+                    'status' => $deal->status?->name,
+                    'status_color' => $deal->status?->color,
+                    'customer' => $deal->customer?->name,
+                    'assigned_to' => $deal->assignedUser?->name,
+                    'expected_close_date' => optional($deal->expected_close_date)->format('d M Y'),
+                ];
+            })->values(),
+        ]);
+    }
+
+    private function buildStats(): array
+    {
+        $user = auth()->user();
+        $customersQuery = Customer::query()->visibleToUser($user);
+        $canFollowups = $user?->hasMatrixPermission('view_followups') ?? false;
+        $canLeads = $user?->hasMatrixPermission('view_leads') ?? false;
+        $canDeals = $user?->hasMatrixPermission('view_deals') ?? false;
+        $canBookings = $user?->hasMatrixPermission('view_bookings') ?? false;
+
+        $customers = (clone $customersQuery)->count();
+        $followUps = $canFollowups ? FollowUp::query()->count() : 0;
+        $pendingFollowUps = $canFollowups ? FollowUp::query()->where('status', 'pending')->count() : 0;
+        $completedFollowUpsToday = $canFollowups
+            ? FollowUp::query()->where('status', 'completed')->whereDate('updated_at', today())->count()
+            : 0;
+        $leads = $canLeads ? Lead::query()->count() : 0;
+        $activeLeads = $canLeads ? Lead::query()->whereNotIn('status', ['won', 'lost'])->count() : 0;
+        $deals = $canDeals ? Deal::count() : 0;
+        $confirmedBookings = $canBookings ? Booking::where('status', 'confirmed')->count() : 0;
+        $totalLeads = $leads;
+
+        return [
+            'customers' => $customers,
+            'follow_ups' => $followUps,
+            'leads' => $leads,
+            'deals' => $deals,
+            'new_customers_today' => (clone $customersQuery)->whereDate('created_at', today())->count(),
+            'new_leads_today' => $canLeads ? Lead::query()->whereDate('created_at', today())->count() : 0,
+            'pending_followups' => $pendingFollowUps,
+            'completed_followups_today' => $completedFollowUpsToday,
+            'active_leads' => $activeLeads,
+            'confirmed_bookings' => $confirmedBookings,
+            'conversion_rate' => $totalLeads > 0 ? round(($confirmedBookings / $totalLeads) * 100) : 0,
+        ];
+    }
+
+    private function buildLeadBoard()
+    {
+        if (!auth()->user()?->hasMatrixPermission('view_leads')) {
+            return collect();
+        }
+
+        $statusLabels = [
+            'new' => 'New',
+            'qualified' => 'Qualified',
+            'working' => 'Working',
+            'ready_to_close' => 'Ready to Close',
+        ];
+
+        return collect($statusLabels)->map(function ($label, $key) {
+            $query = Lead::query()->with('assignedUser:id,name')->where('status', $key);
+
+            $leads = (clone $query)
+                ->latest()
+                ->limit(1)
+                ->get(['id', 'name', 'email', 'phone', 'assigned_user_id', 'created_at', 'status']);
+
+            return (object) [
+                'id' => $key,
+                'name' => $label,
+                'color' => null,
+                'leads_count' => $query->count(),
+                'leads' => $leads,
+            ];
+        })->values();
+    }
+}

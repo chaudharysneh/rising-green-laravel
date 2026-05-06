@@ -1,0 +1,230 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Models\Sales;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class SalesController extends ApiBaseController
+{
+    public function index(Request $request)
+    {
+        $search = trim((string) $request->get('search', ''));
+        $perPage = max(1, min((int) $request->get('per_page', 10), 100));
+
+        $sales = Sales::with(['customer', 'product', 'handoverPerson', 'creator'])
+            ->when($search !== '', fn ($query) => $query->where('invoice_no', 'like', "%{$search}%")
+                ->orWhere('invoice_name', 'like', "%{$search}%")
+                ->orWhereHas('customer', fn ($q) => $q->where('name', 'like', "%{$search}%")))
+            ->latest()
+            ->paginate($perPage)
+            ->appends($request->query());
+
+        $sales->getCollection()->transform(fn (Sales $sale) => $this->serialize($sale));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sales retrieved successfully.',
+            'data' => $sales,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), $this->rules(), $this->messages());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $data['user_id'] = auth()->id();
+        $data['created_by'] = auth()->id();
+
+        // Set default currency if not provided
+        if (empty($data['currency'])) {
+            $data['currency'] = 'USD'; // Default currency
+        }
+
+        // Generate OUT number
+        $lastSale = Sales::latest('invoice_id')->first();
+        $nextNumber = ($lastSale ? intval($lastSale->invoice_no) : 0) + 1;
+        $data['invoice_no'] = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+        // Check if sufficient stock available
+        $quantity = $data['quantity'] ?? 0;
+        $latestInventory = \App\Models\ProductInventory::where('product_id', $data['product_id'])->latest()->first();
+        $currentStock = $latestInventory?->current_stock ?? 0;
+
+        if ($currentStock < $quantity) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'quantity' => ["Insufficient stock! Available: {$currentStock}, Requested: {$quantity}"]
+                ],
+            ], 422);
+        }
+
+        // Calculate total if not provided
+        if (!isset($data['total']) || $data['total'] == 0) {
+            $subtotal = ($data['price'] ?? 0) * ($data['quantity'] ?? 1);
+            $gst = ($subtotal * ($data['gst'] ?? 0)) / 100;
+            $discount = $data['discount'] ?? 0;
+            $data['total'] = $subtotal + $gst - $discount;
+        }
+
+        $sale = Sales::create($data);
+
+        // Create inventory record for Material OUT (decrease stock)
+        $newStock = $currentStock - $quantity;
+
+        \App\Models\ProductInventory::create([
+            'product_id' => $data['product_id'],
+            'initial_stock' => $quantity,
+            'current_stock' => $newStock,
+            'type' => 'decrease',
+            'date' => now()->toDateString(),
+            'created_by' => auth()->id(),
+        ]);
+
+        $sale->load(['customer', 'product', 'handoverPerson', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sale created successfully.',
+            'data' => $this->serialize($sale),
+        ], 201);
+    }
+
+    public function show(Sales $sale)
+    {
+        $sale->load(['customer', 'product', 'handoverPerson', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sale retrieved successfully.',
+            'data' => $this->serialize($sale),
+        ]);
+    }
+
+    public function update(Request $request, Sales $sale)
+    {
+        $validator = Validator::make($request->all(), $this->rules($sale), $this->messages());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $data['updated_by'] = auth()->id();
+
+        // Calculate total if not provided
+        if (!isset($data['total']) || $data['total'] == 0) {
+            $subtotal = ($data['price'] ?? $sale->price) * ($data['quantity'] ?? $sale->quantity);
+            $gst = ($subtotal * ($data['gst'] ?? $sale->gst)) / 100;
+            $discount = $data['discount'] ?? $sale->discount;
+            $data['total'] = $subtotal + $gst - $discount;
+        }
+
+        $sale->update($data);
+        $sale->load(['customer', 'product', 'handoverPerson', 'creator']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sale updated successfully.',
+            'data' => $this->serialize($sale),
+        ]);
+    }
+
+    public function destroy(Sales $sale)
+    {
+        $sale->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sale deleted successfully.',
+        ]);
+    }
+
+    private function rules(?Sales $sale = null): array
+    {
+        return [
+            'customer_id' => ['required', 'exists:customers,id'],
+            'product_id' => ['required', 'exists:products,id'],
+            'invoice_date' => ['required', 'date'],
+            'due_date' => ['nullable', 'date'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'gst' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:50'],
+            'status' => ['nullable', 'in:pending,approved,rejected,completed'],
+            'comment' => ['nullable', 'string'],
+            'handover_id' => ['nullable', 'integer'],
+            'attach_file' => ['nullable', 'file', 'max:5120'],
+        ];
+    }
+
+    private function messages(): array
+    {
+        return [
+            'customer_id.required' => 'Please select a customer.',
+            'customer_id.exists' => 'Please select a valid customer.',
+            'product_id.required' => 'Please select a product.',
+            'product_id.exists' => 'Please select a valid product.',
+            'handover_id.exists' => 'Please select a valid handover person.',
+            'invoice_date.required' => 'Please select invoice date.',
+            'quantity.required' => 'Please enter quantity.',
+            'quantity.min' => 'Quantity must be at least 1.',
+            'price.required' => 'Please enter price.',
+        ];
+    }
+
+    private function serialize(Sales $sale): array
+    {
+        return [
+            'invoice_id' => $sale->invoice_id,
+            'customer_id' => $sale->customer_id,
+            'customer' => $sale->customer ? [
+                'id' => $sale->customer->id,
+                'name' => $sale->customer->name,
+            ] : null,
+            'product_id' => $sale->product_id,
+            'product' => $sale->product ? [
+                'id' => $sale->product->id,
+                'name' => $sale->product->name,
+            ] : null,
+            'handover_id' => $sale->handover_id,
+            'handoverPerson' => $sale->handoverPerson ? [
+                'id' => $sale->handoverPerson->id,
+                'name' => $sale->handoverPerson->name,
+            ] : null,
+            'invoice_no' => $sale->invoice_no,
+            'invoice_date' => optional($sale->invoice_date)?->format('Y-m-d'),
+            'due_date' => optional($sale->due_date)?->format('Y-m-d'),
+            'quantity' => $sale->quantity,
+            'price' => $sale->price,
+            'gst' => $sale->gst,
+            'discount' => $sale->discount,
+            'total' => $sale->total,
+            'amount' => $sale->amount,
+            'status' => $sale->status,
+            'comment' => $sale->comment,
+            'created_by' => $sale->created_by,
+            'creator' => $sale->creator ? [
+                'id' => $sale->creator->id,
+                'name' => $sale->creator->name,
+            ] : null,
+            'created_at' => optional($sale->created_at)?->toIso8601String(),
+            'updated_at' => optional($sale->updated_at)?->toIso8601String(),
+        ];
+    }
+}
