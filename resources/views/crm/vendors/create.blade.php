@@ -4,6 +4,31 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/product-form.css') }}?v={{ filemtime(public_path('css/product-form.css')) }}">
+    <style>
+        /* Fix file input height to match other form controls */
+        .form-control[type="file"] {
+            height: calc(1.5em + 0.75rem + 2px) !important;
+            padding: 0.375rem 0.75rem !important;
+            line-height: 1.5 !important;
+            border: 1px solid #dee2e6 !important;
+            background-color: #fff !important;
+        }
+        
+        .form-control[type="file"]::-webkit-file-upload-button {
+            padding: 0.375rem 0.75rem;
+            margin: -0.375rem -0.75rem -0.375rem -0.75rem;
+            margin-inline-end: 0.75rem;
+            color: #212529;
+            background-color: #e9ecef;
+            border: 0;
+            border-inline-end: 1px solid #dee2e6;
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        
+        .form-control[type="file"]:hover::-webkit-file-upload-button {
+            background-color: #ddd;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -42,8 +67,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Image</label>
-                        <input type="file" name="image" id="image" class="form-control" accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml">
-                        <div class="form-text">Optional. Allowed: AVIF, WEBP, JPG, JPEG, PNG, GIF, BMP, SVG. Max 2MB.</div>
+                        <input type="file" name="image" id="image" class="form-control" accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml" style="height: calc(1.5em + 0.75rem + 2px); padding: 0.375rem 0.75rem; line-height: 1.5;">
                         <div class="invalid-feedback d-block" id="image-error"></div>
                     </div>
                     <div class="col-12">

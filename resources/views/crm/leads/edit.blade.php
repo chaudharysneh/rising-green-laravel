@@ -56,7 +56,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Email</label>
                             <input type="email" name="email" id="email" value="{{ old('email', $lead->email) }}"
-                                class="form-control @error('email') is-invalid @enderror" placeholder="Email Address" required>
+                                class="form-control @error('email') is-invalid @enderror" placeholder="Email Address">
                             <div class="invalid-feedback" id="email-error">@error('email') {{ $message }} @enderror</div>
                         </div>
                         <div class="col-md-6">
@@ -85,27 +85,21 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Image</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <input type="file" name="image" id="image"
-                                    accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml"
-                                    class="form-control @error('image') is-invalid @enderror"
-                                    onchange="previewImage(this, 'leadImagePreview')">
-                                <div class="border rounded bg-light d-flex align-items-center justify-content-center"
-                                    style="width: 40px; height: 40px; flex-shrink: 0;">
-                                    @php
-                                        $hasImage = $lead->image && Storage::disk('public')->exists($lead->image);
-                                    @endphp
-                                    <img id="leadImagePreview"
-                                        src="{{ $hasImage ? route('leads.image', $lead) . '?v=' . $lead->updated_at?->timestamp : '' }}"
-                                        class="w-100 h-100 object-fit-cover rounded {{ $hasImage ? '' : 'd-none' }}"
-                                        alt="Preview">
-                                    <i id="leadImageIcon"
-                                        class="bi bi-image text-muted {{ $hasImage ? 'd-none' : '' }}"></i>
-                                </div>
-                            </div>
+                            <input type="file" name="image" id="image"
+                                accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml"
+                                class="form-control @error('image') is-invalid @enderror"
+                                onchange="previewImage(this, 'leadImagePreview')" style="height: calc(1.5em + 0.75rem + 2px); padding: 0.375rem 0.75rem; line-height: 1.5;">
                             <div class="invalid-feedback d-block" id="image-error">@error('image') {{ $message }} @enderror
                             </div>
-                            <small class="text-muted">Allowed: AVIF, WEBP, JPG, JPEG, PNG, GIF, BMP, SVG. Max 2MB.</small>
+                            @php
+                                $hasImage = $lead->image && Storage::disk('public')->exists($lead->image);
+                            @endphp
+                            @if($hasImage)
+                                <div class="mt-2">
+                                    <img src="{{ route('leads.image', $lead) }}?v={{ $lead->updated_at?->timestamp }}" 
+                                         alt="Current Image" class="img-thumbnail" style="max-height: 120px;">
+                                </div>
+                            @endif
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Company Name</label>
@@ -134,7 +128,7 @@
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold">Comment</label>
                             <textarea name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror"
-                                rows="2" placeholder="Comments">{{ old('notes', $lead->notes) }}</textarea>
+                                rows="1" placeholder="Comments">{{ old('notes', $lead->notes) }}</textarea>
                             <div class="invalid-feedback" id="notes-error">@error('notes') {{ $message }} @enderror</div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -171,6 +165,31 @@
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        /* Clean file input styling */
+        .form-control[type="file"] {
+            height: calc(1.5em + 0.75rem + 2px) !important;
+            padding: 0.375rem 0.75rem !important;
+            line-height: 1.5 !important;
+            border: 1px solid #dee2e6 !important;
+            background-color: #fff !important;
+        }
+        
+        .form-control[type="file"]::-webkit-file-upload-button {
+            padding: 0.375rem 0.75rem;
+            margin: -0.375rem -0.75rem -0.375rem -0.75rem;
+            margin-inline-end: 0.75rem;
+            color: #212529;
+            background-color: #e9ecef;
+            border: 0;
+            border-inline-end: 1px solid #dee2e6;
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        
+        .form-control[type="file"]:hover::-webkit-file-upload-button {
+            background-color: #ddd;
+        }
+    </style>
 @endpush
 
 @push('scripts')

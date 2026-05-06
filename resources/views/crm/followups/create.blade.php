@@ -34,12 +34,13 @@
                             <div class="invalid-feedback d-block" id="lead_id-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Staff Name</label>
+                            <label class="form-label">Assigned To</label>
                             @if(auth()->user()->isAdmin())
-                                <select name="assigned_user_id" id="assigned_user_id" class="form-select"
+                                <select name="assigned_user_id" id="assigned_user_id"
+                                    class="form-select @error('assigned_user_id') is-invalid @enderror"
                                     data-search-url="{{ route('api.users.search') }}" data-search-type="user"
-                                    data-search-placeholder="Select Staff" required>
-                                    <option value="">Select Staff</option>
+                                    data-search-placeholder="-- Search User --" required>
+                                    <option value="">-- Search User --</option>
                                     @foreach ($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
                                             @selected(old('assigned_user_id') == $user->id)>{{ $user->name }}</option>
@@ -59,7 +60,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Comment</label>
-                            <textarea name="comment" id="comment" rows="2"
+                            <textarea name="comment" id="comment" rows="1"
                                 class="form-control">{{ old('comment') }}</textarea>
                         </div>
                         <div class="col-md-6">

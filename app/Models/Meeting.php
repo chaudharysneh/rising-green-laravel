@@ -154,35 +154,27 @@ class Meeting extends Model
     }
 
     /**
-     * Check if the meeting is online.
+     * Check if the meeting is virtual.
      */
-    public function isOnline(): bool
+    public function isVirtual(): bool
     {
-        return $this->meeting_type === 'online';
+        return $this->meeting_type === 'virtual';
     }
 
     /**
-     * Check if the meeting is offline.
+     * Check if the meeting is in-person.
      */
-    public function isOffline(): bool
+    public function isInPerson(): bool
     {
-        return $this->meeting_type === 'offline';
+        return $this->meeting_type === 'in-person';
     }
 
     /**
-     * Check if the meeting is a phone call.
+     * Check if the meeting is telephonic.
      */
-    public function isPhoneCall(): bool
+    public function isTelephonic(): bool
     {
-        return $this->meeting_type === 'phone';
-    }
-
-    /**
-     * Check if the meeting is a video call.
-     */
-    public function isVideoCall(): bool
-    {
-        return $this->meeting_type === 'video';
+        return $this->meeting_type === 'telephonic';
     }
 
     /**
@@ -210,10 +202,9 @@ class Meeting extends Model
     public function getMeetingTypeLabelAttribute(): string
     {
         return match ($this->meeting_type) {
-            'online' => 'Online',
-            'offline' => 'Offline',
-            'phone' => 'Phone Call',
-            'video' => 'Video Call',
+            'virtual' => 'Virtual',
+            'in-person' => 'In-person',
+            'telephonic' => 'Telephonic',
             default => 'Not specified'
         };
     }

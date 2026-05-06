@@ -47,7 +47,7 @@ class LeadController extends ApiBaseController
 
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:10', 'min:10', 'unique:leads,phone'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
             'address' => ['required', 'string'],
@@ -134,7 +134,7 @@ class LeadController extends ApiBaseController
         $originalStatus = $lead->status;
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:10', 'min:10', 'unique:leads,phone,' . $lead->id],
             'whatsapp' => ['nullable', 'string', 'max:50'],
             'address' => ['required', 'string'],
@@ -298,7 +298,6 @@ class LeadController extends ApiBaseController
     private function messages(): array
     {
         return [
-            'email.required' => 'The email field is required.',
             'email.email' => 'Please enter a valid email address.',
             'image.mimes' => 'Please select a valid image! Allowed types: AVIF, WEBP, JPG, JPEG, PNG, GIF, BMP, SVG.',
             'image.max' => 'Please select an image smaller than 2MB!',

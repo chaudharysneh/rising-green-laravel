@@ -62,7 +62,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Image</label>
-                                <input type="file" name="image" class="form-control" accept="image/*">
+                                <input type="file" name="image" class="form-control" accept="image/*" style="height: calc(1.5em + 0.75rem + 2px); padding: 0.375rem 0.75rem; line-height: 1.5;">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Company Name</label>

@@ -59,7 +59,6 @@ class DealController extends Controller
             ->orderBy('estimate_name')
             ->get();
         $customers = Customer::visibleTo(auth()->user())
-            ->whereIn('id', $estimates->pluck('customer_id')->filter()->unique()->values())
             ->orderBy('name')
             ->get();
         $statuses = Status::where('type', 'deal')->where('is_active', true)->orderBy('name')->get();
@@ -81,12 +80,7 @@ class DealController extends Controller
             ->orderByDesc('estimate_date')
             ->orderBy('estimate_name')
             ->get();
-        $customerIds = $estimates->pluck('customer_id')->filter()->unique();
-        if ($deal->customer_id) {
-            $customerIds->push($deal->customer_id);
-        }
         $customers = Customer::visibleTo(auth()->user())
-            ->whereIn('id', $customerIds->unique()->values())
             ->orderBy('name')
             ->get();
         $statuses = Status::where('type', 'deal')->where('is_active', true)->orderBy('name')->get();

@@ -103,10 +103,9 @@
                             <label class="form-label fw-semibold">Meeting Type </label>
                             <select name="meeting_type" id="meeting_type" class="form-select" required>
                                 <option value="">Select Meeting Type</option>
-                                <option value="online" {{ $meeting->meeting_type == 'online' ? 'selected' : '' }}>Online</option>
-                                <option value="offline" {{ $meeting->meeting_type == 'offline' ? 'selected' : '' }}>Offline</option>
-                                <option value="phone" {{ $meeting->meeting_type == 'phone' ? 'selected' : '' }}>Phone Call</option>
-                                <option value="video" {{ $meeting->meeting_type == 'video' ? 'selected' : '' }}>Video Conference</option>
+                                <option value="virtual" {{ $meeting->meeting_type == 'virtual' ? 'selected' : '' }}>Virtual</option>
+                                <option value="in-person" {{ $meeting->meeting_type == 'in-person' ? 'selected' : '' }}>In-person</option>
+                                <option value="telephonic" {{ $meeting->meeting_type == 'telephonic' ? 'selected' : '' }}>Telephonic</option>
                             </select>
                             <div class="invalid-feedback" id="meeting_type-error"></div>
                         </div>

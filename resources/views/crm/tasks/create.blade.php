@@ -66,7 +66,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-bars me-2 text-muted"></i>Description</label>
-                            <textarea name="description" id="description" rows="2"
+                            <textarea name="description" id="description" rows="1"
                                 class="form-control @error('description') is-invalid @enderror"
                                 required>{{ old('description') }}</textarea>
                             <div class="invalid-feedback d-block" id="description-error">{{ $errors->first('description') }}</div>
