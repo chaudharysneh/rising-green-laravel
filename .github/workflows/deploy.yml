@@ -36,7 +36,7 @@ jobs:
           rm -rf ./build_output/.git
           rm -f ./build_output/.gitignore
           rm -f ./build_output/.gitattributes
-          # Keep storage and public/storage for image uploads
+          # Keep storage/app/public for image uploads
           # Only remove specific cache files
           rm -rf ./build_output/storage/logs/*
           rm -rf ./build_output/storage/framework/cache/*
@@ -45,6 +45,19 @@ jobs:
           rm -rf ./build_output/public/upload
           rm -rf ./build_output/public/uploads
           rm -rf ./build_output/public/assets/img/
+          # Ensure storage directories exist
+          mkdir -p ./build_output/storage/app/public/make
+          mkdir -p ./build_output/storage/app/public/categories
+          mkdir -p ./build_output/storage/app/public/products
+          mkdir -p ./build_output/storage/app/public/bom-products
+          mkdir -p ./build_output/storage/app/public/leads
+          mkdir -p ./build_output/storage/app/public/customers
+          mkdir -p ./build_output/storage/app/public/vendors
+          mkdir -p ./build_output/storage/app/public/users
+          mkdir -p ./build_output/storage/app/public/avatars
+          mkdir -p ./build_output/storage/app/public/company
+          mkdir -p ./build_output/storage/app/public/documents
+          mkdir -p ./build_output/storage/app/public/estimates
 
       - name: Deploy to cPanel via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -64,10 +77,6 @@ jobs:
             **/vendor_old/**
             **/system/**
             **/node_modules/**
-            **/storage/logs/**
-            **/storage/framework/cache/**
-            **/storage/framework/sessions/**
-            **/storage/framework/views/**
             **/public/upload/**
             **/public/uploads/**
             **/public/assets/img/**

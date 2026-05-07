@@ -27,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Create storage directories if they don't exist
+        $this->ensureStorageDirectoriesExist();
+        
         // Create storage symlink if it doesn't exist
         $this->createStorageSymlink();
 
@@ -59,6 +62,38 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('googleCalendarConnected', $googleCalendarConnected);
         });
+    }
+
+    /**
+     * Ensure all required storage directories exist
+     */
+    private function ensureStorageDirectoriesExist(): void
+    {
+        $directories = [
+            'app/public/make',
+            'app/public/categories',
+            'app/public/products',
+            'app/public/bom-products',
+            'app/public/leads',
+            'app/public/customers',
+            'app/public/vendors',
+            'app/public/users',
+            'app/public/avatars',
+            'app/public/company',
+            'app/public/documents',
+            'app/public/estimates',
+            'logs',
+            'framework/cache',
+            'framework/sessions',
+            'framework/views',
+        ];
+
+        foreach ($directories as $dir) {
+            $path = storage_path($dir);
+            if (!is_dir($path)) {
+                @mkdir($path, 0755, true);
+            }
+        }
     }
 
     /**

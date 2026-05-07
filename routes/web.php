@@ -101,6 +101,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Diagnostic routes (no auth required for debugging)
+Route::get('/diagnostic/check', [\App\Http\Controllers\DiagnosticController::class, 'check'])->name('diagnostic.check');
+Route::get('/diagnostic/create-directories', [\App\Http\Controllers\DiagnosticController::class, 'createStorageDirectories'])->name('diagnostic.create-directories');
+Route::get('/diagnostic/create-symlink', [\App\Http\Controllers\DiagnosticController::class, 'createSymlink'])->name('diagnostic.create-symlink');
+Route::get('/diagnostic/test-image/{id}', [\App\Http\Controllers\DiagnosticController::class, 'testImageRoute'])->name('diagnostic.test-image');
 Route::get('/whatsapp-configration/webhook', [WhatsappWebhookController::class, 'verify']);
 Route::post('/whatsapp-configration/webhook', [WhatsappWebhookController::class, 'handle']);
 
