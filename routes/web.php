@@ -308,6 +308,21 @@ Route::middleware('auth')->group(function () {
     Route::get('all-categories/{category}/image', [CategoriesController::class, 'image'])->middleware('matrix_permission:view_categories')->name('categories.image');
     Route::get('make', [MakeController::class, 'index'])->middleware('matrix_permission:view_make')->name('make.index');
     Route::get('make/{id}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
+    
+    // Storage fallback routes for cPanel compatibility
+    Route::get('storage/{path}', function ($path) {
+        $filePath = storage_path('app/public/' . $path);
+        
+        if (file_exists($filePath) && is_file($filePath)) {
+            $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+            return response()->file($filePath, [
+                'Content-Type' => $mimeType,
+                'Cache-Control' => 'public, max-age=31536000',
+            ]);
+        }
+        
+        abort(404, 'File not found in storage');
+    })->where('path', '.*')->name('storage.fallback');
     Route::get('warranty', [WarrantyController::class, 'index'])->middleware('matrix_permission:view_warranty')->name('warranty.index');
     Route::get('technology', [TechnologyController::class, 'index'])->middleware('matrix_permission:view_technology')->name('technology.index');
     Route::get('all-vendor', [VendorController::class, 'index'])->middleware('matrix_permission:view_vendors')->name('vendors.index');

@@ -2,75 +2,93 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 
 class DiagnosticController extends Controller
 {
+    /**
+     * Check system status for image serving
+     */
     public function check()
     {
-        $diagnostics = [];
-
-        // Check if storage directory exists
-        $diagnostics['storage_exists'] = is_dir(storage_path());
-        $diagnostics['storage_path'] = storage_path();
-
-        // Check if storage/app/public exists
-        $diagnostics['storage_app_public_exists'] = is_dir(storage_path('app/public'));
-        $diagnostics['storage_app_public_path'] = storage_path('app/public');
-
-        // Check if storage/app/public/make exists
-        $diagnostics['storage_make_exists'] = is_dir(storage_path('app/public/make'));
-        $diagnostics['storage_make_path'] = storage_path('app/public/make');
-
-        // Check if storage is writable
-        $diagnostics['storage_writable'] = is_writable(storage_path());
-
-        // Check if storage/app/public is writable
-        $diagnostics['storage_app_public_writable'] = is_writable(storage_path('app/public'));
-
-        // Check if public/storage symlink exists
-        $diagnostics['public_storage_exists'] = is_link(public_path('storage'));
-        $diagnostics['public_storage_path'] = public_path('storage');
-
-        // Check if public/storage is a directory
-        $diagnostics['public_storage_is_dir'] = is_dir(public_path('storage'));
-
-        // List files in storage/app/public/make
-        $make_dir = storage_path('app/public/make');
-        if (is_dir($make_dir)) {
-            $files = scandir($make_dir);
-            $diagnostics['make_files_count'] = count($files) - 2; // Exclude . and ..
-            $diagnostics['make_files_sample'] = array_slice($files, 2, 5);
-        }
-
-        // Check logs
-        $diagnostics['logs_dir_exists'] = is_dir(storage_path('logs'));
-        $diagnostics['logs_dir_writable'] = is_writable(storage_path('logs'));
+        $results = [];
         
-        $log_file = storage_path('logs/laravel.log');
-        $diagnostics['log_file_exists'] = file_exists($log_file);
-        $diagnostics['log_file_path'] = $log_file;
-        $diagnostics['log_file_writable'] = is_writable($log_file);
-
-        // Check app.php config
-        $diagnostics['app_debug'] = config('app.debug');
-        $diagnostics['app_env'] = config('app.env');
-
-        // Check if we can write to storage
-        try {
-            $test_file = storage_path('test_write.txt');
-            file_put_contents($test_file, 'test');
-            $diagnostics['can_write_to_storage'] = true;
-            unlink($test_file);
-        } catch (\Exception $e) {
-            $diagnostics['can_write_to_storage'] = false;
-            $diagnostics['write_error'] = $e->getMessage();
+        // Check storage directories
+        $storageDirectories = [
+            'storage/app/public/make',
+            'storage/app/public/categories',
+            'storage/app/public/products',
+            'public/storage',
+        ];
+        
+        foreach ($storageDirectories as $dir) {
+            $fullPath = base_path($dir);
+            $results['directories'][$dir] = [
+                'exists' => is_dir($fullPath),
+                'writable' => is_writable($fullPath),
+                'path' => $fullPath,
+            ];
         }
-
-        return response()->json($diagnostics, 200, [], JSON_PRETTY_PRINT);
+        
+        // Check symlink
+        $symlinkPath = public_path('storage');
+        $results['symlink'] = [
+            'exists' => file_exists($symlinkPath),
+            'is_link' => is_link($symlinkPath),
+            'target' => is_link($symlinkPath) ? readlink($symlinkPath) : null,
+            'path' => $symlinkPath,
+        ];
+        
+        // Check sample images
+        $sampleMakes = Category::where('image', '!=', null)->limit(5)->get();
+        foreach ($sampleMakes as $make) {
+            $possiblePaths = [
+                Storage::disk('public')->path($make->image),
+                storage_path('app/public/' . $make->image),
+                public_path('storage/' . $make->image),
+                base_path('storage/app/public/' . $make->image),
+            ];
+            
+            $results['sample_images'][$make->id] = [
+                'name' => $make->name,
+                'image_field' => $make->image,
+                'paths' => [],
+            ];
+            
+            foreach ($possiblePaths as $path) {
+                $results['sample_images'][$make->id]['paths'][] = [
+                    'path' => $path,
+                    'exists' => file_exists($path),
+                    'readable' => is_readable($path),
+                    'size' => file_exists($path) ? filesize($path) : 0,
+                ];
+            }
+        }
+        
+        // Check .htaccess files
+        $htaccessFiles = [
+            'public/storage/.htaccess',
+            'storage/app/public/.htaccess',
+        ];
+        
+        foreach ($htaccessFiles as $file) {
+            $fullPath = base_path($file);
+            $results['htaccess'][$file] = [
+                'exists' => file_exists($fullPath),
+                'content' => file_exists($fullPath) ? file_get_contents($fullPath) : null,
+            ];
+        }
+        
+        return response()->json($results, 200, [], JSON_PRETTY_PRINT);
     }
-
+    
+    /**
+     * Create storage directories
+     */
     public function createStorageDirectories()
     {
         $directories = [
@@ -86,81 +104,145 @@ class DiagnosticController extends Controller
             'storage/app/public/company',
             'storage/app/public/documents',
             'storage/app/public/estimates',
-            'storage/logs',
-            'storage/framework/cache',
-            'storage/framework/sessions',
-            'storage/framework/views',
+            'public/storage',
         ];
-
+        
         $results = [];
+        
         foreach ($directories as $dir) {
-            $path = base_path($dir);
-            if (!is_dir($path)) {
-                mkdir($path, 0755, true);
-                $results[$dir] = 'created';
+            $fullPath = base_path($dir);
+            
+            if (!is_dir($fullPath)) {
+                $created = mkdir($fullPath, 0755, true);
+                $results[$dir] = $created ? 'Created' : 'Failed to create';
             } else {
-                $results[$dir] = 'exists';
+                $results[$dir] = 'Already exists';
             }
         }
-
-        return response()->json($results);
+        
+        return response()->json([
+            'message' => 'Storage directories creation completed',
+            'results' => $results
+        ]);
     }
-
+    
+    /**
+     * Create storage symlink
+     */
     public function createSymlink()
     {
+        $link = public_path('storage');
+        $target = storage_path('app/public');
+        
         try {
-            $link = public_path('storage');
-            $target = storage_path('app/public');
-
-            // Remove existing symlink or directory
-            if (is_link($link)) {
-                unlink($link);
-            } elseif (is_dir($link)) {
-                rmdir($link);
+            // Remove existing link/directory if it exists
+            if (file_exists($link)) {
+                if (is_link($link)) {
+                    unlink($link);
+                } elseif (is_dir($link)) {
+                    // Only remove if empty
+                    $files = array_diff(scandir($link), ['.', '..']);
+                    if (empty($files)) {
+                        rmdir($link);
+                    } else {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Directory exists with files, cannot remove'
+                        ]);
+                    }
+                }
             }
-
-            // Create symlink
-            symlink($target, $link);
-
+            
+            // Try to create symlink
+            if (@symlink($target, $link)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Symlink created successfully',
+                    'link' => $link,
+                    'target' => $target
+                ]);
+            }
+            
+            // If symlink fails, create directory with .htaccess
+            if (!is_dir($link)) {
+                mkdir($link, 0755, true);
+            }
+            
+            $htaccessContent = "Options +FollowSymLinks\n";
+            $htaccessContent .= "RewriteEngine On\n";
+            $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
+            $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-d\n";
+            $htaccessContent .= "RewriteRule ^(.*)$ ../storage/app/public/$1 [L]\n";
+            $htaccessContent .= "Options -Indexes\n";
+            
+            file_put_contents($link . '/.htaccess', $htaccessContent);
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Symlink created successfully',
+                'message' => 'Directory created with .htaccess redirect',
                 'link' => $link,
-                'target' => $target,
+                'target' => $target
             ]);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
         }
     }
-
+    
+    /**
+     * Test image route
+     */
     public function testImageRoute($id)
     {
         try {
-            $category = \App\Models\Category::findOrFail($id);
-
-            $result = [
-                'id' => $category->id,
-                'name' => $category->name,
-                'image' => $category->image,
-                'image_path' => storage_path('app/public/' . $category->image),
-                'image_exists' => $category->image ? Storage::disk('public')->exists($category->image) : false,
+            $category = Category::findOrFail($id);
+            
+            $info = [
+                'make_id' => $id,
+                'make_name' => $category->name,
+                'image_field' => $category->image,
+                'image_url' => $category->image ? route('make.image', $category->id) . '?v=' . optional($category->updated_at)->timestamp : null,
             ];
-
-            if ($category->image) {
-                $full_path = storage_path('app/public/' . $category->image);
-                $result['file_exists'] = file_exists($full_path);
-                $result['file_readable'] = is_readable($full_path);
-                $result['file_size'] = filesize($full_path);
+            
+            if (!$category->image) {
+                return response()->json(array_merge($info, [
+                    'error' => 'No image associated with this make'
+                ]));
             }
-
-            return response()->json($result);
+            
+            // Check all possible paths
+            $possiblePaths = [
+                Storage::disk('public')->path($category->image),
+                storage_path('app/public/' . $category->image),
+                public_path('storage/' . $category->image),
+                base_path('storage/app/public/' . $category->image),
+            ];
+            
+            $pathResults = [];
+            foreach ($possiblePaths as $path) {
+                $pathResults[] = [
+                    'path' => $path,
+                    'exists' => file_exists($path),
+                    'readable' => is_readable($path),
+                    'size' => file_exists($path) ? filesize($path) : 0,
+                    'mime_type' => file_exists($path) ? mime_content_type($path) : null,
+                ];
+            }
+            
+            return response()->json(array_merge($info, [
+                'paths_checked' => $pathResults,
+                'storage_disk_path' => Storage::disk('public')->path(''),
+                'storage_exists' => Storage::disk('public')->exists($category->image),
+            ]));
+            
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage(),
-            ], 500);
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 }
