@@ -128,6 +128,17 @@ class MakeController extends ApiBaseController
         ]);
     }
 
+    public function image($id)
+    {
+        $category = Category::findOrFail($id);
+        
+        if (!$category->image || !Storage::disk('public')->exists($category->image)) {
+            abort(404, 'Image not found');
+        }
+
+        return response()->file(Storage::disk('public')->path($category->image));
+    }
+
     private function rules(?Category $make = null): array
     {
         return [
