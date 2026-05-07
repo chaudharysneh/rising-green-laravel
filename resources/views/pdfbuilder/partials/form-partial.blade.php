@@ -842,5 +842,5 @@
     "edit_mode": {{ isset($edit_mode) && $edit_mode ? "true" : "false" }}
 }
 </script>
-<script src="{{ asset('js/pdfbuilder.js') }}"></script>
+<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/pdfbuilder.js') }}"></script>
 @endpush

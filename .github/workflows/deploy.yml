@@ -110,7 +110,7 @@ jobs:
           server: 82.29.163.188
           username: "u378554361.rising-green-energy-crm.fableadtech.in"
           password: "V5!MMMwbYrJ6Imr>"
-          server-dir: /
+          server-dir: /public_html/
           local-dir: ./build_output/
           protocol: ftp
           port: 21
