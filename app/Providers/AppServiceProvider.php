@@ -115,12 +115,12 @@ class AppServiceProvider extends ServiceProvider
                 if (is_link($link)) {
                     unlink($link);
                 } elseif (is_dir($link)) {
-                    // Only remove if empty or contains our files
+                    // Only remove if empty
                     $files = array_diff(scandir($link), ['.', '..']);
                     if (empty($files)) {
                         rmdir($link);
                     } else {
-                        // Directory has files, don't remove - might be manual setup
+                        // Directory has files, skip symlink creation
                         return;
                     }
                 }
@@ -128,25 +128,7 @@ class AppServiceProvider extends ServiceProvider
 
             // Create the symlink
             if (!file_exists($link)) {
-                // Try to create symlink
-                if (@symlink($target, $link)) {
-                    return;
-                }
-                
-                // If symlink fails (cPanel), create directory structure
-                if (!is_dir($link)) {
-                    mkdir($link, 0755, true);
-                }
-                
-                // Create .htaccess for redirection
-                $htaccessContent = "Options +FollowSymLinks\n";
-                $htaccessContent .= "RewriteEngine On\n";
-                $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
-                $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-d\n";
-                $htaccessContent .= "RewriteRule ^(.*)$ ../storage/app/public/$1 [L]\n";
-                $htaccessContent .= "Options -Indexes\n";
-                
-                file_put_contents($link . '/.htaccess', $htaccessContent);
+                symlink($target, $link);
             }
         } catch (\Throwable $e) {
             // Log error but don't break the application

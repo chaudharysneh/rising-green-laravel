@@ -47,7 +47,7 @@ jobs:
           # rm -rf ./build_output/public/uploads
           rm -rf ./build_output/public/assets/img/
           # Ensure storage directories exist with proper structure
-          mkdir -p ./build_output/storage/app/public/make
+          mkdir -p ./build_output/storage/app/public/makes
           mkdir -p ./build_output/storage/app/public/categories
           mkdir -p ./build_output/storage/app/public/products
           mkdir -p ./build_output/storage/app/public/bom-products
@@ -59,20 +59,50 @@ jobs:
           mkdir -p ./build_output/storage/app/public/company
           mkdir -p ./build_output/storage/app/public/documents
           mkdir -p ./build_output/storage/app/public/estimates
+
+      - name: Create post-deployment script
+        run: |
+          cat > ./build_output/post-deploy.php << 'EOF'
+          <?php
+          // Auto-run post-deployment fixes
           
-          # Create public/storage directory structure for cPanel
-          mkdir -p ./build_output/public/storage/make
-          mkdir -p ./build_output/public/storage/categories
-          mkdir -p ./build_output/public/storage/products
-          mkdir -p ./build_output/public/storage/bom-products
-          mkdir -p ./build_output/public/storage/leads
-          mkdir -p ./build_output/public/storage/customers
-          mkdir -p ./build_output/public/storage/vendors
-          mkdir -p ./build_output/public/storage/users
-          mkdir -p ./build_output/public/storage/avatars
-          mkdir -p ./build_output/public/storage/company
-          mkdir -p ./build_output/public/storage/documents
-          mkdir -p ./build_output/public/storage/estimates
+          $link = __DIR__ . '/public/storage';
+          $target = __DIR__ . '/storage/app/public';
+          
+          // Remove existing link/directory if it exists
+          if (file_exists($link)) {
+              if (is_link($link)) {
+                  unlink($link);
+              } elseif (is_dir($link)) {
+                  $files = array_diff(scandir($link), ['.', '..']);
+                  if (empty($files)) {
+                      rmdir($link);
+                  }
+              }
+          }
+          
+          // Create symlink
+          if (!file_exists($link)) {
+              if (@symlink($target, $link)) {
+                  echo "Storage symlink created successfully\n";
+              } else {
+                  echo "Failed to create symlink, storage will use route fallback\n";
+              }
+          }
+          
+          // Run migration to update image paths
+          if (file_exists(__DIR__ . '/artisan')) {
+              exec('cd ' . __DIR__ . ' && php artisan migrate --force 2>&1', $output, $return_var);
+              if ($return_var === 0) {
+                  echo "Migrations completed successfully\n";
+              } else {
+                  echo "Migration failed: " . implode("\n", $output) . "\n";
+              }
+          }
+          EOF
+          
+          # Auto-execute the script during deployment
+          php ./build_output/post-deploy.php
 
       - name: Deploy to cPanel via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -92,78 +122,11 @@ jobs:
             **/vendor_old/**
             **/system/**
             **/node_modules/**
+            **/storage/app/public/**
+            **/public/storage/**
             **/app/Config/App.php
             **/app/Config/Database.php
             **/app/Config/Email.php
             **/app/Config/Paths.php
             **/app/Config/Encryption.php
             **/app/Config/Logger.php
-          # Note: Removed exclusion of storage directories to preserve images
-
-      - name: Create .htaccess for storage access (cPanel compatible)
-        run: |
-          # Create .htaccess in public/storage for direct file access
-          cat > ./build_output/public/storage/.htaccess << 'EOF'
-          Options +FollowSymLinks
-          RewriteEngine On
-          
-          # Redirect to actual storage location
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule ^(.*)$ ../../storage/app/public/$1 [L]
-          
-          # Allow direct access to existing files
-          RewriteCond %{REQUEST_FILENAME} -f
-          RewriteRule ^(.*)$ $1 [L]
-          
-          # Prevent directory browsing
-          Options -Indexes
-          EOF
-          
-          # Create index.php in public/storage for fallback routing
-          cat > ./build_output/public/storage/index.php << 'EOF'
-          <?php
-          // Storage file router for cPanel compatibility
-          $requestUri = $_SERVER['REQUEST_URI'];
-          $path = parse_url($requestUri, PHP_URL_PATH);
-          
-          // Remove /storage/ from path to get actual file path
-          $filePath = str_replace('/storage/', '', $path);
-          $actualFile = __DIR__ . '/../../storage/app/public/' . $filePath;
-          
-          if (file_exists($actualFile) && is_file($actualFile)) {
-              // Get mime type
-              $mimeType = mime_content_type($actualFile);
-              
-              // Set headers
-              header('Content-Type: ' . $mimeType);
-              header('Content-Length: ' . filesize($actualFile));
-              header('Cache-Control: public, max-age=31536000');
-              
-              // Output file
-              readfile($actualFile);
-              exit;
-          }
-          
-          // File not found
-          http_response_code(404);
-          echo "File not found";
-          EOF
-          
-          # Create .htaccess in storage/app/public for direct access
-          cat > ./build_output/storage/app/public/.htaccess << 'EOF'
-          Options +FollowSymLinks
-          RewriteEngine On
-          
-          # Allow direct access to files
-          RewriteCond %{REQUEST_FILENAME} -f
-          RewriteRule ^(.*)$ $1 [L]
-          
-          # Prevent directory browsing
-          Options -Indexes
-          
-          # Set proper MIME types for images
-          <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
-              Header set Cache-Control "public, max-age=31536000"
-          </FilesMatch>
-          EOF

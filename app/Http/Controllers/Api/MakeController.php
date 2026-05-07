@@ -60,7 +60,7 @@ class MakeController extends ApiBaseController
         $data = $validator->validated();
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('make', 'public');
+            $data['image'] = $request->file('image')->store('makes', 'public');
         }
 
         $make = Category::create($data);
@@ -99,7 +99,7 @@ class MakeController extends ApiBaseController
                 Storage::disk('public')->delete($make->image);
             }
 
-            $data['image'] = $request->file('image')->store('make', 'public');
+            $data['image'] = $request->file('image')->store('makes', 'public');
         }
 
         $make->update($data);
@@ -157,7 +157,9 @@ class MakeController extends ApiBaseController
             'id' => $make->id,
             'name' => $make->name,
             'image' => $make->image,
-            'image_url' => $make->image ? route('make.image', $make->id) . '?v=' . optional($make->updated_at)->timestamp : null,
+            'image_url' => $make->image && Storage::disk('public')->exists($make->image) 
+                ? asset('storage/' . $make->image) 
+                : null,
             'created_at' => optional($make->created_at)?->toIso8601String(),
             'updated_at' => optional($make->updated_at)?->toIso8601String(),
         ];

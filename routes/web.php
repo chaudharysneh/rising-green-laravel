@@ -101,12 +101,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Diagnostic routes (no auth required for debugging)
-Route::get('/diagnostic/check', [\App\Http\Controllers\DiagnosticController::class, 'check'])->name('diagnostic.check');
-Route::get('/diagnostic/create-directories', [\App\Http\Controllers\DiagnosticController::class, 'createStorageDirectories'])->name('diagnostic.create-directories');
-Route::get('/diagnostic/create-symlink', [\App\Http\Controllers\DiagnosticController::class, 'createSymlink'])->name('diagnostic.create-symlink');
-Route::get('/diagnostic/test-image/{id}', [\App\Http\Controllers\DiagnosticController::class, 'testImageRoute'])->name('diagnostic.test-image');
 Route::get('/whatsapp-configration/webhook', [WhatsappWebhookController::class, 'verify']);
 Route::post('/whatsapp-configration/webhook', [WhatsappWebhookController::class, 'handle']);
 
@@ -307,22 +301,6 @@ Route::middleware('auth')->group(function () {
     Route::get('all-categories', [CategoriesController::class, 'index'])->middleware('matrix_permission:view_categories')->name('categories.index');
     Route::get('all-categories/{category}/image', [CategoriesController::class, 'image'])->middleware('matrix_permission:view_categories')->name('categories.image');
     Route::get('make', [MakeController::class, 'index'])->middleware('matrix_permission:view_make')->name('make.index');
-    Route::get('make/{id}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
-    
-    // Storage fallback routes for cPanel compatibility
-    Route::get('storage/{path}', function ($path) {
-        $filePath = storage_path('app/public/' . $path);
-        
-        if (file_exists($filePath) && is_file($filePath)) {
-            $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
-            return response()->file($filePath, [
-                'Content-Type' => $mimeType,
-                'Cache-Control' => 'public, max-age=31536000',
-            ]);
-        }
-        
-        abort(404, 'File not found in storage');
-    })->where('path', '.*')->name('storage.fallback');
     Route::get('warranty', [WarrantyController::class, 'index'])->middleware('matrix_permission:view_warranty')->name('warranty.index');
     Route::get('technology', [TechnologyController::class, 'index'])->middleware('matrix_permission:view_technology')->name('technology.index');
     Route::get('all-vendor', [VendorController::class, 'index'])->middleware('matrix_permission:view_vendors')->name('vendors.index');

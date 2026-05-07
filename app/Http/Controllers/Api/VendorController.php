@@ -166,7 +166,9 @@ class VendorController extends ApiBaseController
             'phone' => $vendor->phone,
             'address' => $vendor->address,
             'image' => $vendor->image,
-            'image_url' => $vendor->image ? route('vendors.image', $vendor) . '?v=' . optional($vendor->updated_at)->timestamp : null,
+            'image_url' => $vendor->image && Storage::disk('public')->exists($vendor->image) 
+                ? asset('storage/' . $vendor->image) 
+                : null,
             'status' => $vendor->status,
             'created_at' => optional($vendor->created_at)?->toIso8601String(),
             'updated_at' => optional($vendor->updated_at)?->toIso8601String(),
