@@ -52,13 +52,16 @@ class TaskController extends ApiBaseController
                 });
             })
             ->when(!$user->isAdmin() && $filter === 'created_by_me', function ($query) use ($user) {
-                // All records I created (regardless of assignment)
-                $query->where('created_by', $user->id);
+                // All records I created/own (using user_id since tasks don't have created_by)
+                $query->where('user_id', $user->id);
             })
             ->when(!$user->isAdmin() && $filter === 'assigned_to_me', function ($query) use ($user) {
-                // Records assigned to me but NOT created by me
+                // Records assigned to me but NOT owned by me
                 $query->where('assigned_user_id', $user->id)
-                      ->where('created_by', '!=', $user->id);
+                      ->where(function ($q) use ($user) {
+                          $q->whereNull('user_id')
+                            ->orWhere('user_id', '!=', $user->id);
+                      });
             })
             ->latest()
             ->paginate(10)

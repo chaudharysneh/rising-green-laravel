@@ -15,12 +15,39 @@
         const paginationContainer = document.getElementById("leadsPagination");
         const searchInput = document.getElementById("leadsSearch");
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
-        let currentFilter = 'created_by_me'; // Default filter for staff
+        
+        // Get filter from URL parameter or default to 'created_by_me'
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentFilter = urlParams.get('filter') || 'created_by_me';
+
+        // Set the filter in URL if not present (for first load)
+        if (!urlParams.has('filter')) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('filter', currentFilter);
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Activate the correct tab based on URL parameter
+        if (currentFilter) {
+            document.querySelectorAll('#leadFilterTabs button[data-filter]').forEach(function(tab) {
+                if (tab.dataset.filter === currentFilter) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
 
         // Tab click handlers
         document.querySelectorAll('#leadFilterTabs button[data-filter]').forEach(function(tab) {
             tab.addEventListener('click', function() {
                 currentFilter = this.dataset.filter;
+                
+                // Update URL without page reload - use replaceState to ensure it persists
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('filter', currentFilter);
+                window.history.replaceState({}, '', newUrl);
+                
                 fetchLeads(1);
             });
         });
@@ -163,7 +190,7 @@
 
             tableBody.innerHTML = items.map(function (lead, index) {
                 const isConverted = Boolean(lead.is_converted);
-                const createdBy = lead.assigned_user?.name || lead.assignedUser?.name || "-";
+                const createdBy = lead.creator?.name || "-";
                 const srNo = meta && meta.from ? meta.from + index : index + 1;
                 const statusHtml = `<span class="badge ${statusBadge(lead.status)} rounded-pill lead-status-pill">${formatStatus(lead.status)}</span>`;
 
@@ -182,7 +209,7 @@
                         <td class="text-end pe-4 d-none d-md-table-cell">
                             <div class="d-inline-flex align-items-center gap-2">
                                 ${(!isConverted && permissions.edit) ? `<button type="button" class="btn crm-action-btn btn-sm text-success convert-btn" data-id="${lead.id}" title="Convert to Customer"><i class="bi bi-person-plus"></i></button>` : ""}
-                                ${permissions.edit ? `<a href="/leads/${lead.id}/edit" class="btn crm-action-btn btn-sm" title="Edit Details"><i class="bi bi-pencil"></i></a>` : ""}
+                                ${permissions.edit ? `<a href="/leads/${lead.id}/edit?filter=${currentFilter}" class="btn crm-action-btn btn-sm" title="Edit Details"><i class="bi bi-pencil"></i></a>` : ""}
                                 ${permissions.view ? `<a href="/leads/${lead.id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ""}
                                 ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${lead.id}" title="Remove Lead">
                                     <i class="bi bi-trash"></i>
@@ -215,7 +242,7 @@
                                         <div class="expand-label"><i class="fa-solid fa-gear"></i> Actions :</div>
                                         <div class="d-flex flex-wrap gap-2 justify-content-end">
                                             ${(!isConverted && permissions.edit) ? `<button type="button" class="btn crm-action-btn btn-sm text-success convert-btn" data-id="${lead.id}" title="Convert to Customer"><i class="bi bi-person-plus"></i></button>` : ""}
-                                            ${permissions.edit ? `<a href="/leads/${lead.id}/edit" class="btn crm-action-btn btn-sm" title="Edit Details"><i class="bi bi-pencil"></i></a>` : ""}
+                                            ${permissions.edit ? `<a href="/leads/${lead.id}/edit?filter=${currentFilter}" class="btn crm-action-btn btn-sm" title="Edit Details"><i class="bi bi-pencil"></i></a>` : ""}
                                             ${permissions.view ? `<a href="/leads/${lead.id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ""}
                                             ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${lead.id}" title="Remove Lead">
                                                 <i class="bi bi-trash"></i>
@@ -424,6 +451,7 @@ $(document).ready(function () {
         const originalText = btn.html();
         const method = 'POST';
         const isEdit = /\/api\/leads\/\d+$/i.test(url);
+        const currentFilter = $form.data('current-filter') || 'created_by_me';
 
         $form.find('.is-invalid').removeClass('is-invalid');
         $form.find('.ts-wrapper.is-invalid').removeClass('is-invalid');
@@ -432,6 +460,11 @@ $(document).ready(function () {
         $form.find('.invalid-feedback').html('');
 
         const formData = new FormData(this);
+        
+        // Add current filter to form data for redirect
+        if (isEdit) {
+            formData.append('current_filter', currentFilter);
+        }
 
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
 
@@ -453,7 +486,15 @@ $(document).ready(function () {
                     return;
                 }
 
-                const redirect = response.redirect || '/leads';
+                let redirect = response.redirect || '/leads';
+                
+                // Add filter parameter to redirect URL if editing
+                if (isEdit && currentFilter) {
+                    const url = new URL(redirect, window.location.origin);
+                    url.searchParams.set('filter', currentFilter);
+                    redirect = url.pathname + url.search;
+                }
+                
                 setTimeout(function () {
                     if (redirect) {
                         showAlert('success', response.message, 'success');

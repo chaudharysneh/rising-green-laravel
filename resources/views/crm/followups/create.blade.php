@@ -114,6 +114,94 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/followup.js') }}"></script>
     <script>
+        $(document).ready(function() {
+            const isAdmin = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
+            const $leadSelect = $('#lead_id');
+            const $assignedUserSelect = $('#assigned_user_id');
+            const allUsers = @json($users);
+
+            // When lead is selected, filter staff dropdown to show only assigned user
+            $leadSelect.on('change', function() {
+                const leadId = $(this).val();
+                
+                if (!leadId || !isAdmin) {
+                    return;
+                }
+
+                // Fetch the assigned user for this lead
+                $.ajax({
+                    url: `/api/follow-ups/lead/${leadId}/assigned-user`,
+                    type: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.assigned_user) {
+                            const assignedUser = response.data.assigned_user;
+                            
+                            // Clear and update the assigned user dropdown
+                            $assignedUserSelect.empty();
+                            $assignedUserSelect.append(
+                                $('<option>', {
+                                    value: assignedUser.id,
+                                    text: assignedUser.name,
+                                    'data-email': assignedUser.email,
+                                    selected: true
+                                })
+                            );
+                            
+                            // Trigger change to update select2 if it's initialized
+                            $assignedUserSelect.trigger('change');
+                            
+                            // Show success message
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('info', `Follow-up will be assigned to ${assignedUser.name} (Lead owner)`, 'Auto-assigned');
+                            }
+                        } else {
+                            // If no assigned user, show all users
+                            $assignedUserSelect.empty();
+                            $assignedUserSelect.append('<option value="">-- Search User --</option>');
+                            allUsers.forEach(function(user) {
+                                $assignedUserSelect.append(
+                                    $('<option>', {
+                                        value: user.id,
+                                        text: user.name,
+                                        'data-email': user.email
+                                    })
+                                );
+                            });
+                            $assignedUserSelect.trigger('change');
+                            
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('warning', 'This lead has no assigned staff member', 'No Assignment');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error fetching lead assigned user:', xhr);
+                        // On error, restore all users
+                        $assignedUserSelect.empty();
+                        $assignedUserSelect.append('<option value="">-- Search User --</option>');
+                        allUsers.forEach(function(user) {
+                            $assignedUserSelect.append(
+                                $('<option>', {
+                                    value: user.id,
+                                    text: user.name,
+                                    'data-email': user.email
+                                })
+                            );
+                        });
+                        $assignedUserSelect.trigger('change');
+                    }
+                });
+            });
+
+            // Trigger on page load if lead is pre-selected
+            if ($leadSelect.val()) {
+                $leadSelect.trigger('change');
+            }
+        });
+
         // Add browser timezone offset to form submission
         $(document).on('submit', '.ajax-followup-form', function(e) {
             // Get browser timezone offset in minutes

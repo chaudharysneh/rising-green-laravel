@@ -21,7 +21,7 @@ class LeadController extends ApiBaseController
         $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
         $user = auth()->user();
 
-        $leads = Lead::with(['leadSource', 'stage', 'assignedUser'])
+        $leads = Lead::with(['leadSource', 'stage', 'assignedUser', 'creator'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -120,7 +120,7 @@ class LeadController extends ApiBaseController
         return response()->json([
             'success' => true,
             'message' => 'Lead created successfully.',
-            'data' => $lead->fresh(['leadSource', 'stage', 'assignedUser']),
+            'data' => $lead->fresh(['leadSource', 'stage', 'assignedUser', 'creator']),
             'history_entry' => $this->serializeHistoryEntry($historyEntry),
             'redirect' => route('leads.index'),
         ], 201);
@@ -128,7 +128,7 @@ class LeadController extends ApiBaseController
 
     public function show(string $id)
     {
-        $lead = Lead::with(['leadSource', 'stage', 'assignedUser'])->findOrFail($id);
+        $lead = Lead::with(['leadSource', 'stage', 'assignedUser', 'creator'])->findOrFail($id);
         $this->authorize('view', $lead);
 
         return response()->json([
@@ -200,7 +200,7 @@ class LeadController extends ApiBaseController
             return response()->json([
                 'success' => true,
                 'message' => 'Lead updated successfully.',
-                'data' => $lead->fresh(['leadSource', 'stage', 'assignedUser']),
+                'data' => $lead->fresh(['leadSource', 'stage', 'assignedUser', 'creator']),
                 'history_entry' => $this->serializeHistoryEntry($historyEntry ?? null),
                 'redirect' => route('leads.index', $lead),
             ]);
@@ -210,6 +210,7 @@ class LeadController extends ApiBaseController
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
+                
             ]);
 
             return response()->json([

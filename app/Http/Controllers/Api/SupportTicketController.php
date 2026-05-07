@@ -47,14 +47,11 @@ class SupportTicketController extends ApiBaseController
                 });
             })
             ->when(!$user->isAdmin() && $filter === 'created_by_me', function ($query) use ($user) {
-                // All records I created (regardless of assignment)
+                // All records I created
                 $query->where('created_by', $user->id);
             })
-            ->when(!$user->isAdmin() && $filter === 'assigned_to_me', function ($query) use ($user) {
-                // Records assigned to me but NOT created by me
-                $query->where('assigned_user_id', $user->id)
-                      ->where('created_by', '!=', $user->id);
-            })
+            // Note: Tickets don't have assigned_user_id, so assigned_to_me filter is not applicable
+            // Staff users will only see tickets they created
             ->latest()
             ->paginate(10)
             ->withQueryString();

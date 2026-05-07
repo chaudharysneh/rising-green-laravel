@@ -134,6 +134,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     Route::get('follow-ups', [FollowUpController::class, 'index'])->middleware('matrix_permission:view_followups')->name('api.followups.index');
     Route::post('follow-ups', [FollowUpController::class, 'store'])->middleware('matrix_permission:create_followups')->name('api.followups.store');
+    Route::get('follow-ups/lead/{lead}/assigned-user', [FollowUpController::class, 'getLeadAssignedUser'])->middleware('matrix_permission:view_followups')->name('api.followups.lead-assigned-user');
     Route::get('follow-ups/{follow_up}', [FollowUpController::class, 'show'])->middleware('matrix_permission:view_followups')->name('api.followups.show');
     Route::put('follow-ups/{follow_up}', [FollowUpController::class, 'update'])->middleware('matrix_permission:edit_followups')->name('api.followups.update');
     Route::patch('follow-ups/{follow_up}', [FollowUpController::class, 'update'])->middleware('matrix_permission:edit_followups');

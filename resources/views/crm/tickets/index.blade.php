@@ -60,22 +60,7 @@
         </div>
 
         <div class="card-body p-0">
-            @if(!auth()->user()->isAdmin())
-            <div class="px-4 pt-3">
-                <ul class="nav nav-tabs crm-filter-tabs" id="ticketFilterTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="created-by-me-tab" data-bs-toggle="tab" data-filter="created_by_me" type="button" role="tab">
-                            Created By Me
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="assigned-to-me-tab" data-bs-toggle="tab" data-filter="assigned_to_me" type="button" role="tab">
-                            Assigned To Me
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            @endif
+            {{-- Tickets don't have assignment feature, so no tabs needed for staff --}}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 responsive-table" id="ticketsTable">
                     <thead>

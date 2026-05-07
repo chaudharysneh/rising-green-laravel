@@ -243,6 +243,32 @@ class FollowUpController extends ApiBaseController
         ]);
     }
 
+    public function getLeadAssignedUser($leadId)
+    {
+        $lead = \App\Models\Lead::with('assignedUser')->find($leadId);
+
+        if (!$lead) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lead not found'
+            ], 404);
+        }
+
+        $this->authorize('view', $lead);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'assigned_user' => $lead->assignedUser ? [
+                    'id' => $lead->assignedUser->id,
+                    'name' => $lead->assignedUser->name,
+                    'email' => $lead->assignedUser->email,
+                ] : null
+            ],
+            'message' => 'Lead assigned user retrieved successfully'
+        ]);
+    }
+
     private function recordStatusHistory(FollowUp $followUp, ?string $status, ?string $comment): ?FollowUpStatusHistory
     {
         if (!$status && !filled($comment)) {

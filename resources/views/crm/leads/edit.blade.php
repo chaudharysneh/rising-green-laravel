@@ -19,7 +19,8 @@
             </div>
             <div class="card-body p-3 p-md-4">
                 <form method="POST" action="/api/leads/{{ $lead->id }}" enctype="multipart/form-data"
-                    class="needs-validation ajax-lead-form js-status-comment-form" novalidate id="leadEditForm">
+                    class="needs-validation ajax-lead-form js-status-comment-form" novalidate id="leadEditForm"
+                    data-current-filter="{{ request('filter', 'created_by_me') }}">
                     @csrf
                     @method('PUT')
 
