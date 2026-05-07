@@ -1,3 +1,68 @@
+<?php
+if (!function_exists('normalize_pdf_image')) {
+    function normalize_pdf_image($path)
+    {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return '';
+        }
+
+        if (strpos($path, 'data:image') === 0) {
+            return $path;
+        }
+
+        if (preg_match('/^https?:\/\//i', $path)) {
+            $urlParts = parse_url($path);
+            if (isset($urlParts['path'])) {
+                $urlPath = ltrim($urlParts['path'], '/');
+                $candidates = [
+                    public_path($urlPath),
+                    public_path(preg_replace('#^public/#i', '', $urlPath)),
+                    base_path($urlPath)
+                ];
+                foreach ($candidates as $candidate) {
+                    if (file_exists($candidate) && is_file($candidate)) {
+                        return $candidate;
+                    }
+                }
+            }
+            return $path;
+        }
+
+        $cleanPath = preg_replace('#^public(?:/|\\\\)#i', '', $path);
+        $cleanPath = ltrim($cleanPath, '/\\');
+        $rawPath = preg_replace('#^storage(?:/|\\\\)#i', '', $cleanPath);
+        $rawPath = ltrim($rawPath, '/\\');
+
+        $candidates = [
+            public_path($cleanPath),
+            storage_path('app/public/' . $rawPath),
+            public_path('assets/' . $cleanPath),
+            public_path('uploads/' . $cleanPath),
+            public_path('assets/img/' . $cleanPath),
+            public_path('assets/img/profile/' . $cleanPath),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate) && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return asset($cleanPath);
+    }
+}
+
+if (!function_exists('base_url')) {
+    function base_url($path = '')
+    {
+        if (empty($path)) {
+            return rtrim(url('/'), '/') . '/';
+        }
+        return normalize_pdf_image($path);
+    }
+}
+?>
 <!DOCTYPE html>
 <html>
 
@@ -148,10 +213,12 @@
             <table>
                 <tr>
                     <td class="company-logo" style="width: 50%;">
-                        @if($user && $user->company_logo)
-                            <img src="{{ public_path('storage/' . $user->company_logo) }}" alt="Company Logo">
+                        @if (isset($settings['company_logo_path']))
+                            <img src="{{ base_url('storage/' . $settings['company_logo_path']) }}" alt="Company Logo" style="max-width: 300px; width: 50%; height: auto;">
+                        @elseif ($user && $user->company_logo)
+                            <img src="{{ base_url('storage/' . $user->company_logo) }}" alt="Company Logo" style="max-width: 300px; width: 50%; height: auto;">
                         @else
-                            <img src="{{ public_path('assets/img/logo.png') }}" alt="Company Logo">
+                            <img src="{{ base_url('assets/img/logo.jpg') }}" alt="Company Logo" style="max-width: 300px; width: 50%; height: auto;">
                         @endif
                     </td>
                     <td class="quotation-title" style="width: 50%;">
@@ -319,8 +386,8 @@
                         @php
                             $qrCodePath = \App\Models\Setting::where('key', 'company_qr_code_path')->value('value');
                         @endphp
-                        @if($qrCodePath && file_exists(public_path('storage/' . $qrCodePath)))
-                            <img src="{{ public_path('storage/' . $qrCodePath) }}" alt="QR Code"
+                        @if($qrCodePath)
+                            <img src="{{ base_url('storage/' . $qrCodePath) }}" alt="QR Code"
                                 style="max-width: 100px; height: auto;">
                         @else
                             <div style="color:#999; font-size: 12px;">No QR code available.</div>

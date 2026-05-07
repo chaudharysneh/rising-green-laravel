@@ -431,7 +431,7 @@
                                             <div style="color:#666;">No bank details available.</div>
                                         @endif
                                     </td>
-                                    <td data-label="QR Code" style="vertical-align: top; background:">
+                                    <td data-label="QR Code" style="vertical-align: top; background: #fafafa; display: flex; align-items: center; justify-content: center;">
                                         @if (isset($settings['company_qr_code_path']))
                                             <img src="{{ asset('storage/' . $settings['company_qr_code_path']) }}" alt="QR Code" class="qr-code-img">
                                         @elseif($user && $user->qr_code)

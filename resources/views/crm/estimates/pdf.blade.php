@@ -194,7 +194,7 @@ if (!isset($estdata) && isset($estimate)) {
 $company_name = isset($user['company_name']) ? $user['company_name'] : 'NA';
 $company_logo = isset($user['company_logo']) ? $user['company_logo'] : 'default_logo.jpg';
                             ?>
-                            <img src="<?php echo base_url(); ?>public/assets/img/profile/<?php echo htmlspecialchars($company_logo); ?>"
+                            <img src="<?php echo htmlspecialchars(base_url('public/assets/img/profile/' . $company_logo)); ?>"
                                 alt="Company Logo" style="max-width: 300px; width: 50%; height: auto;">
                         </td>
                         <td class="quotation-title">
@@ -395,7 +395,7 @@ $lendingCost = $totalPayable - $subsidy;
                         </td>
                         <td style="vertical-align: top; background: #fafafa; text-align:center;">
                             <?php if (!empty($user['qr_code'])): ?>
-                            <img src="<?php    echo base_url(); ?>public/assets/img/profile/<?php    echo htmlspecialchars($user['qr_code']); ?>"
+                            <img src="<?php    echo htmlspecialchars(base_url('public/assets/img/profile/' . $user['qr_code'])); ?>"
                                 alt="QR Code"
                                 style="max-width:120px; max-height:120px; object-fit:contain; border:1px solid #ddd; border-radius:4px;">
                             <?php else: ?>
