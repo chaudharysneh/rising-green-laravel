@@ -7,12 +7,14 @@
     "require": {
         "php": "^8.1",
         "barryvdh/laravel-dompdf": "^3.1",
+        "fpdf/fpdf": "*",
         "google/apiclient": "^2.19",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.6",
+        "setasign/fpdi": "*",
         "spatie/laravel-permission": "^6.24"
     },
     "require-dev": {

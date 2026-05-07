@@ -295,7 +295,7 @@ Route::middleware('auth')->group(function () {
     Route::get('estimates', [EstimateController::class, 'index'])->middleware('matrix_permission:view_estimates')->name('estimates.index');
     Route::get('estimates/create', [EstimateController::class, 'create'])->middleware('matrix_permission:create_estimates')->name('estimates.create');
     Route::get('estimates/{estimate}/edit', [EstimateController::class, 'edit'])->middleware('matrix_permission:edit_estimates')->name('estimates.edit');
-    Route::get('estimates/{estimate}/pdf', [EstimateController::class, 'downloadPdf'])->middleware('matrix_permission:view_estimates')->name('estimates.pdf');
+    Route::get('estimates/{estimate}/pdf', [EstimateController::class, 'generate_estimate_pdf'])->middleware('matrix_permission:view_estimates')->name('estimates.pdf');
     Route::get('estimates/{estimate}/customer-docs/{docIndex}/download', [EstimateController::class, 'downloadCustomerDocument'])->name('estimates.customer-docs.download');
     Route::get('estimates/{estimate}', [EstimateController::class, 'show'])->middleware('matrix_permission:view_estimates')->name('estimates.show');
 
