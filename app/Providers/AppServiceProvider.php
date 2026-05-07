@@ -105,28 +105,52 @@ class AppServiceProvider extends ServiceProvider
             $link = public_path('storage');
             $target = storage_path('app/public');
 
-            // Check if symlink already exists
-            if (is_link($link)) {
+            // Check if symlink already exists and is valid
+            if (is_link($link) && readlink($link) === $target) {
                 return;
             }
 
-            // If a regular directory exists, remove it
-            if (is_dir($link) && !is_link($link)) {
-                // Don't remove if it has files, just skip
-                if (count(scandir($link)) <= 2) {
-                    rmdir($link);
-                } else {
-                    return;
+            // Remove existing link/directory if it exists
+            if (file_exists($link)) {
+                if (is_link($link)) {
+                    unlink($link);
+                } elseif (is_dir($link)) {
+                    // Only remove if empty or contains our files
+                    $files = array_diff(scandir($link), ['.', '..']);
+                    if (empty($files)) {
+                        rmdir($link);
+                    } else {
+                        // Directory has files, don't remove - might be manual setup
+                        return;
+                    }
                 }
             }
 
             // Create the symlink
-            if (!is_link($link) && !is_dir($link)) {
-                symlink($target, $link);
+            if (!file_exists($link)) {
+                // Try to create symlink
+                if (@symlink($target, $link)) {
+                    return;
+                }
+                
+                // If symlink fails (cPanel), create directory structure
+                if (!is_dir($link)) {
+                    mkdir($link, 0755, true);
+                }
+                
+                // Create .htaccess for redirection
+                $htaccessContent = "Options +FollowSymLinks\n";
+                $htaccessContent .= "RewriteEngine On\n";
+                $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
+                $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-d\n";
+                $htaccessContent .= "RewriteRule ^(.*)$ ../storage/app/public/$1 [L]\n";
+                $htaccessContent .= "Options -Indexes\n";
+                
+                file_put_contents($link . '/.htaccess', $htaccessContent);
             }
         } catch (\Throwable $e) {
-            // Silently fail - symlink might not be supported on this system
-            // Images will still work via the route handler
+            // Log error but don't break the application
+            \Log::warning('Could not create storage symlink: ' . $e->getMessage());
         }
     }
 }
