@@ -301,6 +301,7 @@ Route::middleware('auth')->group(function () {
     Route::get('all-categories', [CategoriesController::class, 'index'])->middleware('matrix_permission:view_categories')->name('categories.index');
     Route::get('all-categories/{category}/image', [CategoriesController::class, 'image'])->middleware('matrix_permission:view_categories')->name('categories.image');
     Route::get('make', [MakeController::class, 'index'])->middleware('matrix_permission:view_make')->name('make.index');
+    Route::get('make/{make}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('makes.image');
     Route::get('warranty', [WarrantyController::class, 'index'])->middleware('matrix_permission:view_warranty')->name('warranty.index');
     Route::get('technology', [TechnologyController::class, 'index'])->middleware('matrix_permission:view_technology')->name('technology.index');
     Route::get('all-vendor', [VendorController::class, 'index'])->middleware('matrix_permission:view_vendors')->name('vendors.index');
@@ -498,6 +499,46 @@ Route::get('/admin/clear-all-cache', function () {
         return response()->json([
             'success' => true,
             'message' => 'All caches and compiled views cleared successfully! Refresh the page now.'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+// Storage link creation route - accessible to create storage symlink
+Route::get('/admin/create-storage-link', function () {
+    try {
+        // Create storage link
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link created successfully! Images should now load properly.'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+// Fix make images route - update frontend to use storage URLs
+Route::get('/admin/fix-make-images', function () {
+    try {
+        // Create storage link first
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        
+        // Clear caches
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Make images fixed! Storage link created and caches cleared. Images should now load properly via /storage/makes/ URLs.'
         ]);
     } catch (\Exception $e) {
         return response()->json([

@@ -170,7 +170,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     Route::get('make', [MakeController::class, 'index'])->middleware('matrix_permission:view_make')->name('api.make.index');
     Route::get('makes/search', [MakeController::class, 'search'])->middleware('matrix_permission:view_make')->name('api.makes.search');
-    Route::get('make/{id}/image', [\App\Http\Controllers\MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
+    Route::get('make/{id}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
     Route::post('make', [MakeController::class, 'store'])->middleware('matrix_permission:create_make')->name('api.make.store');
     Route::get('make/{make}', [MakeController::class, 'show'])->middleware('matrix_permission:view_make')->name('api.make.show');
     Route::put('make/{make}', [MakeController::class, 'update'])->middleware('matrix_permission:edit_make')->name('api.make.update');
