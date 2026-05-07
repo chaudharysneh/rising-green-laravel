@@ -1,3 +1,95 @@
+<?php
+if (!function_exists('normalize_pdf_image')) {
+    function normalize_pdf_image($path)
+    {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return '';
+        }
+
+        // If it's a base64 data URI, return as-is
+        if (strpos($path, 'data:image') === 0) {
+            return $path;
+        }
+
+        // If it starts with http/https
+        if (preg_match('/^https?:\/\//i', $path)) {
+            $urlParts = parse_url($path);
+            if (isset($urlParts['path'])) {
+                $urlPath = ltrim($urlParts['path'], '/');
+                $candidates = [
+                    public_path($urlPath),
+                    public_path(preg_replace('#^public/#i', '', $urlPath)),
+                    base_path($urlPath)
+                ];
+                foreach ($candidates as $candidate) {
+                    if (file_exists($candidate) && is_file($candidate)) {
+                        return $candidate;
+                    }
+                }
+            }
+            return $path;
+        }
+
+        // It is a relative path or filename
+        $cleanPath = preg_replace('#^public(?:/|\\\\)#i', '', $path);
+        $cleanPath = ltrim($cleanPath, '/\\');
+
+        $candidates = [
+            public_path($cleanPath),
+            public_path('assets/' . $cleanPath),
+            public_path('uploads/' . $cleanPath),
+            public_path('uploads/img/product/' . $cleanPath),
+            public_path('assets/img/profile/' . $cleanPath),
+            public_path('assets/uploads/' . $cleanPath),
+            public_path('uploads/products/' . $cleanPath),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (file_exists($candidate) && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return asset($cleanPath);
+    }
+}
+
+if (!function_exists('base_url')) {
+    function base_url($path = '')
+    {
+        if (empty($path)) {
+            return rtrim(url('/'), '/') . '/';
+        }
+        return normalize_pdf_image($path);
+    }
+}
+?>
+<?php
+if (!isset($estdata) && isset($estimate)) {
+    $estdata = new \stdClass();
+    
+    $attrs = [];
+    if ($estimate instanceof \Illuminate\Database\Eloquent\Model) {
+        $attrs = $estimate->getAttributes();
+    } elseif (is_array($estimate)) {
+        $attrs = $estimate;
+    } else {
+        $attrs = (array) $estimate;
+    }
+    
+    foreach ($attrs as $key => $val) {
+        $estdata->$key = $val;
+    }
+    
+    if (isset($estimate->customer)) {
+        $estdata->name = $estimate->customer->name ?? '--';
+        $estdata->email = $estimate->customer->email ?? '--';
+        $estdata->address = $estimate->customer->address ?? '--';
+        $estdata->contact = $estimate->customer->contact ?? '--';
+    }
+}
+?>
 <div class="quotation-block">
     <style>
         body {
@@ -259,17 +351,17 @@ $lendingCost = $totalPayable - $subsidy;
 
             <?php
 // Fetch bank details for current user
-try {
-    $bankModel = new \App\Models\BankModel();
-    $currentUserId = session()->get('id');
-    $bank = $bankModel->where('user_id', $currentUserId)->orderBy('id', 'DESC')->first();
-} catch (\Throwable $e) {
-    $bank = null;
-}
+// try {
+//     $bankModel = new \App\Models\BankModel();
+//     $currentUserId = session()->get('id');
+//     $bank = $bankModel->where('user_id', $currentUserId)->orderBy('id', 'DESC')->first();
+// } catch (\Throwable $e) {
+//     $bank = null;
+// }
             ?>
 
             <!-- Comment + Bank Details Table -->
-            <table class="info-table" style="margin-top:15px;">
+            {{-- <table class="info-table" style="margin-top:15px;">
                 <thead>
                     <tr>
                         <th style="width: 35%;">Comment</th>
@@ -312,7 +404,7 @@ try {
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table> --}}
 
 
 

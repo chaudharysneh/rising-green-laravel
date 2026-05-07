@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\PdfBuilderForm;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Technology;
@@ -40,7 +41,7 @@ class EstimateController extends Controller
 
         // Get user/company info
         $user = auth()->user();
-        $settings = \App\Models\Setting::pluck('value', 'key');
+        $settings = Setting::pluck('value', 'key');
 
         // Get all products for BOM specifications
         $product_data = Product::all()->toArray();
@@ -84,7 +85,7 @@ class EstimateController extends Controller
         return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts'));
     }
 
-    public function downloadPdf(Estimate $estimate)
+    public function generate_estimate_pdf(Estimate $estimate)
     {
         $this->authorize('view', $estimate);
         $estimate->load(['customer', 'product', 'creator']);
@@ -93,7 +94,7 @@ class EstimateController extends Controller
         $user = auth()->user();
         
         // Replicate profile settings logic for the template
-        $settings = \App\Models\Setting::query()->whereIn('key', [
+        $settings = Setting::query()->whereIn('key', [
             'company_name',
             'company_tagline',
             'company_address',
@@ -166,10 +167,69 @@ class EstimateController extends Controller
             $pdf->setPaper('A4', 'portrait');
         } else {
             // Fallback to original behavior if absolutely no template exists
-            $pdf = \PDf::loadView('crm.estimates.pdf', compact('estimate', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'));
+            $pdf = \PDF::loadView('crm.estimates.pdf', compact('estimate', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'));
+            $pdf->setPaper('A4', 'portrait');
         }
 
-        return $pdf->download('Estimate-' . ($estimate->estimate_no ?: $estimate->estimate_id) . '.pdf');
+        // Save Dompdf output as temp PDF
+        $tmpMain = tempnam(sys_get_temp_dir(), 'main_pdf_');
+        file_put_contents($tmpMain, $pdf->output());
+
+        // Now merge with customer uploaded docs
+        $mergedPdf = new \setasign\Fpdi\Fpdi();
+
+        // Add Dompdf file
+        $pageCount = $mergedPdf->setSourceFile($tmpMain);
+        for ($page = 1; $page <= $pageCount; $page++) {
+            $tpl = $mergedPdf->importPage($page);
+            $size = $mergedPdf->getTemplateSize($tpl);
+            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $mergedPdf->useTemplate($tpl);
+        }
+
+        // Add each customer doc (if PDF/Image)
+        $customer_docs = is_array($estimate->customer_docs) ? $estimate->customer_docs : [];
+        foreach ($customer_docs as $doc) {
+            $path = is_array($doc) ? ($doc['path'] ?? null) : $doc;
+            if ($path && Storage::disk('public')->exists($path)) {
+                $filePath = Storage::disk('public')->path($path);
+                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+                if ($ext === 'pdf') {
+                    try {
+                        $count = $mergedPdf->setSourceFile($filePath);
+                        for ($p = 1; $p <= $count; $p++) {
+                            $tpl = $mergedPdf->importPage($p);
+                            $size = $mergedPdf->getTemplateSize($tpl);
+                            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                            $mergedPdf->useTemplate($tpl);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to merge PDF customer doc {$path}: " . $e->getMessage());
+                    }
+                } elseif (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                    try {
+                        // Convert image to a page
+                        $mergedPdf->AddPage();
+                        $mergedPdf->Image($filePath, 10, 10, 190, 270, strtoupper($ext === 'jpg' ? 'jpeg' : $ext));
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to merge image customer doc {$path}: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+
+        // Clean up temp file
+        if (file_exists($tmpMain)) {
+            @unlink($tmpMain);
+        }
+
+        // Output final merged PDF
+        $fileName = 'Estimate-' . ($estimate->estimate_no ?: $estimate->estimate_id) . '.pdf';
+        return response($mergedPdf->Output('S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
     }
 
     public function downloadCustomerDocument(Estimate $estimate, int $docIndex)
