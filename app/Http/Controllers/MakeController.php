@@ -12,8 +12,10 @@ class MakeController extends Controller
         return view('crm.makes.index');
     }
 
-    public function image(Category $category)
+    public function image($id)
     {
+        $category = Category::findOrFail($id);
+        
         if (!$category->image || !Storage::disk('public')->exists($category->image)) {
             abort(404);
         }
