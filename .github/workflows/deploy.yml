@@ -33,21 +33,25 @@ jobs:
           rm -rf ./build_output/vendor_old
           rm -rf ./build_output/system
           rm -rf ./build_output/node_modules
-          rm -rf ./build_output/storage
-          rm -rf ./build_output/public/upload
-          rm -rf ./build_output/public/uploads
-          rm -rf ./build_output/public/storage
-          rm -rf ./build_output/public/assets/img/
           rm -rf ./build_output/.git
           rm -f ./build_output/.gitignore
           rm -f ./build_output/.gitattributes
+          # Keep storage and public/storage for image uploads
+          # Only remove specific cache files
+          rm -rf ./build_output/storage/logs/*
+          rm -rf ./build_output/storage/framework/cache/*
+          rm -rf ./build_output/storage/framework/sessions/*
+          rm -rf ./build_output/storage/framework/views/*
+          rm -rf ./build_output/public/upload
+          rm -rf ./build_output/public/uploads
+          rm -rf ./build_output/public/assets/img/
 
       - name: Deploy to cPanel via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /
           local-dir: ./build_output/
           protocol: ftp
@@ -60,10 +64,12 @@ jobs:
             **/vendor_old/**
             **/system/**
             **/node_modules/**
-            **/storage/**
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
             **/public/upload/**
             **/public/uploads/**
-            **/public/storage/**
             **/public/assets/img/**
             **/app/Config/App.php
             **/app/Config/Database.php

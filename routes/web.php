@@ -301,7 +301,7 @@ Route::middleware('auth')->group(function () {
     Route::get('all-categories', [CategoriesController::class, 'index'])->middleware('matrix_permission:view_categories')->name('categories.index');
     Route::get('all-categories/{category}/image', [CategoriesController::class, 'image'])->middleware('matrix_permission:view_categories')->name('categories.image');
     Route::get('make', [MakeController::class, 'index'])->middleware('matrix_permission:view_make')->name('make.index');
-    Route::get('make/{category}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
+    Route::get('make/{id}/image', [MakeController::class, 'image'])->middleware('matrix_permission:view_make')->name('make.image');
     Route::get('warranty', [WarrantyController::class, 'index'])->middleware('matrix_permission:view_warranty')->name('warranty.index');
     Route::get('technology', [TechnologyController::class, 'index'])->middleware('matrix_permission:view_technology')->name('technology.index');
     Route::get('all-vendor', [VendorController::class, 'index'])->middleware('matrix_permission:view_vendors')->name('vendors.index');

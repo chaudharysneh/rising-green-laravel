@@ -27,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Create storage symlink if it doesn't exist
+        $this->createStorageSymlink();
+
         \App\Models\Deal::observe(\App\Observers\DealObserver::class);
         Customer::observe(CustomerObserver::class);
         Lead::observe(LeadObserver::class);
@@ -56,5 +59,39 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('googleCalendarConnected', $googleCalendarConnected);
         });
+    }
+
+    /**
+     * Create storage symlink if it doesn't exist
+     */
+    private function createStorageSymlink(): void
+    {
+        try {
+            $link = public_path('storage');
+            $target = storage_path('app/public');
+
+            // Check if symlink already exists
+            if (is_link($link)) {
+                return;
+            }
+
+            // If a regular directory exists, remove it
+            if (is_dir($link) && !is_link($link)) {
+                // Don't remove if it has files, just skip
+                if (count(scandir($link)) <= 2) {
+                    rmdir($link);
+                } else {
+                    return;
+                }
+            }
+
+            // Create the symlink
+            if (!is_link($link) && !is_dir($link)) {
+                symlink($target, $link);
+            }
+        } catch (\Throwable $e) {
+            // Silently fail - symlink might not be supported on this system
+            // Images will still work via the route handler
+        }
     }
 }
