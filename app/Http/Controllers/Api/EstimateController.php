@@ -23,6 +23,7 @@ class EstimateController extends Controller
     {
         try {
             $user = auth()->user();
+            $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
             $query = Estimate::with(['customer', 'creator']);
 
             // Filter by search
@@ -40,6 +41,16 @@ class EstimateController extends Controller
             // Filter by user visibility
             if (!$user->isAdmin()) {
                 $query->where('user_id', $user->id);
+            }
+
+            // Apply filter for staff users only
+            if (!$user->isAdmin() && $filter === 'created_by_me') {
+                // All records I created (regardless of assignment)
+                $query->where('created_by', $user->id);
+            } elseif (!$user->isAdmin() && $filter === 'assigned_to_me') {
+                // Records assigned to me but NOT created by me
+                $query->where('assigned_user_id', $user->id)
+                      ->where('created_by', '!=', $user->id);
             }
 
             $perPage = $request->input('per_page', 10);

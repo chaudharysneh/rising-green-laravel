@@ -15,6 +15,15 @@
         const paginationContainer = document.getElementById("leadsPagination");
         const searchInput = document.getElementById("leadsSearch");
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#leadFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchLeads(1);
+            });
+        });
 
         function statusBadge(status) {
             const classes = {
@@ -309,6 +318,11 @@
 
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
+            }
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                url += `&filter=${currentFilter}`;
             }
 
             $.ajax({

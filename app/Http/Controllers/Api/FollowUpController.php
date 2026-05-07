@@ -24,6 +24,9 @@ class FollowUpController extends ApiBaseController
 
     public function index(Request $request)
     {
+        $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
+        $user = auth()->user();
+
         $query = FollowUp::with(['lead', 'assignedUser', 'creator']);
 
         if ($request->has('lead_id') && $request->lead_id) {
@@ -51,6 +54,16 @@ class FollowUpController extends ApiBaseController
             $query->whereDate('follow_up_at', $request->follow_up_at);
         }
 
+        // Apply filter for staff users only
+        if (!$user->isAdmin() && $filter === 'created_by_me') {
+            // All records I created (regardless of assignment)
+            $query->where('created_by', $user->id);
+        } elseif (!$user->isAdmin() && $filter === 'assigned_to_me') {
+            // Records assigned to me but NOT created by me
+            $query->where('assigned_user_id', $user->id)
+                  ->where('created_by', '!=', $user->id);
+        }
+
         $followUps = $query->latest('follow_up_at')->paginate(10);
 
         return response()->json([
@@ -74,14 +87,20 @@ class FollowUpController extends ApiBaseController
         
         // Handle timezone conversion for follow_up_at
         if (isset($data['follow_up_at']) && $request->has('browser_timezone_offset')) {
-            $browserOffset = (int) $request->input('browser_timezone_offset');
-            $appOffset = (new \DateTime('now', new \DateTimeZone(config('app.timezone'))))->getOffset();
-            $offsetDiff = ($appOffset - ($browserOffset * 60)) / 60; // Convert to hours
-            
-            // Parse the datetime and adjust for timezone difference
-            $dt = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $data['follow_up_at'], 'UTC');
-            $dt->addHours($offsetDiff);
-            $data['follow_up_at'] = $dt->format('Y-m-d H:i:s');
+            try {
+                $browserOffset = (int) $request->input('browser_timezone_offset');
+                $appOffset = (new \DateTime('now', new \DateTimeZone(config('app.timezone'))))->getOffset();
+                $offsetDiff = ($appOffset - ($browserOffset * 60)) / 60; // Convert to hours
+                
+                // Parse the datetime - handle both formats (with T separator or space)
+                $dateString = str_replace('T', ' ', $data['follow_up_at']);
+                $dt = \Carbon\Carbon::parse($dateString);
+                $dt->addHours($offsetDiff);
+                $data['follow_up_at'] = $dt->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // If parsing fails, just use the original value
+                Log::warning('Failed to parse follow_up_at date in store: ' . $e->getMessage());
+            }
         }
         
         $this->ensureVisibleLead((int) $data['lead_id']);
@@ -147,14 +166,20 @@ class FollowUpController extends ApiBaseController
         
         // Handle timezone conversion for follow_up_at
         if (isset($data['follow_up_at']) && $request->has('browser_timezone_offset')) {
-            $browserOffset = (int) $request->input('browser_timezone_offset');
-            $appOffset = (new \DateTime('now', new \DateTimeZone(config('app.timezone'))))->getOffset();
-            $offsetDiff = ($appOffset - ($browserOffset * 60)) / 60; // Convert to hours
-            
-            // Parse the datetime and adjust for timezone difference
-            $dt = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $data['follow_up_at'], 'UTC');
-            $dt->addHours($offsetDiff);
-            $data['follow_up_at'] = $dt->format('Y-m-d H:i:s');
+            try {
+                $browserOffset = (int) $request->input('browser_timezone_offset');
+                $appOffset = (new \DateTime('now', new \DateTimeZone(config('app.timezone'))))->getOffset();
+                $offsetDiff = ($appOffset - ($browserOffset * 60)) / 60; // Convert to hours
+                
+                // Parse the datetime - handle both formats (with T separator or space)
+                $dateString = str_replace('T', ' ', $data['follow_up_at']);
+                $dt = \Carbon\Carbon::parse($dateString);
+                $dt->addHours($offsetDiff);
+                $data['follow_up_at'] = $dt->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                // If parsing fails, just use the original value
+                Log::warning('Failed to parse follow_up_at date in update: ' . $e->getMessage());
+            }
         }
         
         $this->ensureVisibleLead((int) $data['lead_id']);

@@ -24,6 +24,9 @@ class DealController extends ApiBaseController
 {
     public function index(Request $request)
     {
+        $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
+        $user = auth()->user();
+
         $query = Deal::with(['customer', 'estimate', 'currency', 'status', 'assignedUser', 'stage', 'creator']);
 
         if ($request->has('search') && !empty($request->search)) {
@@ -37,6 +40,16 @@ class DealController extends ApiBaseController
                         $eq->where('estimate_name', 'like', "%{$search}%");
                     });
             });
+        }
+
+        // Apply filter for staff users only
+        if (!$user->isAdmin() && $filter === 'created_by_me') {
+            // All records I created (regardless of assignment)
+            $query->where('created_by', $user->id);
+        } elseif (!$user->isAdmin() && $filter === 'assigned_to_me') {
+            // Records assigned to me but NOT created by me
+            $query->where('assigned_user_id', $user->id)
+                  ->where('created_by', '!=', $user->id);
         }
 
         $deals = $query->latest()->paginate(10);

@@ -178,6 +178,16 @@
             return;
         }
 
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#ticketFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchTickets(1);
+            });
+        });
+
         function renderRows(items, meta) {
             if (!items || !items.length) {
                 tableBody.innerHTML = `
@@ -310,6 +320,11 @@
                 apiUrl.searchParams.set("search", searchInput.value.trim());
             } else {
                 apiUrl.searchParams.delete("search");
+            }
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                apiUrl.searchParams.set("filter", currentFilter);
             }
 
             $.ajax({

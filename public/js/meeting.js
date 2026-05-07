@@ -122,10 +122,23 @@ function getMeetingIdFromUrl() {
 
 // ==================== MEETINGS TABLE ====================
 const MeetingTable = {
+    currentFilter: 'created_by_me', // Default filter for staff
+
     init() {
+        this.initTabs();
         this.load();
         this.initSearch();
         this.initPagination();
+    },
+
+    initTabs() {
+        // Tab click handlers
+        document.querySelectorAll('#meetingFilterTabs button[data-filter]').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                this.currentFilter = tab.dataset.filter;
+                this.load(1);
+            });
+        });
     },
 
     initSearch() {
@@ -153,7 +166,11 @@ const MeetingTable = {
         $.ajax({
             url: API_CONFIG.meetings,
             type: "GET",
-            data: { page, search },
+            data: { 
+                page, 
+                search,
+                filter: this.currentFilter // Add filter parameter
+            },
             dataType: "json",
             xhrFields: {
                 withCredentials: true,

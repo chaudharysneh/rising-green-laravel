@@ -800,6 +800,45 @@
                     e.preventDefault();
                     
                     if (currentStep === 1) {
+                        // Validate required fields in step 1
+                        clearFormErrors(form);
+                        
+                        const requiredFields = {
+                            'name': 'Name is required',
+                            'email': 'Email is required',
+                            'password': 'Password is required (minimum 8 characters)',
+                            'phone': 'Phone number is required',
+                            'address': 'Address is required'
+                        };
+                        
+                        let hasErrors = false;
+                        const errors = {};
+                        
+                        Object.keys(requiredFields).forEach(fieldName => {
+                            const field = form.querySelector(`[name="${fieldName}"]`);
+                            if (field) {
+                                const value = field.value.trim();
+                                
+                                if (!value) {
+                                    errors[fieldName] = [requiredFields[fieldName]];
+                                    hasErrors = true;
+                                } else if (fieldName === 'password' && value.length < 8) {
+                                    errors[fieldName] = ['Password must be at least 8 characters'];
+                                    hasErrors = true;
+                                } else if (fieldName === 'phone' && !/^\d{10}$/.test(value)) {
+                                    errors[fieldName] = ['Phone number must be 10 digits'];
+                                    hasErrors = true;
+                                }
+                            }
+                        });
+                        
+                        if (hasErrors) {
+                            showFormErrors(form, errors);
+                            scrollToFirstInvalid();
+                            return;
+                        }
+                        
+                        // Check for duplicates
                         const email = form.querySelector('[name="email"]')?.value.trim() || '';
                         const phone = form.querySelector('[name="phone"]')?.value.trim() || '';
                         const formAction = form.getAttribute("action");
@@ -929,17 +968,23 @@
             input.classList.add("is-invalid");
             const message = Array.isArray(errors[field]) ? errors[field][0] : String(errors[field]);
 
+            // First, try to find existing staff-validation div
             const wrapper = input.closest(".col-12, .col-md-6, .col-md-12") || input.parentElement;
-            const existing = wrapper ? wrapper.querySelector(`#${field}-error`) : null;
-            if (existing) {
-                existing.textContent = message;
-                existing.style.display = "block";
+            const existingStaffValidation = wrapper ? wrapper.querySelector('.staff-validation') : null;
+            
+            if (existingStaffValidation) {
+                existingStaffValidation.textContent = message;
+                existingStaffValidation.style.display = "block";
                 return;
             }
 
+            // If no staff-validation div exists, create invalid-feedback div
             const feedback = document.createElement("div");
-            feedback.className = "invalid-feedback ajax-error";
+            feedback.className = "invalid-feedback d-block ajax-error";
             feedback.textContent = message;
+            feedback.style.color = "#dc3545";
+            feedback.style.fontSize = "0.875rem";
+            feedback.style.marginTop = "0.25rem";
             input.insertAdjacentElement("afterend", feedback);
         });
     }

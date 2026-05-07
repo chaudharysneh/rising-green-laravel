@@ -26,6 +26,16 @@
         const paginationContainer = document.getElementById("invoicePaginationContainer");
         const searchInput = document.getElementById("invoiceSearch");
 
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#invoiceFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchInvoices(1);
+            });
+        });
+
         function showToast(message, type = "info") {
             if (typeof window.showAlert === "function") {
                 window.showAlert(type, message);
@@ -249,6 +259,12 @@
         function fetchInvoices(page = 1) {
             let url = `/api/invoices?page=${page}`;
             if (searchInput && searchInput.value.trim()) url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
+            
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                url += `&filter=${currentFilter}`;
+            }
+
             $.ajax({
                 url: url,
                 type: "GET",

@@ -19,7 +19,7 @@ class MeetingController extends Controller
     public function create()
     {
         $customers = $this->visibleCustomers();
-        $users = $this->selectableUsers(['admin', 'staff']);
+        $users = $this->selectableUsers(['admin', 'manager', 'staff']);
 
         return view('crm.meetings.create', compact('customers', 'users'));
     }
@@ -34,7 +34,7 @@ class MeetingController extends Controller
             $customers->push($meeting->customer);
         }
 
-        $users = $this->selectableUsers(['admin', 'staff']);
+        $users = $this->selectableUsers(['admin', 'manager', 'staff']);
 
         return view('crm.meetings.edit', compact('meeting', 'users', 'customers'));
     }
