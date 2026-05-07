@@ -146,27 +146,29 @@
         }
 
         function clearLog(id) {
-            if (!window.confirm("Clear this user log?")) {
-                return;
-            }
+            window.showDeleteConfirm("This user log will be permanently deleted!").then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
 
-            fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
-                method: "DELETE",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    "X-CSRF-TOKEN": csrf(),
-                },
-                credentials: "same-origin",
-            })
-                .then(parseJson)
-                .then(function (payload) {
-                    notify(payload.message || "User log cleared successfully.", "success");
-                    loadLogs();
+                fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
+                    method: "DELETE",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrf(),
+                    },
+                    credentials: "same-origin",
                 })
-                .catch(function (error) {
-                    notify(error.message || "Failed to clear user log.", "error");
-                });
+                    .then(parseJson)
+                    .then(function (payload) {
+                        notify(payload.message || "User log cleared successfully.", "success");
+                        loadLogs();
+                    })
+                    .catch(function (error) {
+                        notify(error.message || "Failed to clear user log.", "error");
+                    });
+            });
         }
 
         function clearAllLogs() {
@@ -174,28 +176,36 @@
                 return;
             }
 
-            if (!window.confirm("Delete all user logs? This action cannot be undone.")) {
-                return;
-            }
+            window.showDeleteConfirm(
+                "All user logs will be permanently deleted. This action cannot be undone!",
+                {
+                    title: "Delete All Logs?",
+                    confirmButtonText: "Yes, delete all!"
+                }
+            ).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
 
-            fetch(config.destroyAllUrl, {
-                method: "DELETE",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    "X-CSRF-TOKEN": csrf(),
-                },
-                credentials: "same-origin",
-            })
-                .then(parseJson)
-                .then(function (payload) {
-                    notify(payload.message || "All user logs cleared successfully.", "success");
-                    state.page = 1;
-                    loadLogs();
+                fetch(config.destroyAllUrl, {
+                    method: "DELETE",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrf(),
+                    },
+                    credentials: "same-origin",
                 })
-                .catch(function (error) {
-                    notify(error.message || "Failed to clear user logs.", "error");
-                });
+                    .then(parseJson)
+                    .then(function (payload) {
+                        notify(payload.message || "All user logs cleared successfully.", "success");
+                        state.page = 1;
+                        loadLogs();
+                    })
+                    .catch(function (error) {
+                        notify(error.message || "Failed to clear user logs.", "error");
+                    });
+            });
         }
 
         function openDetail(id) {
