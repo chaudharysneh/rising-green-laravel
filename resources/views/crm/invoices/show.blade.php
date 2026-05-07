@@ -10,7 +10,7 @@
         }
 
         .quotation-box {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 20px auto;
             padding: 30px;
             border: 1px solid #ddd;
@@ -295,7 +295,7 @@
                         <hr>
 
                         <!-- Invoice Info -->
-                        <div class="flex-between">
+                        <div class="flex-between border-top mt-3 pt-4">
                             <div style="font-weight:700; font-size:15px;">Invoice no.: #{{ $invoice->invoice_no }}</div>
                             <div class="center-text" style="font-size:16px;">INVOICE</div>
                             <div style="font-weight:700; font-size:15px;">Date:
@@ -326,19 +326,19 @@
                         </table>
 
                         <!-- Invoice Details Table -->
-                        <table class="quotation-table">
-                            <thead>
+                        <table class="quotation-table" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif; margin-bottom: 20px;">
+                            <thead style="background-color: #52866A; color: #fff;">
                                 <tr>
-                                    <th>Invoice Name</th>
-                                    <th>Quantity (kW)</th>
-                                    <th>Price</th>
+                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Invoice Name</th>
+                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Quantity (kW)</th>
+                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Price</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ $invoice->invoice_name ?? '--' }}</td>
-                                    <td>{{ $invoice->quantity ?? '0' }}</td>
-                                    <td>{{ number_format((float) ($invoice->price ?? 0), 2) }}</td>
+                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ $invoice->invoice_name ?? '--' }}</td>
+                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ $invoice->quantity ?? '0' }}</td>
+                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ number_format((float) ($invoice->price ?? 0), 2) }}</td>
                                 </tr>
                             </tbody>
                             <tfoot>
@@ -354,30 +354,34 @@
                                     $lendingCost = $totalPayable - $subsidy;
                                 @endphp
                                 <tr>
-                                    <td colspan="2">Base Price</td>
-                                    <td>{{ number_format($invoice->total, 2) }}</td>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Base Price</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($subtotal, 2) }}</td>
                                 </tr>
-                                @if ($solarStructureCharges > 0)
-                                    <tr>
-                                        <td colspan="2">Solar Structure Charges</td>
-                                        <td>{{ number_format($solarStructureCharges, 2) }}</td>
-                                    </tr>
-                                @endif
-                                @if ($gstRate > 0)
-                                    <tr>
-                                        <td colspan="2">GST ({{ $gstRate }}%)</td>
-                                        <td>{{ number_format($invoice->gst_amount ?? $gstAmount, 2) }}</td>
-                                    </tr>
-                                @endif
-                                @if ($discount > 0)
-                                    <tr>
-                                        <td colspan="2">Discount</td>
-                                        <td>-{{ number_format($discount, 2) }}</td>
-                                    </tr>
-                                @endif
-                                <tr style="font-weight: bold; border-top: 2px solid #000;">
-                                    <td colspan="2">Final Amount</td>
-                                    <td class="highlight-bg">{{ number_format($invoice->amount, 2) }}</td>
+                                <tr>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Solar Structure Charges</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($solarStructureCharges, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">GST ({{ $gstRate }}%)</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($invoice->gst_amount ?? $gstAmount, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Customer Payable Amount</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($totalPayable, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Subsidy</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">-{{ number_format($subsidy, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                    <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Lending Cost Of Customer</td>
+                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($lendingCost, 2) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -443,36 +447,154 @@
                         <!-- BOM Section -->
                         <div class="page-break"></div>
                         <div style="margin-top: 40px;">
-                            <h2 style="text-align: center; color: #19547B; margin-bottom: 30px; text-decoration: underline;">
+                            <h2 style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
                                 BILL OF MATERIALS (BOM)
                             </h2>
-                            <table class="quotation-table">
-                                <thead>
+                            <table class="quotation-table table table-bordered" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
+                                <thead style="background-color: #52866A; color: #fff;">
                                     <tr>
-                                        <th>Product Name</th>
-                                        <th>Specifications</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #52866A !important; color: #ffffff !important;">Image</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #52866A !important; color: #ffffff !important;">Product Name</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #52866A !important; color: #ffffff !important;">Specifications</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Quantity</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Price</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Total Excluding GST</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @php
                                         $items = is_array($invoice->product_name) ? $invoice->product_name : json_decode($invoice->product_name ?? '[]', true);
+                                        $total_quantity = 0;
+                                        $grand_total_excluding_gst = 0.0;
+
+                                        // Dynamically fetch dependencies
+                                        $product_data = \App\Models\Product::all()->toArray();
+                                        $technology_map = \App\Models\Technology::pluck('title', 'id')->toArray();
+                                        $warranty_map = \App\Models\Warranty::pluck('title', 'id')->toArray();
                                     @endphp
-                                    @forelse($items as $item)
-                                    <tr>
-                                        <td class="fw-bold align-middle">{{ $item['name'] ?? 'Product' }}</td>
-                                        <td>
-                                            <div class="small">
-                                                <span class="fw-bold">Make:</span> {{ $item['category_name'] ?? 'N/A' }}<br>
-                                                <span class="fw-bold">Quantity:</span> {{ $item['quantity'] ?? 1 }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="2" class="text-center py-3 text-muted">No BOM items found.</td>
-                                    </tr>
-                                    @endforelse
+                                    @if (is_array($items) && !empty($items))
+                                        @foreach ($items as $item)
+                                            @php
+                                                $product_id = $item['product_id'] ?? null;
+                                                $product_name_display = $item['name'] ?? 'Product name not found';
+                                                $product_name_display = ucwords(strtolower($product_name_display));
+                                                $product_quantity = (int)($item['quantity'] ?? 0);
+                                                $product_category_makes = $item['category_name'] ?? '';
+
+                                                $full_product_details = null;
+                                                foreach ($product_data as $prod_detail) {
+                                                    if ($prod_detail['id'] == $product_id) {
+                                                        $full_product_details = $prod_detail;
+                                                        break;
+                                                    }
+                                                }
+
+                                                $specifications = [];
+                                                $make_val = ltrim(trim($product_category_makes), ',');
+                                                if (!empty($make_val)) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Make:</span> ' . e($make_val);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['technology'])) {
+                                                    $techArray = json_decode($full_product_details['technology'], true);
+                                                    if (!is_array($techArray)) {
+                                                        $techArray = [$full_product_details['technology']];
+                                                    }
+                                                    $techArray = array_filter($techArray, fn($v) => trim((string)$v) !== '');
+                                                    if (!empty($techArray)) {
+                                                        $techNames = array_map(fn($id) => $technology_map[$id] ?? $id, $techArray);
+                                                        $specifications[] = '<span style="color: #555; font-weight: bold;">Technology:</span> ' . e(implode(', ', $techNames));
+                                                    }
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['warranty'])) {
+                                                    $warArray = json_decode($full_product_details['warranty'], true);
+                                                    if (!is_array($warArray)) {
+                                                        $warArray = [$full_product_details['warranty']];
+                                                    }
+                                                    $warArray = array_filter($warArray, fn($v) => trim((string)$v) !== '');
+                                                    if (!empty($warArray)) {
+                                                        $warNames = array_map(fn($id) => $warranty_map[$id] ?? $id, $warArray);
+                                                        $specifications[] = '<span style="color: #555; font-weight: bold;">Warranty:</span> ' . e(implode(', ', $warNames));
+                                                    }
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['capacity'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Capacity:</span> ' . e($full_product_details['capacity']);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['tax_rate']) && (float)$full_product_details['tax_rate'] > 0) {
+                                                    $tax_rate = (float)$full_product_details['tax_rate'];
+                                                    $tax_type = $full_product_details['tax_type'] ?? '';
+                                                    if (strcasecmp($tax_type, 'IGST') === 0 || strcasecmp($tax_type, 'GST') === 0) {
+                                                        $specifications[] = '<span style="color: #555; font-weight: bold;">GST:</span> ' . e($tax_type) . ' ' . $tax_rate . '%';
+                                                    } else {
+                                                        $half_rate = $tax_rate / 2;
+                                                        $specifications[] = '<span style="color: #555; font-weight: bold;">GST:</span> (CGST ' . $half_rate . '% + SGST ' . $half_rate . '%)';
+                                                    }
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['height'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Height:</span> ' . e($full_product_details['height']);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['fitting_material'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Fitting Material:</span> ' . e($full_product_details['fitting_material']);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['fitting_type'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Fitting Type:</span> ' . e($full_product_details['fitting_type']);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['thickness'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Thickness:</span> ' . e($full_product_details['thickness']);
+                                                }
+                                                if ($full_product_details && !empty($full_product_details['size_of_pipe'])) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Size of Pipe:</span> ' . e($full_product_details['size_of_pipe']);
+                                                }
+
+                                                $specifications_html = implode('<br>', $specifications);
+
+                                                $price_val = $full_product_details ? (float)($full_product_details['price'] ?? 0) : 0.0;
+                                                $row_total = $price_val * $product_quantity;
+
+                                                $total_quantity += $product_quantity;
+                                                $grand_total_excluding_gst += $row_total;
+
+                                                $qty_unit = '';
+                                                if ($full_product_details && !empty($full_product_details['nos'])) {
+                                                    $qty_unit = '(nos)';
+                                                } elseif ($full_product_details && !empty($full_product_details['meter'])) {
+                                                    $qty_unit = '(mtr)';
+                                                }
+                                            @endphp
+                                            <tr>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: center; vertical-align: middle;">
+                                                    @if ($full_product_details && !empty($full_product_details['image']))
+                                                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
+                                                            <img src="{{ asset('storage/' . $full_product_details['image']) }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
+                                                        </div>
+                                                    @else
+                                                        <div style="width: 80px; height: 80px; background-color: #f5f5f5; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: #ccc; font-size: 11px; border: 1px solid #ddd;">No Image</div>
+                                                    @endif
+                                                </td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ number_format($price_val, 2) }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ number_format($row_total, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; color: #666; padding: 20px; border: 1px solid #333;">No BOM items found.</td>
+                                        </tr>
+                                    @endif
                                 </tbody>
+                                @if (is_array($items) && !empty($items))
+                                    <tfoot>
+                                        <tr style="font-weight: bold;">
+                                            <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                            <td style="border: 1px solid #333; background-color: #fff;"></td>
+                                            <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">Total:</td>
+                                            <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
+                                            <td style="text-align: center; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">—</td>
+                                            <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #52866A !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
                             </table>
                         </div>
 
