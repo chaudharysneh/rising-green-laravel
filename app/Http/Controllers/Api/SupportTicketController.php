@@ -27,6 +27,8 @@ class SupportTicketController extends ApiBaseController
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
+        $user = auth()->user();
 
         $tickets = SupportTicket::with(['customer', 'creator'])
             ->when($search, function ($query) use ($search) {
@@ -43,6 +45,15 @@ class SupportTicketController extends ApiBaseController
                             $creatorQuery->where('name', 'like', "%{$search}%");
                         });
                 });
+            })
+            ->when(!$user->isAdmin() && $filter === 'created_by_me', function ($query) use ($user) {
+                // All records I created (regardless of assignment)
+                $query->where('created_by', $user->id);
+            })
+            ->when(!$user->isAdmin() && $filter === 'assigned_to_me', function ($query) use ($user) {
+                // Records assigned to me but NOT created by me
+                $query->where('assigned_user_id', $user->id)
+                      ->where('created_by', '!=', $user->id);
             })
             ->latest()
             ->paginate(10)

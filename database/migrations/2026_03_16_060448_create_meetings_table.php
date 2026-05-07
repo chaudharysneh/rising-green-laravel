@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->dateTime('scheduled_at')->nullable();
-            $table->enum('meeting_type', ['online', 'offline', 'phone', 'video'])->nullable();
+            $table->enum('meeting_type', ['virtual', 'in-person', 'telephonic'])->nullable();
             $table->enum('status', ['scheduled', 'completed', 'cancelled'])->nullable()->default('scheduled');
             $table->string('address')->nullable();
             $table->text('agenda')->nullable();

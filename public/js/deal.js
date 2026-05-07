@@ -26,6 +26,16 @@
                 ? window.crmApplyAuthHeaders(extraHeaders)
                 : extraHeaders;
 
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#dealFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchDeals();
+            });
+        });
+
         function showToast(message, type = "info") {
             const mappedType =
                 {
@@ -345,6 +355,11 @@
             const params = new URLSearchParams();
             if (searchInput.value.trim()) {
                 params.set("search", searchInput.value.trim());
+            }
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                params.set("filter", currentFilter);
             }
 
             const urlObj = new URL(apiUrl, window.location.origin);

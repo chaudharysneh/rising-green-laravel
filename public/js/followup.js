@@ -20,6 +20,15 @@
         const searchInput = document.getElementById("followUpSearch");
         let currentPageOffset = 0;
         let timer;
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#followupFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchFollowUps(1);
+            });
+        });
 
         function deleteFollowUp(id, button) {
             window.showDeleteConfirm("This follow-up will be deleted!").then((result) => {
@@ -230,6 +239,11 @@
 
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
+            }
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                url += `&filter=${currentFilter}`;
             }
 
             $.ajax({

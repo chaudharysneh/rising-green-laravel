@@ -29,6 +29,16 @@
             ? window.bootstrap.Modal.getOrCreateInstance(taskActionModalEl)
             : null;
 
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#taskFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                fetchTasks(1);
+            });
+        });
+
         if (!tableBody || !searchInput || !paginationContainer) {
             return;
         }
@@ -631,6 +641,11 @@
 
             if (searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
+            }
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                url += `&filter=${currentFilter}`;
             }
 
             $.ajax({

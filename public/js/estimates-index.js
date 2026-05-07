@@ -20,6 +20,16 @@
 
         let currentPage = 1;
         let searchQuery = searchInput.value;
+        let currentFilter = 'created_by_me'; // Default filter for staff
+
+        // Tab click handlers
+        document.querySelectorAll('#estimateFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                currentPage = 1;
+                loadEstimates();
+            });
+        });
 
         function formatDate(dateValue) {
             if (!dateValue) return '-';
@@ -149,6 +159,11 @@
                 search: searchQuery,
                 page: currentPage,
             });
+
+            // Add filter parameter for staff users
+            if (currentFilter) {
+                params.set('filter', currentFilter);
+            }
 
             fetch(`${API_BASE}?${params}`)
                 .then(response => response.json())

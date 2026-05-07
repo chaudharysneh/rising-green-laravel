@@ -32,6 +32,8 @@ class MeetingController extends ApiBaseController
             return $this->error('Unauthorized', 401);
         }
 
+        $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
+
         $query = $this->scopeOwnedRecords(
             Meeting::with(['customer', 'assignedUser', 'createdBy', 'updatedBy'])
         )->latest();
@@ -60,6 +62,16 @@ class MeetingController extends ApiBaseController
         // Filter by meeting type if needed
         if ($request->has('meeting_type') && !empty($request->meeting_type)) {
             $query->where('meeting_type', $request->meeting_type);
+        }
+
+        // Apply filter for staff users only
+        if (!$user->isAdmin() && $filter === 'created_by_me') {
+            // All records I created (regardless of assignment)
+            $query->where('created_by', $user->id);
+        } elseif (!$user->isAdmin() && $filter === 'assigned_to_me') {
+            // Records assigned to me but NOT created by me
+            $query->where('assigned_user_id', $user->id)
+                  ->where('created_by', '!=', $user->id);
         }
 
         $meetings = $query->paginate(10);
