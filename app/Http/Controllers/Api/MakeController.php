@@ -157,7 +157,7 @@ class MakeController extends ApiBaseController
             'id' => $make->id,
             'name' => $make->name,
             'image' => $make->image,
-            'image_url' => $make->image ? route('make.image', $make) . '?v=' . optional($make->updated_at)->timestamp : null,
+            'image_url' => $make->image ? route('make.image', ['category' => $make->id]) . '?v=' . optional($make->updated_at)->timestamp : null,
             'created_at' => optional($make->created_at)?->toIso8601String(),
             'updated_at' => optional($make->updated_at)?->toIso8601String(),
         ];
