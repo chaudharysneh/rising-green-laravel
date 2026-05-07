@@ -49,9 +49,9 @@ jobs:
       - name: Deploy to cPanel via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: 82.29.163.188
+          username: "u378554361.rising-green-energy-crm.fableadtech.in"
+          password: "V5!MMMwbYrJ6Imr>"
           server-dir: /
           local-dir: ./build_output/
           protocol: ftp
