@@ -547,3 +547,104 @@ Route::get('/admin/fix-make-images', function () {
         ], 500);
     }
 });
+// TEMPORARY FIX ROUTES - For storage symlink issue
+Route::get('/admin/fix-storage-link', function() {
+    try {
+        // Method 1: Try artisan command
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        
+        // Method 2: Create symlink manually if artisan fails
+        $target = storage_path('app/public');
+        $link = public_path('storage');
+        
+        // Remove existing if it exists
+        if (file_exists($link)) {
+            if (is_link($link)) {
+                unlink($link);
+            } else {
+                rmdir($link);
+            }
+        }
+        
+        // Create symlink
+        if (function_exists('symlink')) {
+            symlink($target, $link);
+            $method = 'symlink';
+        } else {
+            // Fallback for Windows or restricted servers
+            $result = shell_exec('mklink /D "' . $link . '" "' . $target . '"');
+            $method = 'mklink';
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Storage link created successfully using ' . $method,
+            'target' => $target,
+            'link' => $link,
+            'test_url' => asset('storage/makes/gQsOhAAKUu5EA9XOnLj89b3srdlXPV2TafS3vZUF.webp')
+        ]);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'suggestion' => 'Try manual file copy method'
+        ]);
+    }
+})->middleware(['auth', 'main_admin']);
+
+// MANUAL COPY ROUTE - For servers that don't support symlinks
+Route::get('/admin/copy-storage-files', function() {
+    try {
+        $sourceDir = storage_path('app/public');
+        $targetDir = public_path('storage');
+        
+        // Create target directory if it doesn't exist
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+        
+        // Copy all files recursively
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        
+        $copiedFiles = 0;
+        foreach ($iterator as $item) {
+            $target = $targetDir . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+            if ($item->isDir()) {
+                if (!file_exists($target)) {
+                    mkdir($target, 0755, true);
+                }
+            } else {
+                copy($item, $target);
+                $copiedFiles++;
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Files copied successfully',
+            'files_copied' => $copiedFiles,
+            'test_url' => asset('storage/makes/gQsOhAAKUu5EA9XOnLj89b3srdlXPV2TafS3vZUF.webp')
+        ]);
+        
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+})->middleware(['auth', 'main_admin']);
+
+// TEST ROUTE - No authentication needed for debugging
+Route::get('test-make-image/{id}', function($id) {
+    $category = App\Models\Category::findOrFail($id);
+    
+    if (!$category->image || !Storage::disk('public')->exists($category->image)) {
+        return response()->json(['error' => 'Image not found'], 404);
+    }
+    
+    return response()->file(Storage::disk('public')->path($category->image));
+})->name('test.make.image');
