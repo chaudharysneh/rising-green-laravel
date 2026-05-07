@@ -122,9 +122,31 @@ function getMeetingIdFromUrl() {
 
 // ==================== MEETINGS TABLE ====================
 const MeetingTable = {
-    currentFilter: 'created_by_me', // Default filter for staff
+    currentFilter: null,
 
     init() {
+        // Get filter from URL parameter or default to 'created_by_me'
+        const urlParams = new URLSearchParams(window.location.search);
+        this.currentFilter = urlParams.get('filter') || 'created_by_me';
+
+        // Set the filter in URL if not present (for first load)
+        if (!urlParams.has('filter')) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('filter', this.currentFilter);
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Activate the correct tab based on URL parameter
+        if (this.currentFilter) {
+            document.querySelectorAll('#meetingFilterTabs button[data-filter]').forEach((tab) => {
+                if (tab.dataset.filter === this.currentFilter) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
         this.initTabs();
         this.load();
         this.initSearch();
@@ -136,6 +158,12 @@ const MeetingTable = {
         document.querySelectorAll('#meetingFilterTabs button[data-filter]').forEach((tab) => {
             tab.addEventListener('click', () => {
                 this.currentFilter = tab.dataset.filter;
+                
+                // Update URL without page reload - use replaceState to ensure it persists
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('filter', this.currentFilter);
+                window.history.replaceState({}, '', newUrl);
+                
                 this.load(1);
             });
         });

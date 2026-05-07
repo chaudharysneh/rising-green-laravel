@@ -178,15 +178,8 @@
             return;
         }
 
-        let currentFilter = 'created_by_me'; // Default filter for staff
-
-        // Tab click handlers
-        document.querySelectorAll('#ticketFilterTabs button[data-filter]').forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                currentFilter = this.dataset.filter;
-                fetchTickets(1);
-            });
-        });
+        // Tickets don't have assignment feature, so no filter needed
+        // Staff users will only see tickets they created (handled by backend)
 
         function renderRows(items, meta) {
             if (!items || !items.length) {
@@ -322,10 +315,7 @@
                 apiUrl.searchParams.delete("search");
             }
 
-            // Add filter parameter for staff users
-            if (currentFilter) {
-                apiUrl.searchParams.set("filter", currentFilter);
-            }
+            // Tickets don't have filter - staff users automatically see only their created tickets
 
             $.ajax({
                 url: apiUrl.toString(),

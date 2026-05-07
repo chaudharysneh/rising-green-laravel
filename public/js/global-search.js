@@ -147,7 +147,7 @@
 
     async function searchLeads(query) {
         try {
-            const response = await fetch(`/api/leads?search=${encodeURIComponent(query)}&limit=5`, {
+            const response = await fetch(`/api/leads?search=${encodeURIComponent(query)}&page=1`, {
                 headers: getHeaders()
             });
             if (!response.ok) {
@@ -157,15 +157,15 @@
             const data = await response.json();
             console.log('Lead search response:', data);
             
-            // Handle paginated response
-            const items = data.data?.data || data.data || [];
+            // Handle paginated response - get first 5 items
+            const items = (data.data?.data || data.data || []).slice(0, 5);
             if (!Array.isArray(items)) return [];
             
             return items.map(item => ({
                 type: 'Lead',
                 name: item.name,
                 email: item.email,
-                url: `/leads?search=${encodeURIComponent(query)}`,
+                url: `/leads/${item.id}`,
                 indexUrl: `/leads`,
                 icon: 'fa-bullhorn',
                 color: 'warning'
@@ -178,7 +178,7 @@
 
     async function searchDeals(query) {
         try {
-            const response = await fetch(`/api/deals?search=${encodeURIComponent(query)}&limit=5`, {
+            const response = await fetch(`/api/deals?search=${encodeURIComponent(query)}&page=1`, {
                 headers: getHeaders()
             });
             if (!response.ok) {
@@ -188,15 +188,15 @@
             const data = await response.json();
             console.log('Deal search response:', data);
             
-            // Handle paginated response
-            const items = data.data?.data || data.data || [];
+            // Handle paginated response - get first 5 items
+            const items = (data.data?.data || data.data || []).slice(0, 5);
             if (!Array.isArray(items)) return [];
             
             return items.map(item => ({
                 type: 'Deal',
                 name: item.title,
                 email: item.customer?.name,
-                url: `/deals?search=${encodeURIComponent(query)}`,
+                url: `/deals/${item.id}`,
                 indexUrl: `/deals`,
                 icon: 'fa-handshake',
                 color: 'info'
@@ -209,7 +209,7 @@
 
     async function searchMeetings(query) {
         try {
-            const response = await fetch(`/api/meetings?search=${encodeURIComponent(query)}&limit=5`, {
+            const response = await fetch(`/api/meetings?search=${encodeURIComponent(query)}&page=1`, {
                 headers: getHeaders()
             });
             if (!response.ok) {
@@ -219,15 +219,15 @@
             const data = await response.json();
             console.log('Meeting search response:', data);
             
-            // Handle paginated response
-            const items = data.data?.data || data.data || [];
+            // Handle paginated response - get first 5 items
+            const items = (data.data?.data || data.data || []).slice(0, 5);
             if (!Array.isArray(items)) return [];
             
             return items.map(item => ({
                 type: 'Meeting',
                 name: item.title,
                 email: item.customer?.name,
-                url: `/meetings?search=${encodeURIComponent(query)}`,
+                url: `/meetings/${item.id}`,
                 indexUrl: `/meetings`,
                 icon: 'fa-calendar',
                 color: 'primary'
@@ -240,7 +240,7 @@
 
     async function searchTasks(query) {
         try {
-            const response = await fetch(`/api/tasks?search=${encodeURIComponent(query)}&limit=5`, {
+            const response = await fetch(`/api/tasks?search=${encodeURIComponent(query)}&page=1`, {
                 headers: getHeaders()
             });
             if (!response.ok) {
@@ -250,15 +250,15 @@
             const data = await response.json();
             console.log('Task search response:', data);
             
-            // Handle paginated response
-            const items = data.data?.data || data.data || [];
+            // Handle paginated response - get first 5 items
+            const items = (data.data?.data || data.data || []).slice(0, 5);
             if (!Array.isArray(items)) return [];
             
             return items.map(item => ({
                 type: 'Task',
                 name: item.title,
                 email: item.customer?.name,
-                url: `/tasks?search=${encodeURIComponent(query)}`,
+                url: `/tasks/${item.id}`,
                 indexUrl: `/tasks`,
                 icon: 'fa-tasks',
                 color: 'secondary'

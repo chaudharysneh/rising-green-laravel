@@ -20,13 +20,40 @@
 
         let currentPage = 1;
         let searchQuery = searchInput.value;
-        let currentFilter = 'created_by_me'; // Default filter for staff
+        
+        // Get filter from URL parameter or default to 'created_by_me'
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentFilter = urlParams.get('filter') || 'created_by_me';
+
+        // Set the filter in URL if not present (for first load)
+        if (!urlParams.has('filter')) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('filter', currentFilter);
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Activate the correct tab based on URL parameter
+        if (currentFilter) {
+            document.querySelectorAll('#estimateFilterTabs button[data-filter]').forEach(function(tab) {
+                if (tab.dataset.filter === currentFilter) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
 
         // Tab click handlers
         document.querySelectorAll('#estimateFilterTabs button[data-filter]').forEach(function(tab) {
             tab.addEventListener('click', function() {
                 currentFilter = this.dataset.filter;
                 currentPage = 1;
+                
+                // Update URL without page reload - use replaceState to ensure it persists
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('filter', currentFilter);
+                window.history.replaceState({}, '', newUrl);
+                
                 loadEstimates();
             });
         });
