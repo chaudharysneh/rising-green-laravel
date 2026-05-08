@@ -43,6 +43,13 @@ if (!function_exists('normalize_pdf_image')) {
                 ];
                 foreach ($candidates as $candidate) {
                     if (file_exists($candidate) && is_file($candidate)) {
+                        $imgData = @file_get_contents($candidate);
+                        if ($imgData !== false) {
+                            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+                            if (empty($ext)) $ext = 'png';
+                            elseif ($ext === 'jpg') $ext = 'jpeg';
+                            return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
+                        }
                         return $candidate;
                     }
                 }
@@ -66,6 +73,13 @@ if (!function_exists('normalize_pdf_image')) {
 
         foreach ($candidates as $candidate) {
             if (file_exists($candidate) && is_file($candidate)) {
+                $imgData = @file_get_contents($candidate);
+                if ($imgData !== false) {
+                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+                    if (empty($ext)) $ext = 'png';
+                    elseif ($ext === 'jpg') $ext = 'jpeg';
+                    return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
+                }
                 return $candidate;
             }
         }
