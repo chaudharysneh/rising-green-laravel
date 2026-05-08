@@ -297,7 +297,7 @@
                                 @if (isset($edit_mode) && $edit_mode && !empty($template->first_img))
                                     <div class="mb-2">
                                         <span class="small text-muted d-block">Current image (kept if you do not upload a new one):</span>
-                                        <img src="{{ asset($template->first_img) }}" alt="Current header image" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                        <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $template->first_img) }}" alt="Current header image" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                     </div>
                                 @else
                                     <div class="mb-2">
@@ -361,7 +361,7 @@
                                     @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image1']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 1:</span>
-                                            <img src="{{ asset($companyInfo['image1']) }}" alt="Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image1']) }}" alt="Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image1_old" value="{{ $companyInfo['image1'] }}">
                                         </div>
                                     @endif
@@ -386,7 +386,7 @@
                                     @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image2']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 2:</span>
-                                            <img src="{{ asset($companyInfo['image2']) }}" alt="Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image2']) }}" alt="Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image2_old" value="{{ $companyInfo['image2'] }}">
                                         </div>
                                     @endif
@@ -411,7 +411,7 @@
                                     @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image3']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 3:</span>
-                                            <img src="{{ asset($companyInfo['image3']) }}" alt="Image 3" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image3']) }}" alt="Image 3" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image3_old" value="{{ $companyInfo['image3'] }}">
                                         </div>
                                     @endif
@@ -543,7 +543,7 @@
                                     @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image1']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image:</span>
-                                            <img src="{{ asset($timeLine['image1']) }}" alt="Timeline Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image1']) }}" alt="Timeline Image 1" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="timeline_image1_old" value="{{ $timeLine['image1'] }}">
                                         </div>
                                     @endif
@@ -561,7 +561,7 @@
                                     @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image2']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image:</span>
-                                            <img src="{{ asset($timeLine['image2']) }}" alt="Timeline Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image2']) }}" alt="Timeline Image 2" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="timeline_image2_old" value="{{ $timeLine['image2'] }}">
                                         </div>
                                     @endif
@@ -703,7 +703,7 @@
                                      @if (isset($edit_mode) && $edit_mode && !empty($paymentTerms['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
-                                             <img src="{{ asset($paymentTerms['image']) }}" alt="Payment Terms Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $paymentTerms['image']) }}" alt="Payment Terms Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="payment_terms_image_old" value="{{ $paymentTerms['image'] }}">
                                          </div>
                                      @endif
@@ -752,7 +752,7 @@
                                      @if (isset($edit_mode) && $edit_mode && !empty($environmentImpact['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
-                                             <img src="{{ asset($environmentImpact['image']) }}" alt="Environment Impact Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $environmentImpact['image']) }}" alt="Environment Impact Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="environment_impact_image_old" value="{{ $environmentImpact['image'] }}">
                                          </div>
                                      @endif
@@ -788,7 +788,7 @@
                                      @if (isset($edit_mode) && $edit_mode && !empty($footer['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
-                                             <img src="{{ asset($footer['image']) }}" alt="Footer Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $footer['image']) }}" alt="Footer Image" style="max-width: 150px; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="footer_image_old" value="{{ $footer['image'] }}">
                                          </div>
                                      @endif
