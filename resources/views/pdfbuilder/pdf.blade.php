@@ -133,7 +133,7 @@ if (!$logoBase64 && !empty($user['company_logo'])) {
         $logoData = file_get_contents($legacyPath);
         $logoBase64 = 'data:image/' . pathinfo($legacyPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
     } else {
-        $logoBase64 = base_url('public/assets/img/profile/' . $user['company_logo']);
+        $logoBase64 = normalize_pdf_image('public/assets/img/profile/' . $user['company_logo']);
     }
 }
 
@@ -1053,7 +1053,7 @@ echo $fullCompanyName;
                     <!-- Logo + Divider -->
                     <td width="10%" valign="middle" align="right" style="border-right:3px solid #fff;">
                         <?php if (!empty($companySettings['company_logo_path'])): ?>
-                        <img src="<?= base_url('public/assets/img/logos/favicon.jpeg') ?>" style="height:32px; width:32px; object-fit:contain;
+                        <img src="<?= normalize_pdf_image('public/assets/img/logos/favicon.jpeg') ?>" style="height:32px; width:32px; object-fit:contain;
                                         border-radius:6px; opacity:0.9; margin-right:5px;">
                         <?php endif; ?>
                     </td>
@@ -1104,9 +1104,9 @@ $__companyInfoActive = $_isActive($__companyInfo);
     $happyDisplay = $happy !== '' ? esc($happy) . '+' : '30+';
     $citiesDisplay = $cities !== '' ? esc($cities) . '+' : '20+';
 
-    $img1 = !empty($companyInfo['image1']) ? base_url($companyInfo['image1']) : base_url('public/assets/img/seconpage_1.png');
-    $img2 = !empty($companyInfo['image2']) ? base_url($companyInfo['image2']) : base_url('public/assets/img/secondpage_2.png');
-    $img3 = !empty($companyInfo['image3']) ? base_url($companyInfo['image3']) : base_url('public/assets/img/secondpage_3.png');
+    $img1 = !empty($companyInfo['image1']) ? normalize_pdf_image($companyInfo['image1']) : normalize_pdf_image('public/assets/img/seconpage_1.png');
+    $img2 = !empty($companyInfo['image2']) ? normalize_pdf_image($companyInfo['image2']) : normalize_pdf_image('public/assets/img/secondpage_2.png');
+    $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
             ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 40px;">
                 <tr>
@@ -2011,8 +2011,8 @@ $__timeLineActive = $_isActive($__timeLine);
     $timelineTitle2 = trim((string) ($timeLine['title2'] ?? ''));
     $timelineNote = trim((string) ($timeLine['note'] ?? ''));
 
-    $timelineImg1 = !empty($timeLine['image1']) ? base_url($timeLine['image1']) : base_url('public/assets/img/page-5-1.png');
-    $timelineImg2 = !empty($timeLine['image2']) ? base_url($timeLine['image2']) : base_url('public/assets/img/page-5-2.png');
+    $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : normalize_pdf_image('public/assets/img/page-5-1.png');
+    $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : normalize_pdf_image('public/assets/img/page-5-2.png');
     ?>
             <!-- ================= TIMELINE ================= -->
             <div
@@ -2448,14 +2448,14 @@ $__componentsActive = $_isActive($__components);
                         // If it doesn't exist (e.g. remote path), still try base_url($rel).
                         $fullFsPath = FCPATH . $rel;
                         if (file_exists($fullFsPath)) {
-                            $productImagePath = base_url($rel);
+                            $productImagePath = normalize_pdf_image($rel);
                             break;
                         }
                     }
 
                     // Last fallback: try as-is via base_url (covers valid paths not under FCPATH)
                     if (empty($productImagePath)) {
-                        $productImagePath = base_url($productImage);
+                        $productImagePath = normalize_pdf_image($productImage);
                     }
                 }
             }
@@ -2961,8 +2961,8 @@ $__componentsActive = $_isActive($__components);
     $paymentTermsActive = $_isActive($paymentTerms);
     $paymentTermsTitle = trim((string) ($paymentTerms['title'] ?? ''));
     $paymentTermsImg = !empty($paymentTerms['image'])
-        ? base_url($paymentTerms['image'])
-        : base_url('public/assets/img/page_7.png');
+        ? normalize_pdf_image($paymentTerms['image'])
+        : normalize_pdf_image('public/assets/img/page_7.png');
         ?>
             <?php    if ($paymentTermsActive): ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;">
@@ -3062,8 +3062,8 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
     $envTitle = trim((string) ($environmentImpact['title'] ?? ''));
     $envContent = trim((string) ($environmentImpact['content'] ?? ''));
     $envImg = !empty($environmentImpact['image'])
-        ? base_url($environmentImpact['image'])
-        : base_url('public/assets/img/page_8.png');
+        ? normalize_pdf_image($environmentImpact['image'])
+        : normalize_pdf_image('public/assets/img/page_8.png');
         ?>
 
             <!-- Main Title -->
@@ -3157,8 +3157,8 @@ $__footerActive = $_isActive($__footer);
     $footerTitle = trim((string) ($footer['title'] ?? ''));
     $footerSubTitle = trim((string) ($footer['sub_title'] ?? ''));
     $footerImg = !empty($footer['image'])
-        ? base_url($footer['image'])
-        : base_url('public/assets/img/footer.png');
+        ? normalize_pdf_image($footer['image'])
+        : normalize_pdf_image('public/assets/img/footer.png');
                     ?>
                         <img src="<?= $footerImg ?>" alt="Solar Panels"
                             style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
@@ -3189,7 +3189,7 @@ $__footerActive = $_isActive($__footer);
 
                                 <!-- Image -->
                                 <td align="right">
-                                    <img src="<?= base_url('public/assets/img/footer_arrow.png') ?>" alt="Arrow"
+                                    <img src="<?= normalize_pdf_image('public/assets/img/footer_arrow.png') ?>" alt="Arrow"
                                         width="80" height="55">
                                 </td>
                             </tr>
