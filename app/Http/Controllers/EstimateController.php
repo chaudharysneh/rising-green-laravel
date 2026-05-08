@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BomProduct;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\PdfBuilderForm;
@@ -44,7 +45,7 @@ class EstimateController extends Controller
         $settings = Setting::pluck('value', 'key');
 
         // Get all products for BOM specifications
-        $product_data = Product::all()->toArray();
+        $product_data = BomProduct::all()->toArray();
 
         // Load technology and warranty maps
         $technologyList = Technology::all();
@@ -92,7 +93,7 @@ class EstimateController extends Controller
 
         // Get user/company info
         $user = auth()->user();
-        
+
         // Replicate profile settings logic for the template
         $settings = Setting::query()->whereIn('key', [
             'company_name',
@@ -131,14 +132,14 @@ class EstimateController extends Controller
         if ($estimate->template_id) {
             $template = PdfBuilderForm::find($estimate->template_id);
         }
-        
+
         if (!$template) {
             $template = PdfBuilderForm::first();
         }
 
         if ($template) {
             $form_data = $template->form_data ?? [];
-            
+
             // Prepare data for the new template wrapper
             $pdfData = [
                 'companySettings' => $settings,
