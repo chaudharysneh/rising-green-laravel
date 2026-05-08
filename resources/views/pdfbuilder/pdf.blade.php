@@ -926,9 +926,9 @@ if (!empty($monthlyData)) {
         }
     </style>
     <?php
-if (isset($header_image)) {
-    $header_image = normalize_pdf_image($header_image);
-}
+    $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
+    $normalized_header = !empty($header_image) ? normalize_pdf_image($header_image) : '';
+    $header_image = (strpos($normalized_header, 'data:image') === 0) ? $normalized_header : normalize_pdf_image('public/assets/img/header_Image.jpg');
     ?>
 </head>
 
@@ -939,8 +939,7 @@ if (isset($header_image)) {
         style="position: relative; height: 100%; min-height: 842px; overflow: hidden;">
         <!-- Top Half: Header Image -->
         <div style="height: 62%; width: 100%; overflow: hidden; position: relative;">
-            <img src="<?= $header_image ?>" alt="Header Image"
-                style="width: 100%; height: 100%; object-fit: cover; display: block;">
+            <img src="<?= $header_image ?>" alt="Header Image" style="width: 100%; height: 100%; object-fit: cover; display: block;">
         </div>
 
         <!-- Bottom Half: Content Section with Red Border -->

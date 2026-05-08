@@ -137,7 +137,7 @@ class InvoiceController extends Controller
         ])->pluck('value', 'key');
 
         // Get all products for BOM specifications
-        $product_data = Product::all()->toArray();
+        $product_data = BomProduct::all()->toArray();
 
         // Load technology and warranty maps
         $technologyList = Technology::all();

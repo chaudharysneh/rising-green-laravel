@@ -273,13 +273,15 @@
                             <table>
                                 <tr>
                                     <td class="company-logo" style="width: 50%;">
-                                        @if ($user && $user->company_logo)
-                                            <img src="{{ asset('storage/' . $user->company_logo) }}" alt="Company Logo">
-                                        @elseif(isset($settings['company_logo_path']))
-                                            <img src="{{ asset('storage/' . $settings['company_logo_path']) }}" alt="Company Logo">
-                                        @else
-                                            <img src="{{ asset('assets/images/logo.png') }}" alt="Company Logo" onerror="this.src='https://via.placeholder.com/150x60?text=Logo'">
-                                        @endif
+                                        @php
+                                            $companyLogoPath = $settings['company_logo_path'] ?? null;
+                                            $companyLogoUrl = $companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)
+                                                ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyLogoPath)
+                                                : ($user && $user->company_logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->company_logo)
+                                                    ? asset('storage/' . $user->company_logo)
+                                                    : asset('assets/images/logo.png'));
+                                        @endphp
+                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="width: 300px" onerror="this.onerror=null;this.src='{{ asset('assets/images/logo.png') }}';">
                                     </td>
                                     <td class="quotation-title" style="width: 50%;">
                                         <div style="line-height:22px;color:#000">
@@ -432,10 +434,16 @@
                                         @endif
                                     </td>
                                     <td data-label="QR Code" style="vertical-align: top; background: #fafafa; display: flex; align-items: center; justify-content: center;">
-                                        @if (isset($settings['company_qr_code_path']))
-                                            <img src="{{ asset('storage/' . $settings['company_qr_code_path']) }}" alt="QR Code" class="qr-code-img">
-                                        @elseif($user && $user->qr_code)
-                                            <img src="{{ asset('storage/' . $user->qr_code) }}" alt="QR Code" class="qr-code-img">
+                                        @php
+                                            $companyQrCodePath = $settings['company_qr_code_path'] ?? null;
+                                            $companyQrCodeUrl = $companyQrCodePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyQrCodePath)
+                                                ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyQrCodePath)
+                                                : ($user && $user->qr_code && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->qr_code)
+                                                    ? asset('storage/' . $user->qr_code)
+                                                    : null);
+                                        @endphp
+                                        @if ($companyQrCodeUrl)
+                                            <img src="{{ $companyQrCodeUrl }}" alt="QR Code" class="qr-code-img">
                                         @else
                                             <div style="color:#666;">No QR code available.</div>
                                         @endif
@@ -468,7 +476,7 @@
                                         $grand_total_excluding_gst = 0.0;
 
                                         // Dynamically fetch dependencies
-                                        $product_data = \App\Models\Product::all()->toArray();
+                                        $product_data = \App\Models\BomProduct::all()->toArray();
                                         $technology_map = \App\Models\Technology::pluck('title', 'id')->toArray();
                                         $warranty_map = \App\Models\Warranty::pluck('title', 'id')->toArray();
                                     @endphp
@@ -564,7 +572,13 @@
                                                 <td style="padding: 12px 10px; border: 1px solid #333; text-align: center; vertical-align: middle;">
                                                     @if ($full_product_details && !empty($full_product_details['image']))
                                                         <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
-                                                            <img src="{{ asset('storage/' . $full_product_details['image']) }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
+                                                            @php
+                                                                $product_image_display = $full_product_details['image'];
+                                                                $productImageUrl = $product_id && \Illuminate\Support\Facades\Storage::disk('public')->exists($product_image_display)
+                                                                    ? route('bom-products.image', $product_id)
+                                                                    : asset('storage/' . $product_image_display);
+                                                            @endphp
+                                                            <img src="{{ $productImageUrl }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
                                                         </div>
                                                     @else
                                                         <div style="width: 80px; height: 80px; background-color: #f5f5f5; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: #ccc; font-size: 11px; border: 1px solid #ddd;">No Image</div>
