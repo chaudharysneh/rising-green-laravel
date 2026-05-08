@@ -65,7 +65,7 @@ class InvoiceController extends ApiBaseController
         } elseif (!$user->isAdmin() && $filter === 'assigned_to_me') {
             // Records assigned to me but NOT created by me
             $query->where('assigned_user_id', $user->id)
-                  ->where('created_by', '!=', $user->id);
+                ->where('created_by', '!=', $user->id);
         }
 
         $invoices = $query
@@ -485,7 +485,7 @@ class InvoiceController extends ApiBaseController
         $productIds = array_values(array_unique(array_filter($serviceIds, function ($value) {
             return (string) $value !== '';
         })));
-        
+
         // Check BomProduct first as that is what's used in the Create/Edit view
         $productsById = BomProduct::query()
             ->whereIn('id', $productIds)

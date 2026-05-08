@@ -67,11 +67,11 @@ class InvoiceController extends Controller
     {
         $this->authorize('view', $invoice);
         $invoice->load(['customer', 'items', 'creator']);
-        
+
         // Get user/company info to match estimate show pattern
         $user = auth()->user();
         $settings = \App\Models\Setting::pluck('value', 'key');
-        
+
         return view('crm.invoices.show', compact('invoice', 'user', 'settings'));
     }
 
@@ -167,7 +167,7 @@ class InvoiceController extends Controller
 
         if ($template) {
             $form_data = $template->form_data ?? [];
-            
+
             $pdfData = [
                 'companySettings' => $settings,
                 'companyLogoPath' => ($settings['company_logo_path'] ?? null) ? Storage::disk('public')->path($settings['company_logo_path']) : null,
