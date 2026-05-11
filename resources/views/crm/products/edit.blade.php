@@ -42,12 +42,17 @@
                         <!-- Right Column -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-tag"></i> Category </label>
-                            <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
-                                <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="input-group">
+                                <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue" id="addCategoryBtn" title="Add New Category">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback" id="category_id-error">@error('category_id') {{ $message }} @enderror</div>
                         </div>
 
@@ -150,6 +155,50 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryModalLabel">
+                        <i class="bi bi-tag me-2"></i>Add New Category
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addCategoryForm" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label fw-semibold">
+                                <i class="bi bi-tag"></i> Category Name
+                            </label>
+                            <input type="text" class="form-control" id="categoryName" name="name" placeholder="Enter category name" required>
+                            <div class="invalid-feedback" id="categoryName-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryImage" class="form-label fw-semibold">
+                                <i class="bi bi-image"></i> Category Image (Optional)
+                            </label>
+                            <input type="file" class="form-control" id="categoryImage" name="image" accept="image/*">
+                            <div class="form-text">Allowed types: JPG, JPEG, PNG, GIF, BMP, WEBP, AVIF, SVG. Max size: 2MB</div>
+                            <div class="invalid-feedback" id="categoryImage-error"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-dark-blue" id="saveCategoryBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="categorySpinner"></span>
+                            <span id="categoryBtnText">
+                                <i class="bi bi-check-lg me-1"></i>Save Category
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -173,6 +222,20 @@
                 box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             }
             .input-group .form-control {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+            #addCategoryBtn {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                border-left: 0;
+                transition: all 0.2s ease;
+            }
+            #addCategoryBtn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            .input-group .form-select {
                 border-top-right-radius: 0;
                 border-bottom-right-radius: 0;
             }
@@ -315,6 +378,13 @@
                 $('#barcodeScannerModal').modal('show');
             });
 
+            // Add Category button click
+            document.getElementById('addCategoryBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#addCategoryModal').modal('show');
+            });
+
             // Manual entry button
             document.getElementById('manualEntryBtn').addEventListener('click', function() {
                 stopBarcodeScanner();
@@ -337,7 +407,149 @@
             $('#barcodeScannerModal').on('hidden.bs.modal', function() {
                 stopBarcodeScanner();
             });
+
+            // Add Category Modal events
+            $('#addCategoryModal').on('shown.bs.modal', function() {
+                document.getElementById('categoryName').focus();
+            });
+
+            $('#addCategoryModal').on('hidden.bs.modal', function() {
+                // Reset form
+                document.getElementById('addCategoryForm').reset();
+                clearCategoryErrors();
+            });
+
+            // Add Category Form submission
+            document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitCategoryForm();
+            });
         });
+
+        // Category Functions
+        function submitCategoryForm() {
+            const form = document.getElementById('addCategoryForm');
+            const formData = new FormData(form);
+            const submitBtn = document.getElementById('saveCategoryBtn');
+            const spinner = document.getElementById('categorySpinner');
+            const btnText = document.getElementById('categoryBtnText');
+
+            // Clear previous errors
+            clearCategoryErrors();
+
+            // Show loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            btnText.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
+
+            // Add CSRF token
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+            fetch('/api/v1/categories', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => Promise.reject(data));
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Add new category to dropdown
+                    const categorySelect = document.getElementById('category_id');
+                    const newOption = document.createElement('option');
+                    newOption.value = data.data.id;
+                    newOption.textContent = data.data.name;
+                    newOption.selected = true;
+                    categorySelect.appendChild(newOption);
+
+                    // Close modal
+                    $('#addCategoryModal').modal('hide');
+
+                    // Show success message
+                    showNotification('Category created successfully!', 'success');
+                } else {
+                    // Handle validation errors
+                    if (data.errors) {
+                        displayCategoryErrors(data.errors);
+                    } else {
+                        showNotification(data.message || 'Failed to create category', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Handle different types of errors
+                if (error && error.errors) {
+                    displayCategoryErrors(error.errors);
+                } else if (error && error.message) {
+                    showNotification(error.message, 'error');
+                } else {
+                    showNotification('An error occurred while creating the category. Please check your permissions and try again.', 'error');
+                }
+            })
+            .finally(() => {
+                // Reset button state
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+                btnText.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Category';
+            });
+        }
+
+        function displayCategoryErrors(errors) {
+            Object.keys(errors).forEach(field => {
+                const errorElement = document.getElementById(field === 'name' ? 'categoryName-error' : field + '-error');
+                const inputElement = document.getElementById(field === 'name' ? 'categoryName' : field);
+                
+                if (errorElement && inputElement) {
+                    errorElement.textContent = errors[field][0];
+                    inputElement.classList.add('is-invalid');
+                }
+            });
+        }
+
+        function clearCategoryErrors() {
+            const errorElements = ['categoryName-error', 'categoryImage-error'];
+            const inputElements = ['categoryName', 'categoryImage'];
+            
+            errorElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = '';
+            });
+            
+            inputElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.remove('is-invalid');
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
 
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
