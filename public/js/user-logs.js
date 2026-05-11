@@ -52,23 +52,47 @@
 
         function renderRows(rows) {
             if (!Array.isArray(rows) || rows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5">No user logs found.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-5">No user logs found.</td></tr>';
                 return;
             }
 
             tableBody.innerHTML = rows.map(function (row) {
                 const actionClass = String(row.taken_action || "").toLowerCase();
+                const viewBtn = '<button type="button" class="btn btn-outline-primary btn-sm user-logs-view-btn" data-view-id="' + escapeHtml(row.id) + '">View</button>';
+                const clearBtn = '<button type="button" class="btn btn-danger btn-sm user-logs-clear-btn" data-id="' + escapeHtml(row.id) + '">Clear</button>';
+
                 return '<tr>'
-                    + '<td class="ps-4">' + escapeHtml(row.actioned_by || "--") + '</td>'
-                    + '<td><span class="user-log-module">' + escapeHtml(row.module || "Activity") + '</span></td>'
-                    + '<td><span class="user-log-action ' + escapeHtml(actionClass) + '">' + escapeHtml(row.taken_action || "-") + '</span></td>'
-                    + '<td><div class="user-log-message">' + escapeHtml(row.message || "-") + '</div><div class="user-log-summary-text">' + escapeHtml(row.summary || "") + '</div></td>'
-                    + '<td class="text-nowrap">' + escapeHtml(row.created_at || "-") + '</td>'
-                    + '<td class="text-center"><div class="user-log-actions">'
-                    + '<button type="button" class="btn btn-outline-primary btn-sm user-logs-view-btn" data-view-id="' + escapeHtml(row.id) + '">View</button>'
-                    + '<button type="button" class="btn btn-danger btn-sm user-logs-clear-btn" data-id="' + escapeHtml(row.id) + '">Clear</button>'
+                    + '<td class="ps-4" data-label="Actioned By">' + escapeHtml(row.actioned_by || "--") + '</td>'
+                    + '<td data-label="Module"><span class="user-log-module">' + escapeHtml(row.module || "Activity") + '</span></td>'
+                    + '<td class="d-none d-md-table-cell" data-label="Taken Action"><span class="user-log-action ' + escapeHtml(actionClass) + '">' + escapeHtml(row.taken_action || "-") + '</span></td>'
+                    + '<td class="d-none d-md-table-cell" data-label="Message"><div class="user-log-message">' + escapeHtml(row.message || "-") + '</div><div class="user-log-summary-text">' + escapeHtml(row.summary || "") + '</div></td>'
+                    + '<td class="text-nowrap d-none d-md-table-cell" data-label="Created At">' + escapeHtml(row.created_at || "-") + '</td>'
+                    + '<td class="text-center d-none d-md-table-cell"><div class="user-log-actions">'
+                    + viewBtn
+                    + clearBtn
                     + '</div></td>'
-                    + '</tr>';
+                    + '<td class="text-center d-md-none">'
+                    + '<button type="button" class="btn-user-expand" data-log-id="' + escapeHtml(row.id) + '">'
+                    + '<i class="fa-solid fa-plus"></i></button></td>'
+                    + '</tr>'
+                    + '<tr class="details-row d-md-none border" id="details-' + escapeHtml(row.id) + '" style="display: none;">'
+                    + '<td colspan="3" class="p-0"><div class="details-content"><div class="row g-3">'
+                    + '<div class="col-12 d-flex justify-content-between align-items-center">'
+                    + '<div class="expand-label"><i class="fa-solid fa-bolt"></i> Taken Action :</div>'
+                    + '<div class="expand-value"><span class="user-log-action ' + escapeHtml(actionClass) + '">' + escapeHtml(row.taken_action || "-") + '</span></div></div>'
+                    + '<div class="col-12 d-flex justify-content-between align-items-start">'
+                    + '<div class="expand-label mt-1"><i class="fa-solid fa-message"></i> Message :</div>'
+                    + '<div class="expand-value text-end"><div class="user-log-message">' + escapeHtml(row.message || "-") + '</div><div class="user-log-summary-text text-end">' + escapeHtml(row.summary || "") + '</div></div></div>'
+                    + '<div class="col-12 d-flex justify-content-between align-items-center">'
+                    + '<div class="expand-label"><i class="fa-solid fa-calendar-day"></i> Created At :</div>'
+                    + '<div class="expand-value">' + escapeHtml(row.created_at || "-") + '</div></div>'
+                    + '<div class="col-12 d-flex justify-content-between align-items-center pt-3 mt-3 border-top">'
+                    + '<div class="expand-label"><i class="fa-solid fa-gear"></i> Actions :</div>'
+                    + '<div class="d-flex flex-wrap gap-2 justify-content-end">'
+                    + viewBtn
+                    + clearBtn
+                    + '</div></div>'
+                    + '</div></div></td></tr>';
             }).join("");
 
             tableBody.querySelectorAll("[data-id]").forEach(function (button) {
@@ -88,6 +112,24 @@
                     }
                 });
             });
+
+            tableBody.querySelectorAll(".btn-user-expand").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const id = this.dataset.logId;
+                    const detailsRow = document.getElementById(`details-${id}`);
+                    const icon = this.querySelector("i");
+
+                    if (detailsRow.style.display === "none") {
+                        detailsRow.style.display = "table-row";
+                        icon.classList.replace("fa-plus", "fa-minus");
+                        this.classList.add("active");
+                    } else {
+                        detailsRow.style.display = "none";
+                        icon.classList.replace("fa-minus", "fa-plus");
+                        this.classList.remove("active");
+                    }
+                });
+            });
         }
 
 
@@ -104,8 +146,8 @@
             }
 
             let html = '<div class="crm-pagination-container">';
-            html += '<div class="text-muted small">Showing ' + from + ' to ' + to + ' of ' + total + ' results</div>';
-            html += '<ul class="pagination crm-pagination mb-0">';
+            html += '<div class="text-muted small text-center">Showing ' + from + ' to ' + to + ' of ' + total + ' results</div>';
+            html += '<ul class="pagination crm-pagination mb-0 flex-wrap justify-content-center gap-2">';
 
             html += pageItem(current - 1, 'Previous', current <= 1, false);
 
@@ -146,29 +188,27 @@
         }
 
         function clearLog(id) {
-            window.showDeleteConfirm("This user log will be permanently deleted!").then(function (result) {
-                if (!result.isConfirmed) {
-                    return;
-                }
+            if (!window.confirm("Clear this user log?")) {
+                return;
+            }
 
-                fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
-                    method: "DELETE",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrf(),
-                    },
-                    credentials: "same-origin",
+            fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
+                method: "DELETE",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": csrf(),
+                },
+                credentials: "same-origin",
+            })
+                .then(parseJson)
+                .then(function (payload) {
+                    notify(payload.message || "User log cleared successfully.", "success");
+                    loadLogs();
                 })
-                    .then(parseJson)
-                    .then(function (payload) {
-                        notify(payload.message || "User log cleared successfully.", "success");
-                        loadLogs();
-                    })
-                    .catch(function (error) {
-                        notify(error.message || "Failed to clear user log.", "error");
-                    });
-            });
+                .catch(function (error) {
+                    notify(error.message || "Failed to clear user log.", "error");
+                });
         }
 
         function clearAllLogs() {
@@ -176,36 +216,28 @@
                 return;
             }
 
-            window.showDeleteConfirm(
-                "All user logs will be permanently deleted. This action cannot be undone!",
-                {
-                    title: "Delete All Logs?",
-                    confirmButtonText: "Yes, delete all!"
-                }
-            ).then(function (result) {
-                if (!result.isConfirmed) {
-                    return;
-                }
+            if (!window.confirm("Delete all user logs? This action cannot be undone.")) {
+                return;
+            }
 
-                fetch(config.destroyAllUrl, {
-                    method: "DELETE",
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest",
-                        "Accept": "application/json",
-                        "X-CSRF-TOKEN": csrf(),
-                    },
-                    credentials: "same-origin",
+            fetch(config.destroyAllUrl, {
+                method: "DELETE",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": csrf(),
+                },
+                credentials: "same-origin",
+            })
+                .then(parseJson)
+                .then(function (payload) {
+                    notify(payload.message || "All user logs cleared successfully.", "success");
+                    state.page = 1;
+                    loadLogs();
                 })
-                    .then(parseJson)
-                    .then(function (payload) {
-                        notify(payload.message || "All user logs cleared successfully.", "success");
-                        state.page = 1;
-                        loadLogs();
-                    })
-                    .catch(function (error) {
-                        notify(error.message || "Failed to clear user logs.", "error");
-                    });
-            });
+                .catch(function (error) {
+                    notify(error.message || "Failed to clear user logs.", "error");
+                });
         }
 
         function openDetail(id) {

@@ -11,7 +11,7 @@
     <div class="container-fluid p-0">
         <div class="card border-0 shadow-sm overflow-hidden">
             <div class="card-header bg-white border-bottom-0 py-3 px-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <div>
                         <h4 class="fw-bold mb-0">User Logs</h4>
                         <p class="text-muted small mb-0">Track user activity across CRM modules.</p>
@@ -26,7 +26,7 @@
                     </div>
                 </div>
 
-                <div id="userLogsFilterForm" class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <div id="userLogsFilterForm" class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div class="d-flex align-items-center gap-2">
                         <label for="per_page" class="mb-0">Show</label>
                         <select name="per_page" id="per_page" class="form-select form-select-sm w-auto">
@@ -37,7 +37,7 @@
                         <span>entries</span>
                     </div>
 
-                    <div class="input-group input-group-sm" style="width: 250px;">
+                    <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
                         <span class="input-group-text bg-light border-0">
                             <i class="bi bi-search"></i>
                         </span>
@@ -54,18 +54,20 @@
                             <tr>
                                 <th class="ps-4">Actioned By</th>
                                 <th>Module</th>
-                                <th>Taken Action</th>
-                                <th>Message</th>
-                                <th>Created At</th>
-                                <th class="text-center">Action</th>
+                                <th class="d-none d-md-table-cell">Taken Action</th>
+                                <th class="d-none d-md-table-cell">Message</th>
+                                <th class="d-none d-md-table-cell">Created At</th>
+                                <th class="text-center d-none d-md-table-cell">Action</th>
+                                <th class="text-center d-md-none" style="width: 80px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-5">Loading user logs...</td>
+                                <td colspan="7" class="text-center text-muted py-5">Loading user logs...</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
                 <div id="userLogsPagination" class="px-4 pb-3 pt-0"></div>
             </div>
         </div>
