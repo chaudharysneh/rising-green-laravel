@@ -110,7 +110,7 @@
 
     <!-- Barcode Scanner Modal -->
     <div class="modal fade" id="barcodeScannerModal" tabindex="-1" aria-labelledby="barcodeScannerModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg" style="max-height: 90vh;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="barcodeScannerModalLabel">
@@ -118,14 +118,14 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <div id="scanner-container" style="width: 100%; max-width: 500px; height: 300px; margin: 0 auto; border: 2px solid #dee2e6; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                <div class="modal-body p-2">
+                    <div class="w-100">
+                        <div id="scanner-container" style="width: 100%; height: 400px; border: 2px solid #dee2e6; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
                             <div id="scanner-placeholder" class="text-muted">Waiting for camera...</div>
                         </div>
                         <div class="mt-3">
                             <p class="text-muted mb-2">Position the barcode within the camera view</p>
-                            <div id="scanner-status" class="alert alert-info">
+                            <div id="scanner-status" class="alert alert-info m-0">
                                 <i class="bi bi-camera-video me-2"></i>Initializing camera...
                             </div>
                         </div>
@@ -172,15 +172,48 @@
                 position: relative;
                 overflow: hidden;
                 background: #f8f9fa;
+                width: 100%;
             }
             #scanner-container video,
-            #scanner-container canvas {
+            #scanner-container canvas,
+            #scanner-container > div {
+                position: absolute !important;
+                top: 0;
+                left: 0;
                 width: 100% !important;
                 height: 100% !important;
                 object-fit: cover;
             }
+            #scanner-container #scanner-placeholder {
+                position: relative !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 1;
+            }
             .modal-body .alert {
                 margin-bottom: 0;
+            }
+            @media (max-width: 576px) {
+                #barcodeScannerModal .modal-dialog {
+                    margin: 0;
+                    width: 100%;
+                    max-width: 100%;
+                }
+                #barcodeScannerModal .modal-content {
+                    height: 100vh;
+                    border-radius: 0;
+                }
+                #barcodeScannerModal .modal-body {
+                    display: flex;
+                    flex-direction: column;
+                    flex-grow: 1;
+                }
+                #scanner-container {
+                    flex-grow: 1;
+                    height: auto !important;
+                    min-height: 400px;
+                }
             }
         `;
         document.head.appendChild(style);

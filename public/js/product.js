@@ -500,6 +500,9 @@ $(document).ready(function () {
             return;
         }
 
+        // Reset form fields to clear old data
+        resetProductForm();
+
         $.ajax({
             url: `/api/products/by-serial/${encodeURIComponent(serialNo)}`,
             type: 'GET',
@@ -522,6 +525,66 @@ $(document).ready(function () {
         });
     }
 
+    function resetProductForm() {
+        // Reset all form fields to empty state (except serial_no which is being set by scan)
+        const form = document.getElementById('productCreateForm');
+        if (!form) {
+            return;
+        }
+
+        // Clear name
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            nameInput.value = '';
+            nameInput.classList.remove('is-invalid');
+        }
+
+        // Reset category to default (empty)
+        const categorySelect = document.getElementById('category_id');
+        if (categorySelect) {
+            categorySelect.value = '';
+            categorySelect.classList.remove('is-invalid');
+        }
+
+        // Clear/reset quantity to empty
+        const quantityInput = document.getElementById('quantity');
+        if (quantityInput) {
+            quantityInput.value = '';
+            quantityInput.classList.remove('is-invalid');
+        }
+
+        // Reset availability to default (empty)
+        const availabilitySelect = document.getElementById('availability');
+        if (availabilitySelect) {
+            availabilitySelect.value = '';
+            availabilitySelect.classList.remove('is-invalid');
+        }
+
+        // Reset status to default (empty)
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) {
+            statusSelect.value = '';
+            statusSelect.classList.remove('is-invalid');
+        }
+
+        // Clear description
+        const descriptionTextarea = document.getElementById('description');
+        if (descriptionTextarea) {
+            descriptionTextarea.value = '';
+            descriptionTextarea.classList.remove('is-invalid');
+        }
+
+        // Clear all validation error messages and classes
+        form.querySelectorAll('.invalid-feedback').forEach(function(el) {
+            el.textContent = '';
+        });
+        form.querySelectorAll('.is-invalid').forEach(function(el) {
+            el.classList.remove('is-invalid');
+        });
+
+        console.log('Form reset completed');
+    }
+
     function prefillProductForm(productData) {
         // Prefill form fields with product data
         const form = document.getElementById('productCreateForm');
@@ -529,46 +592,50 @@ $(document).ready(function () {
             return;
         }
 
-        // Set the serial number (already set, but confirming)
-        document.getElementById('serial_no').value = productData.serial_no || '';
+        // Ensure serial number is set (should already be set, but confirm)
+        const serialInput = document.getElementById('serial_no');
+        if (serialInput) {
+            serialInput.value = productData.serial_no || '';
+        }
 
-        // Prefill name
+        // Prefill name - set value even if empty
         const nameInput = document.getElementById('name');
-        if (nameInput && productData.name) {
-            nameInput.value = productData.name;
+        if (nameInput) {
+            nameInput.value = productData.name || '';
         }
 
-        // Prefill category
+        // Prefill category - set value even if empty
         const categorySelect = document.getElementById('category_id');
-        if (categorySelect && productData.category_id) {
-            categorySelect.value = productData.category_id;
+        if (categorySelect) {
+            categorySelect.value = productData.category_id || '';
         }
 
-        // Prefill quantity
+        // Prefill quantity - set value even if empty
         const quantityInput = document.getElementById('quantity');
-        if (quantityInput && productData.quantity) {
-            quantityInput.value = productData.quantity;
+        if (quantityInput) {
+            quantityInput.value = productData.quantity || '';
         }
 
-        // Prefill availability/stock status
+        // Prefill availability/stock status - set value even if empty
         const availabilitySelect = document.getElementById('availability');
-        if (availabilitySelect && productData.availability) {
-            availabilitySelect.value = productData.availability;
+        if (availabilitySelect) {
+            availabilitySelect.value = productData.availability || '';
         }
 
-        // Prefill status
+        // Prefill status - set value even if empty
         const statusSelect = document.getElementById('status');
-        if (statusSelect && productData.status) {
-            statusSelect.value = productData.status;
+        if (statusSelect) {
+            statusSelect.value = productData.status || '';
         }
 
-        // Prefill description
+        // Prefill description - set value even if empty
         const descriptionTextarea = document.getElementById('description');
-        if (descriptionTextarea && productData.description) {
-            descriptionTextarea.value = productData.description;
+        if (descriptionTextarea) {
+            descriptionTextarea.value = productData.description || '';
         }
 
         // Show a toast notification
         showToast('Product data loaded from existing record!', 'info');
+        console.log('Form prefilled with product data:', productData);
     }
 });
