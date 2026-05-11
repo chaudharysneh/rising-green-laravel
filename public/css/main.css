@@ -571,6 +571,14 @@
 .search-result-item i {
     width: 20px;
     margin-right: 12px;
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .search-result-item .fw-500 {
