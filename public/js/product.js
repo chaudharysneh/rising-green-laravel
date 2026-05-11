@@ -464,4 +464,111 @@ $(document).ready(function () {
             URL.revokeObjectURL(objectUrl);
         };
     });
+
+    // Barcode Scanning - Prefill Product Data
+    const serialNoInput = document.getElementById('serial_no');
+    let prefillCheckTimeout;
+
+    if (serialNoInput) {
+        serialNoInput.addEventListener('change', function() {
+            const serialNo = this.value.trim();
+            
+            // Only search if we have a serial number
+            if (!serialNo) {
+                return;
+            }
+
+            // Debounce the API call
+            clearTimeout(prefillCheckTimeout);
+            prefillCheckTimeout = setTimeout(() => {
+                checkAndPrefillProduct(serialNo);
+            }, 500);
+        });
+
+        // Also trigger on blur for manual entries
+        serialNoInput.addEventListener('blur', function() {
+            const serialNo = this.value.trim();
+            if (serialNo) {
+                checkAndPrefillProduct(serialNo);
+            }
+        });
+    }
+
+    function checkAndPrefillProduct(serialNo) {
+        // Don't search if serial number is empty
+        if (!serialNo) {
+            return;
+        }
+
+        $.ajax({
+            url: `/api/products/by-serial/${encodeURIComponent(serialNo)}`,
+            type: 'GET',
+            dataType: 'json',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    prefillProductForm(response.data);
+                }
+                // If product not found, that's okay - user can add it manually
+            },
+            error: function(xhr) {
+                // 404 is expected for new products, don't show error
+                if (xhr.status !== 404) {
+                    console.error('Error checking product:', xhr);
+                }
+            },
+        });
+    }
+
+    function prefillProductForm(productData) {
+        // Prefill form fields with product data
+        const form = document.getElementById('productCreateForm');
+        if (!form) {
+            return;
+        }
+
+        // Set the serial number (already set, but confirming)
+        document.getElementById('serial_no').value = productData.serial_no || '';
+
+        // Prefill name
+        const nameInput = document.getElementById('name');
+        if (nameInput && productData.name) {
+            nameInput.value = productData.name;
+        }
+
+        // Prefill category
+        const categorySelect = document.getElementById('category_id');
+        if (categorySelect && productData.category_id) {
+            categorySelect.value = productData.category_id;
+        }
+
+        // Prefill quantity
+        const quantityInput = document.getElementById('quantity');
+        if (quantityInput && productData.quantity) {
+            quantityInput.value = productData.quantity;
+        }
+
+        // Prefill availability/stock status
+        const availabilitySelect = document.getElementById('availability');
+        if (availabilitySelect && productData.availability) {
+            availabilitySelect.value = productData.availability;
+        }
+
+        // Prefill status
+        const statusSelect = document.getElementById('status');
+        if (statusSelect && productData.status) {
+            statusSelect.value = productData.status;
+        }
+
+        // Prefill description
+        const descriptionTextarea = document.getElementById('description');
+        if (descriptionTextarea && productData.description) {
+            descriptionTextarea.value = productData.description;
+        }
+
+        // Show a toast notification
+        showToast('Product data loaded from existing record!', 'info');
+    }
 });

@@ -259,7 +259,12 @@
                     console.log('Barcode detected:', code);
                     
                     // Update the serial number field
-                    document.getElementById('serial_no').value = code;
+                    const serialInput = document.getElementById('serial_no');
+                    serialInput.value = code;
+                    
+                    // Trigger change event to activate the prefill logic in product.js
+                    const event = new Event('change', { bubbles: true });
+                    serialInput.dispatchEvent(event);
                     
                     // Show success message
                     statusDiv.innerHTML = `<i class="bi bi-check-circle me-2"></i>Barcode detected: ${code}`;
