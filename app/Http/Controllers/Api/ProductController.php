@@ -133,6 +133,28 @@ class ProductController extends ApiBaseController
         ]);
     }
 
+    public function getBySerialNo($serialNo)
+    {
+        $product = Product::where('serial_no', $serialNo)
+            ->whereNull('deleted_at')
+            ->with(['category', 'creator'])
+            ->first();
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found.',
+                'data' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product retrieved successfully.',
+            'data' => $this->serialize($product),
+        ]);
+    }
+
     public function import(Request $request)
     {
         $validator = Validator::make($request->all(), [

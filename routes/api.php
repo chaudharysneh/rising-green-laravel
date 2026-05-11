@@ -164,6 +164,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('products', [ProductController::class, 'index'])->middleware('matrix_permission:view_products')->name('api.products.index');
     Route::post('products', [ProductController::class, 'store'])->middleware('matrix_permission:create_products')->name('api.products.store');
     Route::post('products/import', [ProductController::class, 'import'])->middleware('matrix_permission:create_products')->name('api.products.import');
+    Route::get('products/by-serial/{serialNo}', [ProductController::class, 'getBySerialNo'])->middleware('matrix_permission:view_products')->name('api.products.by-serial');
     Route::get('products/{product}', [ProductController::class, 'show'])->middleware('matrix_permission:view_products')->name('api.products.show');
     Route::put('products/{product}', [ProductController::class, 'update'])->middleware('matrix_permission:edit_products')->name('api.products.update');
     Route::patch('products/{product}', [ProductController::class, 'update'])->middleware('matrix_permission:edit_products');
