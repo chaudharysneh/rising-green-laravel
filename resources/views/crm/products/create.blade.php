@@ -120,8 +120,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="text-center">
-                        <div id="scanner-container" style="width: 100%; max-width: 500px; margin: 0 auto;">
-                            <video id="scanner-video" style="width: 100%; height: 300px; border: 2px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></video>
+                        <div id="scanner-container" style="width: 100%; max-width: 500px; height: 300px; margin: 0 auto; border: 2px solid #dee2e6; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                            <div id="scanner-placeholder" class="text-muted">Waiting for camera...</div>
                         </div>
                         <div class="mt-3">
                             <p class="text-muted mb-2">Position the barcode within the camera view</p>
@@ -168,7 +168,15 @@
                 border-top-right-radius: 0;
                 border-bottom-right-radius: 0;
             }
-            #scanner-video {
+            #scanner-container {
+                position: relative;
+                overflow: hidden;
+                background: #f8f9fa;
+            }
+            #scanner-container video,
+            #scanner-container canvas {
+                width: 100% !important;
+                height: 100% !important;
                 object-fit: cover;
             }
             .modal-body .alert {
@@ -178,11 +186,23 @@
         document.head.appendChild(style);
 
         // Barcode Scanner Functions
+        let barcodeDetectedHandler = null;
+
         function initBarcodeScanner() {
-            const video = document.getElementById('scanner-video');
+            const scannerContainer = document.getElementById('scanner-container');
             const statusDiv = document.getElementById('scanner-status');
-            
-            // Update status
+
+            if (!scannerContainer || !statusDiv) {
+                return;
+            }
+
+            // Clean up any previous Quagga instance if it exists
+            if (window.Quagga && typeof Quagga.stop === 'function') {
+                try {
+                    Quagga.stop();
+                } catch (ignore) {}
+            }
+
             statusDiv.innerHTML = '<i class="bi bi-camera-video me-2"></i>Starting camera...';
             statusDiv.className = 'alert alert-info';
 
@@ -195,41 +215,40 @@
 
             Quagga.init({
                 inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: video,
+                    name: 'Live',
+                    type: 'LiveStream',
+                    target: scannerContainer,
                     constraints: {
                         width: 500,
                         height: 300,
-                        facingMode: "environment" // Use back camera if available
-                    }
+                        facingMode: 'environment',
+                    },
                 },
                 locator: {
-                    patchSize: "medium",
-                    halfSample: true
+                    patchSize: 'medium',
+                    halfSample: true,
                 },
-                numOfWorkers: 2,
+                numOfWorkers: navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 2,
                 frequency: 10,
                 decoder: {
                     readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader",
-                        "code_39_reader",
-                        "code_39_vin_reader",
-                        "codabar_reader",
-                        "upc_reader",
-                        "upc_e_reader",
-                        "i2of5_reader"
-                    ]
+                        'code_128_reader',
+                        'ean_reader',
+                        'ean_8_reader',
+                        'code_39_reader',
+                        'code_39_vin_reader',
+                        'codabar_reader',
+                        'upc_reader',
+                        'upc_e_reader',
+                        'i2of5_reader',
+                    ],
                 },
-                locate: true
+                locate: true,
             }, function(err) {
                 if (err) {
                     console.error('QuaggaJS initialization error:', err);
                     let errorMessage = 'Camera access denied or not available';
-                    
-                    // Handle specific error types
+
                     if (err.name === 'NotAllowedError') {
                         errorMessage = 'Camera access denied. Please allow camera access and try again.';
                     } else if (err.name === 'NotFoundError') {
@@ -237,46 +256,54 @@
                     } else if (err.name === 'NotSupportedError') {
                         errorMessage = 'Camera not supported on this browser.';
                     }
-                    
+
                     statusDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>${errorMessage}`;
                     statusDiv.className = 'alert alert-warning';
                     return;
                 }
-                
-                console.log("QuaggaJS initialization finished. Ready to start");
+
+                console.log('QuaggaJS initialization finished. Ready to start');
                 Quagga.start();
                 scannerActive = true;
-                
-                // Update status
+                const placeholder = document.getElementById('scanner-placeholder');
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
                 statusDiv.innerHTML = '<i class="bi bi-camera me-2"></i>Camera ready! Position barcode in view';
                 statusDiv.className = 'alert alert-success';
             });
 
-            // Handle successful barcode detection
-            Quagga.onDetected(function(result) {
-                if (scannerActive) {
-                    const code = result.codeResult.code;
-                    console.log('Barcode detected:', code);
-                    
-                    // Update the serial number field
-                    const serialInput = document.getElementById('serial_no');
-                    serialInput.value = code;
-                    
-                    // Trigger change event to activate the prefill logic in product.js
-                    const event = new Event('change', { bubbles: true });
-                    serialInput.dispatchEvent(event);
-                    
-                    // Show success message
-                    statusDiv.innerHTML = `<i class="bi bi-check-circle me-2"></i>Barcode detected: ${code}`;
-                    statusDiv.className = 'alert alert-success';
-                    
-                    // Stop scanner and close modal after a short delay
-                    setTimeout(() => {
-                        stopBarcodeScanner();
-                        $('#barcodeScannerModal').modal('hide');
-                    }, 1500);
+            if (barcodeDetectedHandler) {
+                Quagga.offDetected(barcodeDetectedHandler);
+            }
+
+            barcodeDetectedHandler = function(result) {
+                if (!scannerActive) {
+                    return;
                 }
-            });
+
+                const code = result.codeResult?.code;
+                if (!code) {
+                    return;
+                }
+
+                console.log('Barcode detected:', code);
+                const serialInput = document.getElementById('serial_no');
+                if (serialInput) {
+                    serialInput.value = code;
+                    serialInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                statusDiv.innerHTML = `<i class="bi bi-check-circle me-2"></i>Barcode detected: ${code}`;
+                statusDiv.className = 'alert alert-success';
+
+                setTimeout(() => {
+                    stopBarcodeScanner();
+                    $('#barcodeScannerModal').modal('hide');
+                }, 1500);
+            };
+
+            Quagga.onDetected(barcodeDetectedHandler);
         }
 
         function stopBarcodeScanner() {
@@ -284,6 +311,10 @@
                 Quagga.stop();
                 scannerActive = false;
                 console.log('Barcode scanner stopped');
+            }
+            const placeholder = document.getElementById('scanner-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'flex';
             }
         }
 
