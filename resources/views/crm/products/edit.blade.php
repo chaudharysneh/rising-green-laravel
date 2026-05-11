@@ -74,9 +74,9 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-hash"></i> Serial No</label>
                             <div class="input-group">
-                                <input type="text" name="serial_no" id="serial_no" value="{{ old('serial_no', $product->serial_no) }}"
+                                <input type="text" readonly name="serial_no" id="serial_no" value="{{ old('serial_no', $product->serial_no) }}"
                                     class="form-control @error('serial_no') is-invalid @enderror" placeholder="Scan barcode or type manually">
-                                <button type="button" class="btn btn-dark-blue" id="scanBarcodeBtn" title="Scan Barcode">
+                                <button disabled type="button" class="btn btn-dark-blue" id="scanBarcodeBtn" title="Scan Barcode">
                                     <i class="bi bi-camera"></i> Scan
                                 </button>
                             </div>
