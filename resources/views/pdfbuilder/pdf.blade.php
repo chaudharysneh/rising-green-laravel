@@ -46,8 +46,10 @@ if (!function_exists('normalize_pdf_image')) {
                         $imgData = @file_get_contents($candidate);
                         if ($imgData !== false) {
                             $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                            if (empty($ext)) $ext = 'png';
-                            elseif ($ext === 'jpg') $ext = 'jpeg';
+                            if (empty($ext))
+                                $ext = 'png';
+                            elseif ($ext === 'jpg')
+                                $ext = 'jpeg';
                             return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
                         }
                         return $candidate;
@@ -76,8 +78,10 @@ if (!function_exists('normalize_pdf_image')) {
                 $imgData = @file_get_contents($candidate);
                 if ($imgData !== false) {
                     $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    if (empty($ext)) $ext = 'png';
-                    elseif ($ext === 'jpg') $ext = 'jpeg';
+                    if (empty($ext))
+                        $ext = 'png';
+                    elseif ($ext === 'jpg')
+                        $ext = 'jpeg';
                     return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
                 }
                 return $candidate;
@@ -102,6 +106,7 @@ $model = new \App\Models\User(); // Change to your actual model name
 // $user = $model->where('id', $userId)->first();
 // $user = $model->where('role', 3)->first();
 
+$rupeeHtml = '<span style="font-family: DejaVu Sans; sans-serif;">&#8377;</span>';
 $estimate_no = $estimate_no ?? '--';
 
 // Normalize user data for this legacy PDF template.
@@ -193,18 +198,28 @@ $_pageClass = static function (string $key) use ($__lastPageKey): string {
 
 // Load estimate data if estimate_no is available
 $estdata = null;
-if (!empty($estimate_no)) {
+$passedEstimate = isset($estimate) ? $estimate : null;
+
+if (!$passedEstimate && !empty($estimate_no) && $estimate_no !== '--') {
     try {
-        $estimateModel = new \App\Models\EstimateModel();
-        $estimateQuery = $estimateModel
-            ->select('estimates.*, user_master.name as name, user_master.address as address')
-            ->join('user_master', 'estimates.customer_id = user_master.id')
-            ->where('user_master.role', 2)
-            ->where('estimates.estimate_no', $estimate_no)
-            ->get();
-        $estdata = $estimateQuery->getRow();
+        $passedEstimate = \App\Models\Estimate::where('estimate_no', $estimate_no)->with('customer')->first();
     } catch (\Throwable $e) {
-        $estdata = null;
+        $passedEstimate = null;
+    }
+}
+
+if ($passedEstimate) {
+    $estdata = new \stdClass();
+    $attrs = ($passedEstimate instanceof \Illuminate\Database\Eloquent\Model) ? $passedEstimate->getAttributes() : (array) $passedEstimate;
+
+    foreach ($attrs as $key => $val) {
+        $estdata->$key = $val;
+    }
+
+    // Add aliases needed by this template for Customer details
+    if (isset($passedEstimate->customer)) {
+        $estdata->name = $passedEstimate->customer->name ?? '--';
+        $estdata->address = $passedEstimate->customer->address ?? '--';
     }
 }
 
@@ -449,18 +464,7 @@ $totalQuantity = 0;
 $estimateCount = 0;
 $hasGenerationData = false;
 try {
-    $estimateModel = new \App\Models\EstimateModel();
-    // Get all estimates for current year (same user_id as current estimate)
-    // $userId = $estdata ? $estdata->user_id : null;
-
-    $currentYearEstimates = $estimateModel
-        ->where('YEAR(created_at)', $currentYear);
-
-    // if ($userId) {
-    //     $currentYearEstimates->where('user_id', $userId);
-    // }
-
-    $estimates = $currentYearEstimates->findAll();
+    $estimates = \App\Models\Estimate::whereYear('created_at', $currentYear)->get()->toArray();
 
     // Initialize month-wise quantity aggregation
     $monthlyQuantity = array_fill(0, 12, 0);
@@ -690,15 +694,14 @@ if (!empty($monthlyData)) {
 } else {
     // If no monthly data, try to get defaults from estimates table statistics
     try {
-        $estimateModel = new \App\Models\EstimateModel();
-        $userId = $estdata ? $estdata->user_id : null;
-        $currentYearEstimates = $estimateModel->where('YEAR(created_at)', $currentYear);
+        $userId = $estdata ? ($estdata->user_id ?? null) : null;
+        $query = \App\Models\Estimate::whereYear('created_at', $currentYear);
 
         if ($userId) {
-            $currentYearEstimates->where('user_id', $userId);
+            $query->where('user_id', $userId);
         }
 
-        $estimates = $currentYearEstimates->findAll();
+        $estimates = $query->get()->toArray();
 
         // Calculate average quantity from estimates
         $quantities = [];
@@ -723,6 +726,7 @@ if (!empty($monthlyData)) {
 <html>
 
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -926,9 +930,9 @@ if (!empty($monthlyData)) {
         }
     </style>
     <?php
-    $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
-    $normalized_header = !empty($header_image) ? normalize_pdf_image($header_image) : '';
-    $header_image = (strpos($normalized_header, 'data:image') === 0) ? $normalized_header : normalize_pdf_image('public/assets/img/header_Image.jpg');
+$img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
+$normalized_header = !empty($header_image) ? normalize_pdf_image($header_image) : '';
+$header_image = (strpos($normalized_header, 'data:image') === 0) ? $normalized_header : normalize_pdf_image('public/assets/img/header_Image.jpg');
     ?>
 </head>
 
@@ -939,7 +943,8 @@ if (!empty($monthlyData)) {
         style="position: relative; height: 100%; min-height: 842px; overflow: hidden;">
         <!-- Top Half: Header Image -->
         <div style="height: 62%; width: 100%; overflow: hidden; position: relative;">
-            <img src="<?= $header_image ?>" alt="Header Image" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+            <img src="<?= $header_image ?>" alt="Header Image"
+                style="width: 100%; height: 100%; object-fit: cover; display: block;">
         </div>
 
         <!-- Bottom Half: Content Section with Red Border -->
@@ -974,7 +979,7 @@ echo $fullCompanyName;
 
                     <!-- Proposal No -->
                     <div style="font-size:20px; color:#000; font-weight:400; font-family: 'Montserrat', sans-serif;">
-                        <span style="font-weight:400;">Proposal no</span> <?= esc($estimate_no) ?? '--' ?>
+                        <span style="font-weight:400;">Proposal no : </span> #<?= esc($estimate_no) ?? '--' ?>
                     </div>
 
                 </td>
@@ -1005,7 +1010,7 @@ echo $fullCompanyName;
                     <!-- Client Name -->
                     <div
                         style="font-size:20px; color:#000; margin-bottom:10px; font-weight:400; font-family: 'Montserrat', sans-serif;">
-                        <span style="font-size:20px;">Client name:</span> <?= esc($preparedForName) ?>
+                        <span style="font-size:20px;">Client name :</span> <?= esc($preparedForName) ?>
                     </div>
 
                     <!-- Client Address -->
@@ -1784,10 +1789,10 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
     for ($i = 0; $i < $ticks; $i++) {
         $val = $niceMax - ($step * $i);
         if ($val <= 0) {
-            $yAxis[] = '₹0';
+            $yAxis[] = $rupeeHtml . '0';
             continue;
         }
-        $yAxis[] = '₹' . number_format($val / 100000, 1) . 'L';
+        $yAxis[] = $rupeeHtml . number_format($val / 100000, 1) . 'L';
     }
 
     // Use axis max for bar scaling
@@ -1872,7 +1877,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                 <td align="center" style="padding:16px 10px;">
                                     <div
                                         style="font-size:20px; font-weight:700; color:#fff; font-family: 'Montserrat', sans-serif;">
-                                        ₹<?= $yearlySavingsFormatted ?>
+                                        <?= $rupeeHtml ?><?= $yearlySavingsFormatted ?>
                                     </div>
                                     <div
                                         style="font-size:11px; font-weight:600; color:#e8f6f4; margin-top:6px; letter-spacing:0.5px; font-family: 'Montserrat', sans-serif;">
@@ -1906,7 +1911,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                 <td align="center" style="padding:16px 10px;">
                                     <div
                                         style="font-size:20px; font-weight:700; color:#fff; font-family: 'Montserrat', sans-serif;">
-                                        ₹<?= $totalLifetimeSavingsLakhsFormatted ?>
+                                        <?= $rupeeHtml ?><?= $totalLifetimeSavingsLakhsFormatted ?>
                                     </div>
                                     <div
                                         style="font-size:11px; font-weight:600; color:#e8f6f4; margin-top:6px; letter-spacing:0.5px; font-family: 'Montserrat', sans-serif;">
@@ -1914,7 +1919,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                     </div>
                                     <?php    //if ($useSimpleRoi): ?>
                                     <!-- <div style="font-size:9px; color:#e8f6f4; margin-top:6px; font-family:'Montserrat', sans-serif;">
-                                        Net Profit: ₹<?=  $netLifetimeProfitLakhsFormatted ?>
+                                        Net Profit: <?= $rupeeHtml ?><?=  $netLifetimeProfitLakhsFormatted ?>
                                     </div> -->
                                     <?php    //endif; ?>
                                 </td>
@@ -1932,6 +1937,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                             style="font-size:16px; color:#e8f6f4; margin-bottom:10px; font-family: 'Montserrat', sans-serif;">
                             <?= esc($roiNote) ?>
                         </div>
+                        <?php if ($roiStarts !== ''): ?>
                         <div style="background:#fff; color:#4b9349;
                                 padding:10px 30px;
                                 display:inline-block;                                font-size:13px;
@@ -1939,6 +1945,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                 font-family: 'Montserrat', sans-serif;">
                             Residential starts at <?= esc($roiStarts) ?> % only
                         </div>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
@@ -2135,28 +2142,23 @@ $__componentsActive = $_isActive($__components);
     $category_image_map = []; // Map category name to image
 
     try {
-        $db = \Config\Database::connect();
-        $productModel = new \App\Models\Product($db);
-        $product_data = $productModel->findAll();
+        $product_data = \App\Models\Product::all()->toArray();
 
-        $technologyModel = new \App\Models\Technology($db);
-        $technologyList = $technologyModel->findAll();
+        $technologyList = \App\Models\Technology::all();
         foreach ($technologyList as $tech) {
-            $technology_map[$tech['id']] = $tech['title'];
+            $technology_map[$tech->id] = $tech->title;
         }
 
-        $warrantyModel = new \App\Models\Warranty($db);
-        $warrantyList = $warrantyModel->findAll();
+        $warrantyList = \App\Models\Warranty::all();
         foreach ($warrantyList as $war) {
-            $warranty_map[$war['id']] = $war['title'];
+            $warranty_map[$war->id] = $war->title;
         }
 
         // Load categories to get brand images
-        $categoryModel = new \App\Models\Category($db);
-        $categories_data = $categoryModel->findAll();
+        $categories_data = \App\Models\Category::all();
         foreach ($categories_data as $cat) {
-            if (!empty($cat['name']) && !empty($cat['image'])) {
-                $category_image_map[$cat['name']] = $cat['image'];
+            if (!empty($cat->name) && !empty($cat->image)) {
+                $category_image_map[$cat->name] = $cat->image;
             }
         }
     } catch (\Throwable $e) {
@@ -2180,79 +2182,25 @@ $__componentsActive = $_isActive($__components);
                 $full_product_details = null;
                 // print_r($allproduct);die;
                 // Method 1: Query Product model directly by product_name
-                try {
-                    $db = \Config\Database::connect();
-                    $productModel = new \App\Models\Product($db);
-
-                    // Clean the product name for matching
-                    $product_name_clean = trim($product_name_original);
-                    $product_name_lower = strtolower($product_name_clean);
-
-                    // Try exact match first (case-sensitive)
-                    if (!empty($product_name_clean)) {
-                        $product_by_name = $productModel->where('product_name', $product_name_clean)->first();
-                        if ($product_by_name) {
-                            $full_product_details = $product_by_name;
-                        }
+                // Find product details from master list preloaded above
+                $product_name_lower = strtolower(trim($product_name_original));
+                foreach ($product_data as $prod_detail) {
+                    $prod_detail_arr = (array) $prod_detail;
+                    // Try matching by product_name (case-insensitive)
+                    $prod_name = isset($prod_detail_arr['product_name']) ? strtolower(trim($prod_detail_arr['product_name'])) : '';
+                    if (!empty($prod_name) && $prod_name === $product_name_lower) {
+                        $full_product_details = $prod_detail_arr;
+                        break;
                     }
+                }
 
-                    // If not found, try case-insensitive match using LIKE
-                    if (!$full_product_details && !empty($product_name_clean)) {
-                        $product_by_name_like = $productModel->like('product_name', $product_name_clean, 'both')->first();
-                        if ($product_by_name_like) {
-                            $full_product_details = $product_by_name_like;
-                        }
-                    }
-
-                    // If still not found, get all products and do case-insensitive comparison
-                    if (!$full_product_details && !empty($product_name_clean)) {
-                        $all_products = $productModel->findAll();
-                        foreach ($all_products as $prod) {
-                            // Convert to array if object
-                            if (is_object($prod)) {
-                                $prod = (array) $prod;
-                            }
-                            $prod_name = isset($prod['product_name']) ? strtolower(trim($prod['product_name'])) : '';
-                            if ($prod_name === $product_name_lower) {
-                                $full_product_details = $prod;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Method 2: If still not found, try by product_id
-                    if (!$full_product_details && $product_id) {
-                        $product_by_id = $productModel->find($product_id);
-                        if ($product_by_id) {
-                            $full_product_details = $product_by_id;
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    // If direct query fails, fallback to array search from pre-loaded product_data
-                    $product_name_lower = strtolower(trim($product_name_original));
+                // Fallback to matching by ID if name match fails
+                if (!$full_product_details && $product_id) {
                     foreach ($product_data as $prod_detail) {
-                        // Convert to array if object
-                        if (is_object($prod_detail)) {
-                            $prod_detail = (array) $prod_detail;
-                        }
-                        // Try to match by product name (case-insensitive)
-                        $prod_name = isset($prod_detail['product_name']) ? strtolower(trim($prod_detail['product_name'])) : '';
-                        if (!empty($prod_name) && $prod_name === $product_name_lower) {
-                            $full_product_details = $prod_detail;
+                        $prod_detail_arr = (array) $prod_detail;
+                        if (isset($prod_detail_arr['id']) && $prod_detail_arr['id'] == $product_id) {
+                            $full_product_details = $prod_detail_arr;
                             break;
-                        }
-                    }
-                    // If not found by name, try by product_id
-                    if (!$full_product_details && $product_id) {
-                        foreach ($product_data as $prod_detail) {
-                            // Convert to array if object
-                            if (is_object($prod_detail)) {
-                                $prod_detail = (array) $prod_detail;
-                            }
-                            if (isset($prod_detail['id']) && $prod_detail['id'] == $product_id) {
-                                $full_product_details = $prod_detail;
-                                break;
-                            }
                         }
                     }
                 }
@@ -3188,8 +3136,8 @@ $__footerActive = $_isActive($__footer);
 
                                 <!-- Image -->
                                 <td align="right">
-                                    <img src="<?= normalize_pdf_image('public/assets/img/footer_arrow.png') ?>" alt="Arrow"
-                                        width="80" height="55">
+                                    <img src="<?= normalize_pdf_image('public/assets/img/footer_arrow.png') ?>"
+                                        alt="Arrow" width="80" height="55">
                                 </td>
                             </tr>
                         </table>
@@ -3200,8 +3148,8 @@ $__footerActive = $_isActive($__footer);
             <!-- Contact Information Footer (Black Box) -->
             <?php
     $companySettings = $companySettings ?? [];
-    $userPhone = $companySettings['phone'] ?? $user['contact'] ?? $user['whatsapp_no'] ?? $user['contact_phone'] ?? '';
-    $userEmail = $companySettings['email'] ?? $companySettings['phone'] ?? $user['email'] ?? $user['contact_email'] ?? '';
+    $userPhone = $companySettings['phone'] ?? $user['phone'] ?? $user['whatsapp'] ?? $user['contact'] ?? $user['whatsapp_no'] ?? $user['contact_phone'] ?? '';
+    $userEmail = $companySettings['email'] ?? $user['email'] ?? $user['contact_email'] ?? '';
     $userWebsite = $companySettings['company_name'] ?? $user['website'] ?? '';
     $userAddress = $companySettings['company_address'] ?? $user['address'] ?? '';
     $company_name = $companySettings['company_name'] ?? $user['company_name'] ?? '';

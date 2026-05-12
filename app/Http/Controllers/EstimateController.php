@@ -102,6 +102,8 @@ class EstimateController extends Controller
             'company_tax_id',
             'company_logo_path',
             'company_qr_code_path',
+            'phone',
+            'email',
             'social_instagram',
             'social_facebook',
             'social_linkedin',
@@ -142,6 +144,8 @@ class EstimateController extends Controller
 
             // Prepare data for the new template wrapper
             $pdfData = [
+                'estimate' => $estimate,
+                'estimate_no' => $estimate->estimate_no,
                 'companySettings' => $settings,
                 'companyLogoPath' => ($settings['company_logo_path'] ?? null) ? Storage::disk('public')->path($settings['company_logo_path']) : null,
                 'companyQrCodePath' => ($settings['company_qr_code_path'] ?? null) ? Storage::disk('public')->path($settings['company_qr_code_path']) : null,
