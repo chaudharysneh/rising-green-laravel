@@ -100,7 +100,7 @@ if (!isset($estdata) && isset($estimate)) {
         $estdata->name = $estimate->customer->name ?? '--';
         $estdata->email = $estimate->customer->email ?? '--';
         $estdata->address = $estimate->customer->address ?? '--';
-        $estdata->contact = $estimate->customer->contact ?? '--';
+        $estdata->phone = $estimate->customer->phone ?? '--';
     }
 }
 ?>
@@ -257,7 +257,7 @@ $company_logo = isset($user['company_logo']) ? $user['company_logo'] : 'default_
                         <td><strong>Address</strong></td>
                         <td><?php echo htmlspecialchars($estdata->address ?? '--'); ?></td>
                         <td><strong>Contact</strong></td>
-                        <td><?php echo htmlspecialchars($estdata->contact ?? '--'); ?></td>
+                        <td><?php echo htmlspecialchars($estdata->phone ?? '--'); ?></td>
                     </tr>
                 </tbody>
             </table>

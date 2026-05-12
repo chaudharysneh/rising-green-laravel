@@ -14,9 +14,9 @@
             ? \Illuminate\Support\Str::headline(auth()->user()->roles->first()->name)
             : (auth()->user()->job_title ?: 'Staff'));
 
-    $defaultAvatar = 'https://crm-demo.fableadtech.com/public/assets/img/profile/image_picker_9D0ACC51-E4AF-4F99-B105-B30A8339FC54-48188-00001285EC6AFB70.png';
-    $defaultLogo = 'https://crm-demo.fableadtech.com/public/assets/img/logos/fabcrmlogo.png';
-    $defaultQr = 'https://crm-demo.fableadtech.com/public/assets/img/qr/default_qr.png'; // Placeholder for default QR
+    $defaultAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=3b82f6&color=ffffff&size=128';
+    $defaultLogo = 'https://ui-avatars.com/api/?name=' . urlencode($settings['company_name'] ?? 'Company') . '&background=3b82f6&color=ffffff&size=128';
+    $defaultQr = 'https://ui-avatars.com/api/?name=QR&background=3b82f6&color=ffffff&size=128'; // Placeholder for default QR
     
     $avatarUrl = !empty($user->avatar_path)
         ? route('users.image', $user) . '?v=' . optional($user->updated_at)->timestamp

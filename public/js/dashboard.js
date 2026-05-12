@@ -92,10 +92,17 @@
                 const stages = response && response.data ? response.data : [];
                 const themes = ["indigo", "slate", "green", "orange"];
 
-                if (!Array.isArray(stages) || stages.length === 0) {
-                    container.innerHTML = '<div class="card border-0 shadow-sm w-100"><div class="card-body text-muted small">No lead stages available.</div></div>';
+                const wrapper = document.getElementById("leadBoardWrapper");
+                const hasData = Array.isArray(stages) && stages.some(function (stage) {
+                    return (stage.count || 0) > 0;
+                });
+
+                if (!hasData) {
+                    if (wrapper) wrapper.style.display = "none";
                     return;
                 }
+
+                if (wrapper) wrapper.style.display = "";
 
                 container.innerHTML = stages.map(function (stage, index) {
                     const theme = themes[index % themes.length];

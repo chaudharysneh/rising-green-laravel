@@ -52,10 +52,15 @@
             @endphp
             <!-- Sidebar -->
             <aside class="crm-sidebar shadow-sm" id="sidenav-main" style="min-width: 260px">
+                @php
+                    $mainLogoPath = \App\Models\Setting::where('key', 'company_logo_path')->value('value');
+                    $mainLogoUrl = $mainLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($mainLogoPath)
+                        ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($mainLogoPath)
+                        : url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'logo/fableadcrmLogo.png');
+                @endphp
                 <div class="sidenav-header">
                     <a class="navbar-brand m-0 d-flex flex-row align-items-center" href="{{ route('dashboard') }}">
-                        <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'logo/fableadcrmLogo.png')}}"
-                            class="navbar-brand-img h-100" alt="main_logo">
+                        <img src="{{ $mainLogoUrl }}" class="navbar-brand-img h-100" alt="main_logo">
                     </a>
                 </div>
 
