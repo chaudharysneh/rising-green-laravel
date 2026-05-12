@@ -27,8 +27,10 @@ if (!function_exists('normalize_pdf_image')) {
                         $imgData = @file_get_contents($candidate);
                         if ($imgData !== false) {
                             $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                            if (empty($ext)) $ext = 'png';
-                            elseif ($ext === 'jpg') $ext = 'jpeg';
+                            if (empty($ext))
+                                $ext = 'png';
+                            elseif ($ext === 'jpg')
+                                $ext = 'jpeg';
                             return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
                         }
                         return $candidate;
@@ -57,8 +59,10 @@ if (!function_exists('normalize_pdf_image')) {
                 $imgData = @file_get_contents($candidate);
                 if ($imgData !== false) {
                     $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    if (empty($ext)) $ext = 'png';
-                    elseif ($ext === 'jpg') $ext = 'jpeg';
+                    if (empty($ext))
+                        $ext = 'png';
+                    elseif ($ext === 'jpg')
+                        $ext = 'jpeg';
                     return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
                 }
                 return $candidate;
@@ -82,7 +86,7 @@ if (!function_exists('base_url')) {
 <?php
 if (!isset($estdata) && isset($estimate)) {
     $estdata = new \stdClass();
-    
+
     $attrs = [];
     if ($estimate instanceof \Illuminate\Database\Eloquent\Model) {
         $attrs = $estimate->getAttributes();
@@ -91,11 +95,11 @@ if (!isset($estdata) && isset($estimate)) {
     } else {
         $attrs = (array) $estimate;
     }
-    
+
     foreach ($attrs as $key => $val) {
         $estdata->$key = $val;
     }
-    
+
     if (isset($estimate->customer)) {
         $estdata->name = $estimate->customer->name ?? '--';
         $estdata->email = $estimate->customer->email ?? '--';
@@ -319,7 +323,8 @@ $lendingCost = $totalPayable - $subsidy;
                     <tr style="font-weight: bold; border-top: 2px solid #000;">
                         <td colspan="2">Customer Payable Amount</td>
                         <td style="background-color: #52866A; color: #fff;">
-                            <?php echo number_format($totalPayable, 2); ?></td>
+                            <?php echo number_format($totalPayable, 2); ?>
+                        </td>
                     </tr>
                     <?php if ($subsidy > 0): ?>
                     <tr>
@@ -329,7 +334,8 @@ $lendingCost = $totalPayable - $subsidy;
                     <tr style="font-weight: bold;">
                         <td colspan="2">Lending Cost Of Customer</td>
                         <td style="background-color: #52866A; color: #fff;">
-                            <?php    echo number_format($lendingCost, 2); ?></td>
+                            <?php    echo number_format($lendingCost, 2); ?>
+                        </td>
                     </tr>
                     <?php endif; ?>
                     <!-- <tr style="font-weight: bold; border-top: 2px solid #000;">
@@ -393,15 +399,20 @@ $lendingCost = $totalPayable - $subsidy;
                         <!-- Bank Details Column -->
                         <td style="vertical-align: top; background: #fafafa;">
                             <?php if ($bank): ?>
-                            <div><strong>Bank:</strong> <?php    echo htmlspecialchars($bank['bank_name'] ?? '--'); ?>
+                            <div><strong>Bank:</strong>
+                                <?php    echo htmlspecialchars($bank['bank_name'] ?? '--'); ?>
                             </div>
                             <div><strong>Account Name:</strong>
-                                <?php    echo htmlspecialchars($bank['account_name'] ?? '--'); ?></div>
-                            <div><strong>Account No.:</strong>
-                                <?php    echo htmlspecialchars($bank['account_number'] ?? '--'); ?></div>
-                            <div><strong>IFSC:</strong> <?php    echo htmlspecialchars($bank['ifsc_code'] ?? '--'); ?>
+                                <?php    echo htmlspecialchars($bank['account_name'] ?? '--'); ?>
                             </div>
-                            <div><strong>Branch:</strong> <?php    echo htmlspecialchars($bank['branch_name'] ?? '--'); ?>
+                            <div><strong>Account No.:</strong>
+                                <?php    echo htmlspecialchars($bank['account_number'] ?? '--'); ?>
+                            </div>
+                            <div><strong>IFSC:</strong>
+                                <?php    echo htmlspecialchars($bank['ifsc_code'] ?? '--'); ?>
+                            </div>
+                            <div><strong>Branch:</strong>
+                                <?php    echo htmlspecialchars($bank['branch_name'] ?? '--'); ?>
                             </div>
                             <?php else: ?>
                             <div style="color:#666;">No bank details available.</div>
