@@ -310,7 +310,7 @@
                                             <strong
                                                 style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company_name ?? 'Company Name') }}</strong><br>
                                             {{ $settings['company_address'] ?? ($user->address ?? '--') }}<br>
-                                            {{ $settings['phone'] ?? ($user->contact ?? '--') }}
+                                            {{ $settings['phone'] ?? ($user->phone ?? '--') }}
                                         </div>
                                     </td>
                                 </tr>
@@ -346,7 +346,7 @@
                                     <td><strong>Address</strong></td>
                                     <td>{{ $estimate->customer->address ?? '--' }}</td>
                                     <td><strong>Contact</strong></td>
-                                    <td>{{ $estimate->customer->contact ?? '--' }}</td>
+                                    <td>{{ $estimate->customer->phone ?? '--' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -618,27 +618,27 @@
                                                 }
                                             @endphp
                                             <tr>
-                                                <td
-                                                    style="padding: 12px 10px; border: 1px solid #333; text-align: center; vertical-align: middle;">
-                                                    @if ($product_image_display)
-                                                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
-                                                        @php
-                                                            $productImageUrl = $product_id && \Illuminate\Support\Facades\Storage::disk('public')->exists($product_image_display)
-                                                                ? route('bom-products.image', $product_id)
-                                                                : asset('storage/' . $product_image_display);
-                                                        @endphp
-                                                        <img src="{{ $productImageUrl }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
-                                                    </div>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: center; vertical-align: middle;">
+                                                    @if ($full_product_details && !empty($full_product_details['image']))
+                                                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
+                                                            @php
+                                                                $product_image_display = $full_product_details['image'];
+                                                                $productImageUrl = $product_id && \Illuminate\Support\Facades\Storage::disk('public')->exists($product_image_display)
+                                                                    ? route('bom-products.image', $product_id)
+                                                                    : asset('storage/' . $product_image_display);
+                                                            @endphp
+                                                            <img src="{{ $productImageUrl }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain;">
+                                                        </div>
                                                     @else
                                                         <div style="width: 80px; height: 80px; background-color: #f5f5f5; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: #ccc; font-size: 11px; border: 1px solid #ddd;">No Image</div>
                                                     @endif
-                                                            </td>
-                                                            <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
-                                                            <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
-                                                            <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
-                                                            <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ number_format($price_val, 2) }}</td>
-                                                            <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ number_format($row_total, 2) }}</td>
-                                                        </tr>
+                                                </td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ number_format($price_val, 2) }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ number_format($row_total, 2) }}</td>
+                                            </tr>
                                         @endforeach
                                     @else
                                             <tr>
