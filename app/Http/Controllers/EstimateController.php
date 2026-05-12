@@ -45,7 +45,7 @@ class EstimateController extends Controller
         $settings = Setting::pluck('value', 'key');
 
         // Get all products for BOM specifications
-        $product_data = BomBomProduct::all()->toArray();
+        $product_data = BomProduct::all()->toArray();
 
         // Load technology and warranty maps
         $technologyList = Technology::all();

@@ -2,11 +2,6 @@
 
 @section('page_title', 'All Notifications')
 
-@push('styles')
-    <link rel="stylesheet"
-        href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/user-logs.css') }}?v={{ filemtime(public_path('css/user-logs.css')) }}">
-@endpush
-
 @section('content')
     <div class="container-fluid p-0">
         <div class="card border-0 shadow-sm overflow-hidden">
@@ -20,42 +15,17 @@
             </div>
 
             <div class="card-body p-0">
-                <div class="notification-list">
-                    @forelse($notifications as $notification)
-                        <div class="notification-row align-items-center">
-                            <span class="notification-avatar">
-                                <i class="bi bi-bell"></i>
-                            </span>
-                            <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                                <div class="notification-message">
-                                    {{ $notification->notification_text }}
-                                </div>
-                                <div class="d-flex flex-wrap align-items-center">
-                                    <div class="notification-time">
-                                        {{ $notification->created_at->diffForHumans() }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end">
-                                    <button class="dropdown-item mark-as-read del_notif fw-semibold" type="button"
-                                        data-id="{{ $notification->id }}">
-                                        <i class="fa-solid fa-check-double me-2"></i>Mark as Read
-                                    </button>
-                                </div>
-                            </div>
+                <div class="notification-list" id="notificationList">
+                    {{-- Notifications will be loaded here via AJAX --}}
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                    @empty
-                        <div class="text-center text-muted py-5">
-                            No notifications found.
-                        </div>
-                    @endforelse
+                    </div>
                 </div>
             </div>
+
+            <div class="card-footer bg-white py-4 px-4" id="notificationsPagination"></div>
         </div>
     </div>
 @endsection
@@ -108,61 +78,9 @@
 
 @push('scripts')
     <script>
-        // document.querySelectorAll('.delete-notification').forEach(button => {
-        //     button.addEventListener('click', function () {
-        //         const id = this.getAttribute('data-id');
-        //         if (confirm('Are you sure you want to delete this notification?')) {
-        //             fetch(`/notifications/${id}`, {
-        //                 method: 'DELETE',
-        //                 headers: {
-        //                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        //                     'Content-Type': 'application/json',
-        //                     'Accept': 'application/json'
-        //                 }
-        //             })
-        //                 .then(response => response.json())
-        //                 .then(data => {
-        //                     if (data.success) {
-        //                         location.reload();
-        //                     } else {
-        //                         alert(data.message || 'Error deleting notification');
-        //                     }
-        //                 })
-        //                 .catch(error => {
-        //                     console.error('Error:', error);
-        //                     alert('An error occurred while deleting the notification.');
-        //                 });
-        //         }
-        //     });
-        // });
-
-        document.querySelectorAll('.mark-as-read').forEach(button => {
-            button.addEventListener('click', function () {
-                const id = this.getAttribute('data-id');
-                fetch(`/notifications/${id}/read`, {
-                    method: 'PATCH',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            alert(data.message || 'Error marking notification as read');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while updating the notification.');
-                    });
-            });
-        });
+        window.crmNotificationsListUrl = "{{ route('notifications.list') }}";
+        window.crmCsrfToken = "{{ csrf_token() }}";
     </script>
-
     <script
-        src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/user-logs.js') }}?v={{ filemtime(public_path('js/user-logs.js')) }}"></script>
+        src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/notification.js') }}"></script>
 @endpush

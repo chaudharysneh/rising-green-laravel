@@ -15,13 +15,20 @@ class NotificationController extends Controller
      * Display a list of notifications for the logged-in user.
      * GET: /notifications
      */
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
 
         $notifications = Notification::where('user_id', $userId)->where('is_read', 0)
             ->orderBy('created_at', 'DESC')
-            ->get();
+            ->paginate(10);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data'    => $notifications,
+            ]);
+        }
 
         return view('notifications.index', [
             'notifications' => $notifications,
@@ -38,9 +45,9 @@ class NotificationController extends Controller
 
         if (!$userId) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'User not authenticated.',
-                'data'    => [],
+                'data' => [],
             ], 401);
         }
 
@@ -58,10 +65,10 @@ class NotificationController extends Controller
 
         return response()->json([
             'status' => true,
-            'data'   => [
-                'unreadCount'    => $unreadCount,
-                'notifications'  => $newNotifications,
-                'last_id'        => $newNotifications->isNotEmpty() ? $newNotifications->last()->id : $lastId,
+            'data' => [
+                'unreadCount' => $unreadCount,
+                'notifications' => $newNotifications,
+                'last_id' => $newNotifications->isNotEmpty() ? $newNotifications->last()->id : $lastId,
             ],
         ]);
     }
@@ -205,7 +212,7 @@ class NotificationController extends Controller
     // public function vapidKey()
     // {
     //     $vapidPublicKey = env('VAPID_PUBLIC_KEY', '');
-        
+
     //     if (empty($vapidPublicKey)) {
     //         return response()->json([
     //             'status' => false,
