@@ -37,11 +37,13 @@ class BomProductController extends Controller
 
     public function image(BomProduct $bomProduct)
     {
-        if (!$bomProduct->image || !Storage::disk('public')->exists($bomProduct->image)) {
+        $imagePath = $this->resolveImagePath($bomProduct->image);
+
+        if (!$imagePath) {
             abort(404);
         }
 
-        return response()->file(Storage::disk('public')->path($bomProduct->image));
+        return response()->file($imagePath);
     }
 
     private function formData(): array
@@ -52,5 +54,44 @@ class BomProductController extends Controller
             'warranties' => Warranty::query()->orderBy('title')->get(),
             'taxes' => Tax::active()->orderBy('name')->orderBy('rate')->get(),
         ];
+    }
+
+    private function resolveImagePath(?string $imagePath): ?string
+    {
+        if (!$imagePath) {
+            return null;
+        }
+
+        $normalizedPath = str_replace('\\', '/', trim($imagePath, '/'));
+        $filename = basename($normalizedPath);
+        $candidates = array_values(array_unique([
+            $normalizedPath,
+            preg_replace('#^product/#i', 'products/', $normalizedPath),
+            preg_replace('#^products/#i', 'product/', $normalizedPath),
+            preg_replace('#^bom-product/#i', 'bom-products/', $normalizedPath),
+            preg_replace('#^bom-products/#i', 'bom-product/', $normalizedPath),
+            'bom-products/' . $filename,
+            'bom-product/' . $filename,
+            'products/' . $filename,
+            'product/' . $filename,
+        ]));
+
+        foreach ($candidates as $candidate) {
+            if (!$candidate) {
+                continue;
+            }
+
+            $storageDiskPath = Storage::disk('public')->path($candidate);
+            if (is_file($storageDiskPath)) {
+                return $storageDiskPath;
+            }
+
+            $publicStoragePath = public_path('storage/' . $candidate);
+            if (is_file($publicStoragePath)) {
+                return $publicStoragePath;
+            }
+        }
+
+        return null;
     }
 }
