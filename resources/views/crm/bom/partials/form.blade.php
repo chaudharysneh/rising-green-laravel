@@ -89,23 +89,35 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Technology</label>
-                    <select name="technology_id" id="technology_id" class="form-select">
-                        <option value="">Select Technology</option>
-                        @foreach($technologies as $technology)
-                            <option value="{{ $technology->id }}" @selected(old('technology_id', $product?->technology_id) == $technology->id)>{{ $technology->title }}</option>
-                        @endforeach
-                    </select>
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="technology_id" id="technology_id" class="form-select flex-grow-1">
+                            <option value="">Select Technology</option>
+                            @foreach($technologies as $technology)
+                                <option value="{{ $technology->id }}" @selected(old('technology_id', $product?->technology_id) == $technology->id)>{{ $technology->title }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" class="btn btn-dark-blue" id="add-technology-btn" data-bs-toggle="modal" data-bs-target="#addTechnologyModal" style="padding: 0.5rem 0.75rem;" title="Add New Technology">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback d-block" id="technology_id-error"></div>
                 </div>
 
                 <!-- Row 4: Warranty | Capacity -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Warranty</label>
-                    <select name="warranty_id" id="warranty_id" class="form-select">
-                        <option value="">Select Warranty</option>
-                        @foreach($warranties as $warranty)
-                            <option value="{{ $warranty->id }}" @selected(old('warranty_id', $product?->warranty_id) == $warranty->id)>{{ $warranty->title }}</option>
-                        @endforeach
-                    </select>
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="warranty_id" id="warranty_id" class="form-select flex-grow-1">
+                            <option value="">Select Warranty</option>
+                            @foreach($warranties as $warranty)
+                                <option value="{{ $warranty->id }}" @selected(old('warranty_id', $product?->warranty_id) == $warranty->id)>{{ $warranty->title }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" class="btn btn-dark-blue" id="add-warranty-btn" data-bs-toggle="modal" data-bs-target="#addWarrantyModal" style="padding: 0.5rem 0.75rem;" title="Add New Warranty">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback d-block" id="warranty_id-error"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Capacity</label>
@@ -757,6 +769,216 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ===== ADD TECHNOLOGY MODAL FUNCTIONALITY =====
+    const addTechnologyModal = document.getElementById('addTechnologyModal');
+    const addTechnologyForm = document.getElementById('add-technology-form');
+    const saveTechnologyBtn = document.getElementById('save-technology-btn');
+    const newTechnologyNameInput = document.getElementById('new-technology-name');
+    const newTechnologyDescriptionInput = document.getElementById('new-technology-description');
+    const technologySelect = document.getElementById('technology_id');
+    const newTechnologyNameError = document.getElementById('new-technology-name-error');
+    const newTechnologyDescriptionError = document.getElementById('new-technology-description-error');
+
+    saveTechnologyBtn.addEventListener('click', function() {
+        // Clear previous errors
+        newTechnologyNameInput.classList.remove('is-invalid');
+        newTechnologyDescriptionInput.classList.remove('is-invalid');
+        newTechnologyNameError.textContent = '';
+        newTechnologyDescriptionError.textContent = '';
+        
+        // Basic client-side validation
+        let hasError = false;
+        
+        if (!newTechnologyNameInput.value.trim()) {
+            newTechnologyNameInput.classList.add('is-invalid');
+            newTechnologyNameError.textContent = 'Please enter technology name.';
+            hasError = true;
+        }
+        
+        if (hasError) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', newTechnologyNameInput.value.trim());
+        formData.append('description', newTechnologyDescriptionInput.value.trim());
+
+        // Show loading state
+        saveTechnologyBtn.disabled = true;
+        saveTechnologyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+
+        fetch('/api/technology', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add the new technology to the dropdown
+                const newOption = document.createElement('option');
+                newOption.value = data.data.id;
+                newOption.textContent = data.data.title;
+                newOption.selected = true;
+                technologySelect.appendChild(newOption);
+                
+                // Reset form and close modal
+                addTechnologyForm.reset();
+                newTechnologyNameInput.classList.remove('is-invalid');
+                newTechnologyDescriptionInput.classList.remove('is-invalid');
+                newTechnologyNameError.textContent = '';
+                newTechnologyDescriptionError.textContent = '';
+                bootstrap.Modal.getInstance(addTechnologyModal).hide();
+                
+                // Clear error state
+                technologySelect.classList.remove('is-invalid');
+                const errorElement = document.getElementById('technology_id-error');
+                if (errorElement) {
+                    errorElement.textContent = '';
+                }
+            } else {
+                // Handle validation errors
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        if (field === 'title') {
+                            newTechnologyNameInput.classList.add('is-invalid');
+                            newTechnologyNameError.textContent = data.errors[field][0];
+                        } else if (field === 'description') {
+                            newTechnologyDescriptionInput.classList.add('is-invalid');
+                            newTechnologyDescriptionError.textContent = data.errors[field][0];
+                        }
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error adding technology:', error);
+            alert('Error adding technology. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            saveTechnologyBtn.disabled = false;
+            saveTechnologyBtn.innerHTML = 'Add Technology';
+        });
+    });
+
+    // Reset form when modal is closed
+    addTechnologyModal.addEventListener('hidden.bs.modal', function() {
+        addTechnologyForm.reset();
+        newTechnologyNameInput.classList.remove('is-invalid');
+        newTechnologyDescriptionInput.classList.remove('is-invalid');
+        newTechnologyNameError.textContent = '';
+        newTechnologyDescriptionError.textContent = '';
+    });
+
+    // ===== ADD WARRANTY MODAL FUNCTIONALITY =====
+    const addWarrantyModal = document.getElementById('addWarrantyModal');
+    const addWarrantyForm = document.getElementById('add-warranty-form');
+    const saveWarrantyBtn = document.getElementById('save-warranty-btn');
+    const newWarrantyNameInput = document.getElementById('new-warranty-name');
+    const newWarrantyDescriptionInput = document.getElementById('new-warranty-description');
+    const warrantySelect = document.getElementById('warranty_id');
+    const newWarrantyNameError = document.getElementById('new-warranty-name-error');
+    const newWarrantyDescriptionError = document.getElementById('new-warranty-description-error');
+
+    saveWarrantyBtn.addEventListener('click', function() {
+        // Clear previous errors
+        newWarrantyNameInput.classList.remove('is-invalid');
+        newWarrantyDescriptionInput.classList.remove('is-invalid');
+        newWarrantyNameError.textContent = '';
+        newWarrantyDescriptionError.textContent = '';
+        
+        // Basic client-side validation
+        let hasError = false;
+        
+        if (!newWarrantyNameInput.value.trim()) {
+            newWarrantyNameInput.classList.add('is-invalid');
+            newWarrantyNameError.textContent = 'Please enter warranty name.';
+            hasError = true;
+        }
+        
+        if (hasError) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', newWarrantyNameInput.value.trim());
+        formData.append('description', newWarrantyDescriptionInput.value.trim());
+
+        // Show loading state
+        saveWarrantyBtn.disabled = true;
+        saveWarrantyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+
+        fetch('/api/warranty', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add the new warranty to the dropdown
+                const newOption = document.createElement('option');
+                newOption.value = data.data.id;
+                newOption.textContent = data.data.title;
+                newOption.selected = true;
+                warrantySelect.appendChild(newOption);
+                
+                // Reset form and close modal
+                addWarrantyForm.reset();
+                newWarrantyNameInput.classList.remove('is-invalid');
+                newWarrantyDescriptionInput.classList.remove('is-invalid');
+                newWarrantyNameError.textContent = '';
+                newWarrantyDescriptionError.textContent = '';
+                bootstrap.Modal.getInstance(addWarrantyModal).hide();
+                
+                // Clear error state
+                warrantySelect.classList.remove('is-invalid');
+                const errorElement = document.getElementById('warranty_id-error');
+                if (errorElement) {
+                    errorElement.textContent = '';
+                }
+            } else {
+                // Handle validation errors
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        if (field === 'title') {
+                            newWarrantyNameInput.classList.add('is-invalid');
+                            newWarrantyNameError.textContent = data.errors[field][0];
+                        } else if (field === 'description') {
+                            newWarrantyDescriptionInput.classList.add('is-invalid');
+                            newWarrantyDescriptionError.textContent = data.errors[field][0];
+                        }
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error adding warranty:', error);
+            alert('Error adding warranty. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            saveWarrantyBtn.disabled = false;
+            saveWarrantyBtn.innerHTML = 'Add Warranty';
+        });
+    });
+
+    // Reset form when modal is closed
+    addWarrantyModal.addEventListener('hidden.bs.modal', function() {
+        addWarrantyForm.reset();
+        newWarrantyNameInput.classList.remove('is-invalid');
+        newWarrantyDescriptionInput.classList.remove('is-invalid');
+        newWarrantyNameError.textContent = '';
+        newWarrantyDescriptionError.textContent = '';
+    });
+
     // ===== BOM FORM AJAX SUBMISSION =====
     const bomForm = document.getElementById('bomProductForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -871,6 +1093,66 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer border-0 pt-0 pb-3 px-4">
                 <button type="button" class="btn btn-outline-dark-blue px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-dark-blue px-4 rounded-3" id="save-make-btn">Add Make</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Technology Modal -->
+<div class="modal fade" id="addTechnologyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Add Technology</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-technology-form" novalidate>
+                    <div class="mb-3">
+                        <label for="new-technology-name" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="new-technology-name" placeholder="Enter technology name">
+                        <div class="invalid-feedback" id="new-technology-name-error"></div>
+                    </div>
+                    <div class="mb-0">
+                        <label for="new-technology-description" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control" id="new-technology-description" placeholder="Enter description" rows="2"></textarea>
+                        <div class="invalid-feedback" id="new-technology-description-error"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-3 px-4">
+                <button type="button" class="btn btn-outline-dark-blue px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark-blue px-4 rounded-3" id="save-technology-btn">Add Technology</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Warranty Modal -->
+<div class="modal fade" id="addWarrantyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Add Warranty</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-warranty-form" novalidate>
+                    <div class="mb-3">
+                        <label for="new-warranty-name" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="new-warranty-name" placeholder="Enter warranty name">
+                        <div class="invalid-feedback" id="new-warranty-name-error"></div>
+                    </div>
+                    <div class="mb-0">
+                        <label for="new-warranty-description" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control" id="new-warranty-description" placeholder="Enter description" rows="2"></textarea>
+                        <div class="invalid-feedback" id="new-warranty-description-error"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-3 px-4">
+                <button type="button" class="btn btn-outline-dark-blue px-4 rounded-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark-blue px-4 rounded-3" id="save-warranty-btn">Add Warranty</button>
             </div>
         </div>
     </div>

@@ -134,7 +134,7 @@ class VendorController extends ApiBaseController
             ],
             'phone' => [
                 'required',
-                'regex:/^[0-9]{10,15}$/',
+                'regex:/^[0-9]{10}$/',
                 Rule::unique('vendors', 'phone')->ignore($vendor?->id)->whereNull('deleted_at'),
             ],
             'address' => ['nullable', 'string', 'max:2000'],
@@ -148,7 +148,7 @@ class VendorController extends ApiBaseController
         return [
             'name.required' => 'Please enter vendor name.',
             'phone.required' => 'Please enter phone.',
-            'phone.regex' => 'Phone number must be 10 to 15 digits.',
+            'phone.regex' => 'Phone number must be exactly 10 digits.',
             'phone.unique' => 'This phone number already exists.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email address already exists.',

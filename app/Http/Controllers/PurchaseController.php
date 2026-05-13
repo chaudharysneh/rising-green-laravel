@@ -19,8 +19,10 @@ class PurchaseController extends Controller
     {
         $vendors = Vendor::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+        // Only get categories that are NOT soft-deleted
+        $categories = \App\Models\Categories::where('deleted_at', null)->orderBy('name')->get();
 
-        return view('crm.purchases.create', compact('vendors', 'products'));
+        return view('crm.purchases.create', compact('vendors', 'products', 'categories'));
     }
 
     public function show(Purchase $purchase)
@@ -34,9 +36,11 @@ class PurchaseController extends Controller
     {
         $vendors = Vendor::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+        // Only get categories that are NOT soft-deleted
+        $categories = \App\Models\Categories::where('deleted_at', null)->orderBy('name')->get();
         $purchase->load(['customer', 'product']);
 
-        return view('crm.purchases.edit', compact('purchase', 'vendors', 'products'));
+        return view('crm.purchases.edit', compact('purchase', 'vendors', 'products', 'categories'));
     }
 
     public function downloadPdf(Purchase $purchase)

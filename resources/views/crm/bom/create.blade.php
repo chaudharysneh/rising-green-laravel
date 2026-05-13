@@ -87,6 +87,32 @@
         color: #1e3a8a;
         font-weight: 500;
     }
+
+    /* Technology Modal Error Styling */
+    #addTechnologyModal .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    #addTechnologyModal .form-control.is-invalid,
+    #addTechnologyModal .form-select.is-invalid {
+        border-color: #dc3545;
+    }
+
+    /* Warranty Modal Error Styling */
+    #addWarrantyModal .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    #addWarrantyModal .form-control.is-invalid,
+    #addWarrantyModal .form-select.is-invalid {
+        border-color: #dc3545;
+    }
 </style>
 @endpush
 
