@@ -134,7 +134,13 @@ class EstimateController extends Controller
             $discount = (float) ($request->input('discount') ?? 0);
             $subsidyAmount = (float) ($request->input('subsidy_amount') ?? 0);
             $applyCharges = (int) ($request->input('apply_gst') ?? 0);
-            $gstPercent = $applyCharges ? (float) ($request->input('gst') ?? 0) : 0;
+            $gstPercent = (float) ($request->input('gst') ?? 0);
+            if ($gstPercent > 0 && !$request->has('apply_gst')) {
+                $applyCharges = 1;
+            }
+            if (!$applyCharges) {
+                $gstPercent = 0;
+            }
 
             // Handle file upload
             $attachFile = '';
@@ -195,6 +201,7 @@ class EstimateController extends Controller
             $estimate = Estimate::create([
                 'customer_id' => $customerId,
                 'user_id' => $userId,
+                'product_id' => $request->input('product_id'),
                 'estimate_no' => $estimateNo,
                 'estimate_date' => $estimateDate,
                 'estimate_name' => $estimateName,
@@ -308,7 +315,13 @@ class EstimateController extends Controller
             $discount = (float) ($request->input('discount') ?? 0);
             $subsidyAmount = (float) ($request->input('subsidy_amount') ?? 0);
             $applyCharges = (int) ($request->input('apply_gst') ?? 0);
-            $gstPercent = $applyCharges ? (float) ($request->input('gst') ?? 0) : 0;
+            $gstPercent = (float) ($request->input('gst') ?? 0);
+            if ($gstPercent > 0 && !$request->has('apply_gst')) {
+                $applyCharges = 1;
+            }
+            if (!$applyCharges) {
+                $gstPercent = 0;
+            }
 
             // Handle file upload
             $attachFile = '';
@@ -363,6 +376,7 @@ class EstimateController extends Controller
             // Update estimate
             $updateData = [
                 'customer_id' => $customerId,
+                'product_id' => $request->input('product_id'),
                 'estimate_date' => $estimateDate,
                 'estimate_name' => $estimateName,
                 'type' => $type,
@@ -456,6 +470,7 @@ class EstimateController extends Controller
                     'customer_id' => $estimate->customer_id,
                     'user_id' => $estimate->user_id,
                     'estimate_id' => $estimate->estimate_id,
+                    'product_id' => $estimate->product_id,
                     'invoice_no' => $this->generateNextInvoiceNumber(),
                     'invoice_date' => $invoiceDate,
                     'due_date' => $invoiceDate,

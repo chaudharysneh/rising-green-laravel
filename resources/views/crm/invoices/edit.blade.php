@@ -306,6 +306,9 @@
 @endpush
 
 @push('scripts')
+<script>
+    window.subsidiesData = @json($subsidies ?? []);
+</script>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/invoice.js') }}"></script>
 @endpush

@@ -23,6 +23,67 @@ if (!function_exists('normalize_pdf_image')) {
             return '';
         }
 
+        // Helper closure to optimize and convert progressive images to Baseline using GD
+        $optimizeImage = function($candidate) {
+            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+            if (empty($ext)) $ext = 'png';
+            elseif ($ext === 'jpg') $ext = 'jpeg';
+            
+            if (extension_loaded('gd') && ($ext === 'jpg' || $ext === 'jpeg')) {
+                try {
+                    // Detect Progressive JPEG format using header inspection
+                    $handle = @fopen($candidate, 'rb');
+                    $isProgressive = false;
+                    if ($handle) {
+                        $header = @fread($handle, 131072); // Read initial segment to check for SOF2 markers
+                        @fclose($handle);
+                        if (strpos($header, "\xFF\xC2") !== false) {
+                            $isProgressive = true;
+                        }
+                    }
+
+                    // Run GD ONLY for broken Progressive JPEGs. Baseline JPEGs are left untouched!
+                    if ($isProgressive) {
+                        $srcImg = @imagecreatefromjpeg($candidate);
+                        if ($srcImg) {
+                            $width = imagesx($srcImg);
+                            $height = imagesy($srcImg);
+                            
+                            // Keep 100% of original dimensions to prevent tampering with document layout sizes!
+                            $newW = $width;
+                            $newH = $height;
+                            
+                            $dstImg = imagecreatetruecolor($newW, $newH);
+                            $white = imagecolorallocate($dstImg, 255, 255, 255);
+                            imagefilledrectangle($dstImg, 0, 0, $newW, $newH, $white);
+                            
+                            imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $width, $height);
+                            
+                            ob_start();
+                            imageinterlace($dstImg, 0); // Enforce non-progressive baseline format
+                            imagejpeg($dstImg, null, 90); // High quality 90 to preserve crispness
+                            $binData = ob_get_clean();
+                            
+                            imagedestroy($srcImg);
+                            imagedestroy($dstImg);
+                            
+                            if ($binData !== false && strlen($binData) > 0) {
+                                return 'data:image/jpeg;base64,' . base64_encode($binData);
+                            }
+                        }
+                    }
+                } catch (\Throwable $t) {}
+            }
+            
+            // Fast pathway for all other formats (Baseline JPEG & PNG) to preserve exact original bytes
+            $imgData = @file_get_contents($candidate);
+            if ($imgData !== false) {
+                $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+            }
+            return null;
+        };
+
         // If it's a base64 data URI, return as-is
         if (strpos($path, 'data:image') === 0) {
             return $path;
@@ -30,12 +91,10 @@ if (!function_exists('normalize_pdf_image')) {
 
         // If it starts with http/https
         if (preg_match('/^https?:\/\//i', $path)) {
-            // Try to extract local path from URL
             $urlParts = parse_url($path);
             if (isset($urlParts['path'])) {
                 $urlPath = ltrim($urlParts['path'], '/');
 
-                // Check direct paths
                 $candidates = [
                     public_path($urlPath),
                     public_path(preg_replace('#^public/#i', '', $urlPath)),
@@ -43,20 +102,13 @@ if (!function_exists('normalize_pdf_image')) {
                 ];
                 foreach ($candidates as $candidate) {
                     if (file_exists($candidate) && is_file($candidate)) {
-                        $imgData = @file_get_contents($candidate);
-                        if ($imgData !== false) {
-                            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                            if (empty($ext))
-                                $ext = 'png';
-                            elseif ($ext === 'jpg')
-                                $ext = 'jpeg';
-                            return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                        }
+                        $result = $optimizeImage($candidate);
+                        if ($result) return $result;
                         return $candidate;
                     }
                 }
             }
-            return $path; // Fallback to HTTP URL
+            return $path;
         }
 
         // It is a relative path or filename
@@ -65,25 +117,20 @@ if (!function_exists('normalize_pdf_image')) {
 
         $candidates = [
             public_path($cleanPath),
+            public_path('storage/' . $cleanPath),
             public_path('assets/' . $cleanPath),
             public_path('uploads/' . $cleanPath),
             public_path('uploads/img/product/' . $cleanPath),
             public_path('assets/img/profile/' . $cleanPath),
             public_path('assets/uploads/' . $cleanPath),
             public_path('uploads/products/' . $cleanPath),
+            storage_path('app/public/' . $cleanPath),
         ];
 
         foreach ($candidates as $candidate) {
             if (file_exists($candidate) && is_file($candidate)) {
-                $imgData = @file_get_contents($candidate);
-                if ($imgData !== false) {
-                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    if (empty($ext))
-                        $ext = 'png';
-                    elseif ($ext === 'jpg')
-                        $ext = 'jpeg';
-                    return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                }
+                $result = $optimizeImage($candidate);
+                if ($result) return $result;
                 return $candidate;
             }
         }
@@ -223,6 +270,12 @@ if ($passedEstimate) {
     }
 }
 
+// Determine model type to dynamically switch labels (Invoice vs Estimate)
+$isInvoice = ($passedEstimate instanceof \App\Models\Invoice);
+$pdfTypeLabelCap = $isInvoice ? 'SOLAR INVOICE' : 'SOLAR PROPOSAL';
+$pdfTypeLabelMixed = $isInvoice ? 'Invoice' : 'Proposal';
+$pdfTypeLabelMixed2 = $isInvoice ? 'invoice' : 'proposal';
+
 // Get prepared by name (user who created/owns the estimate)
 $preparedByName = $user['name'] ?? ($user['company_name'] ?? '--');
 $preparedForName = ($estdata && isset($estdata->name)) ? $estdata->name : '--';
@@ -241,7 +294,7 @@ if ($estdata) {
 
     // If quantity is still 0, try to calculate from product_name JSON
     if ($quantity == '0' && !empty($estdata->product_name)) {
-        $products = json_decode($estdata->product_name, true);
+        $products = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
         if (is_array($products) && !empty($products)) {
             $totalQty = 0;
             foreach ($products as $product) {
@@ -348,8 +401,8 @@ if ($gstAmountForCost === null && $estdata && !empty($estdata->gst_breakdown)) {
     }
 }
 if ($gstAmountForCost === null && $estdata && !empty($estdata->product_name)) {
-    $items = json_decode($estdata->product_name, true);
-    if (json_last_error() === JSON_ERROR_NONE && is_array($items)) {
+    $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+    if (is_array($items)) {
         $sum = 0.0;
         foreach ($items as $it) {
             if (isset($it['tax_amount']) && is_numeric($it['tax_amount'])) {
@@ -979,7 +1032,7 @@ echo $fullCompanyName;
 
                     <!-- Proposal No -->
                     <div style="font-size:20px; color:#000; font-weight:400; font-family: 'Montserrat', sans-serif;">
-                        <span style="font-weight:400;">Proposal no : </span> #<?= esc($estimate_no) ?? '--' ?>
+                        <span style="font-weight:400;"><?= $pdfTypeLabelMixed ?> no : </span> #<?= esc($estimate_no) ?? '--' ?>
                     </div>
 
                 </td>
@@ -990,7 +1043,7 @@ echo $fullCompanyName;
                     <!-- Title -->
                     <div
                         style="margin-top: -25px; font-size:35px; font-weight:700; margin-bottom:10px; font-family: 'Montserrat', sans-serif; color:#000;">
-                        SOLAR PROPOSAL
+                        <?= $pdfTypeLabelCap ?>
                     </div>
 
                     <!-- ONGRID + Date -->
@@ -1116,7 +1169,7 @@ $__companyInfoActive = $_isActive($__companyInfo);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
@@ -1235,7 +1288,7 @@ $__companyInfoActive = $_isActive($__companyInfo);
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
@@ -1281,7 +1334,7 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
                 <tr>
                     <td align="left" valign="top">
                         <div style="font-size:18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td align="right" valign="top">
@@ -1624,7 +1677,7 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
                         background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
@@ -1674,7 +1727,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                     <td align="left" valign="top">
                         <div
                             style="font-size:18px; color:#e8f6f4; margin-bottom:14px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                         <div
                             style="font-size:45px; font-weight:700; color:#fff; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
@@ -1956,7 +2009,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
             <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
                 <tr>
                     <td width="22.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                        <?= $quantity ?>kW Ongrid Proposal
+                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                     </td>
 
                     <td width="22.33%" align="center"
@@ -1997,7 +2050,7 @@ $__timeLineActive = $_isActive($__timeLine);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size:20px;font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
 
@@ -2049,7 +2102,7 @@ $__timeLineActive = $_isActive($__timeLine);
                         background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
@@ -2089,7 +2142,7 @@ $__componentsActive = $_isActive($__components);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size: 18px;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
@@ -2142,7 +2195,7 @@ $__componentsActive = $_isActive($__components);
     $category_image_map = []; // Map category name to image
 
     try {
-        $product_data = \App\Models\Product::all()->toArray();
+        $product_data = \App\Models\BomProduct::with('categories')->get()->toArray();
 
         $technologyList = \App\Models\Technology::all();
         foreach ($technologyList as $tech) {
@@ -2168,34 +2221,25 @@ $__componentsActive = $_isActive($__components);
     // Get product data from estimate
     $componentsData = [];
     if ($estdata && !empty($estdata->product_name)) {
-        $allproduct = json_decode($estdata->product_name, true);
+        $allproduct = $estdata->product_name;
+        while (!is_array($allproduct) && !empty($allproduct) && is_string($allproduct)) {
+            $decoded = json_decode($allproduct, true);
+            if (json_last_error() !== JSON_ERROR_NONE || $decoded === null) {
+                break;
+            }
+            $allproduct = $decoded;
+        }
+
         if (is_array($allproduct) && !empty($allproduct)) {
             foreach ($allproduct as $item) {
                 $product_id = $item['product_id'] ?? null;
-                $product_name_display = $item['name'] ?? 'Product name not found';
-                $product_name_original = $item['name'] ?? ''; // Keep original name for matching
-                $product_name_display = ucfirst(strtolower($product_name_display));
+                $product_name_display = $item['name'] ?? '';
                 $product_category_makes = $item['category_name'] ?? '';
                 $product_description = $item['description'] ?? '';
 
-                // Find product details from master list - try multiple methods
+                // Find product details from master list
                 $full_product_details = null;
-                // print_r($allproduct);die;
-                // Method 1: Query Product model directly by product_name
-                // Find product details from master list preloaded above
-                $product_name_lower = strtolower(trim($product_name_original));
-                foreach ($product_data as $prod_detail) {
-                    $prod_detail_arr = (array) $prod_detail;
-                    // Try matching by product_name (case-insensitive)
-                    $prod_name = isset($prod_detail_arr['product_name']) ? strtolower(trim($prod_detail_arr['product_name'])) : '';
-                    if (!empty($prod_name) && $prod_name === $product_name_lower) {
-                        $full_product_details = $prod_detail_arr;
-                        break;
-                    }
-                }
-
-                // Fallback to matching by ID if name match fails
-                if (!$full_product_details && $product_id) {
+                if ($product_id) {
                     foreach ($product_data as $prod_detail) {
                         $prod_detail_arr = (array) $prod_detail;
                         if (isset($prod_detail_arr['id']) && $prod_detail_arr['id'] == $product_id) {
@@ -2205,22 +2249,39 @@ $__componentsActive = $_isActive($__components);
                     }
                 }
 
+                // Robust product name fallback
+                if (empty(trim($product_name_display)) && $full_product_details) {
+                    $product_name_display = $full_product_details['product_name'] ?? '';
+                }
+                if (empty(trim($product_name_display))) {
+                    $product_name_display = 'Product name not found';
+                }
+                $product_name_display = ucfirst(strtolower($product_name_display));
+
+                // Robust Make (category) fallback
+                if (empty(trim($product_category_makes)) && $full_product_details && !empty($full_product_details['categories'])) {
+                    $firstCat = reset($full_product_details['categories']);
+                    $product_category_makes = $firstCat['name'] ?? '';
+                }
+
                 // Build specifications rows as: [Label, Value]
-                // NOTE: GST line is intentionally NOT included (as per requirement).
                 $specifications = [];
 
                 // Capacity
-                if (!empty($full_product_details['capacity'])) {
+                if ($full_product_details && !empty($full_product_details['capacity'])) {
                     $specifications[] = ['Capacity', htmlspecialchars((string) $full_product_details['capacity'])];
                 }
 
                 // Watt Peak
-                if (!empty($full_product_details['watt_peak'])) {
+                if ($full_product_details && !empty($full_product_details['watt_peak'])) {
                     $specifications[] = ['Watt Peak', htmlspecialchars((string) $full_product_details['watt_peak'])];
                 }
 
-                // Technology / Type
-                if (!empty($full_product_details['technology'])) {
+                // Technology with fallback to legacy JSON and ID lookups
+                $techVal = null;
+                if ($full_product_details && !empty($full_product_details['technology_id'])) {
+                    $techVal = $technology_map[$full_product_details['technology_id']] ?? null;
+                } elseif ($full_product_details && !empty($full_product_details['technology'])) {
                     $techArray = json_decode($full_product_details['technology'], true);
                     if (!is_array($techArray)) {
                         $techArray = [$full_product_details['technology']];
@@ -2228,12 +2289,18 @@ $__componentsActive = $_isActive($__components);
                     $techArray = array_filter($techArray, fn($v) => trim((string) $v) !== '');
                     if (!empty($techArray)) {
                         $techNames = array_map(fn($id) => $technology_map[$id] ?? $id, $techArray);
-                        $specifications[] = ['Type', htmlspecialchars(implode(', ', $techNames))];
+                        $techVal = implode(', ', $techNames);
                     }
                 }
+                if ($techVal) {
+                    $specifications[] = ['Type', htmlspecialchars($techVal)];
+                }
 
-                // Warranty
-                if (!empty($full_product_details['warranty'])) {
+                // Warranty with fallback to legacy JSON and ID lookups
+                $warVal = null;
+                if ($full_product_details && !empty($full_product_details['warranty_id'])) {
+                    $warVal = $warranty_map[$full_product_details['warranty_id']] ?? null;
+                } elseif ($full_product_details && !empty($full_product_details['warranty'])) {
                     $warArray = json_decode($full_product_details['warranty'], true);
                     if (!is_array($warArray)) {
                         $warArray = [$full_product_details['warranty']];
@@ -2241,18 +2308,36 @@ $__componentsActive = $_isActive($__components);
                     $warArray = array_filter($warArray, fn($v) => trim((string) $v) !== '');
                     if (!empty($warArray)) {
                         $warNames = array_map(fn($id) => $warranty_map[$id] ?? $id, $warArray);
-                        $specifications[] = ['Warranty', htmlspecialchars(implode(', ', $warNames))];
+                        $warVal = implode(', ', $warNames);
                     }
+                }
+                if ($warVal) {
+                    $specifications[] = ['Warranty', htmlspecialchars($warVal)];
                 }
 
                 // Height
-                if (!empty($full_product_details['height'])) {
+                if ($full_product_details && !empty($full_product_details['height'])) {
                     $specifications[] = ['Height', htmlspecialchars((string) $full_product_details['height'])];
                 }
 
                 // Thickness
-                if (!empty($full_product_details['thickness'])) {
+                if ($full_product_details && !empty($full_product_details['thickness'])) {
                     $specifications[] = ['Thickness', htmlspecialchars((string) $full_product_details['thickness'])];
+                }
+
+                // Fitting Material
+                if ($full_product_details && !empty($full_product_details['fitting_material'])) {
+                    $specifications[] = ['Fitting Material', htmlspecialchars((string) $full_product_details['fitting_material'])];
+                }
+
+                // Fitting Type
+                if ($full_product_details && !empty($full_product_details['fitting_type'])) {
+                    $specifications[] = ['Fitting Type', htmlspecialchars((string) $full_product_details['fitting_type'])];
+                }
+
+                // Size of Pipe
+                if ($full_product_details && !empty($full_product_details['size_of_pipe'])) {
+                    $specifications[] = ['Size of Pipe', htmlspecialchars((string) $full_product_details['size_of_pipe'])];
                 }
 
                 // Get product image
@@ -2264,19 +2349,11 @@ $__componentsActive = $_isActive($__components);
                     $category_image = $category_image_map[$product_category_makes];
                 }
 
-                // Get description from product table using Product model
+                // Get description from product table
                 $product_table_description = '';
                 if ($full_product_details) {
-                    // Convert to array if it's an object (Product model returns object/array)
-                    if (is_object($full_product_details)) {
-                        $full_product_details = (array) $full_product_details;
-                    }
-
-                    // Get description field from product table (field name is 'description' in Product model)
-                    // Check the description field directly
                     if (isset($full_product_details['description'])) {
                         $desc_value = $full_product_details['description'];
-                        // Check if description is not null and not empty after trimming
                         if ($desc_value !== null && $desc_value !== '' && trim($desc_value) !== '') {
                             $product_table_description = trim($desc_value);
                         }
@@ -2291,13 +2368,13 @@ $__componentsActive = $_isActive($__components);
                     $final_description = trim($product_description);
                 }
 
-                // Store ALL products (don't group by type - show each product individually)
-                $uniqueKey = $product_id . '_' . $product_name_display; // Use product_id + name as unique key
+                // Store ALL products
+                $uniqueKey = $product_id . '_' . $product_name_display;
                 $componentsData[$uniqueKey] = [
                     'name' => $product_name_display,
                     'category' => $product_category_makes, // Make = Brand
-                    'category_image' => $category_image, // Brand logo/image
-                    'description' => $final_description, // Use product table description
+                    'category_image' => $category_image,
+                    'description' => $final_description,
                     'specifications' => $specifications,
                     'image' => $product_image,
                     'quantity' => $item['quantity'] ?? 0
@@ -2373,38 +2450,7 @@ $__componentsActive = $_isActive($__components);
         if (!empty($productImage)) {
             $productImage = trim((string) $productImage);
             if ($productImage !== '') {
-                if (strpos($productImage, 'http') === 0) {
-                    $productImagePath = $productImage;
-                } else {
-                    // If a relative path is provided, normalize it first
-                    $candidates = [];
-                    if (strpos($productImage, 'uploads/') === 0 || strpos($productImage, 'public/') === 0) {
-                        $candidates[] = $productImage;
-                    } else {
-                        // Only filename: check common locations
-                        $candidates[] = 'uploads/img/product/' . $productImage;
-                        $candidates[] = 'public/assets/img/profile/' . $productImage;
-                        $candidates[] = 'public/assets/uploads/' . $productImage;
-                        $candidates[] = 'public/uploads/' . $productImage;
-                        $candidates[] = 'public/uploads/products/' . $productImage;
-                    }
-
-                    foreach ($candidates as $rel) {
-                        $rel = ltrim($rel, '/');
-                        // For Dompdf remote loading, serve via HTTP if file exists locally.
-                        // If it doesn't exist (e.g. remote path), still try base_url($rel).
-                        $fullFsPath = FCPATH . $rel;
-                        if (file_exists($fullFsPath)) {
-                            $productImagePath = normalize_pdf_image($rel);
-                            break;
-                        }
-                    }
-
-                    // Last fallback: try as-is via base_url (covers valid paths not under FCPATH)
-                    if (empty($productImagePath)) {
-                        $productImagePath = normalize_pdf_image($productImage);
-                    }
-                }
+                $productImagePath = normalize_pdf_image($productImage);
             }
         }
 
@@ -2484,7 +2530,7 @@ $__componentsActive = $_isActive($__components);
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
@@ -2514,7 +2560,7 @@ $__componentsActive = $_isActive($__components);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
@@ -2567,8 +2613,8 @@ $__componentsActive = $_isActive($__components);
     }
 
     if ($gstAmount === null && $estdata && !empty($estdata->product_name)) {
-        $items = json_decode($estdata->product_name, true);
-        if (json_last_error() === JSON_ERROR_NONE && is_array($items)) {
+        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+        if (is_array($items)) {
             $sum = 0.0;
             foreach ($items as $it) {
                 if (isset($it['tax_amount']) && is_numeric($it['tax_amount'])) {
@@ -2704,8 +2750,8 @@ $__componentsActive = $_isActive($__components);
 
         // 2) If no gst_breakdown, derive from per-line product JSON
         if (empty($breakupLines) && $estdata && !empty($estdata->product_name)) {
-            $items = json_decode($estdata->product_name, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($items)) {
+            $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+            if (is_array($items)) {
                 $cgstAmt = 0.0;
                 $sgstAmt = 0.0;
                 $igstAmt = 0.0;
@@ -2938,7 +2984,7 @@ $__componentsActive = $_isActive($__components);
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
@@ -2972,7 +3018,7 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size: 20px; color: #000; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
@@ -3043,7 +3089,7 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
@@ -3077,7 +3123,7 @@ $__footerActive = $_isActive($__footer);
                 <tr>
                     <td width="50%" align="left" valign="top">
                         <div style="font-size: 18px;">
-                            <?= $quantity ?>kW Ongrid Proposal
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
@@ -3212,7 +3258,7 @@ $__footerActive = $_isActive($__footer);
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="22.33%" style="padding:10px;">
-                    <?= $quantity ?>kW Ongrid Proposal
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
 
                 <td width="22.33%" align="center" style="padding:10px;">
