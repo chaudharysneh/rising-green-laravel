@@ -2479,7 +2479,11 @@ $__componentsActive = $_isActive($__components);
         if (!empty($productImage)) {
             $productImage = trim((string) $productImage);
             if ($productImage !== '') {
-                $productImagePath = normalize_pdf_image($productImage);
+                $resolved = normalize_pdf_image($productImage);
+                // Only use if it resolved to an actual base64 image (file was found)
+                if ($resolved && strpos($resolved, 'data:image') === 0) {
+                    $productImagePath = $resolved;
+                }
             }
         }
 
