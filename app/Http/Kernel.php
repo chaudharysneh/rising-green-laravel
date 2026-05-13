@@ -62,6 +62,7 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'main_admin' => \App\Http\Middleware\EnsureMainAdmin::class,
         'matrix_permission' => \App\Http\Middleware\CheckMatrixPermission::class,
+        'no.cache' => \App\Http\Middleware\NoCache::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,

@@ -61,9 +61,7 @@
                                 </div>
 
                                 <!-- Forgot Password -->
-                                <div class="d-flex justify-content-end mb-4">
-                                    <a href="" class="text-decoration-none small fw-medium">Forgot Password?</a>
-                                </div>
+                                <!-- Removed: Forgot Password functionality not implemented -->
 
                                 <!-- Login Button -->
                                 <div class="d-grid">

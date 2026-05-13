@@ -98,7 +98,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+Route::get('/', [AuthController::class, 'showLoginForm'])->middleware('guest')->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/whatsapp-configration/webhook', [WhatsappWebhookController::class, 'verify']);
@@ -109,7 +109,7 @@ Route::get('/auth/google', [MeetingController::class, 'redirectToGoogle'])->name
 Route::get('/auth/google/callback', [MeetingController::class, 'handleGoogleCallback'])->name('google.callback');
 Route::get('/google/calendar/callback', [MeetingController::class, 'handleGoogleCallback']); // Alias for user's configured URI
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::redirect('/sms-marketing', '/marketing/sms-marketing');
     Route::redirect('/sms-marketing/logs', '/marketing/sms-marketing/logs');
     Route::redirect('/sms-marketing/templates/create', '/marketing/sms-marketing/templates/create');
