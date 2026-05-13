@@ -1,8 +1,18 @@
 (function () {
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initTaskTable);
+        document.addEventListener("DOMContentLoaded", function() {
+            initTaskTable();
+            // Initialize Tom Select for remote searches (assigned_user_id, etc.)
+            if (window.initRemoteSelects) {
+                window.initRemoteSelects();
+            }
+        });
     } else {
         initTaskTable();
+        // Initialize Tom Select for remote searches (assigned_user_id, etc.)
+        if (window.initRemoteSelects) {
+            window.initRemoteSelects();
+        }
     }
 
     function initTaskTable() {

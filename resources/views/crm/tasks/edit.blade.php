@@ -50,9 +50,11 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-user me-2 text-muted"></i>Assigned To</label>
                             @if(auth()->user()->isAdmin())
                                 <select name="assigned_user_id" id="assigned_user_id"
-                                    class="form-select @error('assigned_user_id') is-invalid @enderror" required>
-                                    <option value="">Select Staff</option>
-                                    @foreach ($users as $user)
+                                    class="form-select @error('assigned_user_id') is-invalid @enderror"
+                                    data-search-url="{{ route('api.users.search') }}" data-search-type="user"
+                                    data-search-placeholder="-- Search User --">
+                                    <option value="">-- Search User --</option>
+                                    @foreach($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
                                             @selected(old('assigned_user_id', $task->assigned_user_id) == $user->id)>{{ $user->name }}</option>
                                     @endforeach
@@ -134,7 +136,12 @@
 
         @include('crm.partials.status-history-table', ['histories' => $task->statusHistories])
     </div>
+    @push('styles')
+        <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    @endpush
+
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
         <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/tasks.js') }}"></script>
     @endpush
 @endsection
