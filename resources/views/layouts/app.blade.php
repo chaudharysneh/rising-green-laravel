@@ -117,6 +117,12 @@
             background: linear-gradient(135deg, #355fdf 0%, #243e9d 100%);
         }
 
+        .dashboard-plan-modal__header .modal-title,
+        .dashboard-plan-modal__header .modal-title span,
+        .dashboard-plan-modal__header .modal-title i {
+            color: #fff !important;
+        }
+
         .dashboard-plan-modal__header .btn-close {
             filter: invert(1);
             opacity: .8;
@@ -602,7 +608,7 @@
                                     'https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=ffffff&size=128');
                         @endphp
                         <div class="crm-top-actions">
-                            @if (!empty($currentSubscriptionPlan))
+                            @if ($authUser?->isAdmin() && !empty($currentSubscriptionPlan))
                                 @php
                                     $isPremiumPlan = str_contains(strtolower($currentSubscriptionPlan->name ?? ''), 'premium');
                                 @endphp
