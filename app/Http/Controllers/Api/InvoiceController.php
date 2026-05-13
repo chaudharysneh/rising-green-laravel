@@ -137,7 +137,13 @@ class InvoiceController extends ApiBaseController
             $discount = (float) ($request->input('discount') ?? 0);
             $subsidyAmount = (float) ($request->input('subsidy_amount') ?? 0);
             $applyCharges = (int) ($request->input('apply_gst') ?? 0);
-            $gstPercent = $applyCharges ? (float) ($request->input('gst') ?? 0) : 0;
+            $gstPercent = (float) ($request->input('gst') ?? 0);
+            if ($gstPercent > 0 && !$request->has('apply_gst')) {
+                $applyCharges = 1;
+            }
+            if (!$applyCharges) {
+                $gstPercent = 0;
+            }
             $currencyId = $request->input('currency_id');
 
             // Handle file upload
@@ -151,6 +157,25 @@ class InvoiceController extends ApiBaseController
 
             // Parse products JSON (from BOM), with fallback to raw form arrays.
             $products = $this->normalizeInvoiceProducts($request);
+
+            // Validate at least one product selected
+            $hasProduct = false;
+            foreach ($products as $p) {
+                if (!empty($p['product_id'])) {
+                    $hasProduct = true;
+                    break;
+                }
+            }
+
+            if (!$hasProduct) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please select at least one BOM',
+                    'errors' => [
+                        'products' => ['Please select at least one BOM'],
+                    ],
+                ], 422);
+            }
 
             // Calculate subtotal and GST
             $basePrice = $price * $quantity;
@@ -178,6 +203,7 @@ class InvoiceController extends ApiBaseController
             $invoice = Invoice::create([
                 'customer_id' => $customerId,
                 'user_id' => $userId,
+                'product_id' => $request->input('product_id'),
                 'invoice_no' => $invoiceNo,
                 'invoice_date' => $invoiceDate,
                 'invoice_name' => $invoiceName,
@@ -284,7 +310,13 @@ class InvoiceController extends ApiBaseController
             $discount = (float) ($request->input('discount') ?? 0);
             $subsidyAmount = (float) ($request->input('subsidy_amount') ?? 0);
             $applyCharges = (int) ($request->input('apply_gst') ?? 0);
-            $gstPercent = $applyCharges ? (float) ($request->input('gst') ?? 0) : 0;
+            $gstPercent = (float) ($request->input('gst') ?? 0);
+            if ($gstPercent > 0 && !$request->has('apply_gst')) {
+                $applyCharges = 1;
+            }
+            if (!$applyCharges) {
+                $gstPercent = 0;
+            }
             $currencyId = $request->input('currency_id');
 
             // Handle file upload
@@ -298,6 +330,25 @@ class InvoiceController extends ApiBaseController
 
             // Parse products JSON, with fallback to raw form arrays.
             $products = $this->normalizeInvoiceProducts($request);
+
+            // Validate at least one product selected
+            $hasProduct = false;
+            foreach ($products as $p) {
+                if (!empty($p['product_id'])) {
+                    $hasProduct = true;
+                    break;
+                }
+            }
+
+            if (!$hasProduct) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please select at least one BOM',
+                    'errors' => [
+                        'products' => ['Please select at least one BOM'],
+                    ],
+                ], 422);
+            }
 
             // Calculate subtotal and GST
             $basePrice = $price * $quantity;
@@ -321,6 +372,7 @@ class InvoiceController extends ApiBaseController
             // Update invoice
             $updateData = [
                 'customer_id' => $customerId,
+                'product_id' => $request->input('product_id'),
                 'invoice_date' => $invoiceDate,
                 'invoice_name' => $invoiceName,
                 'type' => $type,

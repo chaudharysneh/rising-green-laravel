@@ -7,14 +7,78 @@ if (!function_exists('normalize_pdf_image')) {
             return '';
         }
 
+        // Helper closure to optimize and convert progressive images to Baseline using GD
+        $optimizeImage = function($candidate) {
+            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+            if (empty($ext)) $ext = 'png';
+            elseif ($ext === 'jpg') $ext = 'jpeg';
+            
+            if (extension_loaded('gd') && ($ext === 'jpg' || $ext === 'jpeg')) {
+                try {
+                    // Detect Progressive JPEG format using header inspection
+                    $handle = @fopen($candidate, 'rb');
+                    $isProgressive = false;
+                    if ($handle) {
+                        $header = @fread($handle, 131072); // Read initial segment to check for SOF2 markers
+                        @fclose($handle);
+                        if (strpos($header, "\xFF\xC2") !== false) {
+                            $isProgressive = true;
+                        }
+                    }
+
+                    // Run GD ONLY for broken Progressive JPEGs. Baseline JPEGs are left untouched!
+                    if ($isProgressive) {
+                        $srcImg = @imagecreatefromjpeg($candidate);
+                        if ($srcImg) {
+                            $width = imagesx($srcImg);
+                            $height = imagesy($srcImg);
+                            
+                            // Keep 100% of original dimensions to prevent tampering with document layout sizes!
+                            $newW = $width;
+                            $newH = $height;
+                            
+                            $dstImg = imagecreatetruecolor($newW, $newH);
+                            $white = imagecolorallocate($dstImg, 255, 255, 255);
+                            imagefilledrectangle($dstImg, 0, 0, $newW, $newH, $white);
+                            
+                            imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $width, $height);
+                            
+                            ob_start();
+                            imageinterlace($dstImg, 0); // Enforce non-progressive baseline format
+                            imagejpeg($dstImg, null, 90); // High quality 90 to preserve crispness
+                            $binData = ob_get_clean();
+                            
+                            imagedestroy($srcImg);
+                            imagedestroy($dstImg);
+                            
+                            if ($binData !== false && strlen($binData) > 0) {
+                                return 'data:image/jpeg;base64,' . base64_encode($binData);
+                            }
+                        }
+                    }
+                } catch (\Throwable $t) {}
+            }
+            
+            // Fast pathway for all other formats (Baseline JPEG & PNG) to preserve exact original bytes
+            $imgData = @file_get_contents($candidate);
+            if ($imgData !== false) {
+                $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+            }
+            return null;
+        };
+
+        // If it's a base64 data URI, return as-is
         if (strpos($path, 'data:image') === 0) {
             return $path;
         }
 
+        // If it starts with http/https
         if (preg_match('/^https?:\/\//i', $path)) {
             $urlParts = parse_url($path);
             if (isset($urlParts['path'])) {
                 $urlPath = ltrim($urlParts['path'], '/');
+
                 $candidates = [
                     public_path($urlPath),
                     public_path(preg_replace('#^public/#i', '', $urlPath)),
@@ -22,13 +86,8 @@ if (!function_exists('normalize_pdf_image')) {
                 ];
                 foreach ($candidates as $candidate) {
                     if (file_exists($candidate) && is_file($candidate)) {
-                        $imgData = @file_get_contents($candidate);
-                        if ($imgData !== false) {
-                            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                            if (empty($ext)) $ext = 'png';
-                            elseif ($ext === 'jpg') $ext = 'jpeg';
-                            return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                        }
+                        $result = $optimizeImage($candidate);
+                        if ($result) return $result;
                         return $candidate;
                     }
                 }
@@ -36,6 +95,7 @@ if (!function_exists('normalize_pdf_image')) {
             return $path;
         }
 
+        // It is a relative path or filename
         $cleanPath = preg_replace('#^public(?:/|\\\\)#i', '', $path);
         $cleanPath = ltrim($cleanPath, '/\\');
         $rawPath = preg_replace('#^storage(?:/|\\\\)#i', '', $cleanPath);
@@ -43,26 +103,24 @@ if (!function_exists('normalize_pdf_image')) {
 
         $candidates = [
             public_path($cleanPath),
+            public_path('storage/' . $cleanPath),
             storage_path('app/public/' . $rawPath),
             public_path('assets/' . $cleanPath),
             public_path('uploads/' . $cleanPath),
             public_path('assets/img/' . $cleanPath),
             public_path('assets/img/profile/' . $cleanPath),
+            storage_path('app/public/' . $cleanPath),
         ];
 
         foreach ($candidates as $candidate) {
             if (file_exists($candidate) && is_file($candidate)) {
-                $imgData = @file_get_contents($candidate);
-                if ($imgData !== false) {
-                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    if (empty($ext)) $ext = 'png';
-                    elseif ($ext === 'jpg') $ext = 'jpeg';
-                    return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                }
+                $result = $optimizeImage($candidate);
+                if ($result) return $result;
                 return $candidate;
             }
         }
 
+        // Fallback to asset() HTTP URL
         return asset($cleanPath);
     }
 }
@@ -300,13 +358,13 @@ if (!function_exists('base_url')) {
             </tbody>
             <tfoot>
                 @php
-                    $subtotal = (float) ($invoice->total ?? 0);
+                    $subtotal = (float) ($invoice->price ?? 0);
                     $gstRate = (float) ($invoice->gst ?? 0);
                     $discount = (float) ($invoice->discount ?? 0);
                     $subsidy = (float) ($invoice->subsidy_amount ?? 0);
                     $solarStructureCharges = (float) ($invoice->solar_structure_charges ?? 0);
 
-                    $gstAmount = ($subtotal + $solarStructureCharges) * ($gstRate / 100);
+                    $gstAmount = $subtotal * ($gstRate / 100);
                     $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
                     $lendingCost = $totalPayable - $subsidy;
                 @endphp
@@ -315,21 +373,33 @@ if (!function_exists('base_url')) {
                     <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Base Price</td>
                     <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($subtotal, 2) }}</td>
                 </tr>
+                @if($solarStructureCharges > 0)
                 <tr>
                     <td style="border: 1px solid #333; background-color: #fff;"></td>
                     <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Solar Structure Charges</td>
                     <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($solarStructureCharges, 2) }}</td>
                 </tr>
+                @endif
+                @if($gstRate > 0)
                 <tr>
                     <td style="border: 1px solid #333; background-color: #fff;"></td>
                     <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">GST ({{ $gstRate }}%)</td>
-                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($invoice->gst_amount ?? $gstAmount, 2) }}</td>
+                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($gstAmount, 2) }}</td>
                 </tr>
+                @endif
+                @if($discount > 0)
+                <tr>
+                    <td style="border: 1px solid #333; background-color: #fff;"></td>
+                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Discount</td>
+                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">-{{ number_format($discount, 2) }}</td>
+                </tr>
+                @endif
                 <tr>
                     <td style="border: 1px solid #333; background-color: #fff;"></td>
                     <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Customer Payable Amount</td>
                     <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($totalPayable, 2) }}</td>
                 </tr>
+                @if($subsidy > 0)
                 <tr>
                     <td style="border: 1px solid #333; background-color: #fff;"></td>
                     <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Subsidy</td>
@@ -340,6 +410,7 @@ if (!function_exists('base_url')) {
                     <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Lending Cost Of Customer</td>
                     <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($lendingCost, 2) }}</td>
                 </tr>
+                @endif
             </tfoot>
         </table>
 
@@ -416,35 +487,29 @@ if (!function_exists('base_url')) {
 
         <!-- BOM Section -->
         <div style="margin-top: 20px;">
-            <h2 style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
+            <h2 style="text-align: center; color: #19547B; margin-bottom: 30px; text-decoration: underline;">
                 BILL OF MATERIALS (BOM)
             </h2>
             <table class="quotation-table" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
                 <thead style="background-color: #52866A; color: #fff;">
                     <tr>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; width: 12%; background-color: #52866A !important; color: #ffffff !important;">Image</th>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; width: 20%; background-color: #52866A !important; color: #ffffff !important;">Product Name</th>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; width: 38%; background-color: #52866A !important; color: #ffffff !important;">Specifications</th>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: center; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Quantity</th>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Price</th>
-                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Total Excluding GST</th>
+                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important; width: 35%;">Product Name</th>
+                        <th style="padding: 10px 8px; font-weight: bold; font-size: 13px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important; width: 65%;">Specifications</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
                         $allproduct = is_array($invoice->product_name) ? $invoice->product_name : json_decode($invoice->product_name, true);
-                        $total_quantity = 0;
-                        $grand_total_excluding_gst = 0.0;
                     @endphp
                     @if(is_array($allproduct) && !empty($allproduct))
                         @foreach($allproduct as $item)
                             @php
                                 $product_id = $item['product_id'] ?? null;
-                                $product_name_display = $item['name'] ?? 'Product name not found';
-                                $product_name_display = ucwords(strtolower($product_name_display));
-                                $product_quantity = (int)($item['quantity'] ?? 0);
+                                $product_name_display = $item['name'] ?? '';
+                                $product_quantity = $item['quantity'] ?? 0;
                                 $product_category_makes = $item['category_name'] ?? '';
 
+                                // Find product details from master list
                                 $full_product_details = null;
                                 foreach ($product_data as $prod_detail) {
                                     if ($prod_detail['id'] == $product_id) {
@@ -453,12 +518,34 @@ if (!function_exists('base_url')) {
                                     }
                                 }
 
-                                $specifications = [];
-                                $make_val = ltrim(trim($product_category_makes), ',');
-                                if (!empty($make_val)) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Make:</span> ' . e($make_val);
+                                // Robust product name fallback
+                                if (empty(trim($product_name_display)) && $full_product_details) {
+                                    $product_name_display = $full_product_details['product_name'] ?? '';
                                 }
-                                if ($full_product_details && !empty($full_product_details['technology'])) {
+                                if (empty(trim($product_name_display))) {
+                                    $product_name_display = 'Product name not found';
+                                }
+                                $product_name_display = ucwords(strtolower($product_name_display));
+
+                                // Robust Make (category) fallback
+                                if (empty(trim($product_category_makes)) && $full_product_details && !empty($full_product_details['categories'])) {
+                                    $firstCat = reset($full_product_details['categories']);
+                                    $product_category_makes = $firstCat['name'] ?? '';
+                                }
+
+                                $specifications = [];
+                                if (!empty($product_category_makes)) {
+                                    $specifications[] = '<strong>Make: </strong>' . e($product_category_makes);
+                                }
+                                if (!empty($product_quantity)) {
+                                    $specifications[] = '<strong>Quantity: </strong>' . e($product_quantity);
+                                }
+
+                                // Technology with fallback to legacy JSON and ID lookups
+                                $techVal = null;
+                                if ($full_product_details && !empty($full_product_details['technology_id'])) {
+                                    $techVal = $technology_map[$full_product_details['technology_id']] ?? null;
+                                } elseif ($full_product_details && !empty($full_product_details['technology'])) {
                                     $techArray = json_decode($full_product_details['technology'], true);
                                     if (!is_array($techArray)) {
                                         $techArray = [$full_product_details['technology']];
@@ -466,10 +553,18 @@ if (!function_exists('base_url')) {
                                     $techArray = array_filter($techArray, fn($v) => trim((string) $v) !== '');
                                     if (!empty($techArray)) {
                                         $techNames = array_map(fn($id) => $technology_map[$id] ?? $id, $techArray);
-                                        $specifications[] = '<span style="color: #555; font-weight: bold;">Technology:</span> ' . e(implode(', ', $techNames));
+                                        $techVal = implode(', ', $techNames);
                                     }
                                 }
-                                if ($full_product_details && !empty($full_product_details['warranty'])) {
+                                if ($techVal) {
+                                    $specifications[] = '<strong>Technology: </strong>' . e($techVal);
+                                }
+
+                                // Warranty with fallback to legacy JSON and ID lookups
+                                $warVal = null;
+                                if ($full_product_details && !empty($full_product_details['warranty_id'])) {
+                                    $warVal = $warranty_map[$full_product_details['warranty_id']] ?? null;
+                                } elseif ($full_product_details && !empty($full_product_details['warranty'])) {
                                     $warArray = json_decode($full_product_details['warranty'], true);
                                     if (!is_array($warArray)) {
                                         $warArray = [$full_product_details['warranty']];
@@ -477,87 +572,45 @@ if (!function_exists('base_url')) {
                                     $warArray = array_filter($warArray, fn($v) => trim((string) $v) !== '');
                                     if (!empty($warArray)) {
                                         $warNames = array_map(fn($id) => $warranty_map[$id] ?? $id, $warArray);
-                                        $specifications[] = '<span style="color: #555; font-weight: bold;">Warranty:</span> ' . e(implode(', ', $warNames));
+                                        $warVal = implode(', ', $warNames);
                                     }
                                 }
-                                if ($full_product_details && !empty($full_product_details['capacity'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Capacity:</span> ' . e($full_product_details['capacity']);
+                                if ($warVal) {
+                                    $specifications[] = '<strong>Warranty: </strong>' . e($warVal);
                                 }
-                                if ($full_product_details && !empty($full_product_details['tax_rate']) && (float)$full_product_details['tax_rate'] > 0) {
-                                    $tax_rate = (float)$full_product_details['tax_rate'];
-                                    $tax_type = $full_product_details['tax_type'] ?? '';
-                                    if (strcasecmp($tax_type, 'IGST') === 0 || strcasecmp($tax_type, 'GST') === 0) {
-                                        $specifications[] = '<span style="color: #555; font-weight: bold;">GST:</span> ' . e($tax_type) . ' ' . $tax_rate . '%';
-                                    } else {
-                                        $half_rate = $tax_rate / 2;
-                                        $specifications[] = '<span style="color: #555; font-weight: bold;">GST:</span> (CGST ' . $half_rate . '% + SGST ' . $half_rate . '%)';
-                                    }
-                                }
+
                                 if ($full_product_details && !empty($full_product_details['height'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Height:</span> ' . e($full_product_details['height']);
+                                    $specifications[] = '<strong>Height: </strong>' . e($full_product_details['height']);
                                 }
                                 if ($full_product_details && !empty($full_product_details['fitting_material'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Fitting Material:</span> ' . e($full_product_details['fitting_material']);
+                                    $specifications[] = '<strong>Fitting Material: </strong>' . e($full_product_details['fitting_material']);
                                 }
                                 if ($full_product_details && !empty($full_product_details['fitting_type'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Fitting Type:</span> ' . e($full_product_details['fitting_type']);
+                                    $specifications[] = '<strong>Fitting Type: </strong>' . e($full_product_details['fitting_type']);
                                 }
                                 if ($full_product_details && !empty($full_product_details['thickness'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Thickness:</span> ' . e($full_product_details['thickness']);
+                                    $specifications[] = '<strong>Thickness: </strong>' . e($full_product_details['thickness']);
                                 }
                                 if ($full_product_details && !empty($full_product_details['size_of_pipe'])) {
-                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Size of Pipe:</span> ' . e($full_product_details['size_of_pipe']);
+                                    $specifications[] = '<strong>Size of Pipe: </strong>' . e($full_product_details['size_of_pipe']);
                                 }
+                                if ($full_product_details && !empty($full_product_details['capacity'])) {
+                                    $specifications[] = '<strong>Capacity: </strong>' . e($full_product_details['capacity']);
+                                }
+
                                 $specifications_html = implode('<br>', $specifications);
-
-                                $price_val = $full_product_details ? (float)($full_product_details['price'] ?? 0) : 0.0;
-                                $row_total = $price_val * $product_quantity;
-
-                                $total_quantity += $product_quantity;
-                                $grand_total_excluding_gst += $row_total;
-
-                                $qty_unit = '';
-                                if ($full_product_details && !empty($full_product_details['nos'])) {
-                                    $qty_unit = '(nos)';
-                                } elseif ($full_product_details && !empty($full_product_details['meter'])) {
-                                    $qty_unit = '(mtr)';
-                                }
                             @endphp
                             <tr>
-                                <td style="padding: 10px 8px; border: 1px solid #333; text-align: center; vertical-align: middle;">
-                                    @if ($full_product_details && !empty($full_product_details['image']) && file_exists(public_path('storage/' . $full_product_details['image'])))
-                                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
-                                            <img src="{{ public_path('storage/' . $full_product_details['image']) }}" alt="{{ $product_name_display }}" style="width: 80px; height: 80px; object-fit: contain;">
-                                        </div>
-                                    @else
-                                        <div style="width: 80px; height: 80px; background-color: #f5f5f5; border: 1px solid #ddd; line-height: 80px; text-align: center; color: #ccc; font-size: 10px;">No Image</div>
-                                    @endif
-                                </td>
-                                <td style="padding: 10px 8px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle; font-size: 12px;">{{ $product_name_display }}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #333; font-size: 11px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333; font-size: 12px;">{{ $product_quantity }}{{ $qty_unit }}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333; font-size: 12px;">{{ number_format($price_val, 2) }}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333; font-size: 12px;">{{ number_format($row_total, 2) }}</td>
+                                <td style="padding: 10px 8px; border: 1px solid #333; color: #333; font-weight: bold; font-size: 13px; font-family: sans-serif; vertical-align: middle;">{{ $product_name_display }}</td>
+                                <td style="padding: 10px 8px; border: 1px solid #333; font-size: 13px; font-family: sans-serif; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
                             </tr>
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" style="text-align: center; color: #666; padding: 15px; border: 1px solid #333;">No products added to this invoice</td>
+                            <td colspan="2" style="text-align: center; color: #666; padding: 15px; border: 1px solid #333;">No products added to this invoice</td>
                         </tr>
                     @endif
                 </tbody>
-                @if(is_array($allproduct) && !empty($allproduct))
-                    <tfoot>
-                        <tr style="font-weight: bold;">
-                            <td style="border: 1px solid #333; background-color: #fff;"></td>
-                            <td style="border: 1px solid #333; background-color: #fff;"></td>
-                            <td style="text-align: right; padding: 8px 12px; border: 1px solid #333; font-size: 13px; background-color: #fff; color: #333;">Total:</td>
-                            <td style="text-align: right; padding: 8px 12px; border: 1px solid #333; font-size: 13px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
-                            <td style="text-align: center; padding: 8px 12px; border: 1px solid #333; font-size: 13px; background-color: #fff; color: #333;">—</td>
-                            <td style="text-align: right; padding: 8px 12px; border: 1px solid #333; font-size: 13px; background-color: #52866A !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
-                        </tr>
-                    </tfoot>
-                @endif
             </table>
         </div>
     </div>

@@ -521,6 +521,20 @@
         fetchEstimates(1);
     }
 
+    function restrictNegative(inputEl) {
+        if (!inputEl) return;
+        inputEl.addEventListener('keydown', function(e) {
+            if (e.key === '-') {
+                e.preventDefault();
+            }
+        });
+        inputEl.addEventListener('input', function() {
+            if (parseFloat(this.value) < 0) {
+                this.value = 0;
+            }
+        });
+    }
+
     function initEstimateForm() {
         const form = document.querySelector('.ajax-estimate-form');
         if (!form) {
@@ -793,6 +807,10 @@
         const deleteBtn = row.querySelector('.delete-bom-row');
         const qtyInput = row.querySelector('input[name="product_qty[]"]');
         const priceInput = row.querySelector('.product-price');
+
+        if (qtyInput) {
+            restrictNegative(qtyInput);
+        }
 
         if (productSelect) {
             productSelect.addEventListener('change', function () {
@@ -1080,6 +1098,7 @@
         inputs.forEach(function (id) {
             const input = document.getElementById(id);
             if (input) {
+                restrictNegative(input);
                 ['input', 'change'].forEach(function(evt) {
                     input.addEventListener(evt, function() {
                         // Flag that user manually overridden price computation if edit made directly in field

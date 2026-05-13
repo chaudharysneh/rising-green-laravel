@@ -354,6 +354,7 @@
         const subsidyAmount = document.getElementById('subsidy_amount');
         const priceInput = document.getElementById('price');
         const qtyInput = document.getElementById('quantity');
+        const typeInput = document.getElementById('type');
         
         const subtotalDisplay = document.getElementById('subtotal_display');
         const finalTotalDisplay = document.getElementById('final_total_display');
@@ -366,10 +367,55 @@
         const structureInputBox = document.getElementById('structure-charges-input');
         const structureInput = document.getElementById('solar_structure_charges');
 
+        function autoCalculateSubsidy() {
+            if (!typeInput || !qtyInput || !subsidyAmount) return;
+
+            const type = typeInput.value ? typeInput.value.trim().toLowerCase() : '';
+            const kw = parseFloat(qtyInput.value || 0);
+
+            // Fetch injected dynamic subsidies map
+            const dataArr = window.subsidiesData || [];
+            if (dataArr.length === 0) {
+                return;
+            }
+
+            // Create a quick lookup map
+            const rates = {};
+            dataArr.forEach(function(item) {
+                if (item && item.category) {
+                    rates[item.category] = parseFloat(item.amount || 0);
+                }
+            });
+
+            let calculatedSubsidy = 0;
+
+            if (type === 'residential') {
+                const rate0_2 = rates['residential_0_2'] || 0;
+                const rate2_3 = rates['residential_2_3'] || 0;
+                const maxAbove3 = rates['residential_above_3'] || 0;
+
+                if (kw < 2) {
+                    calculatedSubsidy = rate0_2;
+                } else if (kw >= 2 && kw < 3) {
+                    calculatedSubsidy = rate2_3;
+                } else if (kw >= 3) {
+                    calculatedSubsidy = maxAbove3;
+                }
+            } else if (type === 'common meter') {
+                const rateCommon = rates['common_meter'] || 0;
+                calculatedSubsidy = rateCommon;
+            } else {
+                calculatedSubsidy = 0;
+            }
+
+            // Safely update the field value
+            subsidyAmount.value = parseFloat(calculatedSubsidy).toFixed(2);
+        }
+
         function calculateTotals() {
             let price = parseFloat(priceInput?.value) || 0;
             let qty = parseFloat(qtyInput?.value) || 0;
-            let subtotal = price * qty;
+            let subtotal = price;
             
             if (structureCheck && structureCheck.checked) {
                 subtotal += (parseFloat(structureInput.value) || 0);
@@ -402,9 +448,47 @@
             });
         }
 
-        [priceInput, qtyInput, gstPercent, discount, subsidyAmount, structureInput].forEach(el => {
+        function restrictNegative(inputEl) {
+            if (!inputEl) return;
+            inputEl.addEventListener('keydown', function(e) {
+                if (e.key === '-') {
+                    e.preventDefault();
+                }
+            });
+            inputEl.addEventListener('input', function() {
+                if (parseFloat(this.value) < 0) {
+                    this.value = 0;
+                }
+            });
+        }
+
+        // Enforce non-negative values on all major numerical inputs
+        [priceInput, qtyInput, gstPercent, discount, subsidyAmount, structureInput].forEach(restrictNegative);
+
+        // Standard numeric input changes
+        [priceInput, gstPercent, discount, subsidyAmount, structureInput].forEach(el => {
             if (el) el.addEventListener('input', calculateTotals);
         });
+
+        // Quantity triggers subsidy auto-calculation THEN totals
+        if (qtyInput) {
+            ['input', 'change'].forEach(evt => {
+                qtyInput.addEventListener(evt, function() {
+                    autoCalculateSubsidy();
+                    calculateTotals();
+                });
+            });
+        }
+
+        // Type selection triggers subsidy auto-calculation THEN totals
+        if (typeInput) {
+            ['input', 'change'].forEach(evt => {
+                typeInput.addEventListener(evt, function() {
+                    autoCalculateSubsidy();
+                    calculateTotals();
+                });
+            });
+        }
         
         if (structureCheck) {
             structureCheck.addEventListener('change', function() {
@@ -452,7 +536,13 @@
             const productSelect = row.querySelector('.product-select');
             const makeSelect = row.querySelector('.product-make');
             const deleteBtn = row.querySelector('.delete-bom-row');
+            const qtyIn = row.querySelector('input[name="product_qty[]"]');
             
+            // Enforce non-negative values on dynamic quantities
+            if (qtyIn) {
+                restrictNegative(qtyIn);
+            }
+
             if (productSelect && makeSelect) {
                 productSelect.addEventListener('change', function() {
                     populateMakeOptions(this, makeSelect, '');
@@ -524,6 +614,10 @@
             $form.find('.invalid-feedback.ajax-error').remove();
 
             const formData = new FormData(this);
+            formData.set('apply_gst', document.getElementById('apply_gst')?.checked ? '1' : '0');
+            formData.set('gst', document.getElementById('apply_gst')?.checked ? (document.getElementById('gst_percent')?.value || '0') : '0');
+            formData.set('total', document.getElementById('subtotal')?.value || '0');
+            formData.set('final_total', document.getElementById('final_total')?.value || '0');
             btn.prop('disabled', true).html(`<span class="spinner-border spinner-border-sm me-2"></span>${method === 'PUT' ? 'Updating...' : 'Creating...'}`);
 
             $.ajax({
@@ -568,6 +662,13 @@
                 }
             });
         }
+
+        // Perform initial calculation on page load
+        const initialQty = qtyInput?.value;
+        if (initialQty && parseFloat(initialQty) > 0) {
+            autoCalculateSubsidy();
+        }
+        calculateTotals();
     }
 
     if ($.fn.select2) {

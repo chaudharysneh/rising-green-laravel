@@ -10,6 +10,7 @@ use App\Models\BomProduct;
 use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
+use App\Models\Subsidy;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +30,8 @@ class InvoiceController extends Controller
         $currencies = Currency::where('is_active', true)->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        return view('crm.invoices.create', compact('customers', 'currencies', 'bomProducts', 'templates'));
+        $subsidies = Subsidy::active()->get();
+        return view('crm.invoices.create', compact('customers', 'currencies', 'bomProducts', 'templates', 'subsidies'));
     }
 
     public function edit(Invoice $invoice)
@@ -40,7 +42,8 @@ class InvoiceController extends Controller
         $currencies = Currency::where('is_active', true)->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        return view('crm.invoices.edit', compact('invoice', 'customers', 'currencies', 'bomProducts', 'templates'));
+        $subsidies = Subsidy::active()->get();
+        return view('crm.invoices.edit', compact('invoice', 'customers', 'currencies', 'bomProducts', 'templates', 'subsidies'));
     }
 
     // status update
@@ -124,6 +127,8 @@ class InvoiceController extends Controller
 
         // Get user/company info
         $user = auth()->user();
+        
+        // Replicate profile settings logic for the template
         $settings = \App\Models\Setting::query()->whereIn('key', [
             'company_name',
             'company_tagline',
@@ -131,13 +136,15 @@ class InvoiceController extends Controller
             'company_tax_id',
             'company_logo_path',
             'company_qr_code_path',
+            'phone',
+            'email',
             'social_instagram',
             'social_facebook',
             'social_linkedin',
         ])->pluck('value', 'key');
 
         // Get all products for BOM specifications
-        $product_data = BomProduct::all()->toArray();
+        $product_data = BomProduct::with('categories')->get()->toArray();
 
         // Load technology and warranty maps
         $technologyList = Technology::all();
@@ -153,22 +160,31 @@ class InvoiceController extends Controller
             $warranty_map[$war->id] = $war->title;
         }
 
-        // Render the invoice details HTML (similar to quotation_html)
+        // Render the invoice details HTML
         $quotation_html = view('crm.invoices.pdf', compact('invoice', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'))->render();
 
-        // Get the selected template or default
+        // Get the selected template or default to the first one (aligned with EstimateController)
         $template = null;
         if ($invoice->template_id) {
             $template = PdfBuilderForm::find($invoice->template_id);
         }
         if (!$template) {
-            $template = PdfBuilderForm::latest()->first();
+            $template = PdfBuilderForm::first();
+        }
+
+        // Inject an alias for estimate_date so the template can render invoice_date instead of today's date
+        if ($invoice->invoice_date) {
+            $invoice->estimate_date = $invoice->invoice_date->format('Y-m-d');
         }
 
         if ($template) {
             $form_data = $template->form_data ?? [];
 
+            // Prepare data for the new template wrapper
+            // Pass $invoice AS the 'estimate' key, and set 'estimate_no' as the invoice no so pdf.blade.php handles it correctly
             $pdfData = [
+                'estimate' => $invoice,
+                'estimate_no' => $invoice->invoice_no,
                 'companySettings' => $settings,
                 'companyLogoPath' => ($settings['company_logo_path'] ?? null) ? Storage::disk('public')->path($settings['company_logo_path']) : null,
                 'companyQrCodePath' => ($settings['company_qr_code_path'] ?? null) ? Storage::disk('public')->path($settings['company_qr_code_path']) : null,
@@ -195,9 +211,67 @@ class InvoiceController extends Controller
             $pdf->setPaper('A4', 'portrait');
         } else {
             $pdf = Pdf::loadView('crm.invoices.pdf', compact('invoice', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'));
+            $pdf->setPaper('A4', 'portrait');
+        }
+
+        // Save Dompdf output as temp PDF
+        $tmpMain = tempnam(sys_get_temp_dir(), 'main_pdf_');
+        file_put_contents($tmpMain, $pdf->output());
+
+        // Now merge with customer uploaded docs
+        $mergedPdf = new \setasign\Fpdi\Fpdi();
+
+        // Add Dompdf file
+        $pageCount = $mergedPdf->setSourceFile($tmpMain);
+        for ($page = 1; $page <= $pageCount; $page++) {
+            $tpl = $mergedPdf->importPage($page);
+            $size = $mergedPdf->getTemplateSize($tpl);
+            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $mergedPdf->useTemplate($tpl);
+        }
+
+        // Add each customer doc (if PDF/Image)
+        $customer_docs = is_array($invoice->customer_docs) ? $invoice->customer_docs : json_decode($invoice->customer_docs ?? '[]', true);
+        $customer_docs = is_array($customer_docs) ? $customer_docs : [];
+        foreach ($customer_docs as $doc) {
+            $path = is_array($doc) ? ($doc['path'] ?? null) : $doc;
+            if ($path && Storage::disk('public')->exists($path)) {
+                $filePath = Storage::disk('public')->path($path);
+                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+                if ($ext === 'pdf') {
+                    try {
+                        $count = $mergedPdf->setSourceFile($filePath);
+                        for ($p = 1; $p <= $count; $p++) {
+                            $tpl = $mergedPdf->importPage($p);
+                            $size = $mergedPdf->getTemplateSize($tpl);
+                            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                            $mergedPdf->useTemplate($tpl);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to merge PDF customer doc {$path}: " . $e->getMessage());
+                    }
+                } elseif (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                    try {
+                        // Convert image to a page
+                        $mergedPdf->AddPage();
+                        $mergedPdf->Image($filePath, 10, 10, 190, 270, strtoupper($ext === 'jpg' ? 'jpeg' : $ext));
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to merge image customer doc {$path}: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+
+        // Clean up temp file
+        if (file_exists($tmpMain)) {
+            @unlink($tmpMain);
         }
 
         $filename = 'invoice-' . ($invoice->invoice_no ?: $invoice->id) . '.pdf';
-        return $pdf->download($filename);
+        return response($mergedPdf->Output('S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 }

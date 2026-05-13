@@ -7,6 +7,67 @@ if (!function_exists('normalize_pdf_image')) {
             return '';
         }
 
+        // Helper closure to optimize and convert progressive images to Baseline using GD
+        $optimizeImage = function($candidate) {
+            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+            if (empty($ext)) $ext = 'png';
+            elseif ($ext === 'jpg') $ext = 'jpeg';
+            
+            if (extension_loaded('gd') && ($ext === 'jpg' || $ext === 'jpeg')) {
+                try {
+                    // Detect Progressive JPEG format using header inspection
+                    $handle = @fopen($candidate, 'rb');
+                    $isProgressive = false;
+                    if ($handle) {
+                        $header = @fread($handle, 131072); // Read initial segment to check for SOF2 markers
+                        @fclose($handle);
+                        if (strpos($header, "\xFF\xC2") !== false) {
+                            $isProgressive = true;
+                        }
+                    }
+
+                    // Run GD ONLY for broken Progressive JPEGs. Baseline JPEGs are left untouched!
+                    if ($isProgressive) {
+                        $srcImg = @imagecreatefromjpeg($candidate);
+                        if ($srcImg) {
+                            $width = imagesx($srcImg);
+                            $height = imagesy($srcImg);
+                            
+                            // Keep 100% of original dimensions to prevent tampering with document layout sizes!
+                            $newW = $width;
+                            $newH = $height;
+                            
+                            $dstImg = imagecreatetruecolor($newW, $newH);
+                            $white = imagecolorallocate($dstImg, 255, 255, 255);
+                            imagefilledrectangle($dstImg, 0, 0, $newW, $newH, $white);
+                            
+                            imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $width, $height);
+                            
+                            ob_start();
+                            imageinterlace($dstImg, 0); // Enforce non-progressive baseline format
+                            imagejpeg($dstImg, null, 90); // High quality 90 to preserve crispness
+                            $binData = ob_get_clean();
+                            
+                            imagedestroy($srcImg);
+                            imagedestroy($dstImg);
+                            
+                            if ($binData !== false && strlen($binData) > 0) {
+                                return 'data:image/jpeg;base64,' . base64_encode($binData);
+                            }
+                        }
+                    }
+                } catch (\Throwable $t) {}
+            }
+            
+            // Fast pathway for all other formats (Baseline JPEG & PNG) to preserve exact original bytes
+            $imgData = @file_get_contents($candidate);
+            if ($imgData !== false) {
+                $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+            }
+            return null;
+        };
+
         // If it's a base64 data URI, return as-is
         if (strpos($path, 'data:image') === 0) {
             return $path;
@@ -17,6 +78,7 @@ if (!function_exists('normalize_pdf_image')) {
             $urlParts = parse_url($path);
             if (isset($urlParts['path'])) {
                 $urlPath = ltrim($urlParts['path'], '/');
+
                 $candidates = [
                     public_path($urlPath),
                     public_path(preg_replace('#^public/#i', '', $urlPath)),
@@ -24,15 +86,8 @@ if (!function_exists('normalize_pdf_image')) {
                 ];
                 foreach ($candidates as $candidate) {
                     if (file_exists($candidate) && is_file($candidate)) {
-                        $imgData = @file_get_contents($candidate);
-                        if ($imgData !== false) {
-                            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                            if (empty($ext))
-                                $ext = 'png';
-                            elseif ($ext === 'jpg')
-                                $ext = 'jpeg';
-                            return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                        }
+                        $result = $optimizeImage($candidate);
+                        if ($result) return $result;
                         return $candidate;
                     }
                 }
@@ -46,29 +101,25 @@ if (!function_exists('normalize_pdf_image')) {
 
         $candidates = [
             public_path($cleanPath),
+            public_path('storage/' . $cleanPath),
             public_path('assets/' . $cleanPath),
             public_path('uploads/' . $cleanPath),
             public_path('uploads/img/product/' . $cleanPath),
             public_path('assets/img/profile/' . $cleanPath),
             public_path('assets/uploads/' . $cleanPath),
             public_path('uploads/products/' . $cleanPath),
+            storage_path('app/public/' . $cleanPath),
         ];
 
         foreach ($candidates as $candidate) {
             if (file_exists($candidate) && is_file($candidate)) {
-                $imgData = @file_get_contents($candidate);
-                if ($imgData !== false) {
-                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    if (empty($ext))
-                        $ext = 'png';
-                    elseif ($ext === 'jpg')
-                        $ext = 'jpeg';
-                    return 'data:image/' . $ext . ';base64,' . base64_encode($imgData);
-                }
+                $result = $optimizeImage($candidate);
+                if ($result) return $result;
                 return $candidate;
             }
         }
 
+        // Fallback to asset() HTTP URL
         return asset($cleanPath);
     }
 }
