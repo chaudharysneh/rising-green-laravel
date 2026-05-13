@@ -63,7 +63,7 @@
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Quantity (kW) </label>
-                            <input type="number" min="0" step="1" name="quantity" id="quantity"
+                            <input type="number" min="0" step="0.01" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
                                 placeholder="Enter kW" required>
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
@@ -252,7 +252,7 @@
 
                                 <div class="totals-row">
                                     <span class="small">Subsidy:</span>
-                                    <input type="number" name="subsidy_amount" id="subsidy_amount" value="0"
+                                    <input type="number" name="subsidy_amount" id="subsidy_amount" value="{{ old('subsidy_amount', 0) }}"
                                         class="input-small">
                                 </div>
 
@@ -274,8 +274,7 @@
                     <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
                         <a href="{{ route('estimates.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
                         <button type="submit" class="btn btn-dark-blue" id="submitBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"
-                                id="btnSpinner"></span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
                             <span id="btnText">Submit</span>
                         </button>
                     </div>
@@ -286,6 +285,9 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.subsidiesData = @json($subsidies ?? []);
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush

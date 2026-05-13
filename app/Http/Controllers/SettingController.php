@@ -350,6 +350,7 @@ class SettingController extends Controller
      */
     public function updateSubsidy(Request $request, Subsidy $subsidy): JsonResponse
     {
+        dd($subsidy->get());
         try {
             $validated = $request->validate([
                 'amount' => ['required', 'numeric', 'min:0'],

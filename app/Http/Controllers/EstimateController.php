@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
+use App\Models\Subsidy;
 use Illuminate\Support\Facades\Storage;
 
 class EstimateController extends Controller
@@ -32,7 +33,9 @@ class EstimateController extends Controller
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
 
-        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts'));
+        $subsidies = Subsidy::active()->get();
+
+        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'subsidies'));
     }
 
     public function show(Estimate $estimate)
@@ -75,7 +78,7 @@ class EstimateController extends Controller
 
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        $bomProducts = \App\Models\BomProduct::with('categories')->orderBy('product_name')->get();
+        $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
 
         if (auth()->user()->isAdmin()) {
             $users = User::orderBy('name')->get();
@@ -83,7 +86,9 @@ class EstimateController extends Controller
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
 
-        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts'));
+        $subsidies = Subsidy::active()->get();
+// dd($estimate);
+        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'subsidies'));
     }
 
     public function generate_estimate_pdf(Estimate $estimate)

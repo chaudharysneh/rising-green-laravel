@@ -88,7 +88,7 @@
                                 class="form-control @error('quantity') is-invalid @enderror" placeholder="Enter kW"
                                 required>
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
-                        </div>
+            </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Price </label>
@@ -325,6 +325,9 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.subsidiesData = @json($subsidies ?? []);
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush
