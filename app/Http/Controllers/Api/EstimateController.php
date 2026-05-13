@@ -174,7 +174,7 @@ class EstimateController extends Controller
             }
 
             // Calculate subtotal and GST (matching reference code logic)
-            $basePrice = $price * $quantity;
+            $basePrice = $price;
             $subtotal = $basePrice + $solarStructureCharges;
 
             $gstAmount = 0;
@@ -355,7 +355,7 @@ class EstimateController extends Controller
             }
 
             // Calculate subtotal and GST
-            $basePrice = $price * $quantity;
+            $basePrice = $price;
             $subtotal = $basePrice + $solarStructureCharges;
 
             $gstAmount = 0;

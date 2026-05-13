@@ -68,60 +68,69 @@ if (!function_exists('normalize_pdf_image')) {
             return null;
         };
 
-        // If it's a base64 data URI, return as-is
+        // If it's already a base64 data URI, return as-is
         if (strpos($path, 'data:image') === 0) {
             return $path;
         }
 
-        // If it starts with http/https
+        // Parse URL paths and filenames
+        $cleanPath = $path;
         if (preg_match('/^https?:\/\//i', $path)) {
             $urlParts = parse_url($path);
-            if (isset($urlParts['path'])) {
-                $urlPath = ltrim($urlParts['path'], '/');
-
-                $candidates = [
-                    public_path($urlPath),
-                    public_path(preg_replace('#^public/#i', '', $urlPath)),
-                    base_path($urlPath)
-                ];
-                foreach ($candidates as $candidate) {
-                    if (file_exists($candidate) && is_file($candidate)) {
-                        $result = $optimizeImage($candidate);
-                        if ($result) return $result;
-                        return $candidate;
-                    }
-                }
-            }
-            return $path;
+            $cleanPath = isset($urlParts['path']) ? ltrim($urlParts['path'], '/\\') : $path;
         }
 
-        // It is a relative path or filename
-        $cleanPath = preg_replace('#^public(?:/|\\\\)#i', '', $path);
+        // Clean prefix components (public, storage, public_html, etc)
+        $cleanPath = preg_replace('#^(?:public|public_html|storage|app/public|storage/app/public)(?:/|\\\\)+#i', '', $cleanPath);
         $cleanPath = ltrim($cleanPath, '/\\');
-        $rawPath = preg_replace('#^storage(?:/|\\\\)#i', '', $cleanPath);
-        $rawPath = ltrim($rawPath, '/\\');
 
+        // Generate robust list of potential disk locations
         $candidates = [
-            public_path($cleanPath),
-            public_path('storage/' . $cleanPath),
-            storage_path('app/public/' . $rawPath),
-            public_path('assets/' . $cleanPath),
-            public_path('uploads/' . $cleanPath),
-            public_path('assets/img/' . $cleanPath),
-            public_path('assets/img/profile/' . $cleanPath),
+            // 1. Standard Storage paths
             storage_path('app/public/' . $cleanPath),
+            storage_path('app/' . $cleanPath),
+            
+            // 2. Standard Public and Public/Storage paths
+            public_path('storage/' . $cleanPath),
+            public_path($cleanPath),
+            
+            // 3. Raw filesystem path mappings in standard web-serving folders
+            base_path('public_html/storage/' . $cleanPath),
+            base_path('public/storage/' . $cleanPath),
+            
+            // 4. Deeply nested common project assets & uploads
+            public_path('uploads/' . $cleanPath),
+            public_path('uploads/products/' . $cleanPath),
+            public_path('uploads/img/product/' . $cleanPath),
+            public_path('assets/' . $cleanPath),
+            public_path('assets/img/profile/' . $cleanPath),
         ];
 
-        foreach ($candidates as $candidate) {
-            if (file_exists($candidate) && is_file($candidate)) {
+        // Try matching filenames directly if input was just the filename
+        $filename = basename($cleanPath);
+        if ($filename !== '' && $filename !== $cleanPath) {
+            $candidates[] = storage_path('app/public/bom-products/' . $filename);
+            $candidates[] = storage_path('app/public/products/' . $filename);
+            $candidates[] = public_path('storage/bom-products/' . $filename);
+            $candidates[] = public_path('storage/products/' . $filename);
+        }
+
+        foreach (array_unique($candidates) as $candidate) {
+            if ($candidate && file_exists($candidate) && is_file($candidate)) {
                 $result = $optimizeImage($candidate);
                 if ($result) return $result;
-                return $candidate;
+                // Fallback if optimize failed but file is accessible
+                $imgData = @file_get_contents($candidate);
+                if ($imgData !== false) {
+                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+                    $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                    return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+                }
             }
         }
 
-        // Fallback to asset() HTTP URL
-        return asset($cleanPath);
+        // Final fallback: return asset URL if we couldn't find the file locally
+        return (preg_match('/^https?:\/\//i', $path)) ? $path : asset('storage/' . $cleanPath);
     }
 }
 

@@ -178,7 +178,7 @@ class InvoiceController extends ApiBaseController
             }
 
             // Calculate subtotal and GST
-            $basePrice = $price * $quantity;
+            $basePrice = $price;
             $subtotal = $basePrice + $solarStructureCharges;
 
             $gstAmount = 0;
@@ -351,7 +351,7 @@ class InvoiceController extends ApiBaseController
             }
 
             // Calculate subtotal and GST
-            $basePrice = $price * $quantity;
+            $basePrice = $price;
             $subtotal = $basePrice + $solarStructureCharges;
 
             $gstAmount = 0;
