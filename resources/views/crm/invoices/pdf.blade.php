@@ -86,6 +86,9 @@ if (!function_exists('normalize_pdf_image')) {
 
         // Generate robust list of potential disk locations
         $candidates = [
+            // 0. Raw path itself (may already be an absolute filesystem path)
+            $path,
+            
             // 1. Standard Storage paths
             storage_path('app/public/' . $cleanPath),
             storage_path('app/' . $cleanPath),
@@ -96,6 +99,7 @@ if (!function_exists('normalize_pdf_image')) {
             
             // 3. Raw filesystem path mappings in standard web-serving folders
             base_path('public_html/storage/' . $cleanPath),
+            base_path('public_html/' . $cleanPath),
             base_path('public/storage/' . $cleanPath),
             
             // 4. Deeply nested common project assets & uploads
@@ -106,17 +110,19 @@ if (!function_exists('normalize_pdf_image')) {
             public_path('assets/img/profile/' . $cleanPath),
         ];
 
-        // Try matching filenames directly if input was just the filename
+        // Always try matching by filename for bom-products & products folders
         $filename = basename($cleanPath);
-        if ($filename !== '' && $filename !== $cleanPath) {
+        if ($filename !== '') {
             $candidates[] = storage_path('app/public/bom-products/' . $filename);
             $candidates[] = storage_path('app/public/products/' . $filename);
             $candidates[] = public_path('storage/bom-products/' . $filename);
             $candidates[] = public_path('storage/products/' . $filename);
+            $candidates[] = base_path('public_html/storage/bom-products/' . $filename);
+            $candidates[] = base_path('public_html/storage/products/' . $filename);
         }
 
         foreach (array_unique($candidates) as $candidate) {
-            if ($candidate && file_exists($candidate) && is_file($candidate)) {
+            if ($candidate && @file_exists($candidate) && @is_file($candidate)) {
                 $result = $optimizeImage($candidate);
                 if ($result) return $result;
                 // Fallback if optimize failed but file is accessible
@@ -129,8 +135,21 @@ if (!function_exists('normalize_pdf_image')) {
             }
         }
 
-        // Final fallback: return asset URL if we couldn't find the file locally
-        return (preg_match('/^https?:\/\//i', $path)) ? $path : asset('storage/' . $cleanPath);
+        // HTTP fallback: try to fetch the image via URL and convert to base64
+        // (Dompdf often cannot fetch URLs from the same server due to loopback issues)
+        $urlToTry = (preg_match('/^https?:\/\//i', $path)) ? $path : asset('storage/' . $cleanPath);
+        try {
+            $ctx = stream_context_create(['http' => ['timeout' => 5], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+            $imgData = @file_get_contents($urlToTry, false, $ctx);
+            if ($imgData !== false && strlen($imgData) > 0) {
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->buffer($imgData) ?: 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+            }
+        } catch (\Throwable $e) {}
+
+        // Last resort: return the URL directly (may not render in Dompdf)
+        return $urlToTry;
     }
 }
 
