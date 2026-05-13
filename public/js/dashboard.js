@@ -17,7 +17,6 @@
     let trendChart = null;
     let customerReportChart = null;
     let leadBoardSliderBound = false;
-
     function initDashboard() {
         if (!document.getElementById("dashboardStats")) {
             return;

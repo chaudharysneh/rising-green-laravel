@@ -6,6 +6,10 @@
 <div class="container-fluid p-0 dashboard-page">
     @php
         $dashboardUser = auth()->user();
+        $planName = $currentSubscriptionPlan?->name ?? 'No Plan Assigned';
+        $isPremiumPlan = str_contains(strtolower($planName), 'premium');
+        $planStaffLimit = (int) ($currentSubscriptionPlan?->staff_limit ?? 0);
+        $planRenewalDate = optional($currentSubscriptionAssignment?->updated_at ?? $currentSubscriptionAssignment?->created_at)->format('d M Y') ?? '-';
         $canViewCustomers = $canViewCustomers ?? \App\Models\Customer::query()->visibleToUser($dashboardUser)->exists();
         $canViewFollowUps = $dashboardUser?->hasMatrixPermission('view_followups') ?? false;
         $canViewLeads = $dashboardUser?->hasMatrixPermission('view_leads') ?? false;
@@ -199,6 +203,54 @@
         © {{ date('Y') }} Copyright - Fablead Developers Technolab
     </footer>
 
+    <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1" aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : 'plan-basic' }} border-0">
+                    <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
+                        <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
+                        <span id="dashboardPlanModalTitle">Your Subscription Plan</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <div class="text-center mb-4">
+                        <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : '' }}" id="dashboardPlanBadge">{{ $planName }}</div>
+                    </div>
+
+                    <div class="dashboard-plan-modal__details">
+                        <div class="dashboard-plan-modal__row">
+                            <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
+                            <span class="fw-semibold">Staff Limit:</span>
+                            <span id="dashboardPlanStaffLimit" class="text-muted">{{ $currentStaffCount ?? 0 }} / {{ $planStaffLimit }} users</span>
+                        </div>
+                        <div class="dashboard-plan-modal__row">
+                            <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
+                            <span class="fw-semibold">Renewal Date:</span>
+                            <span id="dashboardPlanRenewalDate" class="text-muted">{{ $planRenewalDate }}</span>
+                        </div>
+                        <div class="dashboard-plan-modal__row">
+                            <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status"><i class="fa-solid fa-circle-check"></i></span>
+                            <span class="fw-semibold">Status:</span>
+                            <span id="dashboardPlanStatus" class="text-muted">{{ $currentSubscriptionPlan ? 'Active' : 'Not Assigned' }}</span>
+                        </div>
+                    </div>
+
+                    <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
+                        @if($currentSubscriptionPlan)
+                            Staff accounts are counted under your admin ID. When the plan limit is reached, new staff creation will be blocked automatically.
+                        @else
+                            No subscription plan is assigned to this admin account yet.
+                        @endif
+                    </p>
+
+                    <div class="text-center">
+                        <button type="button" class="btn dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Contact Us</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 

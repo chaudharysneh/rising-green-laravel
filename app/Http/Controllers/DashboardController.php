@@ -7,24 +7,44 @@ use App\Models\Customer;
 use App\Models\Booking;
 use App\Models\Deal;
 use App\Models\Stage;
+use App\Models\SubscriptionPlan;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
 use App\Models\FollowUp;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(): View
     {
         $stages = $this->buildLeadBoard();
-        $canViewCustomers = Customer::query()->visibleToUser(auth()->user())->exists();
+        $user = auth()->user();
+        $canViewCustomers = Customer::query()->visibleToUser($user)->exists();
+        $planOwner = $this->resolvePlanOwner($user);
+        $subscriptionAssignment = $planOwner
+            ? DB::table('subscription_user_plan')
+                ->where('user_id', $planOwner->id)
+                ->orderByDesc('id')
+                ->first()
+            : null;
+        $currentSubscriptionPlan = $subscriptionAssignment
+            ? SubscriptionPlan::find($subscriptionAssignment->subscription_id)
+            : null;
+        $currentStaffCount = $planOwner
+            ? User::query()->nonAdmin()->where('parent_id', $planOwner->id)->count()
+            : 0;
 
         return view('dashboard.index', [
             'stats' => $this->buildStats(),
             'stages' => $stages,
             'canViewCustomers' => $canViewCustomers,
+            'currentSubscriptionPlan' => $currentSubscriptionPlan,
+            'currentSubscriptionAssignment' => $subscriptionAssignment,
+            'currentStaffCount' => $currentStaffCount,
         ]);
     }
 
@@ -291,5 +311,22 @@ class DashboardController extends Controller
                 'leads' => $leads,
             ];
         })->values();
+    }
+
+    private function resolvePlanOwner(?User $user): ?User
+    {
+        if (!$user) {
+            return null;
+        }
+
+        if ($user->isAdmin()) {
+            return $user;
+        }
+
+        if (DB::getSchemaBuilder()->hasColumn('users', 'parent_id') && !empty($user->parent_id)) {
+            return User::find($user->parent_id) ?: $user;
+        }
+
+        return $user;
     }
 }
