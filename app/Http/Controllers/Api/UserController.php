@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +18,37 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends ApiBaseController
 {
+    private function resolvePlanOwner(User $user): User
+    {
+        if ($user->isAdmin()) {
+            return $user;
+        }
+
+        if (DB::getSchemaBuilder()->hasColumn('users', 'parent_id') && !empty($user->parent_id)) {
+            return User::find($user->parent_id) ?: $user;
+        }
+
+        return $user;
+    }
+
+    private function getCurrentPlanForAdmin(User $admin): ?SubscriptionPlan
+    {
+        return SubscriptionPlan::query()
+            ->select('subscription_plan.*')
+            ->join('subscription_user_plan', 'subscription_user_plan.subscription_id', '=', 'subscription_plan.id')
+            ->where('subscription_user_plan.user_id', $admin->id)
+            ->orderByDesc('subscription_user_plan.id')
+            ->first();
+    }
+
+    private function getCurrentStaffCount(User $admin): int
+    {
+        return User::query()
+            ->nonAdmin()
+            ->where('parent_id', $admin->id)
+            ->count();
+    }
+
     private function allowedMatrixPermissionNames(): array
     {
         $actions = array_keys(config('crm_permissions.actions', []));
@@ -97,6 +130,21 @@ class UserController extends ApiBaseController
     public function store(Request $request)
     {
         $allowedPermissions = $this->allowedMatrixPermissionNames();
+        $actor = $request->user();
+        $planOwner = $actor ? $this->resolvePlanOwner($actor) : null;
+        $currentPlan = $planOwner ? $this->getCurrentPlanForAdmin($planOwner) : null;
+
+        if ($planOwner && $currentPlan) {
+            $staffLimit = (int) $currentPlan->staff_limit;
+            $currentStaffCount = $this->getCurrentStaffCount($planOwner);
+
+            if ($staffLimit > 0 && $currentStaffCount >= $staffLimit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Staff limit reached for {$currentPlan->name}",
+                ], 422);
+            }
+        }
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -129,6 +177,17 @@ class UserController extends ApiBaseController
             'avatar_path' => $avatarPath,
             'is_active' => true,
         ]);
+
+        $ownershipUpdates = [];
+        if ($planOwner && DB::getSchemaBuilder()->hasColumn('users', 'parent_id')) {
+            $ownershipUpdates['parent_id'] = $planOwner->id;
+        }
+        if ($actor && DB::getSchemaBuilder()->hasColumn('users', 'created_by')) {
+            $ownershipUpdates['created_by'] = $actor->id;
+        }
+        if (!empty($ownershipUpdates)) {
+            $user->forceFill($ownershipUpdates)->save();
+        }
 
         if ($staffRole = Role::where('name', 'staff')->first()) {
             $user->syncRoles([$staffRole->name]);

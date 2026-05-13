@@ -32,6 +32,167 @@
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/buttons.css') }}?v={{ filemtime(public_path('css/buttons.css')) }}">
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/main.css') }}?v={{ filemtime(public_path('css/main.css')) }}">
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/chatbot.css') }}?v={{ filemtime(public_path('css/chatbot.css')) }}">
+    <style>
+        .dashboard-plan-switcher {
+            align-items: center;
+            gap: .65rem;
+            margin-right: .25rem;
+        }
+
+        .dashboard-plan-btn {
+            border: 1px solid #f4c4a6;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff7f0 0%, #ffe7d8 100%);
+            color: #d4631b;
+            font-weight: 700;
+            font-size: .88rem;
+            min-height: 42px;
+            padding: .65rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            white-space: nowrap;
+            box-shadow: 0 10px 20px rgba(234, 118, 45, .12);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+        }
+
+        .dashboard-plan-btn span {
+            white-space: nowrap;
+        }
+
+        .dashboard-plan-btn:hover,
+        .dashboard-plan-btn:focus {
+            color: #b95516;
+            border-color: #f39a63;
+            background: linear-gradient(135deg, #fff1e6 0%, #ffd9c0 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px rgba(234, 118, 45, .18);
+        }
+
+        .dashboard-plan-btn.active {
+            background: linear-gradient(135deg, #ff8c47 0%, #ff6a3d 100%);
+            border-color: #ff7d3e;
+            color: #fff;
+            box-shadow: 0 14px 28px rgba(255, 106, 61, .28);
+        }
+
+        .dashboard-plan-btn--premium {
+            border-color: #cdd6f7;
+            background: linear-gradient(135deg, #f6f8ff 0%, #e7edff 100%);
+            color: #3551b6;
+            box-shadow: 0 10px 20px rgba(53, 81, 182, .12);
+        }
+
+        .dashboard-plan-btn--premium:hover,
+        .dashboard-plan-btn--premium:focus {
+            color: #2443aa;
+            border-color: #9eb1f6;
+            background: linear-gradient(135deg, #eef2ff 0%, #dce6ff 100%);
+            box-shadow: 0 14px 24px rgba(53, 81, 182, .18);
+        }
+
+        .dashboard-plan-btn--premium.active {
+            background: linear-gradient(135deg, #3e63dd 0%, #2846ad 100%);
+            border-color: #3154cc;
+            color: #fff;
+            box-shadow: 0 14px 28px rgba(40, 70, 173, .28);
+        }
+
+        .dashboard-plan-modal .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .dashboard-plan-modal__header {
+            background: linear-gradient(135deg, #ff8a45 0%, #ff6b42 100%);
+            color: #fff;
+            padding: 1.1rem 1.35rem;
+        }
+
+        .dashboard-plan-modal__header.plan-basic {
+            background: linear-gradient(135deg, #ff8a45 0%, #ff6b42 100%);
+        }
+
+        .dashboard-plan-modal__header.plan-premium {
+            background: linear-gradient(135deg, #355fdf 0%, #243e9d 100%);
+        }
+
+        .dashboard-plan-modal__header .btn-close {
+            filter: invert(1);
+            opacity: .8;
+        }
+
+        .dashboard-plan-modal__pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 170px;
+            border-radius: 999px;
+            background: #fff3ea;
+            color: #f06529;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: .7rem 1.2rem;
+        }
+
+        .dashboard-plan-modal__pill--premium {
+            background: #edf2ff;
+            color: #3154cc;
+        }
+
+        .dashboard-plan-modal__details {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .dashboard-plan-modal__row {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            color: #334155;
+            font-size: 1rem;
+        }
+
+        .dashboard-plan-modal__icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff1e8;
+            color: #f97316;
+            flex-shrink: 0;
+        }
+
+        .dashboard-plan-modal__icon--status {
+            background: #eaf8ef;
+            color: #16a34a;
+        }
+
+        .dashboard-plan-modal__message {
+            color: #475569;
+            font-size: .98rem;
+        }
+
+        .dashboard-plan-modal__cta {
+            min-width: 138px;
+            border: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff8a45 0%, #ff6b42 100%);
+            color: #fff;
+            font-weight: 700;
+            padding: .7rem 1.1rem;
+            box-shadow: 0 12px 24px rgba(255, 107, 66, .22);
+        }
+
+        .dashboard-plan-modal__cta:hover,
+        .dashboard-plan-modal__cta:focus {
+            color: #fff;
+            transform: translateY(-1px);
+        }
+    </style>
     @stack('styles')
 
     <!-- Theme Management -->
@@ -49,6 +210,34 @@
                     : ($authUser?->roles->first()?->name
                         ? \Illuminate\Support\Str::headline($authUser->roles->first()->name)
                         : ($authUser?->job_title ?: 'Staff'));
+                $planOwner = null;
+                if ($authUser) {
+                    if ($authUser->isAdmin()) {
+                        $planOwner = $authUser;
+                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('users', 'parent_id') && !empty($authUser->parent_id)) {
+                        $planOwner = \App\Models\User::find($authUser->parent_id) ?: $authUser;
+                    } else {
+                        $planOwner = $authUser;
+                    }
+                }
+
+                $currentSubscriptionPlan = null;
+                $currentSubscriptionAssignment = null;
+                $currentStaffCount = 0;
+                if ($planOwner && \Illuminate\Support\Facades\Schema::hasTable('subscription_user_plan')) {
+                    $currentSubscriptionAssignment = \Illuminate\Support\Facades\DB::table('subscription_user_plan')
+                        ->where('user_id', $planOwner->id)
+                        ->orderByDesc('id')
+                        ->first();
+
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'parent_id')) {
+                        $currentStaffCount = \App\Models\User::query()->nonAdmin()->where('parent_id', $planOwner->id)->count();
+                    }
+
+                    if ($currentSubscriptionAssignment && class_exists(\App\Models\SubscriptionPlan::class)) {
+                        $currentSubscriptionPlan = \App\Models\SubscriptionPlan::find($currentSubscriptionAssignment->subscription_id);
+                    }
+                }
             @endphp
             <!-- Sidebar -->
             <aside class="crm-sidebar shadow-sm" id="sidenav-main" style="min-width: 260px">
@@ -413,6 +602,22 @@
                                     'https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=ffffff&size=128');
                         @endphp
                         <div class="crm-top-actions">
+                            @if (!empty($currentSubscriptionPlan))
+                                @php
+                                    $isPremiumPlan = str_contains(strtolower($currentSubscriptionPlan->name ?? ''), 'premium');
+                                @endphp
+                                <div class="dashboard-plan-switcher d-none d-lg-flex" role="group" aria-label="Subscription plan">
+                                    <button type="button"
+                                        class="btn top-action-btn dashboard-plan-btn {{ $isPremiumPlan ? 'dashboard-plan-btn--premium' : 'dashboard-plan-btn--basic' }} active"
+                                        data-plan-trigger="{{ $isPremiumPlan ? 'premium' : 'basic' }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#dashboardPlanModal">
+                                        <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }}"></i>
+                                        <span>{{ $currentSubscriptionPlan->name }}</span>
+                                    </button>
+                                </div>
+                            @endif
+
                             @php
                                 $showTopInventoryMenu =
                                     auth()->user()?->hasMatrixPermission('view_sales') ||
@@ -694,14 +899,69 @@
                 </div>
                 
             </div>
-        @endauth
+    @endauth
 
-        @guest
-            <main class="w-100">
-                @yield('content')
-            </main>
-        @endguest
+    @guest
+        <main class="w-100">
+            @yield('content')
+        </main>
+    @endguest
     </div>
+
+    @auth
+        @if (!empty($currentSubscriptionPlan) && !request()->routeIs('dashboard'))
+            @php
+                $isPremiumPlan = str_contains(strtolower($currentSubscriptionPlan->name ?? ''), 'premium');
+                $planName = $currentSubscriptionPlan->name ?? 'No Plan Assigned';
+                $planStaffLimit = (int) ($currentSubscriptionPlan->staff_limit ?? 0);
+                $planRenewalDate = optional($currentSubscriptionAssignment?->updated_at ?? $currentSubscriptionAssignment?->created_at)->format('d M Y') ?? '-';
+            @endphp
+            <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1" aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : 'plan-basic' }} border-0">
+                            <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
+                                <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
+                                <span>Your Subscription Plan</span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-4 py-4">
+                            <div class="text-center mb-4">
+                                <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : '' }}">{{ $planName }}</div>
+                            </div>
+
+                            <div class="dashboard-plan-modal__details">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
+                                    <span class="fw-semibold">Staff Limit:</span>
+                                    <span class="text-muted">{{ $currentStaffCount }} / {{ $planStaffLimit }} users</span>
+                                </div>
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
+                                    <span class="fw-semibold">Renewal Date:</span>
+                                    <span class="text-muted">{{ $planRenewalDate }}</span>
+                                </div>
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status"><i class="fa-solid fa-circle-check"></i></span>
+                                    <span class="fw-semibold">Status:</span>
+                                    <span class="text-muted">Active</span>
+                                </div>
+                            </div>
+
+                            <p class="dashboard-plan-modal__message text-center mt-4 mb-3">
+                                Need more team members? <strong>Contact us for upgrades!</strong>
+                            </p>
+
+                            <div class="text-center">
+                                <a href="{{ route('settings.index') }}" class="btn dashboard-plan-modal__cta">Contact Us</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endauth
 
     <div class="modal fade status-comment-modal" id="statusCommentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
