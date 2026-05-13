@@ -792,10 +792,43 @@
         const makeSelect = row.querySelector('.product-make');
         const deleteBtn = row.querySelector('.delete-bom-row');
         const qtyInput = row.querySelector('input[name="product_qty[]"]');
+        const priceInput = row.querySelector('.product-price');
 
         if (productSelect) {
             productSelect.addEventListener('change', function () {
                 populateMakeOptions(this, makeSelect, '');
+                
+                const option = this.options[this.selectedIndex];
+                let labelText = 'Qty';
+                if (option && this.value) {
+                    if (priceInput) {
+                        priceInput.value = parseFloat(option.dataset.price || 0).toFixed(2);
+                    }
+                    
+                    const meter = option.dataset.meter;
+                    const nos = option.dataset.nos;
+                    const hasMeter = meter && String(meter).trim() !== '' && String(meter).toLowerCase() !== 'null';
+                    const hasNos = nos && String(nos).trim() !== '' && String(nos).toLowerCase() !== 'null';
+                    
+                    if (hasMeter) {
+                        labelText = 'Qty(meter)';
+                    } else if (hasNos) {
+                        labelText = 'Qty(nos)';
+                    }
+                }
+                
+                const label = row.querySelector('.product-qty-label') || qtyInput?.closest('div')?.querySelector('label');
+                if (label) {
+                    const icon = label.querySelector('i');
+                    if (icon) {
+                        label.innerHTML = '';
+                        label.appendChild(icon);
+                        label.appendChild(document.createTextNode(' ' + labelText));
+                    } else {
+                        label.textContent = labelText;
+                    }
+                }
+                
                 toggleBomError(false);
                 calculateTotals();
             });
@@ -823,12 +856,20 @@
             });
         }
 
+        if (priceInput) {
+            priceInput.addEventListener('input', function () {
+                calculateTotals();
+            });
+        }
+
         if (makeSelect) {
             makeSelect.addEventListener('change', function () {
                 toggleBomError(false);
             });
         }
     }
+
+    let isPriceManualOverride = false;
 
     function collectBomData() {
         const rows = document.querySelectorAll('#bomContainer .bom-row');
@@ -838,16 +879,23 @@
             const productSelect = row.querySelector('.product-select');
             const makeSelect = row.querySelector('.product-make');
             const qtyInput = row.querySelector('input[name="product_qty[]"]');
+            const priceInput = row.querySelector('.product-price');
 
             if (productSelect && productSelect.value) {
                 const option = productSelect.options[productSelect.selectedIndex];
+                
+                let itemPrice = parseFloat(option.dataset.price || 0);
+                if (priceInput && priceInput.value !== '') {
+                    itemPrice = parseFloat(priceInput.value || 0);
+                }
+
                 products.push({
                     product_id: productSelect.value,
                     name: option.dataset.name || '',
                     description: option.dataset.desc || '',
                     category_name: makeSelect?.value || '',
                     quantity: parseFloat(qtyInput?.value || 0),
-                    price: parseFloat(option.dataset.price || 0),
+                    price: itemPrice,
                 });
             }
         });
@@ -855,15 +903,210 @@
         return products;
     }
 
+
+
+    function calculateTotals() {
+        const subtotalField = document.getElementById('subtotal');
+        const finalTotalField = document.getElementById('final_total');
+        const subtotalDisplay = document.getElementById('subtotal_display');
+        const finalTotalDisplay = document.getElementById('final_total_display');
+        const priceInput = document.getElementById('price');
+
+        if (!subtotalField || !finalTotalField || !subtotalDisplay || !finalTotalDisplay) {
+            return;
+        }
+
+        // Dynamically sum up all products to sync total with main price input
+        let productsTotal = 0;
+        const rows = document.querySelectorAll('#bomContainer .bom-row');
+        rows.forEach(function (row) {
+            const select = row.querySelector('.product-select');
+            const qtyIn = row.querySelector('input[name="product_qty[]"]');
+            const priceIn = row.querySelector('.product-price');
+            
+            if (select && select.value && qtyIn) {
+                const qty = parseFloat(qtyIn.value || 0);
+                let p = 0;
+                if (priceIn && priceIn.value !== '') {
+                    p = parseFloat(priceIn.value || 0);
+                } else {
+                    const opt = select.options[select.selectedIndex];
+                    p = parseFloat(opt?.dataset?.price || 0);
+                }
+                const rowTotal = qty * p;
+                productsTotal += rowTotal;
+
+                // Update per-row readout if element exists
+                const totalEl = row.querySelector('.product-total');
+                if (totalEl) {
+                    totalEl.value = rowTotal.toFixed(2);
+                }
+            }
+        });
+
+        // Auto-sync logic from user code sample
+        if (priceInput && !isPriceManualOverride) {
+            priceInput.value = productsTotal.toFixed(2);
+        }
+
+        const price = parseFloat(priceInput?.value || 0);
+        const quantity = parseFloat(document.getElementById('quantity')?.value || 0);
+        const structureCharges = document.getElementById('solar_structure_charges_check')?.checked
+            ? parseFloat(document.getElementById('solar_structure_charges')?.value || 0)
+            : 0;
+        const gstPercent = document.getElementById('apply_gst')?.checked
+            ? parseFloat(document.getElementById('gst_percent')?.value || 0)
+            : 0;
+        const discount = parseFloat(document.getElementById('discount')?.value || 0);
+        const subsidy = parseFloat(document.getElementById('subsidy_amount')?.value || 0);
+
+        const basePrice = price;
+        const subtotal = basePrice + structureCharges;
+        const gstAmount = gstPercent > 0 ? (basePrice * gstPercent) / 100 : 0;
+        const finalTotal = subtotal + gstAmount - discount - subsidy;
+
+        subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        finalTotalDisplay.textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        subtotalField.value = subtotal.toFixed(2);
+        finalTotalField.value = finalTotal.toFixed(2);
+
+        const gstField = document.getElementById('gst');
+        if (gstField) {
+            gstField.value = gstPercent.toFixed(2);
+        }
+    }
+    function autoCalculateSubsidy() {
+        const typeField = document.getElementById('type');
+        const quantityField = document.getElementById('quantity');
+        const subsidyField = document.getElementById('subsidy_amount');
+
+        if (!typeField || !quantityField || !subsidyField) {
+            return;
+        }
+
+        const type = typeField.value;
+        const kw = parseFloat(quantityField.value || 0);
+
+        // Robust check for subsidiesData whether it comes as array or object
+        const rawData = window.subsidiesData;
+        let dataArr = [];
+        if (Array.isArray(rawData)) {
+            dataArr = rawData;
+        } else if (rawData && typeof rawData === 'object') {
+            dataArr = Object.values(rawData);
+        }
+
+        if (!dataArr || dataArr.length === 0) {
+            return; // No data available
+        }
+
+        // Create a quick lookup map
+        const rates = {};
+        dataArr.forEach(function(item) {
+            if (item && item.category) {
+                rates[item.category] = parseFloat(item.amount || 0);
+            }
+        });
+
+        let calculatedSubsidy = 0;
+
+        if (type === 'residential') {
+            const rate0_2 = rates['residential_0_2'] || 0;
+            const rate2_3 = rates['residential_2_3'] || 0;
+            const maxAbove3 = rates['residential_above_3'] || 0;
+
+            if (kw < 2) {
+                calculatedSubsidy = rate0_2;
+            } else if (kw >= 2 && kw < 3) {
+                calculatedSubsidy = rate2_3;
+            } else if (kw >= 3) {
+                calculatedSubsidy = maxAbove3;
+            }
+            // if (kw <= 0) {
+            //     calculatedSubsidy = 0;
+            // } else if (kw >= 3) {
+            //     // Total Cap for 3kW and above
+            //     calculatedSubsidy = maxAbove3 ;
+            // } else if (kw > 2) {
+            //     // Tiered calculation
+            //     calculatedSubsidy = rate0_2;
+            // } else {
+            //     // Up to 2kW calculation
+            //     calculatedSubsidy = rate0_2;
+            // }
+        } else if (type === 'common meter') {
+            const rateCommon = rates['common_meter'] || 0;
+            calculatedSubsidy = rateCommon;
+        } else {
+            calculatedSubsidy = 0;
+        }
+
+        // Safely update the field value
+        subsidyField.value = parseFloat(calculatedSubsidy).toFixed(2);
+    }
+
     function initCalculations() {
+        // Determine if initial price was manually overridden
+        const priceInput = document.getElementById('price');
+        if (priceInput && priceInput.value !== '') {
+            let initialProductsTotal = 0;
+            const rows = document.querySelectorAll('#bomContainer .bom-row');
+            rows.forEach(function (row) {
+                const select = row.querySelector('.product-select');
+                const qtyIn = row.querySelector('input[name="product_qty[]"]');
+                const priceIn = row.querySelector('.product-price');
+                
+                if (select && select.value && qtyIn) {
+                    const qty = parseFloat(qtyIn.value || 0);
+                    let p = 0;
+                    if (priceIn && priceIn.value !== '') {
+                        p = parseFloat(priceIn.value || 0);
+                    } else {
+                        const opt = select.options[select.selectedIndex];
+                        p = parseFloat(opt?.dataset?.price || 0);
+                    }
+                    initialProductsTotal += qty * p;
+                }
+            });
+
+            const currentVal = parseFloat(priceInput.value || 0);
+            if (currentVal > 0 && Math.abs(currentVal - initialProductsTotal) > 0.01) {
+                isPriceManualOverride = true;
+            }
+        }
+
+        // Attach robust listeners to all key fields
         const inputs = ['price', 'quantity', 'solar_structure_charges', 'gst_percent', 'discount', 'subsidy_amount'];
         inputs.forEach(function (id) {
             const input = document.getElementById(id);
             if (input) {
-                input.addEventListener('input', calculateTotals);
-                input.addEventListener('change', calculateTotals);
+                ['input', 'change'].forEach(function(evt) {
+                    input.addEventListener(evt, function() {
+                        // Flag that user manually overridden price computation if edit made directly in field
+                        if (id === 'price') {
+                            const v = input.value;
+                            isPriceManualOverride = (v !== null && String(v).trim() !== '');
+                        }
+
+                        // Special case: if quantity changed, auto-update subsidy first
+                        if (id === 'quantity') {
+                            autoCalculateSubsidy();
+                        }
+                        calculateTotals();
+                    });
+                });
             }
         });
+
+        const typeInput = document.getElementById('type');
+        if (typeInput) {
+            ['input', 'change'].forEach(function(evt) {
+                typeInput.addEventListener(evt, function() {
+                    autoCalculateSubsidy();
+                    calculateTotals();
+                });
+            });
+        }
 
         const structureCheckbox = document.getElementById('solar_structure_charges_check');
         const gstCheckbox = document.getElementById('apply_gst');
@@ -898,43 +1141,15 @@
             }
         }
 
+        // Initial calculation runs
+        // If it's a brand new form, initialize subsidy. 
+        // For existing edit, let user alter quantity to recalculate.
+        const quantityVal = document.getElementById('quantity')?.value;
+        if (quantityVal && parseFloat(quantityVal) > 0) {
+            // Check if user is creating a new form by verifying hidden input ID absence or looking at path?
+            // Actually safe approach: Always ensure valid mathematical state on load
+            autoCalculateSubsidy();
+        }
         calculateTotals();
-    }
-
-    function calculateTotals() {
-        const subtotalField = document.getElementById('subtotal');
-        const finalTotalField = document.getElementById('final_total');
-        const subtotalDisplay = document.getElementById('subtotal_display');
-        const finalTotalDisplay = document.getElementById('final_total_display');
-
-        if (!subtotalField || !finalTotalField || !subtotalDisplay || !finalTotalDisplay) {
-            return;
-        }
-
-        const price = parseFloat(document.getElementById('price')?.value || 0);
-        const quantity = parseFloat(document.getElementById('quantity')?.value || 0);
-        const structureCharges = document.getElementById('solar_structure_charges_check')?.checked
-            ? parseFloat(document.getElementById('solar_structure_charges')?.value || 0)
-            : 0;
-        const gstPercent = document.getElementById('apply_gst')?.checked
-            ? parseFloat(document.getElementById('gst_percent')?.value || 0)
-            : 0;
-        const discount = parseFloat(document.getElementById('discount')?.value || 0);
-        const subsidy = parseFloat(document.getElementById('subsidy_amount')?.value || 0);
-
-        const basePrice = price * quantity;
-        const subtotal = basePrice + structureCharges;
-        const gstAmount = gstPercent > 0 ? (basePrice * gstPercent) / 100 : 0;
-        const finalTotal = subtotal + gstAmount - discount - subsidy;
-
-        subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        finalTotalDisplay.textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        subtotalField.value = subtotal.toFixed(2);
-        finalTotalField.value = finalTotal.toFixed(2);
-
-        const gstField = document.getElementById('gst');
-        if (gstField) {
-            gstField.value = gstPercent.toFixed(2);
-        }
     }
 })();
