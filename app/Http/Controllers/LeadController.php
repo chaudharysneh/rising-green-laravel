@@ -144,8 +144,9 @@ class LeadController extends Controller
     {
         $fileName = 'leads_' . date('Y-m-d_H-i-s') . '.csv';
 
-        $query = Lead::with(['leadSource', 'stage', 'assignedUser'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Lead::with(['leadSource', 'stage', 'assignedUser'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

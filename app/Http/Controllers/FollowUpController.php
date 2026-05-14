@@ -69,8 +69,9 @@ class FollowUpController extends Controller
     {
         $fileName = 'followups_' . date('Y-m-d_H-i-s') . '.csv';
 
-        $followups = FollowUp::with(['lead', 'assignedUser', 'creator'])
-            ->latest('created_at')
+        $followups = $this->scopeOwnedRecords(
+            FollowUp::with(['lead', 'assignedUser', 'creator'])
+        )->latest('created_at')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = trim((string) $request->search);
 

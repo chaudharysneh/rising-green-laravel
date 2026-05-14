@@ -80,8 +80,9 @@ class CustomerController extends Controller
     {
         $this->authorize('viewAny', Customer::class);
         $fileName = 'customers_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Customer::with(['country', 'city'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Customer::with(['country', 'city'])
+        )->latest()
             ->when(request('search'), function ($q) {
                 $search = request('search');
                 $q->where(function ($sub) use ($search) {

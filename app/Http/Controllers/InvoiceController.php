@@ -82,7 +82,9 @@ class InvoiceController extends Controller
     {
         $this->authorize('viewAny', Invoice::class);
         $fileName = 'Invoice_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Invoice::with(['customer', 'currency']);
+        $query = $this->scopeOwnedRecords(
+            Invoice::with(['customer', 'currency'])
+        );
 
         $invoices = $query->latest('invoice_date')->get();
 

@@ -39,8 +39,9 @@ class ServiceController extends Controller
     {
         $fileName = 'services_' . date('Y-m-d_H-i-s') . '.csv';
 
-        $query = Service::with(['product', 'creator'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Service::with(['product', 'creator'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

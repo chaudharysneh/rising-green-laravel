@@ -56,7 +56,9 @@ class SalesController extends Controller
         $fileName = 'sales_' . date('Y-m-d_H-i-s') . '.csv';
         $search = trim((string) $request->get('search', ''));
 
-        $sales = Sales::with(['customer', 'product', 'handoverPerson', 'creator'])
+        $sales = $this->scopeOwnedRecords(
+            Sales::with(['customer', 'product', 'handoverPerson', 'creator'])
+        )
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search) {
                 $subQuery->where('invoice_no', 'like', "%{$search}%")
                     ->orWhere('invoice_name', 'like', "%{$search}%")

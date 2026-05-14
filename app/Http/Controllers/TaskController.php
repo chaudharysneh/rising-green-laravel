@@ -70,8 +70,9 @@ class TaskController extends Controller
     public function export(Request $request)
     {
         $fileName = 'tasks_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Task::with(['assignedUser', 'project.customer'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Task::with(['assignedUser', 'project.customer'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

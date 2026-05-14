@@ -42,8 +42,9 @@ class SupportTicketController extends Controller
     {
         $fileName = 'tickets_' . date('Y-m-d_H-i-s') . '.csv';
 
-        $query = SupportTicket::with(['customer', 'creator'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            SupportTicket::with(['customer', 'creator'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
