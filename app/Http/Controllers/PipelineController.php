@@ -41,8 +41,9 @@ class PipelineController extends Controller
     public function export(Request $request)
     {
         $fileName = 'pipelines_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Pipeline::with(['customer', 'stage', 'creator'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Pipeline::with(['customer', 'stage', 'creator'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

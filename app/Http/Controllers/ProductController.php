@@ -53,7 +53,9 @@ class ProductController extends Controller
     {
         $fileName = 'products_' . date('Y-m-d_H-i-s') . '.csv';
 
-        $query = Product::with(['category', 'creator'])
+        $query = $this->scopeOwnedRecords(
+            Product::with(['category', 'creator'])
+        )
             ->when($request->filled('search'), function ($builder) use ($request) {
                 $search = trim((string) $request->search);
 

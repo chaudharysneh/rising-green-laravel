@@ -103,8 +103,9 @@ class DealController extends Controller
     public function export(Request $request)
     {
         $fileName = 'deals_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Deal::with(['customer', 'currency', 'status', 'assignedUser', 'creator', 'stage'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Deal::with(['customer', 'currency', 'status', 'assignedUser', 'creator', 'stage'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

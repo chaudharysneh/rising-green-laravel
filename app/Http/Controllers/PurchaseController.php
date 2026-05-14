@@ -57,7 +57,9 @@ class PurchaseController extends Controller
         $fileName = 'purchases_' . date('Y-m-d_H-i-s') . '.csv';
         $search = trim((string) $request->get('search', ''));
 
-        $purchases = Purchase::with(['vendor', 'product', 'creator'])
+        $purchases = $this->scopeOwnedRecords(
+            Purchase::with(['vendor', 'product', 'creator'])
+        )
             ->when($search !== '', fn ($query) => $query->where(function ($subQuery) use ($search) {
                 $subQuery->where('invoice_no', 'like', "%{$search}%")
                     ->orWhere('invoice_name', 'like', "%{$search}%")

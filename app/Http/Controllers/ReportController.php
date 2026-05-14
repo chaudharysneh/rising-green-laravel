@@ -300,7 +300,9 @@ class ReportController extends Controller
     // Export method
     public function leadsExport()
     {
-        $leads = Lead::with(['leadSource', 'assignedUser'])->latest()->get();
+        $leads = $this->scopeOwnedRecords(
+            Lead::with(['leadSource', 'assignedUser'])
+        )->latest()->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -441,7 +443,9 @@ class ReportController extends Controller
 
     public function dealsExport()
     {
-        $deals = Deal::with(['customer', 'currency', 'status', 'assignedUser', 'stage', 'creator'])->latest()->get();
+        $deals = $this->scopeOwnedRecords(
+            Deal::with(['customer', 'currency', 'status', 'assignedUser', 'stage', 'creator'])
+        )->latest()->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -576,7 +580,9 @@ class ReportController extends Controller
 
     public function projectsExport()
     {
-        $projects = Project::with(['customer', 'assignedUser', 'creator'])->latest()->get();
+        $projects = $this->scopeOwnedRecords(
+            Project::with(['customer', 'assignedUser', 'creator'])
+        )->latest()->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -691,7 +697,9 @@ class ReportController extends Controller
 
     public function tasksExport()
     {
-        $tasks = Task::with(['project.customer'])->latest()->get();
+        $tasks = $this->scopeOwnedRecords(
+            Task::with(['project.customer'])
+        )->latest()->get();
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="tasks_export_' . date('Y-m-d') . '.csv"'];
         $callback = function () use ($tasks) {
             $handle = fopen('php://output', 'w');
@@ -797,7 +805,9 @@ class ReportController extends Controller
 
     public function followupsExport()
     {
-        $followups = FollowUp::with(['lead', 'customer', 'assignedUser'])->latest()->get();
+        $followups = $this->scopeOwnedRecords(
+            FollowUp::with(['lead', 'customer', 'assignedUser'])
+        )->latest()->get();
         $headers = ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="followups_export_' . date('Y-m-d') . '.csv"'];
         $callback = function () use ($followups) {
             $handle = fopen('php://output', 'w');

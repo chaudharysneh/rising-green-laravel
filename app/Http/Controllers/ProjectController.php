@@ -50,8 +50,9 @@ class ProjectController extends Controller
     public function export(Request $request)
     {
         $fileName = 'projects_' . date('Y-m-d_H-i-s') . '.csv';
-        $query = Project::with(['customer', 'creator'])
-            ->latest()
+        $query = $this->scopeOwnedRecords(
+            Project::with(['customer', 'creator'])
+        )->latest()
             ->when($request->search, function ($q) use ($request) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {

@@ -42,7 +42,9 @@ class VendorController extends Controller
     public function export(): StreamedResponse
     {
         $fileName = 'vendors_' . date('Y-m-d_H-i-s') . '.csv';
-        $vendors = Vendor::with(['creator'])->latest()->get();
+        $vendors = $this->scopeOwnedRecords(
+            Vendor::with(['creator'])
+        )->latest()->get();
 
         $headers = [
             'Content-type' => 'text/csv',
