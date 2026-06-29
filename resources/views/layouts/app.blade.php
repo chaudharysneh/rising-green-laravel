@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Fablead CRM</title>
+    <title>Rising Green Energy CRM</title>
 
     <!-- Google Fonts (Outfit)     -->
     <link rel="icon" type="image/png" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'images/template/crmfavicon.png') }}">
@@ -262,8 +262,8 @@
                 <div class="sidenav-header" style="padding: 0px 8px;">
                     <div class="profile-card brand-card">
                         <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'images/template/crmfavicon.png') }}"
-                            class="brand-logo-icon" alt="Fablead Logo">
-                        <span class="brand-logo-text capitalize">{{ strtoupper($authUser?->name ?? 'FableadCRM') }}</span>
+                            class="brand-logo-icon" alt="Rising Green Energy Logo">
+                        <span class="brand-logo-text capitalize">{{ strtoupper($authUser?->name ?? 'Rising Green Energy') }}</span>
                     </div>
                 </div>
 

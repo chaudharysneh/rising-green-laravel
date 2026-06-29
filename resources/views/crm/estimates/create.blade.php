@@ -245,6 +245,11 @@
                                 </div>
 
                                 <div id="gst_fields_box" style="display: none;">
+                                    <div class="d-flex align-items-center gap-2 mb-2 justify-content-between">
+                                        <span class="small fw-semibold">GST %:</span>
+                                        <input type="number" id="gst_percent"
+                                            value="{{ old('gst', $gstRate) }}" class="input-small">
+                                    </div>
                                     <div class="totals-row">
                                         <span class="small">CGST (2.5%):</span>
                                         <span id="cgst_display" class="small">0.00</span>

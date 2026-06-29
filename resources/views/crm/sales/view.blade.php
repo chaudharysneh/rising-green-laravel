@@ -103,20 +103,33 @@
                         }
                     </style>
 
+                    @php
+                        $settings = \App\Models\Setting::pluck('value', 'key')->toArray();
+                        $companyName = $settings['company_name'] ?? 'Rising Green Energy';
+                        $companyAddress = $settings['company_address'] ?? '215 MAHER NAGAR OPP BAPS HOSPITAL ADAJAN SURAT (395009)';
+                        $companyPhone = $settings['phone'] ?? '';
+                        $companyEmail = $settings['email'] ?? '';
+                        $companyLogo = $settings['company_logo_path'] ?? null;
+                        $companyLogoUrl = $companyLogo && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogo)
+                            ? asset('storage/' . $companyLogo)
+                            : asset('assets/img/logo.jpg');
+                    @endphp
                     <div class="quotation-box">
                         <!-- Header -->
                         <div class="quotation-header">
                             <table>
                                 <tr>
                                     <td class="company-logo">
-                                        <img src="{{ asset('images/template/Fablead logo.jpg') }}" alt="Company Logo">
+                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.jpg') }}';">
                                     </td>
                                     <td class="quotation-title">
                                         <div style="line-height:22px;">
-                                            <strong style="font-size:18px;">Solar-CRM</strong><br>
-                                            A-5001, Ascon Plaza, Adajan<br>
-                                            Surat, Gujarat 360001 - India<br>
-                                            india@fablead.com | +91 9974445840
+                                            <strong style="font-size:18px;">{{ $companyName }}</strong><br>
+                                            {{ $companyAddress }}<br>
+                                            @if(!empty($companyPhone) || !empty($companyEmail))
+                                                {{ implode(' | ', array_filter([$companyEmail, $companyPhone])) }}<br>
+                                            @endif
+                                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                                         </div>
                                     </td>
                                 </tr>

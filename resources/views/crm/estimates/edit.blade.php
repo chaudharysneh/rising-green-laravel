@@ -278,10 +278,22 @@
                                         <span class="small fw-semibold">Apply GST</span>
                                     </div>
                                     <div id="gst_fields_box" style="display: none;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="small">GST %:</span>
+                                        <div class="d-flex align-items-center gap-2 mb-2 justify-content-between">
+                                            <span class="small fw-semibold">GST %:</span>
                                             <input type="number" id="gst_percent"
                                                 value="{{ old('gst', $estimate->gst ?: $gstRate) }}" class="input-small">
+                                        </div>
+                                        <div class="totals-row">
+                                            <span class="small">CGST:</span>
+                                            <span id="cgst_display" class="small">0.00</span>
+                                        </div>
+                                        <div class="totals-row">
+                                            <span class="small">SGST:</span>
+                                            <span id="sgst_display" class="small">0.00</span>
+                                        </div>
+                                        <div class="totals-row">
+                                            <span class="small">IGST:</span>
+                                            <span id="igst_display" class="small">0.00</span>
                                         </div>
                                     </div>
                                 </div>
