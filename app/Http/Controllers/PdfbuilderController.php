@@ -494,6 +494,7 @@ class PdfbuilderController extends Controller
             'after_blocks' => $form_data['after_blocks'] ?? [],
             'companyInfo' => $template->company_information ?? [],
             'time_line' => $template->time_line ?? [],
+            'timeLine' => $template->time_line ?? [],
             'components' => $template->components ?? ($form_data['components'] ?? []),
             'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
             'environment_impact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),

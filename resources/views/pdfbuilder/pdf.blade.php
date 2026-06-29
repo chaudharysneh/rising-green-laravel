@@ -2099,8 +2099,8 @@ $__timeLineActive = $_isActive($__timeLine);
     $timelineTitle2 = trim((string) ($timeLine['title2'] ?? ''));
     $timelineNote = trim((string) ($timeLine['note'] ?? ''));
 
-    $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : normalize_pdf_image('public/assets/img/page-5-1.png');
-    $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : normalize_pdf_image('public/assets/img/page-5-2.png');
+    $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : '';
+    $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : '';
     ?>
             <!-- ================= TIMELINE ================= -->
             <div
@@ -2111,14 +2111,62 @@ $__timeLineActive = $_isActive($__timeLine);
                 <?= $timelineTitle !== '' ? esc($timelineTitle) : 'TIMELINE AND MILESTONES' ?>
             </div>
 
+            <?php if (!empty($timelineImg1)): ?>
             <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:650px; display:block; margin:0 auto 40px;">
+            <?php else: ?>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 40px; border-collapse:collapse;">
+                <tr>
+                    <td width="25%" align="center" style="padding:10px;">
+                        <div style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">1</div>
+                        <div style="font-size:15px; font-weight:bold;">10%</div>
+                        <div style="font-size:14px;">Advance</div>
+                    </td>
+                    <td width="25%" align="center" style="padding:10px;">
+                        <div style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">2</div>
+                        <div style="font-size:15px; font-weight:bold;">60%</div>
+                        <div style="font-size:14px;">Procurement</div>
+                    </td>
+                    <td width="25%" align="center" style="padding:10px;">
+                        <div style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">3</div>
+                        <div style="font-size:15px; font-weight:bold;">20%</div>
+                        <div style="font-size:14px;">Installation</div>
+                    </td>
+                    <td width="25%" align="center" style="padding:10px;">
+                        <div style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">4</div>
+                        <div style="font-size:15px; font-weight:bold;">10%</div>
+                        <div style="font-size:14px;">Net metering</div>
+                    </td>
+                </tr>
+            </table>
+            <?php endif; ?>
 
             <!-- ================= SYSTEM SPECIFICATION ================= -->
             <div style="font-size:20px; font-weight:bold; margin-bottom:18px; font-family: 'Montserrat', sans-serif;">
                 <?= $timelineTitle2 !== '' ? esc($timelineTitle2) : 'SYSTEM SPECIFICATION' ?>
             </div>
 
+            <?php if (!empty($timelineImg2)): ?>
             <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:650px; display:block; margin:0 auto 20px;">
+            <?php else: ?>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:0 auto 20px;">
+                <tr>
+                    <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">System Specification</td>
+                    <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">Details</td>
+                </tr>
+                <tr>
+                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Capacity</td>
+                    <td style="padding:9px; border:1px solid #333;"><?= esc($quantity) ?> kW</td>
+                </tr>
+                <tr>
+                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Type</td>
+                    <td style="padding:9px; border:1px solid #333;">Ongrid</td>
+                </tr>
+                <tr>
+                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">Application</td>
+                    <td style="padding:9px; border:1px solid #333;"><?= esc(ucfirst((string) ($estdata->type ?? 'Residential'))) ?></td>
+                </tr>
+            </table>
+            <?php endif; ?>
 
             <!-- ================= NOTE ================= -->
             <div style="text-align:center; font-size:16px; font-family: 'Montserrat', sans-serif;">
