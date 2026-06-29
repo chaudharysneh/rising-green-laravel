@@ -67,20 +67,20 @@
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label fw-semibold mb-0">Select Customer <span class="text-danger">*</span></label>
-                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                                    <i class="bi bi-plus-circle me-1"></i>Add New
+                            <label class="form-label fw-semibold mb-1">Select Customer <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-start gap-2">
+                                <select name="customer_id" id="select_customer"
+                                    class="form-select @error('customer_id') is-invalid @enderror" required>
+                                    <option value="">Select Customer</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" @selected(old('customer_id', $estimate->customer_id) == $customer->id)>
+                                            {{ $customer->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                                    <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <select name="customer_id" id="select_customer"
-                                class="form-select @error('customer_id') is-invalid @enderror" required>
-                                <option value="">Select Customer</option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id', $estimate->customer_id) == $customer->id)>
-                                        {{ $customer->name }}</option>
-                                @endforeach
-                            </select>
                             <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
                         </div>
 
@@ -204,21 +204,26 @@
                                                 <div class="col-md-3">
                                                     <label class="form-label small fw-semibold">BOM <span
                                                             class="text-danger">*</span></label>
-                                                    <select name="service[]" class="form-select product-select" required>
-                                                        <option value="">Select BOM</option>
-                                                        @foreach ($bomProducts as $bom)
-                                                            <option value="{{ $bom->id }}"
-                                                                data-name="{{ $bom->product_name }}"
-                                                                data-desc="{{ $bom->description ?? '' }}"
-                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
-                                                                data-price="{{ $bom->price ?? 0 }}"
-                                                                data-meter="{{ $bom->meter ?? '' }}"
-                                                                data-nos="{{ $bom->nos ?? '' }}"
-                                                                @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
-                                                                {{ $bom->product_name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                    <div class="d-flex align-items-start gap-2">
+                                                        <select name="service[]" class="form-select product-select" required>
+                                                            <option value="">Select BOM</option>
+                                                            @foreach ($bomProducts as $bom)
+                                                                <option value="{{ $bom->id }}"
+                                                                    data-name="{{ $bom->product_name }}"
+                                                                    data-desc="{{ $bom->description ?? '' }}"
+                                                                    data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
+                                                                    data-price="{{ $bom->price ?? 0 }}"
+                                                                    data-meter="{{ $bom->meter ?? '' }}"
+                                                                    data-nos="{{ $bom->nos ?? '' }}"
+                                                                    @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
+                                                                    {{ $bom->product_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-add-bom-row" data-bs-toggle="modal" data-bs-target="#quickAddBomModal" title="Add New BOM">
+                                                            <i class="bi bi-plus-lg"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label small fw-semibold">Make</label>
@@ -373,6 +378,46 @@
         </div>
     </div>
 
+    <!-- Quick Add BOM Modal -->
+    <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Add New BOM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="quickAddBomForm" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_bom_name" required>
+                            <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Make <span class="text-danger">*</span></label>
+                            <select class="form-select quick-bom-make-select" id="quick_bom_category_id" required>
+                                <option value="">Select Make</option>
+                                @foreach ($categories ?? [] as $category)
+                                    <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                            <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark-blue" id="saveQuickBomBtn">Save BOM</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Customer Modal -->
     <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -415,6 +460,10 @@
     <script>
         window.subsidiesData = @json($subsidies ?? []);
         window.estimateTaxes = @json($estimateTaxRows);
+        window.estimateBomQuickAddConfig = {
+            storeUrl: @json(route('api.bom-products.store')),
+            makeStoreUrl: @json(route('api.make.store'))
+        };
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
