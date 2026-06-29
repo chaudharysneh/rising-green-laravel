@@ -106,36 +106,6 @@
 
         <div class="col-12 col-xl-7">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
-                    <h5 class="mb-0 fw-bold">All Tasks</h5>
-                    <a href="{{ route('tasks.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
-                        style="color: #0c0c0c !important;">View All</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="dashboardTasksTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 35%;">Task Name</th>
-                                    <th style="width: 25%;" class="d-none d-md-table-cell">Assigned To</th>
-                                    <th style="width: 15%;" class="text-center">Priority</th>
-                                    <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
-                                    <th style="width: 10%;" class="text-center d-md-none">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Loading tasks...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-5">
-            <div class="card border-0 shadow-sm h-100">
                 <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-bold">Estimate Overview</h5>
                     @if(($estimateStats['can_view'] ?? false))
@@ -189,31 +159,150 @@
                             <div><span>Completed</span><strong>{{ number_format($estimateStats['completed'] ?? 0) }}</strong></div>
                         </div>
 
-                        <div class="estimate-latest-list">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h6 class="fw-bold mb-0">Latest Estimates</h6>
-                                <span class="text-muted small">Recent 4</span>
-                            </div>
-                            @forelse(($estimateStats['latest'] ?? collect()) as $estimate)
-                                <a href="{{ route('estimates.show', $estimate) }}" class="estimate-latest-item text-decoration-none">
-                                    <div class="min-w-0">
-                                        <div class="fw-semibold text-dark text-truncate">{{ $estimate->estimate_name ?: ($estimate->estimate_no ?: 'Estimate') }}</div>
-                                        <div class="text-muted small text-truncate">{{ $estimate->customer?->name ?? 'No customer' }} · {{ optional($estimate->estimate_date)->format('d M Y') ?? '-' }}</div>
-                                    </div>
-                                    <div class="text-end flex-shrink-0">
-                                        <div class="fw-bold text-dark">₹{{ number_format((float) $estimate->amount, 2) }}</div>
-                                        <span class="badge-status {{ strtolower((string) $estimate->status) }}">{{ strtoupper((string) ($estimate->status ?: 'pending')) }}</span>
-                                    </div>
-                                </a>
-                            @empty
-                                <div class="text-center text-muted py-3">No estimates found.</div>
-                            @endforelse
+                        @if(($estimateStats['latest'] ?? collect())->isNotEmpty())
+                            @php($latestEstimate = ($estimateStats['latest'] ?? collect())->first())
+                            <a href="{{ route('estimates.show', $latestEstimate) }}" class="estimate-latest-item estimate-latest-item--compact text-decoration-none mb-3">
+                                <div class="min-w-0">
+                                    <div class="fw-semibold text-dark text-truncate">{{ $latestEstimate->estimate_name ?: ($latestEstimate->estimate_no ?: 'Estimate') }}</div>
+                                    <div class="text-muted small text-truncate">{{ $latestEstimate->customer?->name ?? 'No customer' }} · {{ optional($latestEstimate->estimate_date)->format('d M Y') ?? '-' }}</div>
+                                </div>
+                                <div class="text-end flex-shrink-0">
+                                    <div class="fw-bold text-dark">₹{{ number_format((float) $latestEstimate->amount, 2) }}</div>
+                                    <span class="badge-status {{ strtolower((string) $latestEstimate->status) }}">{{ strtoupper((string) ($latestEstimate->status ?: 'pending')) }}</span>
+                                </div>
+                            </a>
+                        @endif
+
+                        <div class="estimate-footnote">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Overview is based on all visible estimates and their current statuses.
                         </div>
                     @endif
                 </div>
             </div>
         </div>
 
+        <div class="col-12 col-xl-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header dashboard-widget-head py-3">
+                    <h5 class="mb-0 fw-bold">Lead Conversion Snapshot</h5>
+                </div>
+                <div class="card-body conversion-snapshot-card">
+                    @if(!($leadConversionSnapshot['can_view'] ?? false))
+                        <div class="text-center text-muted py-5">Lead conversion data is not available for your account.</div>
+                    @else
+                        <div class="conversion-rate-circle mx-auto mb-3" style="--conversion-rate: {{ min(100, max(0, (int) ($leadConversionSnapshot['conversion_rate'] ?? 0))) }}%;">
+                            <span>{{ $leadConversionSnapshot['conversion_rate'] ?? 0 }}%</span>
+                            <small>Conversion</small>
+                        </div>
+
+                        <div class="conversion-grid">
+                            <div class="conversion-stat">
+                                <span>New Leads</span>
+                                <strong>{{ number_format($leadConversionSnapshot['new_leads'] ?? 0) }}</strong>
+                            </div>
+                            <div class="conversion-stat">
+                                <span>Qualified</span>
+                                <strong>{{ number_format($leadConversionSnapshot['qualified_leads'] ?? 0) }}</strong>
+                            </div>
+                            <div class="conversion-stat">
+                                <span>Estimates Created</span>
+                                <strong>{{ number_format($leadConversionSnapshot['estimates_created'] ?? 0) }}</strong>
+                            </div>
+                            <div class="conversion-stat conversion-stat--approved">
+                                <span>Approved Estimates</span>
+                                <strong>{{ number_format($leadConversionSnapshot['approved_estimates'] ?? 0) }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="conversion-footnote mt-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Conversion is calculated from approved estimates against total leads.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-xl-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
+                    <h5 class="mb-0 fw-bold">Upcoming Follow-ups</h5>
+                    @if($canViewFollowUps)
+                        <a href="{{ route('followups.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
+                            style="color: #0c0c0c !important;">View All</a>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dashboard-followups-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th class="d-none d-md-table-cell">Assigned Staff</th>
+                                    <th class="d-none d-md-table-cell">Phone</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end">Due</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse(($upcomingFollowUps ?? collect()) as $followUp)
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ $followUp->lead?->name ?? '-' }}</div>
+                                            <div class="text-muted small text-truncate">{{ $followUp->purpose ?? 'Follow-up' }}</div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">{{ $followUp->assignedUser?->name ?? 'Unassigned' }}</td>
+                                        <td class="d-none d-md-table-cell">{{ $followUp->lead?->phone ?? '-' }}</td>
+                                        <td class="text-center">
+                                            <span class="badge-status {{ strtolower((string) $followUp->status) }}">{{ strtoupper((string) ($followUp->status ?: 'pending')) }}</span>
+                                        </td>
+                                        <td class="text-end text-muted small">{{ optional($followUp->follow_up_at)->format('d M, h:i A') ?? '-' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">No upcoming follow-ups.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
+                    <h5 class="mb-0 fw-bold">All Tasks</h5>
+                    <a href="{{ route('tasks.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
+                        style="color: #0c0c0c !important;">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="dashboardTasksTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Task Name</th>
+                                    <th style="width: 25%;" class="d-none d-md-table-cell">Assigned To</th>
+                                    <th style="width: 15%;" class="text-center">Priority</th>
+                                    <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
+                                    <th style="width: 10%;" class="text-center d-md-none">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">Loading tasks...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row g-3 mt-1">
