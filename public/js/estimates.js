@@ -535,6 +535,10 @@
         });
     }
 
+    function formatStepOneInputValue(value) {
+        return String(Math.round(parseFloat(value || 0)));
+    }
+
     function initEstimateForm() {
         const form = document.querySelector('.ajax-estimate-form');
         if (!form) {
@@ -559,9 +563,10 @@
 
             const bomProducts = collectBomData();
             const formData = new FormData(this);
+            const totalTaxRate = getSelectedTaxBreakdown(null).totalRate;
             formData.set('products', JSON.stringify(bomProducts));
             formData.set('apply_gst', document.getElementById('apply_gst')?.checked ? '1' : '0');
-            formData.set('gst', document.getElementById('apply_gst')?.checked ? (document.getElementById('gst_percent')?.value || '0') : '0');
+            formData.set('gst', document.getElementById('apply_gst')?.checked ? totalTaxRate.toFixed(2) : '0');
             formData.set('total', document.getElementById('subtotal')?.value || '0');
             formData.set('final_total', document.getElementById('final_total')?.value || '0');
             formData.set('solar_structure_charges', document.getElementById('solar_structure_charges_check')?.checked ? (document.getElementById('solar_structure_charges')?.value || '0') : '0');
@@ -816,6 +821,10 @@
             restrictNegative(qtyInput);
         }
 
+        if (priceInput) {
+            restrictNegative(priceInput);
+        }
+
         if (productSelect) {
             $(productSelect).on('change', function () {
                 populateMakeOptions(this, makeSelect, '');
@@ -824,7 +833,7 @@
                 let labelText = 'Qty';
                 if (option && this.value) {
                     if (priceInput) {
-                        priceInput.value = parseFloat(option.dataset.price || 0).toFixed(2);
+                        priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
                     }
                     
                     const meter = option.dataset.meter;
@@ -880,6 +889,11 @@
 
         if (priceInput) {
             priceInput.addEventListener('input', function () {
+                toggleBomError(false);
+                calculateTotals();
+            });
+            priceInput.addEventListener('change', function () {
+                toggleBomError(false);
                 calculateTotals();
             });
         }
@@ -934,6 +948,28 @@
 
 
 
+    function getSelectedTaxBreakdown(taxableAmount) {
+        const rows = document.querySelectorAll('.gst-tax-row');
+        let totalRate = 0;
+        let totalAmount = 0;
+        const shouldUpdateDisplay = taxableAmount !== null;
+        const amountBase = shouldUpdateDisplay ? taxableAmount : 0;
+
+        rows.forEach(function (row) {
+            const rate = parseFloat(row.dataset.taxRate || 0);
+            const amount = amountBase > 0 && rate > 0 ? (amountBase * rate) / 100 : 0;
+            totalRate += rate;
+            totalAmount += amount;
+
+            const amountEl = row.querySelector('.gst-tax-amount');
+            if (amountEl && shouldUpdateDisplay) {
+                amountEl.textContent = amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        });
+
+        return { totalRate, totalAmount };
+    }
+
     function calculateTotals() {
         const subtotalField = document.getElementById('subtotal');
         const finalTotalField = document.getElementById('final_total');
@@ -968,30 +1004,24 @@
                 // Update per-row readout if element exists
                 const totalEl = row.querySelector('.product-total');
                 if (totalEl) {
-                    totalEl.value = rowTotal.toFixed(2);
+                    totalEl.value = formatStepOneInputValue(rowTotal);
                 }
             }
         });
 
-        // Auto-sync logic from user code sample
-        if (priceInput && !isPriceManualOverride) {
-            priceInput.value = productsTotal.toFixed(2);
-        }
-
         const price = parseFloat(priceInput?.value || 0);
-        const quantity = parseFloat(document.getElementById('quantity')?.value || 0);
         const structureCharges = document.getElementById('solar_structure_charges_check')?.checked
             ? parseFloat(document.getElementById('solar_structure_charges')?.value || 0)
-            : 0;
-        const gstPercent = document.getElementById('apply_gst')?.checked
-            ? parseFloat(document.getElementById('gst_percent')?.value || 0)
             : 0;
         const discount = parseFloat(document.getElementById('discount')?.value || 0);
         const subsidy = parseFloat(document.getElementById('subsidy_amount')?.value || 0);
 
-        const basePrice = price;
+        const basePrice = price + productsTotal;
         const subtotal = basePrice + structureCharges;
-        const gstAmount = gstPercent > 0 ? (basePrice * gstPercent) / 100 : 0;
+        const taxBreakdown = document.getElementById('apply_gst')?.checked
+            ? getSelectedTaxBreakdown(subtotal)
+            : getSelectedTaxBreakdown(0);
+        const gstAmount = taxBreakdown.totalAmount;
         const finalTotal = subtotal + gstAmount - discount - subsidy;
 
         subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1001,7 +1031,7 @@
 
         const gstField = document.getElementById('gst');
         if (gstField) {
-            gstField.value = gstPercent.toFixed(2);
+            gstField.value = document.getElementById('apply_gst')?.checked ? taxBreakdown.totalRate.toFixed(2) : '0';
         }
     }
     function autoCalculateSubsidy() {
@@ -1071,7 +1101,7 @@
         }
 
         // Safely update the field value
-        subsidyField.value = parseFloat(calculatedSubsidy).toFixed(2);
+        subsidyField.value = formatStepOneInputValue(calculatedSubsidy);
     }
 
     function initCalculations() {
@@ -1105,7 +1135,7 @@
         }
 
         // Attach robust listeners to all key fields
-        const inputs = ['price', 'quantity', 'solar_structure_charges', 'gst_percent', 'discount', 'subsidy_amount'];
+        const inputs = ['price', 'quantity', 'solar_structure_charges', 'discount', 'subsidy_amount'];
         inputs.forEach(function (id) {
             const input = document.getElementById(id);
             if (input) {

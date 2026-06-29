@@ -10,6 +10,27 @@
 @endpush
 
 @section('content')
+    @php
+        $estimateTaxRows = collect($gstTaxes ?? [])->flatMap(function ($tax) {
+            $name = (string) $tax->name;
+            $upperName = strtoupper($name);
+            $rate = (float) $tax->rate;
+
+            if (str_contains($upperName, 'CGST') && str_contains($upperName, 'SGST')) {
+                return [
+                    ['label' => 'CGST', 'rate' => $rate / 2],
+                    ['label' => 'SGST', 'rate' => $rate / 2],
+                ];
+            }
+
+            if (str_contains($upperName, 'IGST')) {
+                return [['label' => 'IGST', 'rate' => $rate]];
+            }
+
+            return [['label' => $name, 'rate' => $rate]];
+        })->values();
+    @endphp
+
     <div class="container-fluid p-0">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
@@ -92,6 +113,7 @@
                                 <option value="">Select</option>
                                 <option value="as_per_actual" @selected(old('solar_meter_charges') == 'as_per_actual')>As per Actual</option>
                                 <option value="as_per_client_scope" @selected(old('solar_meter_charges') == 'as_per_client_scope')>As per client scope</option>
+                                <option value="included" @selected(old('solar_meter_charges') == 'included')>Included</option>
                             </select>
                             <div class="invalid-feedback" id="solar_meter_charges-error">Please select solar meter charges
                             </div>
@@ -155,7 +177,7 @@
                                 <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
                                         <div class="row g-2 align-items-end">
-                                            <div class="col-md-5">
+                                            <div class="col-md-3">
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
                                                 <select name="service[]" class="form-select product-select" required>
@@ -175,16 +197,26 @@
                                                     @endif
                                                 </select>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label small fw-semibold">Make</label>
                                                 <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <label class="form-label small fw-semibold">Qty</label>
+                                                <label class="form-label small fw-semibold product-qty-label">Qty</label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="0" class="form-control" placeholder="0">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Unit Price</label>
+                                                <input type="number" min="0" step="1" name="product_price[]"
+                                                    value="0" class="form-control product-price" placeholder="0">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <label class="form-label small fw-semibold">Amount</label>
+                                                <input type="number" min="0" step="1" value="0"
+                                                    class="form-control product-total" placeholder="0" readonly>
                                             </div>
                                             <div class="col-md-1">
                                                 <button type="button" class="btn btn-outline-danger w-100 delete-bom-row"
@@ -245,29 +277,28 @@
                                 </div>
 
                                 <div id="gst_fields_box" style="display: none;">
-                                    <div class="totals-row">
-                                        <span class="small">CGST (2.5%):</span>
-                                        <span id="cgst_display" class="small">0.00</span>
-                                    </div>
-                                    <div class="totals-row">
-                                        <span class="small">SGST (2.5%):</span>
-                                        <span id="sgst_display" class="small">0.00</span>
-                                    </div>
-                                    <div class="totals-row">
-                                        <span class="small">IGST (5%):</span>
-                                        <span id="igst_display" class="small">0.00</span>
-                                    </div>
+                                    @forelse ($estimateTaxRows as $index => $taxRow)
+                                        <div class="totals-row gst-tax-row" data-tax-rate="{{ $taxRow['rate'] }}">
+                                            <span class="small">{{ $taxRow['label'] }} ({{ rtrim(rtrim(number_format($taxRow['rate'], 2), '0'), '.') }}%):</span>
+                                            <span class="small gst-tax-amount" id="tax_display_{{ $index }}">0.00</span>
+                                        </div>
+                                    @empty
+                                        <div class="totals-row">
+                                            <span class="small text-muted">No active taxes configured.</span>
+                                            <span class="small">0.00</span>
+                                        </div>
+                                    @endforelse
                                 </div>
 
                                 <div class="totals-row">
                                     <span class="small">Discount:</span>
-                                    <input type="number" name="discount" id="discount" value="0" class="input-small">
+                                    <input type="number" name="discount" id="discount" value="0" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
                                     <span class="small">Subsidy:</span>
                                     <input type="number" name="subsidy_amount" id="subsidy_amount" value="{{ old('subsidy_amount', 0) }}"
-                                        class="input-small">
+                                        step="1" class="input-small">
                                 </div>
 
                                 <hr class="my-2">
@@ -338,6 +369,7 @@
 @push('scripts')
     <script>
         window.subsidiesData = @json($subsidies ?? []);
+        window.estimateTaxes = @json($estimateTaxRows);
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
