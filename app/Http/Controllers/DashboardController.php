@@ -42,6 +42,8 @@ class DashboardController extends Controller
         return view('dashboard.index', [
             'stats' => $this->buildStats(),
             'estimateStats' => $this->buildEstimateStats(),
+            'upcomingFollowUps' => $this->buildUpcomingFollowUps(),
+            'leadConversionSnapshot' => $this->buildLeadConversionSnapshot(),
             'stages' => $stages,
             'canViewCustomers' => $canViewCustomers,
             'currentSubscriptionPlan' => $currentSubscriptionPlan,
@@ -331,6 +333,66 @@ class DashboardController extends Controller
                 ->latest('estimate_id')
                 ->take(4)
                 ->get(['estimate_id', 'estimate_no', 'estimate_name', 'customer_id', 'status', 'amount', 'estimate_date']),
+        ];
+    }
+
+    private function buildUpcomingFollowUps()
+    {
+        if (!auth()->user()?->hasMatrixPermission('view_followups')) {
+            return collect();
+        }
+
+        return FollowUp::query()
+            ->with([
+                'lead:id,name,phone',
+                'assignedUser:id,name',
+            ])
+            ->whereDate('follow_up_at', '>=', today())
+            ->whereNotIn('status', ['completed', 'cancelled', 'canceled'])
+            ->orderBy('follow_up_at')
+            ->take(5)
+            ->get(['id', 'lead_id', 'assigned_user_id', 'purpose', 'status', 'follow_up_at']);
+    }
+
+    private function buildLeadConversionSnapshot(): array
+    {
+        $user = auth()->user();
+        $canLeads = $user?->hasMatrixPermission('view_leads') ?? false;
+        $canEstimates = $user?->hasMatrixPermission('view_estimates') ?? false;
+
+        $leadQuery = Lead::query();
+        $estimateQuery = Estimate::query();
+
+        if (!$user?->isAdmin()) {
+            $estimateQuery->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('created_by', $user->id);
+            });
+        }
+
+        $totalLeads = $canLeads ? (clone $leadQuery)->count() : 0;
+        $newLeads = $canLeads ? (clone $leadQuery)->where('status', 'new')->count() : 0;
+        $qualifiedLeads = $canLeads
+            ? (clone $leadQuery)
+                ->where(function ($query) {
+                    $query->where('status', 'qualified')
+                        ->orWhereHas('stage', function ($stageQuery) {
+                            $stageQuery->whereRaw('LOWER(name) = ?', ['qualified']);
+                        });
+                })
+                ->count()
+            : 0;
+        $estimatesCreated = $canEstimates ? (clone $estimateQuery)->count() : 0;
+        $approvedEstimates = $canEstimates ? (clone $estimateQuery)->where('status', 'approved')->count() : 0;
+
+        return [
+            'can_view' => $canLeads || $canEstimates,
+            'total_leads' => $totalLeads,
+            'new_leads' => $newLeads,
+            'qualified_leads' => $qualifiedLeads,
+            'estimates_created' => $estimatesCreated,
+            'approved_estimates' => $approvedEstimates,
+            'conversion_rate' => $totalLeads > 0 ? round(($approvedEstimates / $totalLeads) * 100) : 0,
         ];
     }
 
