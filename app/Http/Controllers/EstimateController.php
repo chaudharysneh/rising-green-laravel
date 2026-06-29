@@ -124,6 +124,11 @@ class EstimateController extends Controller
             'social_instagram',
             'social_facebook',
             'social_linkedin',
+                'bank_name',
+                'account_name',
+                'account_number',
+                'ifsc_code',
+                'branch_name',
         ])->pluck('value', 'key');
 
         // Get all products for BOM specifications

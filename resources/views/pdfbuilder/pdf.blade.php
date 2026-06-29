@@ -2185,6 +2185,8 @@ $__componentsActive = $_isActive($__components);
                 </tr>
             </table>
 
+            @include('pdfbuilder.partials.estimate-invoice-summary')
+
             <!-- Main Title (Template-driven) -->
             <?php
     $components = isset($components) && is_array($components) ? $components : [];
@@ -2668,243 +2670,239 @@ $__componentsActive = $_isActive($__components);
     $lendingCost = $totalPayable - $subsidy; // Customer Payable Amount minus Subsidy
         ?>
 
-            <!-- COST Section -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px; border:none;">
-                <tr>
-                    <td>
-                        <div
-                            style="font-size: 25px; font-weight: bold; margin-bottom:10px; font-family: 'Montserrat', sans-serif;">
-                            COST</div>
+            <?php
+    $headerCellStyle = "background-color:#52866A;color:#fff;border:1px solid #333;padding:6px 8px;font-size:11px;font-family:'Montserrat',sans-serif;font-weight:bold;";
+    $cellStyle = "border:1px solid #333;padding:6px 8px;font-size:11px;font-family:'Montserrat',sans-serif;color:#000;";
+    $rightCellStyle = $cellStyle . 'text-align:right;';
+    $highlightCellStyle = $rightCellStyle . 'background-color:#52866A;color:#fff;font-weight:bold;';
+    $invoiceHeaderTextStyle = "font-size:12px;font-family:'Montserrat',sans-serif;color:#000;";
+    $invoiceEstimateNo = $estdata->estimate_no ?? ($estimate_no ?? '--');
+    $invoiceDate = ($estdata && !empty($estdata->estimate_date)) ? date('Y-m-d', strtotime($estdata->estimate_date)) : date('Y-m-d');
+    $invoiceCompanyName = $companySettings['company_name'] ?? $globalCompanyName ?? '--';
+    $invoiceCompanyAddress = $companySettings['company_address'] ?? $user['address'] ?? '';
+    $invoiceCompanyPhone = $companySettings['phone'] ?? $user['phone'] ?? $user['contact'] ?? '';
+    $estimateTypeLabel = $estdata && isset($estdata->type) ? ucfirst((string) $estdata->type) : '--';
+    $solarMeterLabel = ($estdata && !empty($estdata->solar_meter_charges)) ? ucwords(str_replace('_', ' ', (string) $estdata->solar_meter_charges)) : '--';
+    $estimateComment = $estdata && isset($estdata->estimate_comment) ? $estdata->estimate_comment : ($estdata->comment ?? '--');
+    $bankLines = array_filter([
+        !empty($companySettings['bank_name']) ? '<strong>Bank:</strong> ' . esc($companySettings['bank_name']) : '',
+        !empty($companySettings['account_name']) ? '<strong>Account Name:</strong> ' . esc($companySettings['account_name']) : '',
+        !empty($companySettings['account_number']) ? '<strong>Account No.:</strong> ' . esc($companySettings['account_number']) : '',
+        !empty($companySettings['ifsc_code']) ? '<strong>IFSC:</strong> ' . esc($companySettings['ifsc_code']) : '',
+        !empty($companySettings['branch_name']) ? '<strong>Branch:</strong> ' . esc($companySettings['branch_name']) : '',
+    ]);
+    $qrImage = !empty($companyQrCodePath) ? normalize_pdf_image($companyQrCodePath) : '';
+    $gstRateTxt = is_numeric($gstRate) ? rtrim(rtrim(number_format((float) $gstRate, 2, '.', ''), '0'), '.') : '';
+    $showGst = ((float) $gstAmount > 0) || ((float) $gstRate > 0);
+    $breakupLines = [];
 
-                        <!-- Cost Table -->
-                        <table width="100%" cellpadding="0" cellspacing="0"
-                            style="border-collapse: collapse; margin-bottom: 15px;">
-                            <tr style="border-radius: 5px;">
-                                <td
-                                    style="padding: 5px; font-size: 16px; font-weight: bold; border-radius: 5px 0 0 5px; background-color: #4b9349; width: 50%; color: #fff; font-family: 'Montserrat', sans-serif;">
-                                    Description</td>
-                                <td
-                                    style="padding: 5px; font-size: 16px; font-weight: bold; background-color: #4b9349; width: 20%; color: #fff; font-family: 'Montserrat', sans-serif;">
-                                    Amount</td>
-                                <td
-                                    style="padding: 5px; font-size: 16px; font-weight: bold; border-radius: 0 5px 5px 0; background-color: #4b9349; width: 30%; text-align: right; color: #fff; font-family: 'Montserrat', sans-serif;">
-                                    Total</td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Base Price</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    System Cost</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format($subtotal, 2) ?></td>
-                            </tr>
-                            <?php    if ($solarStructureCharges > 0): ?>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Solar Structure Charges</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format($solarStructureCharges, 2) ?></td>
-                            </tr>
-                            <?php    endif; ?>
-                            <?php    if ($discount > 0): ?>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Discount</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs -<?= number_format($discount, 2) ?></td>
-                            </tr>
-                            <?php    endif; ?>
-
-                            <?php
-    // GST display rules (same as view_estimate_new.php):
-    // - Quotation (is_quotation == 1): show ONLY one "GST (x%)" line
-    // - Normal (is_quotation == 0): show ONLY breakup lines (CGST/SGST/IGST/Custom)
-                        ?>
-
-                            <?php    if ($isQuotation === 1): ?>
-                            <?php
-        $gstRateTxt = is_numeric($gstRate) ? rtrim(rtrim(number_format((float) $gstRate, 2, '.', ''), '0'), '.') : '';
-        $showGst = ((float) $gstAmount > 0) || ((float) $gstRate > 0);
-                            ?>
-                            <?php        if ($showGst): ?>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    GST<?= $gstRateTxt !== '' ? ' (' . htmlspecialchars($gstRateTxt) . '%)' : '' ?>
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format((float) $gstAmount, 2) ?>
-                                </td>
-                            </tr>
-                            <?php        endif; ?>
-                            <?php    else: ?>
-                            <?php
-        // Build breakup lines
-        $breakupLines = [];
-
-        // 1) Prefer stored gst_breakdown groups
-        if (!empty($gstBreakdown['groups']) && is_array($gstBreakdown['groups'])) {
-            foreach ($gstBreakdown['groups'] as $g) {
-                $gTaxType = (string) ($g['tax_type'] ?? '');
-                if ($gTaxType === 'gst_percent')
-                    continue; // skip fallback summary-type
-                $lines = $g['lines'] ?? [];
-                if (!is_array($lines))
-                    continue;
-                foreach ($lines as $ln) {
-                    $lnLabel = trim((string) ($ln['label'] ?? ''));
-                    if ($lnLabel === '' || strtoupper($lnLabel) === 'GST')
-                        continue; // skip summary GST line
-                    $breakupLines[] = [
-                        'label' => $lnLabel,
-                        'rate' => $ln['rate'] ?? null,
-                        'amount' => (float) ($ln['amount'] ?? 0),
-                    ];
-                }
+    if (!empty($gstBreakdown['groups']) && is_array($gstBreakdown['groups'])) {
+        foreach ($gstBreakdown['groups'] as $g) {
+            if ((string) ($g['tax_type'] ?? '') === 'gst_percent') {
+                continue;
             }
-        }
-
-        // 2) If no gst_breakdown, derive from per-line product JSON
-        if (empty($breakupLines) && $estdata && !empty($estdata->product_name)) {
-            $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
-            if (is_array($items)) {
-                $cgstAmt = 0.0;
-                $sgstAmt = 0.0;
-                $igstAmt = 0.0;
-                $customAmt = 0.0;
-                $cgstRate0 = null;
-                $sgstRate0 = null;
-                $igstRate0 = null;
-                $customRate0 = null;
-
-                foreach ($items as $it) {
-                    if (isset($it['cgst_amount']) && is_numeric($it['cgst_amount'])) {
-                        $cgstAmt += (float) $it['cgst_amount'];
-                        if ($cgstRate0 === null && isset($it['cgst_rate']) && is_numeric($it['cgst_rate']))
-                            $cgstRate0 = (float) $it['cgst_rate'];
-                    }
-                    if (isset($it['sgst_amount']) && is_numeric($it['sgst_amount'])) {
-                        $sgstAmt += (float) $it['sgst_amount'];
-                        if ($sgstRate0 === null && isset($it['sgst_rate']) && is_numeric($it['sgst_rate']))
-                            $sgstRate0 = (float) $it['sgst_rate'];
-                    }
-                    if (isset($it['igst_amount']) && is_numeric($it['igst_amount'])) {
-                        $igstAmt += (float) $it['igst_amount'];
-                        if ($igstRate0 === null && isset($it['igst_rate']) && is_numeric($it['igst_rate']))
-                            $igstRate0 = (float) $it['igst_rate'];
-                    }
-
-                    $tt = (string) ($it['tax_type'] ?? '');
-                    if ($tt === 'custom' && isset($it['tax_amount']) && is_numeric($it['tax_amount'])) {
-                        $customAmt += (float) $it['tax_amount'];
-                        if ($customRate0 === null && isset($it['tax_rate']) && is_numeric($it['tax_rate']))
-                            $customRate0 = (float) $it['tax_rate'];
-                    }
-                }
-
-                if ($cgstAmt > 0)
-                    $breakupLines[] = ['label' => 'CGST', 'rate' => $cgstRate0, 'amount' => $cgstAmt];
-                if ($sgstAmt > 0)
-                    $breakupLines[] = ['label' => 'SGST', 'rate' => $sgstRate0, 'amount' => $sgstAmt];
-                if ($igstAmt > 0)
-                    $breakupLines[] = ['label' => 'IGST', 'rate' => $igstRate0, 'amount' => $igstAmt];
-                if ($customAmt > 0)
-                    $breakupLines[] = ['label' => 'GST (custom)', 'rate' => $customRate0, 'amount' => $customAmt];
+            $lines = $g['lines'] ?? [];
+            if (!is_array($lines)) {
+                continue;
             }
-        }
-                            ?>
-
-                            <?php        if (!empty($breakupLines) && (((float) $gstAmount > 0) || ((float) $gstRate > 0))): ?>
-                            <?php            foreach ($breakupLines as $ln): ?>
-                            <?php
+            foreach ($lines as $ln) {
                 $lnLabel = trim((string) ($ln['label'] ?? ''));
-                if ($lnLabel === '')
+                if ($lnLabel === '' || strtoupper($lnLabel) === 'GST') {
                     continue;
-                $lnRate = $ln['rate'] ?? null;
-                $lnAmt = (float) ($ln['amount'] ?? 0);
-                if ($lnAmt <= 0)
-                    continue;
-                $rateTxt = is_numeric($lnRate) ? rtrim(rtrim(number_format((float) $lnRate, 2, '.', ''), '0'), '.') : '';
-                                    ?>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    <?= htmlspecialchars($lnLabel) ?>
-                                    <?= $rateTxt !== '' ? ' (' . htmlspecialchars($rateTxt) . '%)' : '' ?>
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format((float) $lnAmt, 2) ?>
-                                </td>
-                            </tr>
-                            <?php            endforeach; ?>
-                            <?php        endif; ?>
-                            <?php    endif; ?>
+                }
+                $breakupLines[] = [
+                    'label' => $lnLabel,
+                    'rate' => $ln['rate'] ?? null,
+                    'amount' => (float) ($ln['amount'] ?? 0),
+                ];
+            }
+        }
+    }
 
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Customer Payable Amount</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format($totalPayable, 2) ?></td>
-                            </tr>
-                            <?php    if ($subsidy > 0): ?>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Subsidy</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs -<?= number_format($subsidy, 2) ?></td>
-                            </tr>
-                            <tr style="border-bottom: 1px solid #000;">
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    Lending Cost Of Customer</td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; font-family: 'Montserrat', sans-serif;">
-                                </td>
-                                <td
-                                    style="padding: 5px; font-size: 15px; font-weight: 400; color: #333; text-align: right; font-family: 'Montserrat', sans-serif;">
-                                    Rs <?= number_format($lendingCost, 2) ?></td>
-                            </tr>
-                            <?php    endif; ?>
-                        </table>
+    if (empty($breakupLines) && $estdata && !empty($estdata->product_name)) {
+        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+        if (is_array($items)) {
+            $taxBuckets = [
+                'CGST' => ['amount' => 0.0, 'rate' => null],
+                'SGST' => ['amount' => 0.0, 'rate' => null],
+                'IGST' => ['amount' => 0.0, 'rate' => null],
+            ];
+            foreach ($items as $it) {
+                foreach (['cgst' => 'CGST', 'sgst' => 'SGST', 'igst' => 'IGST'] as $key => $label) {
+                    if (isset($it[$key . '_amount']) && is_numeric($it[$key . '_amount'])) {
+                        $taxBuckets[$label]['amount'] += (float) $it[$key . '_amount'];
+                        if ($taxBuckets[$label]['rate'] === null && isset($it[$key . '_rate']) && is_numeric($it[$key . '_rate'])) {
+                            $taxBuckets[$label]['rate'] = (float) $it[$key . '_rate'];
+                        }
+                    }
+                }
+            }
+            foreach ($taxBuckets as $label => $bucket) {
+                if ($bucket['amount'] > 0) {
+                    $breakupLines[] = ['label' => $label, 'rate' => $bucket['rate'], 'amount' => $bucket['amount']];
+                }
+            }
+        }
+    }
+            ?>
 
-                        <div
-                            style="font-size: 14px; font-style: normal; margin-top: 10px; margin-bottom: 8px; font-family: 'Montserrat', sans-serif;">
-                            Inclusive of all taxes and installation
-                        </div>
+            <?php if (false): ?>
+            <!-- Invoice-style estimate header -->
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;margin-bottom:10px;border-collapse:collapse;">
+                <tr>
+                    <td width="45%" valign="top" align="left" style="<?= $invoiceHeaderTextStyle ?>padding-bottom:12px;">
+                        <?php if (!empty($logoBase64)): ?>
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
+                        <?php else: ?>
+                            <span style="color:#666;">Company Logo</span>
+                        <?php endif; ?>
+                    </td>
+                    <td width="55%" valign="top" align="right" style="<?= $invoiceHeaderTextStyle ?>line-height:1.45;padding-bottom:12px;">
+                        <strong style="font-size:14px;"><?= esc($invoiceCompanyName) ?></strong><br>
+                        <?= esc($invoiceCompanyAddress ?: '--') ?><br>
+                        <?= esc($invoiceCompanyPhone ?: '--') ?><br>
+                        <span style="color:#52866A;font-weight:bold;">Google Location Map</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border-top:1px solid #e5e5e5;padding-top:16px;"></td>
+                </tr>
+            </table>
+
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border-collapse:collapse;">
+                <tr>
+                    <td width="33%" align="left" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($invoiceEstimateNo) ?></td>
+                    <td width="34%" align="center" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
+                    <td width="33%" align="right" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;">Date: <?= esc($invoiceDate) ?></td>
+                </tr>
+            </table>
+
+            <!-- Invoice-style estimate table -->
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+                <tr>
+                    <td colspan="4" style="<?= $headerCellStyle ?>">Customer Details</td>
+                </tr>
+                <tr>
+                    <td style="<?= $cellStyle ?>"><strong>Customer Name</strong></td>
+                    <td style="<?= $cellStyle ?>"><?= esc($estdata->name ?? '--') ?></td>
+                    <td style="<?= $cellStyle ?>"><strong>Email</strong></td>
+                    <td style="<?= $cellStyle ?>"><?= esc($estdata->email ?? '--') ?></td>
+                </tr>
+                <tr>
+                    <td style="<?= $cellStyle ?>"><strong>Address</strong></td>
+                    <td style="<?= $cellStyle ?>"><?= esc($estdata->address ?? '--') ?></td>
+                    <td style="<?= $cellStyle ?>"><strong>Contact</strong></td>
+                    <td style="<?= $cellStyle ?>"><?= esc($estdata->phone ?? '--') ?></td>
+                </tr>
+            </table>
+
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
+                <tr>
+                    <td style="<?= $headerCellStyle ?>">Estimate Name</td>
+                    <td style="<?= $headerCellStyle ?>">Quantity (kW)</td>
+                    <td style="<?= $headerCellStyle ?>">Price</td>
+                </tr>
+                <tr>
+                    <td style="<?= $cellStyle ?>"><?= esc($estdata->estimate_name ?? '--') ?></td>
+                    <td style="<?= $cellStyle ?>"><?= esc($quantity) ?></td>
+                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) ($estdata->price ?? 0), 2) ?></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Base Price</strong></td>
+                    <td style="<?= $rightCellStyle ?>"><strong><?= number_format($subtotal, 2) ?></strong></td>
+                </tr>
+                <?php if ($solarStructureCharges > 0): ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>">Solar Structure Charges</td>
+                    <td style="<?= $rightCellStyle ?>"><?= number_format($solarStructureCharges, 2) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if ($isQuotation === 1 && $showGst): ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>">GST<?= $gstRateTxt !== '' ? ' (' . esc($gstRateTxt) . '%)' : '' ?></td>
+                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) $gstAmount, 2) ?></td>
+                </tr>
+                <?php elseif ($showGst && !empty($breakupLines)): ?>
+                    <?php foreach ($breakupLines as $ln): ?>
+                        <?php
+            $lnLabel = trim((string) ($ln['label'] ?? ''));
+            $lnRate = $ln['rate'] ?? null;
+            $lnAmt = (float) ($ln['amount'] ?? 0);
+            if ($lnLabel === '' || $lnAmt <= 0) {
+                continue;
+            }
+            $rateTxt = is_numeric($lnRate) ? rtrim(rtrim(number_format((float) $lnRate, 2, '.', ''), '0'), '.') : '';
+                        ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><?= esc($lnLabel) ?><?= $rateTxt !== '' ? ' (' . esc($rateTxt) . '%)' : '' ?></td>
+                    <td style="<?= $rightCellStyle ?>"><?= number_format($lnAmt, 2) ?></td>
+                </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <?php if ($discount > 0): ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>">Discount</td>
+                    <td style="<?= $rightCellStyle ?>">-<?= number_format($discount, 2) ?></td>
+                </tr>
+                <?php endif; ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Customer Payable Amount</strong></td>
+                    <td style="<?= $highlightCellStyle ?>"><?= number_format($totalPayable, 2) ?></td>
+                </tr>
+                <?php if ($subsidy > 0): ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>">Subsidy</td>
+                    <td style="<?= $rightCellStyle ?>">-<?= number_format($subsidy, 2) ?></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Lending Cost Of Customer</strong></td>
+                    <td style="<?= $highlightCellStyle ?>"><?= number_format($lendingCost, 2) ?></td>
+                </tr>
+                <?php endif; ?>
+            </table>
+
+            <?php if ($subsidy > 0): ?>
+            <div style="width:96%;margin:8px auto 0;font-size:10px;font-family:'Montserrat',sans-serif;color:#000;">
+                <strong>Note:</strong> Subsidy Amount to be credited in clients account.
+            </div>
+            <?php endif; ?>
+
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;border-collapse:collapse;">
+                <tr>
+                    <td style="<?= $headerCellStyle ?>width:38%;">System Capacity</td>
+                    <td style="<?= $cellStyle ?>"><?= esc($quantity) ?> kW</td>
+                </tr>
+                <tr>
+                    <td style="<?= $headerCellStyle ?>">Estimate Type</td>
+                    <td style="<?= $cellStyle ?>"><?= esc($estimateTypeLabel) ?></td>
+                </tr>
+                <tr>
+                    <td style="<?= $headerCellStyle ?>">Solar Meter Charges</td>
+                    <td style="<?= $cellStyle ?>"><?= esc($solarMeterLabel) ?></td>
+                </tr>
+            </table>
+
+            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;margin-bottom:12px;border-collapse:collapse;">
+                <tr>
+                    <td style="<?= $headerCellStyle ?>width:35%;">Comment</td>
+                    <td style="<?= $headerCellStyle ?>width:40%;">Bank Details</td>
+                    <td style="<?= $headerCellStyle ?>width:25%;">QR Code</td>
+                </tr>
+                <tr>
+                    <td style="<?= $cellStyle ?>vertical-align:top;"><?= nl2br(esc($estimateComment ?: '--')) ?></td>
+                    <td style="<?= $cellStyle ?>vertical-align:top;">
+                        <?= !empty($bankLines) ? implode('<br>', $bankLines) : 'No bank details available.' ?>
+                    </td>
+                    <td style="<?= $cellStyle ?>vertical-align:top;text-align:center;">
+                        <?php if (!empty($qrImage)): ?>
+                            <img src="<?= $qrImage ?>" alt="QR Code" style="max-width:90px;max-height:90px;">
+                        <?php else: ?>
+                            No QR code available.
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
+            <?php endif; ?>
 
             <!-- SCOPE Section (Template-driven) -->
             <?php
