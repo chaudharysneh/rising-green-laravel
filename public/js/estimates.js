@@ -548,6 +548,7 @@
         initBomHandlers();
         initCalculations();
         initQuickAddBom();
+        initEstimateNameFromCustomer();
 
         $('body').off('submit.estimate').on('submit.estimate', '.ajax-estimate-form', function (e) {
             e.preventDefault();
@@ -625,6 +626,31 @@
         });
     }
 
+    function initEstimateNameFromCustomer() {
+        const customerSelect = document.getElementById('select_customer');
+        const estimateNameInput = document.getElementById('estimate_name');
+
+        if (!customerSelect || !estimateNameInput) {
+            return;
+        }
+
+        $(customerSelect).off('change.estimateName').on('change.estimateName', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const customerName = (selectedOption?.textContent || '').trim();
+
+            if (!this.value || !customerName) {
+                return;
+            }
+
+            estimateNameInput.value = 'EST-' + customerName;
+            estimateNameInput.classList.remove('is-invalid');
+            const error = document.getElementById('estimate_name-error');
+            if (error) {
+                error.textContent = '';
+            }
+        });
+    }
+
     let quickBomTargetRow = null;
 
     function initQuickAddBom() {
@@ -648,8 +674,15 @@
                 return;
             }
 
+            if (!validateTopFieldsBeforeBom(true)) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return;
+            }
+
             quickBomTargetRow = button.closest('.bom-row');
-        });
+        }, true);
 
         [nameInput, makeSelect, priceInput].forEach(function (field) {
             if (!field) {
@@ -716,17 +749,18 @@
                             if (!response.ok) {
                                 throw payload;
                             }
-                            return payload;
+                            return { payload, make };
                         });
                     });
                 })
-                .then(function (payload) {
+                .then(function (result) {
+                    const payload = result.payload;
                     const product = payload.data;
                     if (!product) {
                         throw { message: 'BOM created but response was invalid.' };
                     }
 
-                    addBomProductToEstimateRows(product);
+                    addBomProductToEstimateRows(product, result.make);
                     form.reset();
                     if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
                         $(makeSelect).val(null).trigger('change');
@@ -883,11 +917,15 @@
         });
     }
 
-    function addBomProductToEstimateRows(product) {
+    function addBomProductToEstimateRows(product, selectedMake) {
         const categories = Array.isArray(product.categories) ? product.categories : [];
-        const categoryNames = categories.map(function (category) {
+        let categoryNames = categories.map(function (category) {
             return category.name;
         }).filter(Boolean);
+        const selectedMakeName = selectedMake?.name || '';
+        if (!categoryNames.length && selectedMakeName) {
+            categoryNames = [selectedMakeName];
+        }
         const price = formatStepOneInputValue(product.price || 0);
 
         document.querySelectorAll('.product-select').forEach(function (select) {
@@ -907,6 +945,7 @@
 
         const row = getQuickBomTargetRow();
         const productSelect = row?.querySelector('.product-select');
+        const makeSelect = row?.querySelector('.product-make');
         const priceInput = row?.querySelector('.product-price');
 
         if (!row || !productSelect) {
@@ -919,6 +958,13 @@
         }
 
         $(productSelect).trigger('change');
+        if (makeSelect && selectedMakeName) {
+            makeSelect.value = selectedMakeName;
+            if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+                $(makeSelect).trigger('change.select2');
+            }
+            $(makeSelect).trigger('change');
+        }
         quickBomTargetRow = null;
         calculateTotals();
     }
@@ -1030,9 +1076,50 @@
             isValid = false;
         }
 
+        if (!templateId) {
+            setFieldError($form, '[name="template_id"]', 'template_id-error', 'Please select quotation template');
+            isValid = false;
+        }
+
         if (!bomProducts.length) {
             $('#products-error').text('Please select at least one BOM').addClass('d-block').show();
             isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function validateTopFieldsBeforeBom(showErrors) {
+        const $form = $('.ajax-estimate-form').first();
+        if (!$form.length) {
+            return true;
+        }
+
+        let isValid = true;
+        const quantity = parseFloat($form.find('[name="quantity"]').val() || 0);
+        const price = parseFloat($form.find('[name="price"]').val() || 0);
+        const requiredFields = [
+            ['[name="customer_id"]', 'customer_id-error', 'Please select a customer', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="estimate_name"]', 'estimate_name-error', 'Please enter estimate name', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="type"]', 'type-error', 'Please select estimate type', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="quantity"]', 'quantity-error', 'Please enter valid quantity (kW)', function () { return quantity > 0; }],
+            ['[name="price"]', 'price-error', 'Please enter valid price', function () { return price > 0; }],
+            ['[name="solar_meter_charges"]', 'solar_meter_charges-error', 'Please select solar meter charges', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="template_id"]', 'template_id-error', 'Please select quotation template', function ($field) { return !!($field.val() || '').trim(); }],
+        ];
+
+        requiredFields.forEach(function (fieldConfig) {
+            const $field = $form.find(fieldConfig[0]);
+            if (!fieldConfig[3]($field)) {
+                isValid = false;
+                if (showErrors) {
+                    setFieldError($form, fieldConfig[0], fieldConfig[1], fieldConfig[2]);
+                }
+            }
+        });
+
+        if (!isValid && showErrors) {
+            $('#products-error').text('Please fill required estimate details before adding BOM').addClass('d-block').show();
         }
 
         return isValid;
@@ -1067,6 +1154,10 @@
         });
 
         addBtn.addEventListener('click', function () {
+            if (!validateTopFieldsBeforeBom(true)) {
+                return;
+            }
+
             const firstRow = container.querySelector('.bom-row');
             if (!firstRow) {
                 return;
@@ -1084,6 +1175,10 @@
                 } else if (el.type === 'number') {
                     el.value = '0';
                 }
+            });
+            newRow.querySelectorAll('input[name="product_qty[]"]').forEach(function (input) {
+                input.value = '';
+                input.placeholder = 'Add Quantity';
             });
 
             const deleteBtn = newRow.querySelector('.delete-bom-row');
@@ -1153,7 +1248,21 @@
         }
 
         if (productSelect) {
+            $(productSelect).on('select2:opening', function (event) {
+                if (!validateTopFieldsBeforeBom(true)) {
+                    event.preventDefault();
+                }
+            });
+
             $(productSelect).on('change', function () {
+                if (this.value && !validateTopFieldsBeforeBom(true)) {
+                    this.value = '';
+                    if ($.fn.select2 && $(this).hasClass('select2-hidden-accessible')) {
+                        $(this).trigger('change.select2');
+                    }
+                    return;
+                }
+
                 populateMakeOptions(this, makeSelect, '');
                 
                 const option = this.options[this.selectedIndex];
@@ -1182,8 +1291,9 @@
                         label.innerHTML = '';
                         label.appendChild(icon);
                         label.appendChild(document.createTextNode(' ' + labelText));
+                        label.insertAdjacentHTML('beforeend', ' <span class="text-danger">*</span>');
                     } else {
-                        label.textContent = labelText;
+                        label.innerHTML = labelText + ' <span class="text-danger">*</span>';
                     }
                 }
                 
