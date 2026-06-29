@@ -9,12 +9,10 @@
         stats: "/api/dashboard/stats",
         leadBoard: "/api/dashboard/lead-board",
         tasks: "/api/dashboard/tasks-widget",
-        trend: "/api/dashboard/trend",
         customerReport: "/api/dashboard/customer-report",
         dealsWidget: "/api/dashboard/deals-widget",
     };
 
-    let trendChart = null;
     let customerReportChart = null;
     let leadBoardSliderBound = false;
     function initDashboard() {
@@ -25,7 +23,6 @@
         loadStats();
         loadLeadBoard();
         loadTasks();
-        loadTrendChart();
         loadCustomerReport();
         loadDealsWidget();
 
@@ -295,58 +292,6 @@
             });
     }
 
-    function loadTrendChart() {
-        const canvas = document.getElementById("dashboardTrendChart");
-        if (!canvas || typeof window.Chart === "undefined") {
-            return;
-        }
-
-        getJson(endpoints.trend)
-            .then(function (response) {
-                const data = response && response.data ? response.data : {};
-                const labels = Array.isArray(data.labels) ? data.labels : [];
-                const datasets = data.datasets || {};
-
-                if (trendChart) {
-                    trendChart.destroy();
-                }
-
-                trendChart = new Chart(canvas, {
-                    type: "line",
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            buildDataset("Leads", datasets.leads, "#3B5BDB"),
-                            buildDataset("Follow Up", datasets.followups, "#F43F5E"),
-                            buildDataset("Customer", datasets.customers, "#475569"),
-                            buildDataset("Deal", datasets.deals, "#0D9488"),
-                        ],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { mode: "index", intersect: false },
-                        plugins: {
-                            legend: { position: "top" },
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0 },
-                                grid: { color: "rgba(148, 163, 184, 0.2)" },
-                            },
-                            x: {
-                                grid: { color: "rgba(148, 163, 184, 0.15)" },
-                            },
-                        },
-                    },
-                });
-            })
-            .catch(function () {
-                notifyError("Failed to load dashboard chart.");
-            });
-    }
-
     function loadCustomerReport(year) {
         const canvas = document.getElementById("customerReportChart");
         if (!canvas || typeof window.Chart === "undefined") {
@@ -504,20 +449,6 @@
             .catch(function () {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Failed to load deals.</td></tr>';
             });
-    }
-
-    function buildDataset(label, values, color) {
-        return {
-            label: label,
-            data: Array.isArray(values) ? values : [],
-            borderColor: color,
-            backgroundColor: color + "22",
-            fill: false,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-        };
     }
 
     function setText(id, value) {
