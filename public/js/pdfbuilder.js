@@ -54,7 +54,7 @@
 
                     <td class="text-end pe-4 d-none d-md-table-cell">
                         <div class="d-inline-flex align-items-center gap-2">
-                            <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank" title="View PDF"><i class="bi bi-eye"></i></a>
+                            <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="View PDF"><i class="bi bi-eye"></i></a>
                             <a href="${editUrl}" class="btn crm-action-btn btn-sm" title="Edit Template"><i class="bi bi-pencil"></i></a>
                             <button class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${template.id}" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
@@ -80,7 +80,7 @@
                                 <div class="col-12 d-flex justify-content-between align-items-center pt-3 mt-3 border-top">
                                     <div class="expand-label"><i class="fa-solid fa-gear"></i> Actions :</div>
                                     <div class="d-flex justify-content-end flex-wrap gap-2">
-                                        <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank"><i class="bi bi-eye"></i></a>
+                                        <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener"><i class="bi bi-eye"></i></a>
                                         <a href="${editUrl}" class="btn crm-action-btn btn-sm"><i class="bi bi-pencil"></i></a>
                                         <button class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${template.id}"><i class="bi bi-trash"></i></button>
                                     </div>

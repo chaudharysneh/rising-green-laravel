@@ -123,8 +123,8 @@
                         <td class="text-center pe-4">
                             <div class="d-inline-flex align-items-center gap-2 justify-content-center">
                                 ${permissions.edit ? `<a href="/estimates/${estimate.estimate_id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>` : ''}
-                                ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ''}
-                                ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}/pdf" class="btn crm-action-btn btn-sm" title="Download PDF"><i class="bi bi-file-pdf"></i></a>` : ''}
+                                ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="View"><i class="bi bi-eye"></i></a>` : ''}
+                                ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}/pdf" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="Download PDF"><i class="bi bi-file-pdf"></i></a>` : ''}
                                 ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${estimate.estimate_id}" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
                             </div>
                         </td>
