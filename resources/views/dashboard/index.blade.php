@@ -269,7 +269,7 @@
 
     </div>
     <footer class="dashboard-footer text-center py-2 mt-4">
-        © {{ date('Y') }} Copyright - Fablead Developers Technolab
+        © {{ date('Y') }} Copyright - Rising Green Energy
     </footer>
 
     <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1" aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">

@@ -28,6 +28,42 @@
             return;
         }
 
+        // Get filter from URL parameter or default to 'created_by_me'
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentFilter = urlParams.get('filter') || 'created_by_me';
+
+        // Set the filter in URL if not present (for first load)
+        if (document.getElementById('estimateFilterTabs') && !urlParams.has('filter')) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('filter', currentFilter);
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Activate the correct tab based on URL parameter
+        if (currentFilter) {
+            document.querySelectorAll('#estimateFilterTabs button[data-filter]').forEach(function(tab) {
+                if (tab.dataset.filter === currentFilter) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+        // Tab click handlers
+        document.querySelectorAll('#estimateFilterTabs button[data-filter]').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentFilter = this.dataset.filter;
+                
+                // Update URL without page reload
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('filter', currentFilter);
+                window.history.replaceState({}, '', newUrl);
+                
+                fetchEstimates(1);
+            });
+        });
+
         function formatDate(dateValue) {
             if (!dateValue) return '-';
             const date = new Date(dateValue);
@@ -475,6 +511,10 @@
 
             if (searchInput.value.trim()) {
                 url.searchParams.set('search', searchInput.value.trim());
+            }
+
+            if (currentFilter && document.getElementById('estimateFilterTabs')) {
+                url.searchParams.set('filter', currentFilter);
             }
 
             $.ajax({
@@ -1469,6 +1509,28 @@
         const gstField = document.getElementById('gst');
         if (gstField) {
             gstField.value = document.getElementById('apply_gst')?.checked ? taxBreakdown.totalRate.toFixed(2) : '0';
+        }
+
+        const cgstDisplay = document.getElementById('cgst_display');
+        const sgstDisplay = document.getElementById('sgst_display');
+        const igstDisplay = document.getElementById('igst_display');
+
+        if (cgstDisplay && sgstDisplay && igstDisplay) {
+            const halfGst = gstPercent / 2;
+            const cgstAmount = gstPercent > 0 ? (basePrice * halfGst) / 100 : 0;
+            const sgstAmount = gstPercent > 0 ? (basePrice * halfGst) / 100 : 0;
+            const igstAmount = gstPercent > 0 ? (basePrice * gstPercent) / 100 : 0;
+
+            cgstDisplay.textContent = cgstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            sgstDisplay.textContent = sgstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            igstDisplay.textContent = igstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const cgstLabel = cgstDisplay.previousElementSibling;
+            const sgstLabel = sgstDisplay.previousElementSibling;
+            const igstLabel = igstDisplay.previousElementSibling;
+            if (cgstLabel) cgstLabel.textContent = `CGST (${halfGst.toFixed(1)}%):`;
+            if (sgstLabel) sgstLabel.textContent = `SGST (${halfGst.toFixed(1)}%):`;
+            if (igstLabel) igstLabel.textContent = `IGST (${gstPercent.toFixed(1)}%):`;
         }
     }
     function autoCalculateSubsidy() {

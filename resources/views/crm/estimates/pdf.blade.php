@@ -289,8 +289,7 @@ if (!isset($estdata) && isset($estimate)) {
                     <tr>
                         <td class="company-logo">
                             <?php
-$company_name = isset($user['company_name']) ? $user['company_name'] : 'NA';
-$company_logo = isset($user['company_logo']) ? $user['company_logo'] : 'default_logo.jpg';
+$company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_path'] : (isset($user['company_logo']) ? $user['company_logo'] : 'default_logo.jpg');
                             ?>
                             <img src="<?php echo htmlspecialchars(base_url('public/assets/img/profile/' . $company_logo)); ?>"
                                 alt="Company Logo" style="max-width: 300px; width: 50%; height: auto;">
@@ -298,13 +297,9 @@ $company_logo = isset($user['company_logo']) ? $user['company_logo'] : 'default_
                         <td class="quotation-title">
                             <div style="line-height:22px;color:#000">
                                 <strong
-                                    style="font-size:18px;color:#000"><?php echo htmlspecialchars($company_name); ?></strong><br>
-                                <?php echo htmlspecialchars($user['address'] ?? '--'); ?><br>
-                                <?php echo htmlspecialchars($user['country'] ?? '--'); ?>,
-                                <?php echo htmlspecialchars($user['state'] ?? '--'); ?>,
-                                <?php echo htmlspecialchars($user['city'] ?? '--'); ?>
-                                <?php echo htmlspecialchars($user['pincode'] ?? '--'); ?><br>
-                                <?php echo htmlspecialchars($user['contact'] ?? '--'); ?>
+                                    style="font-size:18px;color:#000"><?php echo htmlspecialchars($settings['company_name'] ?? ($user['company'] ?? 'Rising Green Energy')); ?></strong><br>
+                                <?php echo htmlspecialchars($settings['company_address'] ?? ($user['address'] ?? '--')); ?><br>
+                                <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                             </div>
                         </td>
                     </tr>

@@ -308,9 +308,12 @@
                                     <td class="quotation-title" style="width: 50%;">
                                         <div style="line-height:22px;color:#000">
                                             <strong
-                                                style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company_name ?? 'Company Name') }}</strong><br>
+                                                style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company ?? 'Rising Green Energy') }}</strong><br>
                                             {{ $settings['company_address'] ?? ($user->address ?? '--') }}<br>
-                                            {{ $settings['phone'] ?? ($user->phone ?? '--') }}
+                                            @if(!empty($settings['phone']))
+                                                {{ $settings['phone'] }}<br>
+                                            @endif
+                                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                                         </div>
                                     </td>
                                 </tr>

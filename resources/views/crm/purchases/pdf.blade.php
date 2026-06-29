@@ -80,10 +80,25 @@
 </head>
 <body>
     @php
-        $logoPath = public_path('images/template/Fablead logo.jpg');
-        // Ensure logo path exists
-        if (!file_exists($logoPath)) {
-            $logoPath = null;
+        $settings = \App\Models\Setting::pluck('value', 'key')->toArray();
+        $companyName = $settings['company_name'] ?? 'Rising Green Energy';
+        $companyAddress = $settings['company_address'] ?? '215 MAHER NAGAR OPP BAPS HOSPITAL ADAJAN SURAT (395009)';
+        $companyPhone = $settings['phone'] ?? '';
+        $companyEmail = $settings['email'] ?? '';
+        $companyLogo = $settings['company_logo_path'] ?? null;
+        
+        $logoPath = null;
+        if ($companyLogo) {
+            $storageLogoPath = storage_path('app/public/' . $companyLogo);
+            if (file_exists($storageLogoPath)) {
+                $logoPath = $storageLogoPath;
+            }
+        }
+        if (!$logoPath) {
+            $publicLogoPath = public_path('assets/img/logo.jpg');
+            if (file_exists($publicLogoPath)) {
+                $logoPath = $publicLogoPath;
+            }
         }
     @endphp
     <div class="quotation-box">
@@ -98,10 +113,12 @@
                     </td>
                     <td class="quotation-title">
                         <div style="line-height:22px;">
-                            <strong style="font-size:18px;">Solar-CRM</strong><br>
-                            A-5001, Ascon Plaza, Adajan<br>
-                            Surat, Gujarat 360001 - India<br>
-                            india@fablead.com | +91 9974445840
+                            <strong style="font-size:18px;">{{ $companyName }}</strong><br>
+                            {{ $companyAddress }}<br>
+                            @if(!empty($companyPhone) || !empty($companyEmail))
+                                {{ implode(' | ', array_filter([$companyEmail, $companyPhone])) }}<br>
+                            @endif
+                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                         </div>
                     </td>
                 </tr>

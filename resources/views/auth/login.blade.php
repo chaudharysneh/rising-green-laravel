@@ -22,8 +22,8 @@
 
                             <!-- Header -->
                             <div class="text-center">
-                                <h1 class="h3 fw-bold mb-2 text-dark-blue">Fablead CRM</h1>
-                                <p class="text-muted mb-0">Welcome to Fablead CRM, the all-in-one solution for your travel business.</p>
+                                <h1 class="h3 fw-bold mb-2 text-dark-blue">Rising Green Energy CRM</h1>
+                                <p class="text-muted mb-0">Welcome to Rising Green Energy CRM, the all-in-one solution for your solar business.</p>
                             </div>
 
                             <div class="my-4">
