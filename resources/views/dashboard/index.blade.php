@@ -16,13 +16,15 @@
         $canViewDeals = $dashboardUser?->hasMatrixPermission('view_deals') ?? false;
         $canViewTasks = $dashboardUser?->hasMatrixPermission('view_tasks') ?? false;
         $canViewBookings = $dashboardUser?->hasMatrixPermission('view_bookings') ?? false;
+        $canViewEstimates = $dashboardUser?->hasMatrixPermission('view_estimates') ?? false;
         $hasDashboardAccess = $dashboardUser?->isAdmin()
             || $canViewCustomers
             || $canViewFollowUps
             || $canViewLeads
             || $canViewDeals
             || $canViewTasks
-            || $canViewBookings;
+            || $canViewBookings
+            || $canViewEstimates;
     @endphp
 
     <div class="row g-3 mb-2" id="dashboardStats">
@@ -134,13 +136,80 @@
 
         <div class="col-12 col-xl-5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head py-3">
-                    <h5 class="mb-0 fw-bold">Module Trends</h5>
+                <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-bold">Estimate Overview</h5>
+                    @if(($estimateStats['can_view'] ?? false))
+                        <a href="{{ route('estimates.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
+                            style="color: #0c0c0c !important;">View All</a>
+                    @endif
                 </div>
-                <div class="card-body pt-1">
-                    <div class="chart-wrap">
-                        <canvas id="dashboardTrendChart" height="220"></canvas>
-                    </div>
+                <div class="card-body estimate-overview-card">
+                    @if(!($estimateStats['can_view'] ?? false))
+                        <div class="text-center text-muted py-5">Estimate data is not available for your account.</div>
+                    @else
+                        <div class="estimate-overview-hero mb-3">
+                            <div>
+                                <p class="estimate-overview-label mb-1">Total Estimate Value</p>
+                                <h3 class="estimate-overview-value mb-0">₹{{ number_format((float) ($estimateStats['total_value'] ?? 0), 2) }}</h3>
+                            </div>
+                            <div class="estimate-overview-icon">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="estimate-mini-stat">
+                                    <span>Total</span>
+                                    <strong>{{ number_format($estimateStats['total'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="estimate-mini-stat">
+                                    <span>This Month</span>
+                                    <strong>{{ number_format($estimateStats['this_month'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="estimate-mini-stat estimate-mini-stat--pending">
+                                    <span>Pending</span>
+                                    <strong>{{ number_format($estimateStats['pending'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="estimate-mini-stat estimate-mini-stat--approved">
+                                    <span>Approved</span>
+                                    <strong>{{ number_format($estimateStats['approved'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="estimate-status-strip mb-3">
+                            <div><span>Rejected</span><strong>{{ number_format($estimateStats['rejected'] ?? 0) }}</strong></div>
+                            <div><span>Completed</span><strong>{{ number_format($estimateStats['completed'] ?? 0) }}</strong></div>
+                        </div>
+
+                        <div class="estimate-latest-list">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold mb-0">Latest Estimates</h6>
+                                <span class="text-muted small">Recent 4</span>
+                            </div>
+                            @forelse(($estimateStats['latest'] ?? collect()) as $estimate)
+                                <a href="{{ route('estimates.show', $estimate) }}" class="estimate-latest-item text-decoration-none">
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-dark text-truncate">{{ $estimate->estimate_name ?: ($estimate->estimate_no ?: 'Estimate') }}</div>
+                                        <div class="text-muted small text-truncate">{{ $estimate->customer?->name ?? 'No customer' }} · {{ optional($estimate->estimate_date)->format('d M Y') ?? '-' }}</div>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        <div class="fw-bold text-dark">₹{{ number_format((float) $estimate->amount, 2) }}</div>
+                                        <span class="badge-status {{ strtolower((string) $estimate->status) }}">{{ strtoupper((string) ($estimate->status ?: 'pending')) }}</span>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="text-center text-muted py-3">No estimates found.</div>
+                            @endforelse
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

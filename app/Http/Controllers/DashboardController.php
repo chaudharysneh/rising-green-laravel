@@ -6,6 +6,7 @@ use App\Models\Lead;
 use App\Models\Customer;
 use App\Models\Booking;
 use App\Models\Deal;
+use App\Models\Estimate;
 use App\Models\Stage;
 use App\Models\SubscriptionPlan;
 use App\Models\Task;
@@ -40,6 +41,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', [
             'stats' => $this->buildStats(),
+            'estimateStats' => $this->buildEstimateStats(),
             'stages' => $stages,
             'canViewCustomers' => $canViewCustomers,
             'currentSubscriptionPlan' => $currentSubscriptionPlan,
@@ -279,6 +281,56 @@ class DashboardController extends Controller
             'active_leads' => $activeLeads,
             'confirmed_bookings' => $confirmedBookings,
             'conversion_rate' => $totalLeads > 0 ? round(($confirmedBookings / $totalLeads) * 100) : 0,
+        ];
+    }
+
+    private function buildEstimateStats(): array
+    {
+        $user = auth()->user();
+        $canEstimates = $user?->hasMatrixPermission('view_estimates') ?? false;
+
+        if (!$canEstimates) {
+            return [
+                'can_view' => false,
+                'total' => 0,
+                'pending' => 0,
+                'approved' => 0,
+                'rejected' => 0,
+                'completed' => 0,
+                'this_month' => 0,
+                'total_value' => 0,
+                'latest' => collect(),
+            ];
+        }
+
+        $baseQuery = Estimate::query();
+        if (!$user?->isAdmin()) {
+            $baseQuery->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('created_by', $user->id);
+            });
+        }
+
+        $statusCount = function (string $status) use ($baseQuery): int {
+            return (clone $baseQuery)->where('status', $status)->count();
+        };
+
+        return [
+            'can_view' => true,
+            'total' => (clone $baseQuery)->count(),
+            'pending' => $statusCount('pending'),
+            'approved' => $statusCount('approved'),
+            'rejected' => $statusCount('rejected'),
+            'completed' => $statusCount('completed'),
+            'this_month' => (clone $baseQuery)
+                ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+                ->count(),
+            'total_value' => (float) (clone $baseQuery)->sum('amount'),
+            'latest' => (clone $baseQuery)
+                ->with('customer:id,name')
+                ->latest('estimate_id')
+                ->take(4)
+                ->get(['estimate_id', 'estimate_no', 'estimate_name', 'customer_id', 'status', 'amount', 'estimate_date']),
         ];
     }
 
