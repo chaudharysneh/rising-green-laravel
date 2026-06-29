@@ -7,6 +7,7 @@ use App\Models\BomProduct;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Customer;
+use App\Models\Tax;
 use App\Models\Technology;
 use App\Models\Warranty;
 use Illuminate\Http\Request;
@@ -96,7 +97,7 @@ class EstimateController extends Controller
             'quantity' => 'required|numeric|gt:0',
             'price' => 'required|numeric|gt:0',
             'template_id' => 'required|exists:pdf_builder_forms,id',
-            'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope',
+            'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope,included',
             'estimate_date' => 'nullable|date',
             'products' => 'nullable|json',
             'attach_file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx',
@@ -153,6 +154,7 @@ class EstimateController extends Controller
 
             // Parse products JSON (from BOM), with fallback to raw form arrays.
             $products = $this->normalizeEstimateProducts($request);
+            $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected
             $hasProduct = false;
@@ -173,14 +175,12 @@ class EstimateController extends Controller
                 ], 422);
             }
 
-            // Calculate subtotal and GST (matching reference code logic)
-            $basePrice = $price;
+            // Calculate subtotal and GST from the active tax settings.
+            $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-
-            $gstAmount = 0;
-            if ($applyCharges && $gstPercent > 0) {
-                $gstAmount = ($basePrice * $gstPercent) / 100;
-            }
+            $gstBreakdown = $this->buildGstBreakdown($subtotal, (bool) $applyCharges);
+            $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
+            $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
             $finalAmount = $subtotal + $gstAmount - $discount - $subsidyAmount;
 
@@ -218,6 +218,7 @@ class EstimateController extends Controller
                 'total' => $subtotal,
                 'gst' => $gstPercent,
                 'gst_amount' => $gstAmount,
+                'gst_breakdown' => $applyCharges ? $gstBreakdown : null,
                 'discount' => $discount,
                 'subsidy_amount' => $subsidyAmount,
                 'amount' => $finalAmount,
@@ -278,7 +279,7 @@ class EstimateController extends Controller
             'quantity' => 'required|numeric|gt:0',
             'price' => 'required|numeric|gt:0',
             'template_id' => 'required|exists:pdf_builder_forms,id',
-            'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope',
+            'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope,included',
             'estimate_date' => 'nullable|date',
             'products' => 'nullable|json',
             'attach_file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx',
@@ -334,6 +335,7 @@ class EstimateController extends Controller
 
             // Parse products JSON, with fallback to raw form arrays.
             $products = $this->normalizeEstimateProducts($request);
+            $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected
             $hasProduct = false;
@@ -355,13 +357,11 @@ class EstimateController extends Controller
             }
 
             // Calculate subtotal and GST
-            $basePrice = $price;
+            $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-
-            $gstAmount = 0;
-            if ($applyCharges && $gstPercent > 0) {
-                $gstAmount = ($basePrice * $gstPercent) / 100;
-            }
+            $gstBreakdown = $this->buildGstBreakdown($subtotal, (bool) $applyCharges);
+            $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
+            $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
             $finalAmount = $subtotal + $gstAmount - $discount - $subsidyAmount;
 
@@ -390,6 +390,7 @@ class EstimateController extends Controller
                 'total' => $subtotal,
                 'gst' => $gstPercent,
                 'gst_amount' => $gstAmount,
+                'gst_breakdown' => $applyCharges ? $gstBreakdown : null,
                 'discount' => $discount,
                 'subsidy_amount' => $subsidyAmount,
                 'amount' => $finalAmount,
@@ -646,6 +647,72 @@ class EstimateController extends Controller
         }, array_filter($docs)));
     }
 
+    private function calculateProductsTotal(array $products): float
+    {
+        return array_reduce($products, function (float $total, array $product) {
+            $quantity = (float) ($product['quantity'] ?? 0);
+            $price = (float) ($product['price'] ?? 0);
+
+            return $total + ($quantity * $price);
+        }, 0.0);
+    }
+
+    private function buildGstBreakdown(float $taxableAmount, bool $applyTaxes): array
+    {
+        if (!$applyTaxes) {
+            return [
+                'tax_rate' => 0,
+                'gst_amount' => 0,
+                'groups' => [],
+            ];
+        }
+
+        $lines = $this->estimateTaxLines();
+        $totalRate = array_sum(array_column($lines, 'rate'));
+
+        foreach ($lines as $index => $line) {
+            $lines[$index]['amount'] = round(($taxableAmount * (float) $line['rate']) / 100, 2);
+        }
+
+        return [
+            'tax_rate' => round($totalRate, 2),
+            'gst_amount' => round(array_sum(array_column($lines, 'amount')), 2),
+            'groups' => $lines ? [[
+                'tax_type' => 'settings_tax',
+                'taxable_amount' => round($taxableAmount, 2),
+                'lines' => $lines,
+            ]] : [],
+        ];
+    }
+
+    private function estimateTaxLines(): array
+    {
+        return Tax::active()
+            ->orderBy('name')
+            ->orderBy('rate')
+            ->get()
+            ->flatMap(function (Tax $tax) {
+                $name = (string) $tax->name;
+                $upperName = strtoupper($name);
+                $rate = (float) $tax->rate;
+
+                if (str_contains($upperName, 'CGST') && str_contains($upperName, 'SGST')) {
+                    return [
+                        ['label' => 'CGST', 'rate' => round($rate / 2, 2)],
+                        ['label' => 'SGST', 'rate' => round($rate / 2, 2)],
+                    ];
+                }
+
+                if (str_contains($upperName, 'IGST')) {
+                    return [['label' => 'IGST', 'rate' => round($rate, 2)]];
+                }
+
+                return [['label' => $name, 'rate' => round($rate, 2)]];
+            })
+            ->values()
+            ->all();
+    }
+
     private function normalizeEstimateProducts(Request $request): array
     {
         $productsJson = $request->input('products', '[]');
@@ -672,6 +739,7 @@ class EstimateController extends Controller
         $serviceIds = (array) $request->input('service', []);
         $makes = (array) $request->input('product_make', []);
         $quantities = (array) $request->input('product_qty', []);
+        $prices = (array) $request->input('product_price', []);
 
         $productIds = array_values(array_unique(array_filter($serviceIds, function ($value) {
             return (string) $value !== '';
@@ -696,7 +764,9 @@ class EstimateController extends Controller
                 'description' => (string) ($product->description ?? ''),
                 'category_name' => (string) ($makes[$index] ?? ''),
                 'quantity' => (float) ($quantities[$index] ?? 0),
-                'price' => (float) ($product->price ?? 0),
+                'price' => array_key_exists($index, $prices)
+                    ? (float) ($prices[$index] ?? 0)
+                    : (float) ($product->price ?? 0),
             ];
         }
 

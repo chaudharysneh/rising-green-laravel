@@ -121,6 +121,7 @@
                             <option value="">Select</option>
                             <option value="as_per_actual" {{ $invoice->solar_meter_charges == 'as_per_actual' ? 'selected' : '' }}>As per Actual</option>
                             <option value="as_per_client_scope" {{ $invoice->solar_meter_charges == 'as_per_client_scope' ? 'selected' : '' }}>As per client scope</option>
+                            <option value="included" {{ $invoice->solar_meter_charges == 'included' ? 'selected' : '' }}>Included</option>
                         </select>
                     </div>
 
