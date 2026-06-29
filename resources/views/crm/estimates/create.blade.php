@@ -69,7 +69,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Estimate Name </label>
+                            <label class="form-label fw-semibold">Estimate Name <span class="text-danger">*</span></label>
                             <input type="text" name="estimate_name" id="estimate_name" value="{{ old('estimate_name') }}"
                                 class="form-control @error('estimate_name') is-invalid @enderror"
                                 placeholder="Enter estimate name" required>
@@ -77,7 +77,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Estimate Type </label>
+                            <label class="form-label fw-semibold">Estimate Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
                                 <option value="">Select Type</option>
@@ -90,7 +90,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Quantity (kW) </label>
+                            <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
                                 placeholder="Enter kW" required>
@@ -98,7 +98,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Price </label>
+                            <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
                                 placeholder="Enter price" required>
@@ -146,9 +146,9 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Quotation Template</label>
+                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
                             <select name="template_id" id="template_id"
-                                class="form-select @error('template_id') is-invalid @enderror">
+                                class="form-select @error('template_id') is-invalid @enderror" required>
                                 <option value="">Select Template</option>
                                 @if (isset($templates))
                                     @foreach ($templates as $template)
@@ -157,6 +157,7 @@
                                     @endforeach
                                 @endif
                             </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
                         <div class="col-md-4">
@@ -203,18 +204,18 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label small fw-semibold">Make</label>
+                                                <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
                                                 <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <label class="form-label small fw-semibold product-qty-label">Qty</label>
+                                                <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
-                                                    value="0" class="form-control" placeholder="0">
+                                                    value="" class="form-control" placeholder="Add Quantity">
                                             </div>
                                             <div class="col-md-2">
-                                                <label class="form-label small fw-semibold">Unit Price</label>
+                                                <label class="form-label small fw-semibold">Unit Price <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_price[]"
                                                     value="0" class="form-control product-price" placeholder="0">
                                             </div>
