@@ -438,54 +438,22 @@
                         <!-- STEP 2 -->
                         <div class="pdf-mobile-step" data-step="2">
 
-                        <!-- GENERATION SECTION -->
-                        <div class="time-line-block mt-4" id="block-generation">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h5 class="text-primary mb-0"><i class="fas fa-chart-bar"></i> Generation</h5>
-                                <div class="form-check form-switch mb-0">
-                                    <input type="hidden" id="generation_active" name="generation_active" value="{{ (int)($generationSection['active'] ?? 1) }}">
-                                    <input class="form-check-input block-toggle"
-                                           type="checkbox"
-                                           role="switch"
-                                           id="toggle-generation"
-                                           data-target="#block-generation-body"
-                                           data-active-input="#generation_active"
-                                           {{ ((int)($generationSection['active'] ?? 1) === 1) ? 'checked' : '' }}>
-                                    <label class="form-check-label small" for="toggle-generation">Active/Inactive</label>
-                                </div>
-                            </div>
-                            <div id="block-generation-body" class="block-body">
-                                <div class="row mb-4">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label"><i class="fas fa-heading"></i> Title</label>
-                                        <input type="text" class="form-control" name="generation_title" value="{{ $generationSection['title'] ?? '' }}" placeholder="GENERATION">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label"><i class="fas fa-text-width"></i> Sub Title</label>
-                                        <input type="text" class="form-control" name="generation_sub_title" value="{{ $generationSection['sub_title'] ?? '' }}" placeholder="ROUND THE YEAR GENERATION">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label"><i class="fas fa-sticky-note"></i> Note</label>
-                                        <input type="text" class="form-control" name="generation_note" value="{{ $generationSection['note'] ?? '' }}" placeholder="Generation figures are indicative...">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="my-4">
+                        <!-- Generation is disabled globally. Keep the hidden value so old templates save inactive. -->
+                        <input type="hidden" id="generation_active" name="generation_active" value="0">
 
                         <!-- ONGRID ROI SECTION -->
                         <div class="time-line-block mt-4" id="block-ongrid-roi">
                             <div class="d-flex align-items-center justify-content-between mb-3">
                                 <h5 class="text-primary mb-0"><i class="fas fa-chart-line"></i> Ongrid ROI</h5>
                                 <div class="form-check form-switch mb-0">
-                                    <input type="hidden" id="ongrid_roi_active" name="ongrid_roi_active" value="{{ (int)($ongridRoiSection['active'] ?? 1) }}">
+                                    <input type="hidden" id="ongrid_roi_active" name="ongrid_roi_active" value="{{ (int)($ongridRoiSection['active'] ?? 0) }}">
                                     <input class="form-check-input block-toggle"
                                            type="checkbox"
                                            role="switch"
                                            id="toggle-ongrid-roi"
                                            data-target="#block-ongrid-roi-body"
                                            data-active-input="#ongrid_roi_active"
-                                           {{ ((int)($ongridRoiSection['active'] ?? 1) === 1) ? 'checked' : '' }}>
+                                           {{ ((int)($ongridRoiSection['active'] ?? 0) === 1) ? 'checked' : '' }}>
                                     <label class="form-check-label small" for="toggle-ongrid-roi">Active/Inactive</label>
                                 </div>
                             </div>
