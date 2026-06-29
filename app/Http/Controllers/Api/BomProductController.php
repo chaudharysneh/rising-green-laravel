@@ -244,7 +244,7 @@ class BomProductController extends ApiBaseController
             'category_id' => ['required', 'array'],
             'category_id.*' => ['exists:category,id'],
             'price' => ['required', 'numeric', 'min:0'],
-            'image' => [$product ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png,gif,bmp,webp,avif,svg', 'max:2048'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,gif,bmp,webp,avif,svg', 'max:2048'],
             // All other fields are optional - no validation
             'tax_type' => ['nullable'],
             'tax_rate' => ['nullable'],

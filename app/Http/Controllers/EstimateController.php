@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BomProduct;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\PdfBuilderForm;
@@ -27,6 +28,7 @@ class EstimateController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $categories = Category::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
             $users = User::orderBy('name')->get();
@@ -40,7 +42,7 @@ class EstimateController extends Controller
             $gstRate = 18;
         }
 
-        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'subsidies', 'gstRate', 'gstTaxes'));
+        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes'));
     }
 
     public function show(Estimate $estimate)
@@ -84,6 +86,7 @@ class EstimateController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $categories = Category::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
             $users = User::orderBy('name')->get();
@@ -97,7 +100,7 @@ class EstimateController extends Controller
             $gstRate = 18;
         }
 // dd($estimate);
-        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'subsidies', 'gstRate', 'gstTaxes'));
+        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes'));
     }
 
     public function generate_estimate_pdf(Estimate $estimate)

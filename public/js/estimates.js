@@ -547,6 +547,7 @@
 
         initBomHandlers();
         initCalculations();
+        initQuickAddBom();
 
         $('body').off('submit.estimate').on('submit.estimate', '.ajax-estimate-form', function (e) {
             e.preventDefault();
@@ -622,6 +623,332 @@
             }
             $field.siblings('.invalid-feedback.ajax-error').remove();
         });
+    }
+
+    let quickBomTargetRow = null;
+
+    function initQuickAddBom() {
+        const form = document.getElementById('quickAddBomForm');
+        const saveBtn = document.getElementById('saveQuickBomBtn');
+        const config = window.estimateBomQuickAddConfig || {};
+
+        if (!form || !saveBtn || !config.storeUrl) {
+            return;
+        }
+
+        const nameInput = document.getElementById('quick_bom_name');
+        const makeSelect = document.getElementById('quick_bom_category_id');
+        const priceInput = document.getElementById('quick_bom_price');
+
+        initQuickBomMakeSelect(makeSelect);
+
+        document.addEventListener('click', function (event) {
+            const button = event.target.closest('.quick-add-bom-row');
+            if (!button) {
+                return;
+            }
+
+            quickBomTargetRow = button.closest('.bom-row');
+        });
+
+        [nameInput, makeSelect, priceInput].forEach(function (field) {
+            if (!field) {
+                return;
+            }
+
+            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventName, function () {
+                field.classList.remove('is-invalid');
+                const error = document.getElementById(field.id + '-error');
+                if (error) {
+                    error.textContent = '';
+                }
+            });
+        });
+
+        saveBtn.addEventListener('click', function () {
+            const name = (nameInput?.value || '').trim();
+            const makeValue = makeSelect?.value || '';
+            const price = parseFloat(priceInput?.value || 0);
+            let isValid = true;
+
+            if (!name) {
+                showQuickBomFieldError(nameInput, 'Please enter BOM name');
+                isValid = false;
+            }
+
+            if (!makeValue) {
+                showQuickBomFieldError(makeSelect, 'Please select make');
+                isValid = false;
+            }
+
+            if (!(price >= 0) || priceInput?.value === '') {
+                showQuickBomFieldError(priceInput, 'Please enter unit price');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+            resolveQuickBomMake(makeSelect, config)
+                .then(function (make) {
+                    const formData = new FormData();
+                    formData.append('product_name', name);
+                    formData.append('price', formatStepOneInputValue(price));
+                    formData.append('category_id[]', make.id);
+
+                    return fetch(config.storeUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        },
+                        credentials: 'same-origin',
+                    }).then(function (response) {
+                        return response.json().then(function (payload) {
+                            if (!response.ok) {
+                                throw payload;
+                            }
+                            return payload;
+                        });
+                    });
+                })
+                .then(function (payload) {
+                    const product = payload.data;
+                    if (!product) {
+                        throw { message: 'BOM created but response was invalid.' };
+                    }
+
+                    addBomProductToEstimateRows(product);
+                    form.reset();
+                    if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+                        $(makeSelect).val(null).trigger('change');
+                    }
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddBomModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('success', payload.message || 'BOM added successfully.');
+                    }
+                })
+                .catch(function (error) {
+                    if (error?.errors) {
+                        showQuickBomApiErrors(error.errors);
+                        return;
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('error', error?.message || 'Unable to add BOM.');
+                    } else {
+                        alert(error?.message || 'Unable to add BOM.');
+                    }
+                })
+                .finally(function () {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                });
+        });
+    }
+
+    function initQuickBomMakeSelect(makeSelect) {
+        if (!makeSelect || !$.fn.select2) {
+            return;
+        }
+
+        const modal = $('#quickAddBomModal');
+        $(makeSelect).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            dropdownParent: modal.length ? modal : $(document.body),
+            tags: true,
+            placeholder: 'Search or type new Make',
+            createTag: function (params) {
+                const term = $.trim(params.term);
+                if (term === '') {
+                    return null;
+                }
+
+                return {
+                    id: term,
+                    text: term,
+                    newTag: true,
+                };
+            },
+            templateResult: function (data) {
+                if (data.newTag) {
+                    return $('<span>Add new make: <strong></strong></span>').find('strong').text(data.text).end();
+                }
+
+                return data.text;
+            },
+        });
+    }
+
+    function resolveQuickBomMake(makeSelect, config) {
+        const selectedOption = makeSelect?.options[makeSelect.selectedIndex];
+        const selectedValue = makeSelect?.value || '';
+        const isExistingMake = selectedValue !== '' && /^\d+$/.test(String(selectedValue));
+
+        if (isExistingMake) {
+            return Promise.resolve({
+                id: selectedValue,
+                name: selectedOption?.textContent?.trim() || '',
+            });
+        }
+
+        const makeName = selectedOption?.textContent?.trim() || selectedValue.trim();
+        if (!makeName) {
+            return Promise.reject({ errors: { category_id: ['Please select make'] } });
+        }
+
+        if (!config.makeStoreUrl) {
+            return Promise.reject({ message: 'Make create URL is not configured.' });
+        }
+
+        const formData = new FormData();
+        formData.append('name', makeName);
+
+        return fetch(config.makeStoreUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            credentials: 'same-origin',
+        }).then(function (response) {
+            return response.json().then(function (payload) {
+                if (!response.ok) {
+                    throw payload;
+                }
+
+                addCreatedMakeToQuickBomSelect(makeSelect, payload.data);
+                return payload.data;
+            });
+        });
+    }
+
+    function addCreatedMakeToQuickBomSelect(makeSelect, make) {
+        if (!makeSelect || !make) {
+            return;
+        }
+
+        let option = makeSelect.querySelector('option[value="' + make.id + '"]');
+        if (!option) {
+            option = new Option(make.name, make.id, true, true);
+            option.dataset.name = make.name;
+            makeSelect.appendChild(option);
+        }
+
+        option.selected = true;
+        if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+            $(makeSelect).trigger('change');
+        }
+    }
+
+    function showQuickBomFieldError(field, message) {
+        if (!field) {
+            return;
+        }
+
+        field.classList.add('is-invalid');
+        const error = document.getElementById(field.id + '-error');
+        if (error) {
+            error.textContent = message;
+        }
+    }
+
+    function showQuickBomApiErrors(errors) {
+        const fieldMap = {
+            product_name: 'quick_bom_name',
+            category_id: 'quick_bom_category_id',
+            name: 'quick_bom_category_id',
+            price: 'quick_bom_price',
+        };
+
+        Object.keys(errors).forEach(function (field) {
+            const fieldId = fieldMap[field] || fieldMap[field.replace(/\.\d+$/, '')];
+            const input = fieldId ? document.getElementById(fieldId) : null;
+            showQuickBomFieldError(input, errors[field][0] || 'Invalid value');
+        });
+    }
+
+    function addBomProductToEstimateRows(product) {
+        const categories = Array.isArray(product.categories) ? product.categories : [];
+        const categoryNames = categories.map(function (category) {
+            return category.name;
+        }).filter(Boolean);
+        const price = formatStepOneInputValue(product.price || 0);
+
+        document.querySelectorAll('.product-select').forEach(function (select) {
+            let option = select.querySelector('option[value="' + product.id + '"]');
+            if (!option) {
+                option = new Option(product.product_name || 'New BOM', product.id, false, false);
+                select.appendChild(option);
+            }
+
+            option.dataset.name = product.product_name || '';
+            option.dataset.desc = product.description || '';
+            option.dataset.categories = JSON.stringify(categoryNames);
+            option.dataset.price = price;
+            option.dataset.meter = product.meter || '';
+            option.dataset.nos = product.nos || '';
+        });
+
+        const row = getQuickBomTargetRow();
+        const productSelect = row?.querySelector('.product-select');
+        const priceInput = row?.querySelector('.product-price');
+
+        if (!row || !productSelect) {
+            return;
+        }
+
+        productSelect.value = String(product.id);
+        if (priceInput) {
+            priceInput.value = price;
+        }
+
+        $(productSelect).trigger('change');
+        quickBomTargetRow = null;
+        calculateTotals();
+    }
+
+    function getQuickBomTargetRow() {
+        const container = document.getElementById('bomContainer');
+        if (!container) {
+            return null;
+        }
+
+        if (quickBomTargetRow && container.contains(quickBomTargetRow)) {
+            return quickBomTargetRow;
+        }
+
+        const emptyRow = Array.from(container.querySelectorAll('.bom-row')).find(function (row) {
+            const select = row.querySelector('.product-select');
+            return select && !select.value;
+        });
+
+        if (emptyRow) {
+            return emptyRow;
+        }
+
+        const addBtn = document.getElementById('add_more_bom');
+        if (addBtn) {
+            addBtn.click();
+        }
+
+        const rows = container.querySelectorAll('.bom-row');
+        return rows[rows.length - 1] || null;
     }
 
     function clearErrors($form) {
