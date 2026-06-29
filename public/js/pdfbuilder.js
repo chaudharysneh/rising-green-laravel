@@ -14,7 +14,7 @@
         const searchInput = document.getElementById("templateSearch");
 
         // ✅ RENDER ROWS
-        function renderRows(items) {
+        function renderRows(items, startIndex = 0) {
             if (!items || items.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -29,7 +29,8 @@
                 return;
             }
 
-            tableBody.innerHTML = items.map(template => {
+            tableBody.innerHTML = items.map((template, index) => {
+                const serialNo = startIndex + index + 1;
                 const createdDate = new Date(template.created_at);
                 const dateStr = createdDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
                 const timeStr = createdDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
@@ -39,7 +40,7 @@
 
                 return `
                 <tr class="template-row">
-                    <td class="ps-4 fw-semibold text-muted template-id">${template.id}</td>
+                    <td class="ps-4 fw-semibold text-muted template-id">${serialNo}</td>
                     <td class="template-name">
                         <div class="d-flex align-items-center gap-2 py-1">
                             <span class="fw-bold text-dark-blue">${template.template_name}</span>
@@ -118,7 +119,7 @@
                 },
                 success: function (res) {
                     if (res.success && res.data) {
-                        renderRows(res.data.data || []);
+                        renderRows(res.data.data || [], res.data.from ? res.data.from - 1 : 0);
                         renderPagination(res.data);
                     }
                 },
@@ -581,3 +582,4 @@
         });
     });
 })();
+

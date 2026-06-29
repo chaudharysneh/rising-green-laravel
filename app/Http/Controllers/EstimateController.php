@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
 use App\Models\Subsidy;
+use App\Models\Tax;
 use Illuminate\Support\Facades\Storage;
 
 class EstimateController extends Controller
@@ -32,10 +33,14 @@ class EstimateController extends Controller
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
-
         $subsidies = Subsidy::active()->get();
+        $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+        $gstRate = (float) $gstTaxes->sum('rate');
+        if ($gstRate <= 0) {
+            $gstRate = 18;
+        }
 
-        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'subsidies'));
+        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'subsidies', 'gstRate', 'gstTaxes'));
     }
 
     public function show(Estimate $estimate)
@@ -85,10 +90,14 @@ class EstimateController extends Controller
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
-
         $subsidies = Subsidy::active()->get();
+        $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+        $gstRate = (float) $gstTaxes->sum('rate');
+        if ($gstRate <= 0) {
+            $gstRate = 18;
+        }
 // dd($estimate);
-        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'subsidies'));
+        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'subsidies', 'gstRate', 'gstTaxes'));
     }
 
     public function generate_estimate_pdf(Estimate $estimate)
@@ -282,3 +291,7 @@ class EstimateController extends Controller
             ->exists();
     }
 }
+
+
+
+

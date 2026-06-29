@@ -58,8 +58,19 @@
         formData.set('apply_gst', applyGst);
         
         if (applyGst) {
-            formData.set('gst', document.getElementById('gst_percent')?.value || '0');
+            // Calculate GST components
+            const subtotal = parseFloat(document.getElementById('subtotal')?.value || 0);
+            const cgst = (subtotal * 2.5) / 100;
+            const sgst = (subtotal * 2.5) / 100;
+            const igst = (subtotal * 5) / 100;
+            formData.set('cgst', cgst.toFixed(2));
+            formData.set('sgst', sgst.toFixed(2));
+            formData.set('igst', igst.toFixed(2));
+            formData.set('gst', (cgst + sgst + igst).toFixed(2));
         } else {
+            formData.set('cgst', '0');
+            formData.set('sgst', '0');
+            formData.set('igst', '0');
             formData.set('gst', '0');
         }
 
@@ -273,11 +284,10 @@
         const structureCheckbox = document.getElementById('solar_structure_charges_check');
         const structureInput = document.getElementById('solar_structure_charges');
         const gstCheckbox = document.getElementById('apply_gst');
-        const gstPercent = document.getElementById('gst_percent');
         const discountInput = document.getElementById('discount');
         const subsidyInput = document.getElementById('subsidy_amount');
 
-        const inputs = [priceInput, quantityInput, structureCheckbox, structureInput, gstCheckbox, gstPercent, discountInput, subsidyInput];
+        const inputs = [priceInput, quantityInput, structureCheckbox, structureInput, gstCheckbox, discountInput, subsidyInput];
 
         inputs.forEach(input => {
             if (input) {
@@ -319,29 +329,50 @@
             ? parseFloat(document.getElementById('solar_structure_charges')?.value || 0) 
             : 0;
         const applyGst = document.getElementById('apply_gst')?.checked || false;
-        const gstPercent = parseFloat(document.getElementById('gst_percent')?.value || 0);
         const discount = parseFloat(document.getElementById('discount')?.value || 0);
         const subsidy = parseFloat(document.getElementById('subsidy_amount')?.value || 0);
 
         // Calculate subtotal (price * quantity + structure charges)
         const subtotal = (price * quantity) + structureCharges;
 
-        // Calculate GST
-        let gstAmount = 0;
-        if (applyGst && gstPercent > 0) {
-            gstAmount = (subtotal * gstPercent) / 100;
+        // Calculate GST components
+        let cgstAmount = 0;
+        let sgstAmount = 0;
+        let igstAmount = 0;
+        let totalGst = 0;
+
+        if (applyGst) {
+            // CGST and SGST: 2.5% each (for intra-state)
+            cgstAmount = (subtotal * 2.5) / 100;
+            sgstAmount = (subtotal * 2.5) / 100;
+            // IGST: 5% (for inter-state)
+            igstAmount = (subtotal * 5) / 100;
+            // Total GST is CGST + SGST (or IGST if inter-state, but showing all)
+            totalGst = cgstAmount + sgstAmount + igstAmount;
         }
 
         // Calculate final total
-        const finalTotal = subtotal + gstAmount - discount - subsidy;
+        const finalTotal = subtotal + cgstAmount + sgstAmount + igstAmount - discount - subsidy;
 
         // Update display
         document.getElementById('subtotal_display').textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        // Update GST component displays
+        if (document.getElementById('cgst_display')) {
+            document.getElementById('cgst_display').textContent = cgstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (document.getElementById('sgst_display')) {
+            document.getElementById('sgst_display').textContent = sgstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (document.getElementById('igst_display')) {
+            document.getElementById('igst_display').textContent = igstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
         document.getElementById('final_total_display').textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Update hidden fields
         document.getElementById('subtotal').value = subtotal.toFixed(2);
         document.getElementById('final_total').value = finalTotal.toFixed(2);
-        document.getElementById('gst').value = applyGst ? gstPercent : 0;
+        document.getElementById('gst').value = applyGst ? totalGst.toFixed(2) : 0;
     }
 })();
