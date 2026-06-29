@@ -799,6 +799,10 @@
         } catch (error) {
             makeSelect.disabled = true;
         }
+        
+        if ($(makeSelect).hasClass('select2-hidden-accessible')) {
+            $(makeSelect).trigger('change.select2');
+        }
     }
 
     function attachBomRowHandlers(row) {
@@ -813,7 +817,7 @@
         }
 
         if (productSelect) {
-            productSelect.addEventListener('change', function () {
+            $(productSelect).on('change', function () {
                 populateMakeOptions(this, makeSelect, '');
                 
                 const option = this.options[this.selectedIndex];
@@ -883,6 +887,13 @@
         if (makeSelect) {
             makeSelect.addEventListener('change', function () {
                 toggleBomError(false);
+                calculateTotals();
+            });
+            
+            // Also bind Select2 change event if it's initialized
+            $(makeSelect).on('select2:select', function() {
+                toggleBomError(false);
+                calculateTotals();
             });
         }
     }

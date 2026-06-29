@@ -5,6 +5,8 @@
 @push('styles')
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/main.css') }}?v={{ filemtime(public_path('css/main.css')) }}">
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/estimates.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -28,7 +30,12 @@
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Select Customer </label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-semibold mb-0">Select Customer <span class="text-danger">*</span></label>
+                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                                    <i class="bi bi-plus-circle me-1"></i>Add New
+                                </button>
+                            </div>
                             <select name="customer_id" id="select_customer"
                                 class="form-select @error('customer_id') is-invalid @enderror" required>
                                 <option value="">Select Customer</option>
@@ -63,7 +70,7 @@
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Quantity (kW) </label>
-                            <input type="number" min="0" step="0.01" name="quantity" id="quantity"
+                            <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
                                 placeholder="Enter kW" required>
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
@@ -71,7 +78,7 @@
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Price </label>
-                            <input type="number" min="0" step="0.01" name="price" id="price"
+                            <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
                                 placeholder="Enter price" required>
                             <div class="invalid-feedback" id="price-error">Please enter valid price</div>
@@ -104,7 +111,7 @@
                             </div>
                             <div id="structure-charges-input" style="display: none; margin-top: 12px;">
                                 <label class="form-label fw-semibold small">Enter Structure Charges</label>
-                                <input type="number" min="0" step="0.01" name="solar_structure_charges"
+                                <input type="number" min="0" step="1" name="solar_structure_charges"
                                     id="solar_structure_charges" value="{{ old('solar_structure_charges', 0) }}"
                                     class="form-control @error('solar_structure_charges') is-invalid @enderror"
                                     placeholder="0.00">
@@ -158,7 +165,7 @@
                                                             <option value="{{ $bom->id }}"
                                                                 data-name="{{ $bom->product_name }}"
                                                                 data-desc="{{ $bom->description ?? '' }}"
-                                                                data-categories="{{ json_encode($bom->categories->pluck('name')->toArray()) }}"
+                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
                                                                 data-price="{{ $bom->price ?? 0 }}"
                                                                 data-meter="{{ $bom->meter ?? '' }}"
                                                                 data-nos="{{ $bom->nos ?? '' }}">
@@ -230,18 +237,25 @@
                                 </div>
 
                                 <div class="totals-row align-items-center">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <label class="switch mb-0">
-                                            <input type="checkbox" id="apply_gst">
-                                            <span class="slider"></span>
-                                        </label>
-                                        <span class="small fw-semibold">Apply GST</span>
+                                    <label class="switch mb-0">
+                                        <input type="checkbox" id="apply_gst">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="small fw-semibold">Apply GST</span>
+                                </div>
+
+                                <div id="gst_fields_box" style="display: none;">
+                                    <div class="totals-row">
+                                        <span class="small">CGST (2.5%):</span>
+                                        <span id="cgst_display" class="small">0.00</span>
                                     </div>
-                                    <div id="gst_fields_box" style="display: none;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="small">GST %:</span>
-                                            <input type="number" id="gst_percent" value="18" class="input-small">
-                                        </div>
+                                    <div class="totals-row">
+                                        <span class="small">SGST (2.5%):</span>
+                                        <span id="sgst_display" class="small">0.00</span>
+                                    </div>
+                                    <div class="totals-row">
+                                        <span class="small">IGST (5%):</span>
+                                        <span id="igst_display" class="small">0.00</span>
                                     </div>
                                 </div>
 
@@ -282,6 +296,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Add New Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addCustomerQuickForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_customer_name" required>
+                            <div class="invalid-feedback">Please enter customer name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_customer_number" required>
+                            <div class="invalid-feedback">Please enter mobile number</div>
+                        </div>
+                        <div class="mb-3">
+                            <a href="#" class="small text-decoration-none" onclick="$('#quick_address_container').toggleClass('d-none'); return false;">+ Add Address (Optional)</a>
+                        </div>
+                        <div class="mb-3 d-none" id="quick_address_container">
+                            <label class="form-label fw-semibold">Address</label>
+                            <textarea class="form-control" id="quick_customer_address" rows="2" placeholder="Address"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark-blue" id="saveQuickCustomerBtn">Save Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -289,5 +340,85 @@
         window.subsidiesData = @json($subsidies ?? []);
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
+    <script>
+        $(document).ready(function() {
+            function initSelect2(context = document) {
+                $(context).find('#select_customer, #template_id, .product-select, .product-make').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
+            }
+            initSelect2();
+
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1 && $(node).hasClass('bom-row')) {
+                            $(node).find('.select2-container').remove();
+                            $(node).find('.product-select, .product-make').removeClass('select2-hidden-accessible').removeAttr('data-select2-id tabindex aria-hidden');
+                            $(node).find('option').removeAttr('data-select2-id');
+                            initSelect2(node);
+                        }
+                    });
+                });
+            });
+            const bomContainer = document.getElementById('bomContainer');
+            if (bomContainer) observer.observe(bomContainer, { childList: true });
+
+            $('#saveQuickCustomerBtn').click(function() {
+                let name = $('#quick_customer_name').val().trim();
+                let number = $('#quick_customer_number').val().trim();
+                let address = $('#quick_customer_address').val().trim();
+                
+                $('#quick_customer_name, #quick_customer_number').removeClass('is-invalid');
+                
+                if (!name || !number) {
+                    if(!name) $('#quick_customer_name').addClass('is-invalid');
+                    if(!number) $('#quick_customer_number').addClass('is-invalid');
+                    return;
+                }
+                
+                if (!address) {
+                    address = 'Address';
+                }
+                
+                let btn = $(this);
+                let originalText = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                
+                $.ajax({
+                    url: '/api/customers',
+                    type: 'POST',
+                    data: {
+                        name: name,
+                        phone: number,
+                        address: address,
+                        status: 'active',
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        if (res.success && res.data) {
+                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            $('#select_customer').append(newOption).trigger('change');
+                            $('#addCustomerModal').modal('hide');
+                            $('#addCustomerQuickForm')[0].reset();
+                            if (window.showAlert) window.showAlert('success', 'Customer added successfully');
+                        }
+                    },
+                    error: function(xhr) {
+                        if (window.showAlert) window.showAlert('error', xhr.responseJSON?.message || 'Failed to add customer');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+            
+            $(document).on('select2:select', '.product-select', function (e) {
+                $(this).trigger('change');
+            });
+        });
+    </script>
 @endpush
