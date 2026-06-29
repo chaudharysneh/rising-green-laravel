@@ -689,6 +689,8 @@
 .badge-status.pending     { background: #DBEAFE; color: #1E40AF; }
 .badge-status.in_progress { background: #E0E7FF; color: #3730A3; }
 .badge-status.completed   { background: #D1FAE5; color: #065F46; }
+.badge-status.approved    { background: #D1FAE5; color: #065F46; }
+.badge-status.rejected    { background: #FEE2E2; color: #991B1B; }
 .badge-status.cancelled,
 .badge-status.canceled    { background: #FEE2E2; color: #991B1B; }
 
@@ -708,6 +710,151 @@
 .chart-wrap {
     position: relative;
     min-height: 260px;
+}
+
+/* ── Estimate Overview Widget ─────────────────────────────── */
+.estimate-overview-card {
+    padding: 1rem;
+}
+
+.estimate-overview-hero {
+    border-radius: 14px;
+    background: linear-gradient(135deg, #102750 0%, #1e3a8a 100%);
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.estimate-overview-label {
+    color: rgba(255,255,255,.72);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+.estimate-overview-value {
+    color: #fff !important;
+    font-weight: 800;
+    font-size: 1.55rem;
+    line-height: 1.15;
+}
+
+.estimate-overview-hero .estimate-overview-value,
+.estimate-overview-hero .estimate-overview-label {
+    color: #fff !important;
+}
+
+.estimate-overview-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.estimate-mini-stat {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background: #F8FAFC;
+    padding: .75rem .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+}
+
+.estimate-mini-stat span,
+.estimate-status-strip span {
+    color: #64748B;
+    font-size: .76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.estimate-mini-stat strong,
+.estimate-status-strip strong {
+    color: #0F172A;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.estimate-mini-stat--pending {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+.estimate-mini-stat--approved {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+}
+
+.estimate-status-strip {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+}
+
+.estimate-status-strip > div {
+    padding: .75rem .85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem;
+}
+
+.estimate-status-strip > div + div {
+    border-left: 1px solid #E2E8F0;
+}
+
+.estimate-latest-list {
+    display: grid;
+    gap: .55rem;
+}
+
+.estimate-latest-item {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: .75rem .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    transition: all .18s ease;
+}
+
+.estimate-latest-item:hover {
+    background: #F8FAFC;
+    transform: translateY(-1px);
+    border-color: #CBD5E1;
+}
+
+[data-theme="dark"] .estimate-mini-stat,
+[data-theme="dark"] .estimate-status-strip,
+[data-theme="dark"] .estimate-latest-item {
+    background: #1E293B;
+    border-color: rgba(255,255,255,.08);
+}
+
+[data-theme="dark"] .estimate-mini-stat strong,
+[data-theme="dark"] .estimate-status-strip strong,
+[data-theme="dark"] .estimate-latest-item .text-dark {
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .estimate-status-strip > div + div {
+    border-left-color: rgba(255,255,255,.08);
 }
 
 /* ── Year Select ───────────────────────────────────────────── */

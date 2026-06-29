@@ -575,6 +575,10 @@
         });
     }
 
+    function formatStepOneInputValue(value) {
+        return String(Math.round(parseFloat(value || 0)));
+    }
+
     function initEstimateForm() {
         const form = document.querySelector('.ajax-estimate-form');
         if (!form) {
@@ -583,6 +587,8 @@
 
         initBomHandlers();
         initCalculations();
+        initQuickAddBom();
+        initEstimateNameFromCustomer();
 
         $('body').off('submit.estimate').on('submit.estimate', '.ajax-estimate-form', function (e) {
             e.preventDefault();
@@ -599,9 +605,10 @@
 
             const bomProducts = collectBomData();
             const formData = new FormData(this);
+            const totalTaxRate = getSelectedTaxBreakdown(null).totalRate;
             formData.set('products', JSON.stringify(bomProducts));
             formData.set('apply_gst', document.getElementById('apply_gst')?.checked ? '1' : '0');
-            formData.set('gst', document.getElementById('apply_gst')?.checked ? (document.getElementById('gst_percent')?.value || '0') : '0');
+            formData.set('gst', document.getElementById('apply_gst')?.checked ? totalTaxRate.toFixed(2) : '0');
             formData.set('total', document.getElementById('subtotal')?.value || '0');
             formData.set('final_total', document.getElementById('final_total')?.value || '0');
             formData.set('solar_structure_charges', document.getElementById('solar_structure_charges_check')?.checked ? (document.getElementById('solar_structure_charges')?.value || '0') : '0');
@@ -657,6 +664,377 @@
             }
             $field.siblings('.invalid-feedback.ajax-error').remove();
         });
+    }
+
+    function initEstimateNameFromCustomer() {
+        const customerSelect = document.getElementById('select_customer');
+        const estimateNameInput = document.getElementById('estimate_name');
+
+        if (!customerSelect || !estimateNameInput) {
+            return;
+        }
+
+        $(customerSelect).off('change.estimateName').on('change.estimateName', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const customerName = (selectedOption?.textContent || '').trim();
+
+            if (!this.value || !customerName) {
+                return;
+            }
+
+            estimateNameInput.value = 'EST-' + customerName;
+            estimateNameInput.classList.remove('is-invalid');
+            const error = document.getElementById('estimate_name-error');
+            if (error) {
+                error.textContent = '';
+            }
+        });
+    }
+
+    let quickBomTargetRow = null;
+
+    function initQuickAddBom() {
+        const form = document.getElementById('quickAddBomForm');
+        const saveBtn = document.getElementById('saveQuickBomBtn');
+        const config = window.estimateBomQuickAddConfig || {};
+
+        if (!form || !saveBtn || !config.storeUrl) {
+            return;
+        }
+
+        const nameInput = document.getElementById('quick_bom_name');
+        const makeSelect = document.getElementById('quick_bom_category_id');
+        const priceInput = document.getElementById('quick_bom_price');
+
+        initQuickBomMakeSelect(makeSelect);
+
+        document.addEventListener('click', function (event) {
+            const button = event.target.closest('.quick-add-bom-row');
+            if (!button) {
+                return;
+            }
+
+            if (!validateTopFieldsBeforeBom(true)) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return;
+            }
+
+            quickBomTargetRow = button.closest('.bom-row');
+        }, true);
+
+        [nameInput, makeSelect, priceInput].forEach(function (field) {
+            if (!field) {
+                return;
+            }
+
+            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventName, function () {
+                field.classList.remove('is-invalid');
+                const error = document.getElementById(field.id + '-error');
+                if (error) {
+                    error.textContent = '';
+                }
+            });
+        });
+
+        saveBtn.addEventListener('click', function () {
+            const name = (nameInput?.value || '').trim();
+            const makeValue = makeSelect?.value || '';
+            const price = parseFloat(priceInput?.value || 0);
+            let isValid = true;
+
+            if (!name) {
+                showQuickBomFieldError(nameInput, 'Please enter BOM name');
+                isValid = false;
+            }
+
+            if (!makeValue) {
+                showQuickBomFieldError(makeSelect, 'Please select make');
+                isValid = false;
+            }
+
+            if (!(price >= 0) || priceInput?.value === '') {
+                showQuickBomFieldError(priceInput, 'Please enter unit price');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+            resolveQuickBomMake(makeSelect, config)
+                .then(function (make) {
+                    const formData = new FormData();
+                    formData.append('product_name', name);
+                    formData.append('price', formatStepOneInputValue(price));
+                    formData.append('category_id[]', make.id);
+
+                    return fetch(config.storeUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        },
+                        credentials: 'same-origin',
+                    }).then(function (response) {
+                        return response.json().then(function (payload) {
+                            if (!response.ok) {
+                                throw payload;
+                            }
+                            return { payload, make };
+                        });
+                    });
+                })
+                .then(function (result) {
+                    const payload = result.payload;
+                    const product = payload.data;
+                    if (!product) {
+                        throw { message: 'BOM created but response was invalid.' };
+                    }
+
+                    addBomProductToEstimateRows(product, result.make);
+                    form.reset();
+                    if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+                        $(makeSelect).val(null).trigger('change');
+                    }
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddBomModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('success', payload.message || 'BOM added successfully.');
+                    }
+                })
+                .catch(function (error) {
+                    if (error?.errors) {
+                        showQuickBomApiErrors(error.errors);
+                        return;
+                    }
+
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('error', error?.message || 'Unable to add BOM.');
+                    } else {
+                        alert(error?.message || 'Unable to add BOM.');
+                    }
+                })
+                .finally(function () {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                });
+        });
+    }
+
+    function initQuickBomMakeSelect(makeSelect) {
+        if (!makeSelect || !$.fn.select2) {
+            return;
+        }
+
+        const modal = $('#quickAddBomModal');
+        $(makeSelect).select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            dropdownParent: modal.length ? modal : $(document.body),
+            tags: true,
+            placeholder: 'Search or type new Make',
+            createTag: function (params) {
+                const term = $.trim(params.term);
+                if (term === '') {
+                    return null;
+                }
+
+                return {
+                    id: term,
+                    text: term,
+                    newTag: true,
+                };
+            },
+            templateResult: function (data) {
+                if (data.newTag) {
+                    return $('<span>Add new make: <strong></strong></span>').find('strong').text(data.text).end();
+                }
+
+                return data.text;
+            },
+        });
+    }
+
+    function resolveQuickBomMake(makeSelect, config) {
+        const selectedOption = makeSelect?.options[makeSelect.selectedIndex];
+        const selectedValue = makeSelect?.value || '';
+        const isExistingMake = selectedValue !== '' && /^\d+$/.test(String(selectedValue));
+
+        if (isExistingMake) {
+            return Promise.resolve({
+                id: selectedValue,
+                name: selectedOption?.textContent?.trim() || '',
+            });
+        }
+
+        const makeName = selectedOption?.textContent?.trim() || selectedValue.trim();
+        if (!makeName) {
+            return Promise.reject({ errors: { category_id: ['Please select make'] } });
+        }
+
+        if (!config.makeStoreUrl) {
+            return Promise.reject({ message: 'Make create URL is not configured.' });
+        }
+
+        const formData = new FormData();
+        formData.append('name', makeName);
+
+        return fetch(config.makeStoreUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            credentials: 'same-origin',
+        }).then(function (response) {
+            return response.json().then(function (payload) {
+                if (!response.ok) {
+                    throw payload;
+                }
+
+                addCreatedMakeToQuickBomSelect(makeSelect, payload.data);
+                return payload.data;
+            });
+        });
+    }
+
+    function addCreatedMakeToQuickBomSelect(makeSelect, make) {
+        if (!makeSelect || !make) {
+            return;
+        }
+
+        let option = makeSelect.querySelector('option[value="' + make.id + '"]');
+        if (!option) {
+            option = new Option(make.name, make.id, true, true);
+            option.dataset.name = make.name;
+            makeSelect.appendChild(option);
+        }
+
+        option.selected = true;
+        if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+            $(makeSelect).trigger('change');
+        }
+    }
+
+    function showQuickBomFieldError(field, message) {
+        if (!field) {
+            return;
+        }
+
+        field.classList.add('is-invalid');
+        const error = document.getElementById(field.id + '-error');
+        if (error) {
+            error.textContent = message;
+        }
+    }
+
+    function showQuickBomApiErrors(errors) {
+        const fieldMap = {
+            product_name: 'quick_bom_name',
+            category_id: 'quick_bom_category_id',
+            name: 'quick_bom_category_id',
+            price: 'quick_bom_price',
+        };
+
+        Object.keys(errors).forEach(function (field) {
+            const fieldId = fieldMap[field] || fieldMap[field.replace(/\.\d+$/, '')];
+            const input = fieldId ? document.getElementById(fieldId) : null;
+            showQuickBomFieldError(input, errors[field][0] || 'Invalid value');
+        });
+    }
+
+    function addBomProductToEstimateRows(product, selectedMake) {
+        const categories = Array.isArray(product.categories) ? product.categories : [];
+        let categoryNames = categories.map(function (category) {
+            return category.name;
+        }).filter(Boolean);
+        const selectedMakeName = selectedMake?.name || '';
+        if (!categoryNames.length && selectedMakeName) {
+            categoryNames = [selectedMakeName];
+        }
+        const price = formatStepOneInputValue(product.price || 0);
+
+        document.querySelectorAll('.product-select').forEach(function (select) {
+            let option = select.querySelector('option[value="' + product.id + '"]');
+            if (!option) {
+                option = new Option(product.product_name || 'New BOM', product.id, false, false);
+                select.appendChild(option);
+            }
+
+            option.dataset.name = product.product_name || '';
+            option.dataset.desc = product.description || '';
+            option.dataset.categories = JSON.stringify(categoryNames);
+            option.dataset.price = price;
+            option.dataset.meter = product.meter || '';
+            option.dataset.nos = product.nos || '';
+        });
+
+        const row = getQuickBomTargetRow();
+        const productSelect = row?.querySelector('.product-select');
+        const makeSelect = row?.querySelector('.product-make');
+        const priceInput = row?.querySelector('.product-price');
+
+        if (!row || !productSelect) {
+            return;
+        }
+
+        productSelect.value = String(product.id);
+        if (priceInput) {
+            priceInput.value = price;
+        }
+
+        $(productSelect).trigger('change');
+        if (makeSelect && selectedMakeName) {
+            makeSelect.value = selectedMakeName;
+            if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
+                $(makeSelect).trigger('change.select2');
+            }
+            $(makeSelect).trigger('change');
+        }
+        quickBomTargetRow = null;
+        calculateTotals();
+    }
+
+    function getQuickBomTargetRow() {
+        const container = document.getElementById('bomContainer');
+        if (!container) {
+            return null;
+        }
+
+        if (quickBomTargetRow && container.contains(quickBomTargetRow)) {
+            return quickBomTargetRow;
+        }
+
+        const emptyRow = Array.from(container.querySelectorAll('.bom-row')).find(function (row) {
+            const select = row.querySelector('.product-select');
+            return select && !select.value;
+        });
+
+        if (emptyRow) {
+            return emptyRow;
+        }
+
+        const addBtn = document.getElementById('add_more_bom');
+        if (addBtn) {
+            addBtn.click();
+        }
+
+        const rows = container.querySelectorAll('.bom-row');
+        return rows[rows.length - 1] || null;
     }
 
     function clearErrors($form) {
@@ -738,9 +1116,50 @@
             isValid = false;
         }
 
+        if (!templateId) {
+            setFieldError($form, '[name="template_id"]', 'template_id-error', 'Please select quotation template');
+            isValid = false;
+        }
+
         if (!bomProducts.length) {
             $('#products-error').text('Please select at least one BOM').addClass('d-block').show();
             isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function validateTopFieldsBeforeBom(showErrors) {
+        const $form = $('.ajax-estimate-form').first();
+        if (!$form.length) {
+            return true;
+        }
+
+        let isValid = true;
+        const quantity = parseFloat($form.find('[name="quantity"]').val() || 0);
+        const price = parseFloat($form.find('[name="price"]').val() || 0);
+        const requiredFields = [
+            ['[name="customer_id"]', 'customer_id-error', 'Please select a customer', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="estimate_name"]', 'estimate_name-error', 'Please enter estimate name', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="type"]', 'type-error', 'Please select estimate type', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="quantity"]', 'quantity-error', 'Please enter valid quantity (kW)', function () { return quantity > 0; }],
+            ['[name="price"]', 'price-error', 'Please enter valid price', function () { return price > 0; }],
+            ['[name="solar_meter_charges"]', 'solar_meter_charges-error', 'Please select solar meter charges', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="template_id"]', 'template_id-error', 'Please select quotation template', function ($field) { return !!($field.val() || '').trim(); }],
+        ];
+
+        requiredFields.forEach(function (fieldConfig) {
+            const $field = $form.find(fieldConfig[0]);
+            if (!fieldConfig[3]($field)) {
+                isValid = false;
+                if (showErrors) {
+                    setFieldError($form, fieldConfig[0], fieldConfig[1], fieldConfig[2]);
+                }
+            }
+        });
+
+        if (!isValid && showErrors) {
+            $('#products-error').text('Please fill required estimate details before adding BOM').addClass('d-block').show();
         }
 
         return isValid;
@@ -775,6 +1194,10 @@
         });
 
         addBtn.addEventListener('click', function () {
+            if (!validateTopFieldsBeforeBom(true)) {
+                return;
+            }
+
             const firstRow = container.querySelector('.bom-row');
             if (!firstRow) {
                 return;
@@ -792,6 +1215,10 @@
                 } else if (el.type === 'number') {
                     el.value = '0';
                 }
+            });
+            newRow.querySelectorAll('input[name="product_qty[]"]').forEach(function (input) {
+                input.value = '';
+                input.placeholder = 'Add Quantity';
             });
 
             const deleteBtn = newRow.querySelector('.delete-bom-row');
@@ -856,15 +1283,33 @@
             restrictNegative(qtyInput);
         }
 
+        if (priceInput) {
+            restrictNegative(priceInput);
+        }
+
         if (productSelect) {
+            $(productSelect).on('select2:opening', function (event) {
+                if (!validateTopFieldsBeforeBom(true)) {
+                    event.preventDefault();
+                }
+            });
+
             $(productSelect).on('change', function () {
+                if (this.value && !validateTopFieldsBeforeBom(true)) {
+                    this.value = '';
+                    if ($.fn.select2 && $(this).hasClass('select2-hidden-accessible')) {
+                        $(this).trigger('change.select2');
+                    }
+                    return;
+                }
+
                 populateMakeOptions(this, makeSelect, '');
                 
                 const option = this.options[this.selectedIndex];
                 let labelText = 'Qty';
                 if (option && this.value) {
                     if (priceInput) {
-                        priceInput.value = parseFloat(option.dataset.price || 0).toFixed(2);
+                        priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
                     }
                     
                     const meter = option.dataset.meter;
@@ -886,8 +1331,9 @@
                         label.innerHTML = '';
                         label.appendChild(icon);
                         label.appendChild(document.createTextNode(' ' + labelText));
+                        label.insertAdjacentHTML('beforeend', ' <span class="text-danger">*</span>');
                     } else {
-                        label.textContent = labelText;
+                        label.innerHTML = labelText + ' <span class="text-danger">*</span>';
                     }
                 }
                 
@@ -920,6 +1366,11 @@
 
         if (priceInput) {
             priceInput.addEventListener('input', function () {
+                toggleBomError(false);
+                calculateTotals();
+            });
+            priceInput.addEventListener('change', function () {
+                toggleBomError(false);
                 calculateTotals();
             });
         }
@@ -974,6 +1425,28 @@
 
 
 
+    function getSelectedTaxBreakdown(taxableAmount) {
+        const rows = document.querySelectorAll('.gst-tax-row');
+        let totalRate = 0;
+        let totalAmount = 0;
+        const shouldUpdateDisplay = taxableAmount !== null;
+        const amountBase = shouldUpdateDisplay ? taxableAmount : 0;
+
+        rows.forEach(function (row) {
+            const rate = parseFloat(row.dataset.taxRate || 0);
+            const amount = amountBase > 0 && rate > 0 ? (amountBase * rate) / 100 : 0;
+            totalRate += rate;
+            totalAmount += amount;
+
+            const amountEl = row.querySelector('.gst-tax-amount');
+            if (amountEl && shouldUpdateDisplay) {
+                amountEl.textContent = amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        });
+
+        return { totalRate, totalAmount };
+    }
+
     function calculateTotals() {
         const subtotalField = document.getElementById('subtotal');
         const finalTotalField = document.getElementById('final_total');
@@ -1008,30 +1481,24 @@
                 // Update per-row readout if element exists
                 const totalEl = row.querySelector('.product-total');
                 if (totalEl) {
-                    totalEl.value = rowTotal.toFixed(2);
+                    totalEl.value = formatStepOneInputValue(rowTotal);
                 }
             }
         });
 
-        // Auto-sync logic from user code sample
-        if (priceInput && !isPriceManualOverride) {
-            priceInput.value = productsTotal.toFixed(2);
-        }
-
         const price = parseFloat(priceInput?.value || 0);
-        const quantity = parseFloat(document.getElementById('quantity')?.value || 0);
         const structureCharges = document.getElementById('solar_structure_charges_check')?.checked
             ? parseFloat(document.getElementById('solar_structure_charges')?.value || 0)
-            : 0;
-        const gstPercent = document.getElementById('apply_gst')?.checked
-            ? parseFloat(document.getElementById('gst_percent')?.value || 0)
             : 0;
         const discount = parseFloat(document.getElementById('discount')?.value || 0);
         const subsidy = parseFloat(document.getElementById('subsidy_amount')?.value || 0);
 
-        const basePrice = price;
+        const basePrice = price + productsTotal;
         const subtotal = basePrice + structureCharges;
-        const gstAmount = gstPercent > 0 ? (basePrice * gstPercent) / 100 : 0;
+        const taxBreakdown = document.getElementById('apply_gst')?.checked
+            ? getSelectedTaxBreakdown(subtotal)
+            : getSelectedTaxBreakdown(0);
+        const gstAmount = taxBreakdown.totalAmount;
         const finalTotal = subtotal + gstAmount - discount - subsidy;
 
         subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1041,7 +1508,7 @@
 
         const gstField = document.getElementById('gst');
         if (gstField) {
-            gstField.value = gstPercent.toFixed(2);
+            gstField.value = document.getElementById('apply_gst')?.checked ? taxBreakdown.totalRate.toFixed(2) : '0';
         }
 
         const cgstDisplay = document.getElementById('cgst_display');
@@ -1133,7 +1600,7 @@
         }
 
         // Safely update the field value
-        subsidyField.value = parseFloat(calculatedSubsidy).toFixed(2);
+        subsidyField.value = formatStepOneInputValue(calculatedSubsidy);
     }
 
     function initCalculations() {
@@ -1167,7 +1634,7 @@
         }
 
         // Attach robust listeners to all key fields
-        const inputs = ['price', 'quantity', 'solar_structure_charges', 'gst_percent', 'discount', 'subsidy_amount'];
+        const inputs = ['price', 'quantity', 'solar_structure_charges', 'discount', 'subsidy_amount'];
         inputs.forEach(function (id) {
             const input = document.getElementById(id);
             if (input) {

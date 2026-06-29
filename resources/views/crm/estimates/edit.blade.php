@@ -18,6 +18,24 @@
         if (!is_array($selectedProducts) || empty($selectedProducts)) {
             $selectedProducts = [['product_id' => '', 'category_name' => '', 'quantity' => 0]];
         }
+        $estimateTaxRows = collect($gstTaxes ?? [])->flatMap(function ($tax) {
+            $name = (string) $tax->name;
+            $upperName = strtoupper($name);
+            $rate = (float) $tax->rate;
+
+            if (str_contains($upperName, 'CGST') && str_contains($upperName, 'SGST')) {
+                return [
+                    ['label' => 'CGST', 'rate' => $rate / 2],
+                    ['label' => 'SGST', 'rate' => $rate / 2],
+                ];
+            }
+
+            if (str_contains($upperName, 'IGST')) {
+                return [['label' => 'IGST', 'rate' => $rate]];
+            }
+
+            return [['label' => $name, 'rate' => $rate]];
+        })->values();
     @endphp
 
     <div class="container-fluid p-0">
@@ -49,25 +67,25 @@
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label fw-semibold mb-0">Select Customer <span class="text-danger">*</span></label>
-                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                                    <i class="bi bi-plus-circle me-1"></i>Add New
+                            <label class="form-label fw-semibold mb-1">Select Customer <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-start gap-2">
+                                <select name="customer_id" id="select_customer"
+                                    class="form-select @error('customer_id') is-invalid @enderror" required>
+                                    <option value="">Select Customer</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" @selected(old('customer_id', $estimate->customer_id) == $customer->id)>
+                                            {{ $customer->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                                    <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <select name="customer_id" id="select_customer"
-                                class="form-select @error('customer_id') is-invalid @enderror" required>
-                                <option value="">Select Customer</option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id', $estimate->customer_id) == $customer->id)>
-                                        {{ $customer->name }}</option>
-                                @endforeach
-                            </select>
                             <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Estimate Name </label>
+                            <label class="form-label fw-semibold">Estimate Name <span class="text-danger">*</span></label>
                             <input type="text" name="estimate_name" id="estimate_name"
                                 value="{{ old('estimate_name', $estimate->estimate_name) }}"
                                 class="form-control @error('estimate_name') is-invalid @enderror"
@@ -76,7 +94,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Estimate Type </label>
+                            <label class="form-label fw-semibold">Estimate Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
                                 <option value="">Select Type</option>
@@ -89,8 +107,8 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Quantity (kW) </label>
-                            <input type="number" min="0" step="0.01" name="quantity" id="quantity"
+                            <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity', $estimate->quantity) }}"
                                 class="form-control @error('quantity') is-invalid @enderror" placeholder="Enter kW"
                                 required>
@@ -98,8 +116,8 @@
             </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Price </label>
-                            <input type="number" min="0" step="0.01" name="price" id="price"
+                            <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price', $estimate->price) }}"
                                 class="form-control @error('price') is-invalid @enderror" placeholder="Enter price"
                                 required>
@@ -114,6 +132,7 @@
                                 <option value="">Select</option>
                                 <option value="as_per_actual" @selected(old('solar_meter_charges', $estimate->solar_meter_charges) == 'as_per_actual')>As per Actual</option>
                                 <option value="as_per_client_scope" @selected(old('solar_meter_charges', $estimate->solar_meter_charges) == 'as_per_client_scope')>As per client scope</option>
+                                <option value="included" @selected(old('solar_meter_charges', $estimate->solar_meter_charges) == 'included')>Included</option>
                             </select>
                             <div class="invalid-feedback" id="solar_meter_charges-error">Please select solar meter charges
                             </div>
@@ -133,7 +152,7 @@
                             </div>
                             <div id="structure-charges-input" style="display: none; margin-top: 12px;">
                                 <label class="form-label fw-semibold small">Enter Structure Charges</label>
-                                <input type="number" min="0" step="0.01" name="solar_structure_charges"
+                                <input type="number" min="0" step="1" name="solar_structure_charges"
                                     id="solar_structure_charges"
                                     value="{{ old('solar_structure_charges', $estimate->solar_structure_charges) }}"
                                     class="form-control @error('solar_structure_charges') is-invalid @enderror"
@@ -147,15 +166,16 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Quotation Template</label>
+                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
                             <select name="template_id" id="template_id"
-                                class="form-select @error('template_id') is-invalid @enderror">
+                                class="form-select @error('template_id') is-invalid @enderror" required>
                                 <option value="">Select Template</option>
                                 @foreach ($templates as $template)
                                     <option value="{{ $template->id }}" @selected(old('template_id', $estimate->template_id) == $template->id)>
                                         {{ $template->template_name }}</option>
                                 @endforeach
                             </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
                         <div class="col-md-4">
@@ -175,29 +195,39 @@
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
                                     @foreach ($selectedProducts as $index => $selectedProduct)
+                                        @php
+                                            $selectedBom = $bomProducts->firstWhere('id', $selectedProduct['product_id'] ?? null);
+                                            $selectedUnitPrice = $selectedProduct['price'] ?? ($selectedBom->price ?? 0);
+                                            $selectedQuantity = $selectedProduct['quantity'] ?? 0;
+                                        @endphp
                                         <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
                                             <div class="row g-2 align-items-end">
-                                                <div class="col-md-5">
+                                                <div class="col-md-3">
                                                     <label class="form-label small fw-semibold">BOM <span
                                                             class="text-danger">*</span></label>
-                                                    <select name="service[]" class="form-select product-select" required>
-                                                        <option value="">Select BOM</option>
-                                                        @foreach ($bomProducts as $bom)
-                                                            <option value="{{ $bom->id }}"
-                                                                data-name="{{ $bom->product_name }}"
-                                                                data-desc="{{ $bom->description ?? '' }}"
-                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
-                                                                data-price="{{ $bom->price ?? 0 }}"
-                                                                data-meter="{{ $bom->meter ?? '' }}"
-                                                                data-nos="{{ $bom->nos ?? '' }}"
-                                                                @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
-                                                                {{ $bom->product_name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                    <div class="d-flex align-items-start gap-2">
+                                                        <select name="service[]" class="form-select product-select" required>
+                                                            <option value="">Select BOM</option>
+                                                            @foreach ($bomProducts as $bom)
+                                                                <option value="{{ $bom->id }}"
+                                                                    data-name="{{ $bom->product_name }}"
+                                                                    data-desc="{{ $bom->description ?? '' }}"
+                                                                    data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
+                                                                    data-price="{{ $bom->price ?? 0 }}"
+                                                                    data-meter="{{ $bom->meter ?? '' }}"
+                                                                    data-nos="{{ $bom->nos ?? '' }}"
+                                                                    @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
+                                                                    {{ $bom->product_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-add-bom-row" data-bs-toggle="modal" data-bs-target="#quickAddBomModal" title="Add New BOM">
+                                                            <i class="bi bi-plus-lg"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label small fw-semibold">Make</label>
+                                                <div class="col-md-3">
+                                                    <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
                                                     <select name="product_make[]" class="form-select product-make"
                                                         data-selected="{{ $selectedProduct['category_name'] ?? '' }}"
                                                         @disabled(empty($selectedProduct['product_id']))>
@@ -205,10 +235,22 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label small fw-semibold">Qty</label>
+                                                    <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                     <input type="number" min="0" step="1" name="product_qty[]"
-                                                        value="{{ $selectedProduct['quantity'] ?? 0 }}"
-                                                        class="form-control" placeholder="0">
+                                                        value="{{ (float) $selectedQuantity > 0 ? $selectedQuantity : '' }}"
+                                                        class="form-control" placeholder="Add Quantity">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label small fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                                                    <input type="number" min="0" step="1" name="product_price[]"
+                                                        value="{{ round((float) $selectedUnitPrice) }}"
+                                                        class="form-control product-price" placeholder="0">
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <label class="form-label small fw-semibold">Amount</label>
+                                                    <input type="number" min="0" step="1"
+                                                        value="{{ round((float) $selectedQuantity * (float) $selectedUnitPrice) }}"
+                                                        class="form-control product-total" placeholder="0" readonly>
                                                 </div>
                                                 <div class="col-md-1">
                                                     <button type="button" class="btn btn-outline-danger w-100 delete-bom-row"
@@ -277,38 +319,33 @@
                                         </label>
                                         <span class="small fw-semibold">Apply GST</span>
                                     </div>
-                                    <div id="gst_fields_box" style="display: none;">
-                                        <div class="d-flex align-items-center gap-2 mb-2 justify-content-between">
-                                            <span class="small fw-semibold">GST %:</span>
-                                            <input type="number" id="gst_percent"
-                                                value="{{ old('gst', $estimate->gst ?: $gstRate) }}" class="input-small">
+                                </div>
+
+                                <div id="gst_fields_box" style="display: none;">
+                                    @forelse ($estimateTaxRows as $index => $taxRow)
+                                        <div class="totals-row gst-tax-row" data-tax-rate="{{ $taxRow['rate'] }}">
+                                            <span class="small">{{ $taxRow['label'] }} ({{ rtrim(rtrim(number_format($taxRow['rate'], 2), '0'), '.') }}%):</span>
+                                            <span class="small gst-tax-amount" id="tax_display_{{ $index }}">0.00</span>
                                         </div>
+                                    @empty
                                         <div class="totals-row">
-                                            <span class="small">CGST:</span>
-                                            <span id="cgst_display" class="small">0.00</span>
+                                            <span class="small text-muted">No active taxes configured.</span>
+                                            <span class="small">0.00</span>
                                         </div>
-                                        <div class="totals-row">
-                                            <span class="small">SGST:</span>
-                                            <span id="sgst_display" class="small">0.00</span>
-                                        </div>
-                                        <div class="totals-row">
-                                            <span class="small">IGST:</span>
-                                            <span id="igst_display" class="small">0.00</span>
-                                        </div>
-                                    </div>
+                                    @endforelse
                                 </div>
 
                                 <div class="totals-row">
                                     <span class="small">Discount:</span>
                                     <input type="number" name="discount" id="discount"
-                                        value="{{ old('discount', $estimate->discount) }}" class="input-small">
+                                        value="{{ old('discount', $estimate->discount) }}" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
                                     <span class="small">Subsidy:</span>
                                     <input type="number" name="subsidy_amount" id="subsidy_amount"
                                         value="{{ old('subsidy_amount', $estimate->subsidy_amount) }}"
-                                        class="input-small">
+                                        step="1" class="input-small">
                                 </div>
 
                                 <hr class="my-2">
@@ -338,6 +375,46 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add BOM Modal -->
+    <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Add New BOM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="quickAddBomForm" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_bom_name" required>
+                            <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Make <span class="text-danger">*</span></label>
+                            <select class="form-select quick-bom-make-select" id="quick_bom_category_id" required>
+                                <option value="">Select Make</option>
+                                @foreach ($categories ?? [] as $category)
+                                    <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                            <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark-blue" id="saveQuickBomBtn">Save BOM</button>
+                </div>
             </div>
         </div>
     </div>
@@ -383,6 +460,11 @@
 @push('scripts')
     <script>
         window.subsidiesData = @json($subsidies ?? []);
+        window.estimateTaxes = @json($estimateTaxRows);
+        window.estimateBomQuickAddConfig = {
+            storeUrl: @json(route('api.bom-products.store')),
+            makeStoreUrl: @json(route('api.make.store'))
+        };
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

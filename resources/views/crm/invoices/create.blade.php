@@ -117,6 +117,7 @@
                             <option value="">Select</option>
                             <option value="as_per_actual">As per Actual</option>
                             <option value="as_per_client_scope">As per client scope</option>
+                            <option value="included">Included</option>
                         </select>
                     </div>
 
