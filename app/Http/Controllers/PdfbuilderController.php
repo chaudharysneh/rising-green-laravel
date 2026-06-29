@@ -368,14 +368,14 @@ class PdfbuilderController extends Controller
 
         // Generation & Ongrid ROI
         $generation = [
-            'active' => (int) ($request->input('generation_active', $oldFormData['generation']['active'] ?? 1)),
+            'active' => 0,
             'title' => (string) ($request->input('generation_title', $oldFormData['generation']['title'] ?? '')),
             'sub_title' => (string) ($request->input('generation_sub_title', $oldFormData['generation']['sub_title'] ?? '')),
             'note' => (string) ($request->input('generation_note', $oldFormData['generation']['note'] ?? '')),
         ];
 
         $ongrid_roi = [
-            'active' => (int) ($request->input('ongrid_roi_active', $oldFormData['ongrid_roi']['active'] ?? 1)),
+            'active' => (int) ($request->input('ongrid_roi_active', $oldFormData['ongrid_roi']['active'] ?? 0)),
             'title' => (string) ($request->input('ongrid_roi_title', $oldFormData['ongrid_roi']['title'] ?? '')),
             'sub_title' => (string) ($request->input('ongrid_roi_sub_title', $oldFormData['ongrid_roi']['sub_title'] ?? '')),
             'residential_starts_percent' => $request->input('residential_starts_percent', $oldFormData['ongrid_roi']['residential_starts_percent'] ?? ''),
@@ -633,14 +633,14 @@ class PdfbuilderController extends Controller
         ];
 
         $generation = [
-            'active' => (int) ($request->input('generation_active', 1)),
+            'active' => 0,
             'title' => (string) ($request->input('generation_title', '')),
             'sub_title' => (string) ($request->input('generation_sub_title', '')),
             'note' => (string) ($request->input('generation_note', '')),
         ];
 
         $ongrid_roi = [
-            'active' => (int) ($request->input('ongrid_roi_active', 1)),
+            'active' => (int) ($request->input('ongrid_roi_active', 0)),
             'title' => (string) ($request->input('ongrid_roi_title', '')),
             'sub_title' => (string) ($request->input('ongrid_roi_sub_title', '')),
             'residential_starts_percent' => $request->input('residential_starts_percent', ''),

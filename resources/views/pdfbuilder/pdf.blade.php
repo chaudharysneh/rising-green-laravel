@@ -239,7 +239,7 @@ $__environmentImpactSection = (isset($environmentImpact) && is_array($environmen
 $__footerSection = (isset($footer) && is_array($footer)) ? $footer : [];
 
 $__companyInfoActive0 = $_isActive($__companyInfoSection);
-$__generationActive0 = $_isActive($__generationSection0);
+$__generationActive0 = false;
 $__ongridRoiActive0 = $_isActive($__ongridRoiSection0);
 $__timeLineActive0 = $_isActive($__timeLineSection);
 $__componentsActive0 = $_isActive($__componentsSection);
@@ -1340,7 +1340,7 @@ $__companyInfoActive = $_isActive($__companyInfo);
 
     <?php
 $__generationSection = (isset($generationSection) && is_array($generationSection)) ? $generationSection : [];
-$__generationActive = $_isActive($__generationSection);
+$__generationActive = false;
 
 $genTitle = trim((string) ($__generationSection['title'] ?? ''));
 $genTitle = $genTitle !== '' ? $genTitle : 'GENERATION';
