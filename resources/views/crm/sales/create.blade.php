@@ -3,8 +3,8 @@
 @section('page_title', 'Sales - Create')
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'vendor/select2/css/select2.min.css') }}?v={{ filemtime(public_path('vendor/select2/css/select2.min.css')) }}" rel="stylesheet" />
+    <link href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'vendor/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css') }}?v={{ filemtime(public_path('vendor/select2-bootstrap-5-theme/select2-bootstrap-5-theme.min.css')) }}" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -30,7 +30,7 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Customer <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select name="customer_id" id="customer_id" class="form-select searchable-select @error('customer_id') is-invalid @enderror" required>
+                                <select name="customer_id" id="customer_id" class="form-select searchable-select js-select2 @error('customer_id') is-invalid @enderror" data-placeholder="Select Customer" required>
                                     <option value="">Select Customer</option>
                                     @foreach($customers as $customer)
                                         <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
@@ -46,7 +46,7 @@
                         <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-person-check"></i> Select Handover Person</label>
                             <div class="input-group">
-                                <select name="handover_id" id="handover_id" class="form-select searchable-select @error('handover_id') is-invalid @enderror">
+                                <select name="handover_id" id="handover_id" class="form-select searchable-select js-select2 @error('handover_id') is-invalid @enderror" data-placeholder="Select Handover Person">
                                     <option value="">Select Handover Person</option>
                                     @foreach($handoverPersons as $person)
                                         <option value="{{ $person->id }}" @selected(old('handover_id') == $person->id)>{{ $person->name }}</option>
@@ -82,7 +82,7 @@
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
                                             <div class="input-group">
-                                                <select name="products[0][product_id]" class="form-select product-select" required>
+                                                <select name="products[0][product_id]" class="form-select product-select js-select2" data-placeholder="Select Product" required>
                                                     <option value="">Select Product</option>
                                                     @foreach($products as $product)
                                                         @php
@@ -144,7 +144,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form id="quickCustomerForm" novalidate>
+                                <form id="quickCustomerForm" data-customer-store-url="{{ route('api.customers.store') }}" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
                                         <input type="text" name="name" id="quick_customer_name" class="form-control" required>
@@ -176,7 +176,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form id="quickHandoverForm" novalidate>
+                                <form id="quickHandoverForm" data-handover-store-url="{{ route('api.handover-persons.store') }}" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                                         <input type="text" name="name" id="quick_handover_name" class="form-control" required>
@@ -208,7 +208,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <form id="quickProductForm" novalidate>
+                                <form id="quickProductForm" data-product-store-url="{{ route('api.products.store') }}" data-category-store-url="{{ route('api.products.categories.store') }}" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
                                         <input type="text" name="name" id="quick_product_name" class="form-control" required>
@@ -216,7 +216,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                                        <select name="category_id" id="quick_product_category" class="form-select" required>
+                                        <select name="category_id" id="quick_product_category" class="form-select js-select2" data-placeholder="Select or Add Category" required>
                                             <option value="">Select or Add Category</option>
                                             @foreach($categories as $category)
                                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -248,7 +248,8 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'vendor/select2/js/select2.min.js') }}?v={{ filemtime(public_path('vendor/select2/js/select2.min.js')) }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/sales-create-select2.js') }}?v={{ filemtime(public_path('js/sales-create-select2.js')) }}"></script>
     <style>
         .select2-container--bootstrap-5 .select2-selection {
             min-height: 38px;
@@ -303,10 +304,82 @@
         #quickProductModal .invalid-feedback {
             display: block;
         }
+        .sales-search-select {
+            position: relative;
+            flex: 1 1 auto;
+            width: 1%;
+            min-width: 0;
+        }
+        .sales-search-select__native {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        .sales-search-select__toggle {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            background: #fff;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.375rem 0.75rem;
+            text-align: left;
+        }
+        .sales-search-select__toggle:focus,
+        .sales-search-select.open .sales-search-select__toggle {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            outline: 0;
+        }
+        .sales-search-select__dropdown {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            right: 0;
+            z-index: 1060;
+            display: none;
+            background: #fff;
+            border: 1px solid #86b7fe;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            padding: 0.5rem;
+        }
+        .sales-search-select.open .sales-search-select__dropdown {
+            display: block;
+        }
+        .sales-search-select__search {
+            margin-bottom: 0.5rem;
+        }
+        .sales-search-select__options {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .sales-search-select__option {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            border-radius: 0.25rem;
+            color: #212529;
+            display: block;
+            padding: 0.45rem 0.55rem;
+            text-align: left;
+        }
+        .sales-search-select__option:hover,
+        .sales-search-select__option.active {
+            background: #0d6efd;
+            color: #fff;
+        }
     </style>
     <script>
         let productItemIndex = 0;
         let quickProductTargetSelect = null;
+        let salesCreateFormBooted = false;
 
         const salesQuickConfig = {
             customerStoreUrl: @json(route('api.customers.store')),
@@ -316,25 +389,170 @@
             categoryStoreUrl: @json(route('api.products.categories.store')),
         };
 
+        function ensureSelect2Loaded(callback) {
+            if (window.jQuery && $.fn.select2) {
+                callback();
+                return;
+            }
+
+            if (document.getElementById('salesSelect2Fallback')) {
+                setTimeout(function () {
+                    if (window.jQuery && $.fn.select2) {
+                        callback();
+                    } else {
+                        initSearchableSelectFallback();
+                    }
+                }, 800);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'salesSelect2Fallback';
+            script.src = @json(url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'vendor/select2/js/select2.min.js'));
+            script.onload = callback;
+            script.onerror = function () {
+                initSearchableSelectFallback();
+            };
+            document.body.appendChild(script);
+
+            setTimeout(function () {
+                if (!window.jQuery || !$.fn.select2) {
+                    initSearchableSelectFallback();
+                }
+            }, 1200);
+        }
+
         function initSalesSelect2(scope) {
             if (!window.jQuery || !$.fn.select2) {
+                initSearchableSelectFallback(scope);
                 return;
             }
 
             const $scope = scope ? $(scope) : $(document);
-            $scope.find('.searchable-select, .product-select').each(function () {
+            $scope.find('select.js-select2, select.searchable-select, select.product-select').each(function () {
                 if ($(this).hasClass('select2-hidden-accessible')) {
                     return;
                 }
                 $(this).select2({
                     theme: 'bootstrap-5',
                     width: '100%',
-                    placeholder: this.querySelector('option[value=""]')?.textContent || 'Select',
+                    placeholder: this.dataset.placeholder || this.querySelector('option[value=""]')?.textContent || 'Select',
                     allowClear: false,
                     minimumResultsForSearch: 0,
                 });
             });
         }
+
+        function initSearchableSelectFallback(scope) {
+            const root = scope || document;
+            const selects = root.querySelectorAll
+                ? root.querySelectorAll('select.js-select2, select.searchable-select, select.product-select')
+                : [];
+
+            selects.forEach(function (select) {
+                if (select.dataset.searchFallback === '1' || select.classList.contains('select2-hidden-accessible')) {
+                    return;
+                }
+
+                select.dataset.searchFallback = '1';
+                select.classList.add('sales-search-select__native');
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'sales-search-select';
+                wrapper.innerHTML = `
+                    <button type="button" class="sales-search-select__toggle">
+                        <span class="sales-search-select__label"></span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="sales-search-select__dropdown">
+                        <input type="text" class="form-control form-control-sm sales-search-select__search" placeholder="Search...">
+                        <div class="sales-search-select__options"></div>
+                    </div>
+                `;
+
+                select.insertAdjacentElement('afterend', wrapper);
+
+                const label = wrapper.querySelector('.sales-search-select__label');
+                const toggle = wrapper.querySelector('.sales-search-select__toggle');
+                const search = wrapper.querySelector('.sales-search-select__search');
+                const optionsContainer = wrapper.querySelector('.sales-search-select__options');
+
+                const updateLabel = function () {
+                    const selectedOption = select.options[select.selectedIndex];
+                    label.textContent = selectedOption?.textContent || select.dataset.placeholder || 'Select';
+                };
+
+                const renderOptions = function (filter = '') {
+                    const normalizedFilter = filter.trim().toLowerCase();
+                    optionsContainer.innerHTML = '';
+
+                    Array.from(select.options).forEach(function (option) {
+                        if (option.disabled) {
+                            return;
+                        }
+
+                        const text = option.textContent || '';
+                        if (normalizedFilter && !text.toLowerCase().includes(normalizedFilter)) {
+                            return;
+                        }
+
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'sales-search-select__option' + (option.selected ? ' active' : '');
+                        item.textContent = text;
+                        item.dataset.value = option.value;
+                        item.addEventListener('click', function () {
+                            select.value = option.value;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            wrapper.classList.remove('open');
+                            search.value = '';
+                            updateLabel();
+                            renderOptions();
+                        });
+                        optionsContainer.appendChild(item);
+                    });
+
+                    if (!optionsContainer.children.length) {
+                        optionsContainer.innerHTML = '<div class="text-muted small px-2 py-1">No results found</div>';
+                    }
+                };
+
+                toggle.addEventListener('click', function () {
+                    document.querySelectorAll('.sales-search-select.open').forEach(function (openWrapper) {
+                        if (openWrapper !== wrapper) {
+                            openWrapper.classList.remove('open');
+                        }
+                    });
+                    wrapper.classList.toggle('open');
+                    renderOptions();
+                    if (wrapper.classList.contains('open')) {
+                        setTimeout(function () {
+                            search.focus();
+                        }, 0);
+                    }
+                });
+
+                search.addEventListener('input', function () {
+                    renderOptions(search.value);
+                });
+
+                select.addEventListener('change', function () {
+                    updateLabel();
+                    renderOptions(search.value);
+                });
+
+                updateLabel();
+                renderOptions();
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.sales-search-select')) {
+                document.querySelectorAll('.sales-search-select.open').forEach(function (wrapper) {
+                    wrapper.classList.remove('open');
+                });
+            }
+        });
 
         function retryInitSalesSelect2(attempts = 8) {
             initSalesSelect2();
@@ -343,6 +561,8 @@
                 setTimeout(function () {
                     retryInitSalesSelect2(attempts - 1);
                 }, 250);
+            } else if (!window.jQuery || !$.fn.select2) {
+                initSearchableSelectFallback();
             }
         }
 
@@ -451,7 +671,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <select name="products[${productItemIndex}][product_id]" class="form-select product-select" required>
+                            <select name="products[${productItemIndex}][product_id]" class="form-select product-select js-select2" data-placeholder="Select Product" required>
                                 <option value="">Select Product</option>
                                 @foreach($products as $product)
                                     @php
@@ -758,9 +978,15 @@
             });
         }
 
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            retryInitSalesSelect2();
+        function bootSalesCreateForm() {
+            if (salesCreateFormBooted) {
+                return;
+            }
+            salesCreateFormBooted = true;
+
+            ensureSelect2Loaded(function () {
+                retryInitSalesSelect2();
+            });
             document.getElementById('submitQuickCustomerBtn')?.addEventListener('click', submitQuickCustomer);
             document.getElementById('submitQuickHandoverBtn')?.addEventListener('click', submitQuickHandover);
             document.getElementById('submitQuickProductBtn')?.addEventListener('click', submitQuickProduct);
@@ -784,7 +1010,13 @@
             
             // Initialize remove buttons visibility
             updateRemoveButtons();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootSalesCreateForm);
+        } else {
+            bootSalesCreateForm();
+        }
 
         function validateStockQuantities(showErrors = true) {
             let valid = true;
