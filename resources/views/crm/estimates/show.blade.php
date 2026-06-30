@@ -309,11 +309,12 @@
                                         <div style="line-height:22px;color:#000">
                                             <strong
                                                 style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company ?? 'Rising Green Energy') }}</strong><br>
-                                            {{ $settings['company_address'] ?? ($user->address ?? '--') }}<br>
+                                            <div style="max-width: 250px; display: inline-block; text-align: right; white-space: normal;">
+                                                {{ $settings['company_address'] ?? ($user->address ?? '--') }}
+                                            </div><br>
                                             @if(!empty($settings['phone']))
                                                 {{ $settings['phone'] }}<br>
                                             @endif
-                                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -624,7 +625,7 @@
                                             Price</th>
                                         <th
                                             style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">
-                                            Total Excluding GST</th>
+                                            Total(Excl. GST)</th>
                                     </tr>
                                 </thead>
                                 <tbody>

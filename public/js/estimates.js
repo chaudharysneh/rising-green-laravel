@@ -209,7 +209,8 @@
                     $select.select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownParent: $modal.length ? $modal : window.jQuery(document.body),
+                        dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : ($modal.length ? $modal : window.jQuery(document.body)),
+                        minimumResultsForSearch: 0
                     });
                 });
             };
@@ -227,7 +228,8 @@
                 $select.select2({
                     theme: 'bootstrap-5',
                     width: '100%',
-                    dropdownParent: window.jQuery(modalEl || document.body),
+                    dropdownParent: window.jQuery(modalEl).find('.modal-content').length ? window.jQuery(modalEl).find('.modal-content') : window.jQuery(modalEl || document.body),
+                    minimumResultsForSearch: 0
                 });
             };
 

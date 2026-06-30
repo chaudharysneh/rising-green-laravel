@@ -466,7 +466,7 @@
                                         <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #52866A !important; color: #ffffff !important;">Specifications</th>
                                         <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Quantity</th>
                                         <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Price</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Total Excluding GST</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Total(Excl. GST)</th>
                                     </tr>
                                 </thead>
                                 <tbody>

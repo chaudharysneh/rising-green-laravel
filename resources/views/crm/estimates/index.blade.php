@@ -99,7 +99,7 @@
 </div>
 
 @can('estimates.create')
-<div class="modal fade" id="quickEstimateModal" tabindex="-1" aria-hidden="true" data-bs-focus="false">
+<div class="modal fade" id="quickEstimateModal" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-bottom">
@@ -273,5 +273,5 @@
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush
