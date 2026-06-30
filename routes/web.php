@@ -125,6 +125,8 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/list', [NotificationController::class, 'index'])->name('list');
         Route::get('/poll', [NotificationController::class, 'poll'])->name('poll');
+        Route::patch('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+        Route::delete('/delete-all', [NotificationController::class, 'deleteAll'])->name('deleteAll');
         Route::delete('/{id}', [NotificationController::class, 'deleteNotification'])->name('delete');
         Route::patch('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
         Route::post('/subscribe', [NotificationController::class, 'subscribe'])->name('subscribe');

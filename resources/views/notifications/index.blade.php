@@ -11,6 +11,24 @@
                         <h4 class="fw-bold mb-0">Notifications</h4>
                         <p class="text-muted small mb-0">Your recent alerts and system messages.</p>
                     </div>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn d-flex align-items-center gap-2 rounded-pill px-3 py-1 border-0"
+                                id="btnMarkAllRead"
+                                style="color: #4f46e5; font-weight: 600; font-size: 0.95rem; background-color: #f0f5ff;">
+                            <span class="d-flex align-items-center justify-content-center rounded-circle" style="background-color: #4f46e5; width: 26px; height: 26px;">
+                                <i class="fa-solid fa-check-double text-white" style="font-size: 12px;"></i>
+                            </span>
+                            Mark All Read
+                        </button>
+                        <button type="button" class="btn d-flex align-items-center gap-2 rounded-pill px-3 py-1 border-0"
+                                id="btnDeleteAll"
+                                style="color: #ef4444; font-weight: 600; font-size: 0.95rem; background-color: #fef2f2;">
+                            <span class="d-flex align-items-center justify-content-center rounded-circle" style="background-color: #ef4444; width: 26px; height: 26px;">
+                                <i class="fa-solid fa-trash text-white" style="font-size: 12px;"></i>
+                            </span>
+                            Delete All
+                        </button>
+                    </div>
                 </div>
             </div>
 
