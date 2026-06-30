@@ -459,6 +459,19 @@
 
 @push('scripts')
     <script>
+        @php
+            $templateComments = ($templates ?? collect())->mapWithKeys(function ($template) {
+                $formData = is_array($template->form_data) ? $template->form_data : (json_decode($template->form_data ?? '[]', true) ?: []);
+                $comment = is_array($formData['estimate_comment'] ?? null) ? $formData['estimate_comment'] : [];
+                return [
+                    (string) $template->id => [
+                        'active' => (int) ($comment['active'] ?? 0),
+                        'content' => (string) ($comment['content'] ?? ''),
+                    ],
+                ];
+            });
+        @endphp
+        window.estimateTemplateComments = @json($templateComments);
         window.subsidiesData = @json($subsidies ?? []);
         window.estimateTaxes = @json($estimateTaxRows);
         window.estimateBomQuickAddConfig = {

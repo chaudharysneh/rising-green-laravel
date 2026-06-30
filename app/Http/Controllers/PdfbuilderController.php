@@ -382,11 +382,17 @@ class PdfbuilderController extends Controller
             'note' => (string) ($request->input('ongrid_roi_note', $oldFormData['ongrid_roi']['note'] ?? '')),
         ];
 
+        $estimateComment = [
+            'active' => (int) ($request->input('estimate_comment_active', $oldFormData['estimate_comment']['active'] ?? 0)),
+            'content' => (string) ($request->input('estimate_template_comment', $oldFormData['estimate_comment']['content'] ?? '')),
+        ];
+
         $formData = [
             'before_blocks' => $before_blocks,
             'after_blocks' => $after_blocks,
             'generation' => $generation,
             'ongrid_roi' => $ongrid_roi,
+            'estimate_comment' => $estimateComment,
         ];
 
         $updateData = [
@@ -431,6 +437,7 @@ class PdfbuilderController extends Controller
             'generated_at' => now()->format('d M Y h:i A'),
             'generationSection' => $generation,
             'ongridRoiSection' => $ongrid_roi,
+            'estimateCommentSection' => $estimateComment,
             'before_blocks' => $before_blocks,
             'after_blocks' => $after_blocks,
             'companyInfo' => $companyInfo,
@@ -501,6 +508,7 @@ class PdfbuilderController extends Controller
             'footer' => $template->footer ?? ($form_data['footer'] ?? []),
             'generationSection' => $form_data['generation'] ?? [],
             'ongridRoiSection' => $form_data['ongrid_roi'] ?? [],
+            'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             'header_image' => !empty($template->first_img) ? asset($template->first_img) : 'https://solar-crm.fableadtech.com/public/assets/img/profile/1760436391_b4bc9a00389df8eac539.jpg',
             'footer_image' => asset('/assets/pdfFooter.png'),
             'template_id' => $template->id,
@@ -648,11 +656,17 @@ class PdfbuilderController extends Controller
             'note' => (string) ($request->input('ongrid_roi_note', '')),
         ];
 
+        $estimateComment = [
+            'active' => (int) ($request->input('estimate_comment_active', 0)),
+            'content' => (string) ($request->input('estimate_template_comment', '')),
+        ];
+
         $formData = [
             'before_blocks' => $before_blocks,
             'after_blocks' => $after_blocks,
             'generation' => $generation,
             'ongrid_roi' => $ongrid_roi,
+            'estimate_comment' => $estimateComment,
         ];
 
         $firstImgPath = null;
@@ -704,6 +718,7 @@ class PdfbuilderController extends Controller
             'generated_at' => now()->format('d M Y h:i A'),
             'generationSection' => $generation,
             'ongridRoiSection' => $ongrid_roi,
+            'estimateCommentSection' => $estimateComment,
             'before_blocks' => $before_blocks,
             'after_blocks' => $after_blocks,
             'companyInfo' => $companyInfo,

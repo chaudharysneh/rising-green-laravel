@@ -188,6 +188,7 @@ class EstimateController extends Controller
                 'footer' => $template->footer ?? ($form_data['footer'] ?? []),
                 'generationSection' => $form_data['generation'] ?? [],
                 'ongridRoiSection' => $form_data['ongrid_roi'] ?? [],
+                'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             ];
 
             $pdf = \PDF::loadView('pdfbuilder.pdf', $pdfData);
