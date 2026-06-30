@@ -62,7 +62,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-list-check me-2 text-muted"></i>Task Title</label>
                             <input name="title" id="title" value="{{ old('title') }}"
-                                class="form-control @error('title') is-invalid @enderror" required>
+                                class="form-control @error('title') is-invalid @enderror" placeholder="Enter task title" required>
                             <div class="invalid-feedback d-block" id="title-error">{{ $errors->first('title') }}</div>
                         </div>
 
@@ -70,7 +70,7 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-bars me-2 text-muted"></i>Description</label>
                             <textarea name="description" id="description" rows="1"
                                 class="form-control @error('description') is-invalid @enderror"
-                                required>{{ old('description') }}</textarea>
+                                placeholder="Enter task description" required>{{ old('description') }}</textarea>
                             <div class="invalid-feedback d-block" id="description-error">{{ $errors->first('description') }}</div>
                         </div>
 

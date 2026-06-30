@@ -52,17 +52,17 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Vendor Name </label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                        <input type="text" name="name" id="name" class="form-control" placeholder="Enter vendor name" required>
                         <div class="invalid-feedback" id="name-error"></div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Email</label>
-                        <input type="email" name="email" id="email" class="form-control">
+                        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email address">
                         <div class="invalid-feedback" id="email-error"></div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Phone </label>
-                        <input type="text" name="phone" id="phone" class="form-control" required>
+                        <input type="text" name="phone" id="phone" class="form-control" placeholder="Enter phone number" required>
                         <div class="invalid-feedback" id="phone-error"></div>
                     </div>
                     <div class="col-md-6">
@@ -72,7 +72,7 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">Address</label>
-                        <textarea name="address" id="address" class="form-control" rows="3"></textarea>
+                        <textarea name="address" id="address" class="form-control" rows="3" placeholder="Enter address details"></textarea>
                         <div class="invalid-feedback" id="address-error"></div>
                     </div>
                 </div>

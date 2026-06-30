@@ -55,13 +55,13 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Purpose </label>
-                            <input name="purpose" id="purpose" value="{{ old('purpose') }}" class="form-control" required>
+                            <input name="purpose" id="purpose" value="{{ old('purpose') }}" class="form-control" placeholder="Enter purpose of follow up" required>
                             <div class="invalid-feedback d-block" id="purpose-error"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Comment</label>
                             <textarea name="comment" id="comment" rows="1"
-                                class="form-control">{{ old('comment') }}</textarea>
+                                class="form-control" placeholder="Enter any comments or notes">{{ old('comment') }}</textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Priority </label>

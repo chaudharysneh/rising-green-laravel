@@ -121,43 +121,43 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Capacity</label>
-                    <input type="text" name="capacity" id="capacity" value="{{ old('capacity', $product?->capacity) }}" class="form-control">
+                    <input type="text" name="capacity" id="capacity" value="{{ old('capacity', $product?->capacity) }}" class="form-control" placeholder="Enter capacity">
                 </div>
 
                 <!-- Row 5: Size of Pipe | Thickness -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Size of Pipe</label>
-                    <input type="text" name="size_of_pipe" id="size_of_pipe" value="{{ old('size_of_pipe', $product?->size_of_pipe) }}" class="form-control">
+                    <input type="text" name="size_of_pipe" id="size_of_pipe" value="{{ old('size_of_pipe', $product?->size_of_pipe) }}" class="form-control" placeholder="Enter size of pipe">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Thickness</label>
-                    <input type="text" name="thickness" id="thickness" value="{{ old('thickness', $product?->thickness) }}" class="form-control">
+                    <input type="text" name="thickness" id="thickness" value="{{ old('thickness', $product?->thickness) }}" class="form-control" placeholder="Enter thickness">
                 </div>
 
                 <!-- Row 6: Height | Fitting Type -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Height</label>
-                    <input type="text" name="height" id="height" value="{{ old('height', $product?->height) }}" class="form-control">
+                    <input type="text" name="height" id="height" value="{{ old('height', $product?->height) }}" class="form-control" placeholder="Enter height">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Fitting Type</label>
-                    <input type="text" name="fitting_type" id="fitting_type" value="{{ old('fitting_type', $product?->fitting_type) }}" class="form-control">
+                    <input type="text" name="fitting_type" id="fitting_type" value="{{ old('fitting_type', $product?->fitting_type) }}" class="form-control" placeholder="Enter fitting type">
                 </div>
 
                 <!-- Row 7: Fitting Material | Meter -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-briefcase me-2"></i>Fitting Material</label>
-                    <input type="text" name="fitting_material" id="fitting_material" value="{{ old('fitting_material', $product?->fitting_material) }}" class="form-control">
+                    <input type="text" name="fitting_material" id="fitting_material" value="{{ old('fitting_material', $product?->fitting_material) }}" class="form-control" placeholder="Enter fitting material">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-ruler me-2"></i>Meter</label>
-                    <input type="text" name="meter" id="meter" value="{{ old('meter', $product?->meter) }}" class="form-control">
+                    <input type="text" name="meter" id="meter" value="{{ old('meter', $product?->meter) }}" class="form-control" placeholder="Enter meter">
                 </div>
 
                 <!-- Row 8: Nos (Pieces) | Image -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-cubes me-2"></i>Nos (Pieces)</label>
-                    <input type="number" name="nos" id="nos" value="{{ old('nos', $product?->nos) }}" class="form-control" step="1" min="0">
+                    <input type="number" name="nos" id="nos" value="{{ old('nos', $product?->nos) }}" class="form-control" placeholder="Enter pieces count" step="1" min="0">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-image me-2"></i>Image <span class="text-danger">*</span></label>
@@ -171,7 +171,7 @@
                 <!-- Row 9: Description (Full Width) -->
                 <div class="col-12">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-pen me-2"></i>Description</label>
-                    <textarea name="description" id="description" class="form-control" rows="2">{{ old('description', $product?->description) }}</textarea>
+                    <textarea name="description" id="description" class="form-control" rows="2" placeholder="Enter BOM description">{{ old('description', $product?->description) }}</textarea>
                 </div>
             </div>
 

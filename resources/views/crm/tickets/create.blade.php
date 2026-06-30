@@ -48,7 +48,7 @@
                                 <i class="fa-solid fa-ticket"></i> Ticket Name
                             </label>
                             <input type="text" name="ticket_name" id="ticket_name" class="form-control"
-                                value="{{ old('ticket_name') }}" required>
+                                value="{{ old('ticket_name') }}" placeholder="Enter ticket title" required>
                             <div class="invalid-feedback" id="ticket_name-error"></div>
                         </div>
 
@@ -56,7 +56,7 @@
                             <label for="description" class="form-label d-flex align-items-center gap-2 fw-semibold">
                                 <i class="fa-solid fa-align-left"></i> Ticket Description
                             </label>
-                            <textarea name="description" id="description" rows="1" class="form-control" required>{{ old('description') }}</textarea>
+                            <textarea name="description" id="description" rows="1" class="form-control" placeholder="Enter ticket description" required>{{ old('description') }}</textarea>
                             <div class="invalid-feedback" id="description-error"></div>
                         </div>
 
