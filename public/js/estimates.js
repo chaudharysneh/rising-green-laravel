@@ -396,7 +396,7 @@
                 const editAction = permissions.edit
                     ? (isApproved
                         ? `<span class="btn crm-action-btn btn-sm text-muted disabled" title="Editing disabled for approved estimate" style="opacity:.5;cursor:not-allowed;"><i class="bi bi-pencil"></i></span>`
-                        : `<a href="/estimates/${estimate.estimate_id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>`)
+                        : `<a href="/estimates/${estimate.estimate_id}/edit" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="Edit"><i class="bi bi-pencil"></i></a>`)
                     : '';
 
                 const actionsHtml = `
