@@ -103,10 +103,10 @@ class MeetingController extends ApiBaseController
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'scheduled_at' => ['required', 'date'],
-            'meeting_type' => ['required', 'in:virtual,in-person,telephonic'],
+            'meeting_type' => ['nullable', 'in:virtual,in-person,telephonic'],
             'status' => ['required', 'in:scheduled,completed,cancelled'],
             'address' => ['nullable', 'string', 'max:255'],
-            'agenda' => ['required', 'string'],
+            'agenda' => ['nullable', 'string'],
             'status_comment' => ['nullable', 'string', 'max:2000'],
         ], [
             // Custom error messages
@@ -291,10 +291,10 @@ class MeetingController extends ApiBaseController
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'scheduled_at' => ['required', 'date'],
-            'meeting_type' => ['required', 'in:virtual,in-person,telephonic'],
+            'meeting_type' => ['nullable', 'in:virtual,in-person,telephonic'],
             'status' => ['required', 'in:scheduled,completed,cancelled'],
             'address' => ['nullable', 'string', 'max:255'],
-            'agenda' => ['required', 'string'],
+            'agenda' => ['nullable', 'string'],
             'status_comment' => ['nullable', 'string', 'max:2000'],
         ], [
             // Custom error messages

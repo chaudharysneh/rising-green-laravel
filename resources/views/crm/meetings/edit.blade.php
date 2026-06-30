@@ -38,9 +38,7 @@
                             <label class="form-label fw-semibold">Assigned For </label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
-                                    <select name="customer_id" id="customer_id" class="form-select"
-                                        data-search-url="{{ route('customers.search.api') }}" data-search-type="customer"
-                                        data-search-placeholder="Select Customer" required>
+                                    <select name="customer_id" id="customer_id" class="form-select" required>
                                         <option value="">Select Customer</option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->id }}" data-email="{{ $customer->email }}"
@@ -60,9 +58,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Assigned To</label>
                             @if(auth()->user()->isAdmin())
-                                <select name="assigned_user_id" id="assigned_user_id" class="form-select"
-                                    data-search-url="{{ route('api.users.search') }}" data-search-type="user"
-                                    data-search-placeholder="Select Staff">
+                                <select name="assigned_user_id" id="assigned_user_id" class="form-select">
                                     <option value="">Select Staff</option>
                                     @foreach ($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}" {{ old('assigned_user_id', $meeting->assigned_user_id) == $user->id ? 'selected' : '' }}>
@@ -102,13 +98,14 @@
                             <label class="form-label fw-semibold">Scheduled On </label>
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at"
                                 value="{{ old('scheduled_at', \Carbon\Carbon::parse($meeting->scheduled_at)->format('Y-m-d\TH:i')) }}"
+                                min="{{ now()->format('Y-m-d\TH:i') }}"
                                 class="form-control" required>
                             <div class="invalid-feedback" id="scheduled_at-error"></div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Meeting Type </label>
-                            <select name="meeting_type" id="meeting_type" class="form-select" required>
+                            <select name="meeting_type" id="meeting_type" class="form-select">
                                 <option value="">Select Meeting Type</option>
                                 <option value="virtual" {{ $meeting->meeting_type == 'virtual' ? 'selected' : '' }}>Virtual</option>
                                 <option value="in-person" {{ $meeting->meeting_type == 'in-person' ? 'selected' : '' }}>In-person</option>
@@ -119,8 +116,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Agenda </label>
-                            <textarea name="agenda" id="agenda" rows="4" class="form-control"
-                                required>{{ old('agenda', $meeting->agenda) }}</textarea>
+                            <textarea name="agenda" id="agenda" rows="4" class="form-control">{{ old('agenda', $meeting->agenda) }}</textarea>
                             <div class="invalid-feedback" id="agenda-error"></div>
                         </div>
 
@@ -182,14 +178,25 @@
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        .select2-results__options {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+    </style>
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/meeting.js') }}"></script>
     <script>
         $(document).ready(function() {
+            $('#customer_id, #assigned_user_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
             $('#saveQuickCustomerBtn').click(function() {
                 let name = $('#quick_customer_name').val().trim();
                 let number = $('#quick_customer_number').val().trim();
