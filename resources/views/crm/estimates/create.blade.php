@@ -29,6 +29,26 @@
 
             return [['label' => $name, 'rate' => $rate]];
         })->values();
+
+        $bomTaxOptions = [];
+        $cgstSgstRate = 0;
+        foreach (collect($gstTaxes ?? []) as $tax) {
+            $taxName = strtoupper((string) $tax->name);
+            if (str_contains($taxName, 'CGST') || str_contains($taxName, 'SGST')) {
+                $cgstSgstRate += (float) $tax->rate;
+            }
+        }
+        if ($cgstSgstRate > 0) {
+            $bomTaxOptions[] = ['label' => 'CGST + SGST', 'rate' => $cgstSgstRate];
+        }
+        foreach (collect($gstTaxes ?? []) as $tax) {
+            $taxName = strtoupper((string) $tax->name);
+            if (str_contains($taxName, 'IGST')) {
+                $bomTaxOptions[] = ['label' => $tax->name, 'rate' => (float) $tax->rate];
+            } elseif (!str_contains($taxName, 'CGST') && !str_contains($taxName, 'SGST')) {
+                $bomTaxOptions[] = ['label' => $tax->name, 'rate' => (float) $tax->rate];
+            }
+        }
     @endphp
 
     <div class="container-fluid p-0">
@@ -178,7 +198,7 @@
                                 <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
                                         <div class="row g-2 align-items-end">
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
                                                 <div class="d-flex align-items-start gap-2">
@@ -203,13 +223,13 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
                                                 <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="" class="form-control" placeholder="Add Quantity">
@@ -219,8 +239,19 @@
                                                 <input type="number" min="0" step="1" name="product_price[]"
                                                     value="0" class="form-control product-price" placeholder="0">
                                             </div>
-                                            <div class="col-md-1">
-                                                <label class="form-label small fw-semibold">Amount</label>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">Tax</label>
+                                                <select name="product_tax_rate[]" class="form-select product-tax-rate">
+                                                    <option value="0" data-label="">No Tax</option>
+                                                    @foreach ($bomTaxOptions as $taxOption)
+                                                        <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}">
+                                                            {{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small fw-semibold">After Tax Amount</label>
                                                 <input type="number" min="0" step="1" value="0"
                                                     class="form-control product-total" placeholder="0" readonly>
                                             </div>
@@ -297,12 +328,12 @@
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="small">Discount:</span>
+                                    <span class="fw-semibold" style="font-size: 15px;">Discount:</span>
                                     <input type="number" name="discount" id="discount" value="0" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="small">Subsidy:</span>
+                                    <span class="fw-semibold" style="font-size: 15px;">Subsidy:</span>
                                     <input type="number" name="subsidy_amount" id="subsidy_amount" value="{{ old('subsidy_amount', 0) }}"
                                         step="1" class="input-small">
                                 </div>
