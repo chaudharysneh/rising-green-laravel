@@ -64,7 +64,7 @@ class DealController extends Controller
         $statuses = Status::where('type', 'deal')->where('is_active', true)->orderBy('name')->get();
         $stages = Stage::where('is_active', true)->orderBy('name')->get();
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
 
         return view('crm.deals.create', compact('customers', 'estimates', 'statuses', 'stages', 'users'));
@@ -86,7 +86,7 @@ class DealController extends Controller
         $statuses = Status::where('type', 'deal')->where('is_active', true)->orderBy('name')->get();
         $stages = Stage::where('is_active', true)->orderBy('name')->get();
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
         return view('crm.deals.edit', compact('deal', 'customers', 'estimates', 'statuses', 'stages', 'users'));
     }
@@ -188,3 +188,4 @@ class DealController extends Controller
         }
     }
 }
+

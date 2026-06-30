@@ -49,7 +49,8 @@
                                     data-search-placeholder="Select Staff">
                                     <option value="">Select Staff</option>
                                     @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" data-email="{{ $user->email }}">
+                                        <option value="{{ $user->id }}" data-email="{{ $user->email }}"
+                                            @selected(old('assigned_user_id', auth()->id()) == $user->id)>
                                             {{ $user->name }}
                                         </option>
                                     @endforeach

@@ -18,7 +18,7 @@ class TaskController extends Controller
     public function create()
     {
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
         $estimates = $this->visibleEstimatesQuery()->get();
 
@@ -30,7 +30,7 @@ class TaskController extends Controller
         $task = Task::with(['statusHistories.updater'])->findOrFail($id);
         $this->authorize('update', $task);
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
         $estimates = $this->visibleEstimatesQuery()->get();
         $selectedEstimateId = null;
@@ -142,3 +142,4 @@ class TaskController extends Controller
             ->orderByDesc('estimate_id');
     }
 }
+

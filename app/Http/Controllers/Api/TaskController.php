@@ -439,14 +439,14 @@ class TaskController extends ApiBaseController
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'estimate_id' => ['required', 'exists:estimates,estimate_id'],
             'related_id' => ['nullable', 'exists:customers,id'],
             'project_id' => ['nullable', 'exists:projects,id'],
             'assigned_user_id' => ['required', 'integer', 'exists:users,id'],
-            'due_date' => ['required', 'date'],
-            'priority' => ['required', 'in:low,medium,high'],
-            'status' => ['required', 'in:pending,in_progress,completed'],
+            'due_date' => ['required', 'date', 'after_or_equal:today'],
+            'priority' => ['nullable', 'in:low,medium,high'],
+            'status' => ['nullable', 'in:pending,in_progress,completed'],
             'status_comment' => ['nullable', 'string', 'max:2000'],
         ];
     }
