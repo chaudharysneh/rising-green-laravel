@@ -1,5 +1,14 @@
 <?php
-$summarySubtotal = ($estdata && isset($estdata->price)) ? (float) $estdata->price : 0;
+$summaryProducts = ($estdata && !empty($estdata->product_name))
+    ? (is_array($estdata->product_name) ? $estdata->product_name : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []))
+    : [];
+$summaryProductsTotal = 0.0;
+if (is_array($summaryProducts)) {
+    foreach ($summaryProducts as $summaryProduct) {
+        $summaryProductsTotal += (float) ($summaryProduct['quantity'] ?? 0) * (float) ($summaryProduct['price'] ?? 0);
+    }
+}
+$summarySubtotal = (($estdata && isset($estdata->price)) ? (float) $estdata->price : 0) + $summaryProductsTotal;
 $summaryGstRate = ($estdata && isset($estdata->gst)) ? (float) $estdata->gst : 0;
 $summaryDiscount = ($estdata && isset($estdata->discount)) ? (float) $estdata->discount : 0;
 $summarySubsidy = ($estdata && isset($estdata->subsidy_amount)) ? (float) $estdata->subsidy_amount : 0;
@@ -13,8 +22,10 @@ if ($estdata && isset($estdata->gst_amount) && $estdata->gst_amount !== null && 
 }
 
 if ($estdata && !empty($estdata->gst_breakdown)) {
-    $decodedSummaryGst = json_decode($estdata->gst_breakdown, true);
-    if (json_last_error() === JSON_ERROR_NONE && is_array($decodedSummaryGst)) {
+    $decodedSummaryGst = is_array($estdata->gst_breakdown)
+        ? $estdata->gst_breakdown
+        : json_decode($estdata->gst_breakdown, true);
+    if (is_array($decodedSummaryGst)) {
         $summaryGstBreakdown = $decodedSummaryGst;
         if ($summaryGstAmount === null && isset($decodedSummaryGst['gst_amount'])) {
             $summaryGstAmount = (float) $decodedSummaryGst['gst_amount'];
@@ -116,6 +127,62 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
         }
     }
 }
+if ($estdata && !empty($estdata->product_name)) {
+    $summaryItems = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+    if (is_array($summaryItems)) {
+        $summaryProductTaxBreakupLines = [];
+        foreach ($summaryItems as $item) {
+            $itemRate = (float) ($item['tax_rate'] ?? 0);
+            $itemLabel = strtoupper(trim((string) ($item['tax_label'] ?? '')));
+            $itemTaxable = (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
+            if ($itemRate <= 0 || $itemTaxable <= 0) {
+                continue;
+            }
+            if (str_contains($itemLabel, 'CGST') && str_contains($itemLabel, 'SGST')) {
+                $halfRate = $itemRate / 2;
+                foreach (['CGST', 'SGST'] as $splitLabel) {
+                    $summaryProductTaxBreakupLines[] = [
+                        'label' => $splitLabel,
+                        'rate' => $halfRate,
+                        'amount' => ($itemTaxable * $halfRate) / 100,
+                    ];
+                }
+            } else {
+                $summaryProductTaxBreakupLines[] = [
+                    'label' => str_contains($itemLabel, 'IGST') ? 'IGST' : 'GST',
+                    'rate' => $itemRate,
+                    'amount' => ($itemTaxable * $itemRate) / 100,
+                ];
+            }
+        }
+        if (!empty($summaryProductTaxBreakupLines)) {
+            $summaryAggregatedTaxLines = [];
+            foreach ($summaryProductTaxBreakupLines as $taxLine) {
+                $taxKey = ($taxLine['label'] ?? '') . '|' . number_format((float) ($taxLine['rate'] ?? 0), 4, '.', '');
+                if (!isset($summaryAggregatedTaxLines[$taxKey])) {
+                    $summaryAggregatedTaxLines[$taxKey] = [
+                        'label' => $taxLine['label'] ?? '',
+                        'rate' => $taxLine['rate'] ?? null,
+                        'amount' => 0,
+                    ];
+                }
+                $summaryAggregatedTaxLines[$taxKey]['amount'] += (float) ($taxLine['amount'] ?? 0);
+            }
+            $summaryBreakupLines = array_values($summaryAggregatedTaxLines);
+        }
+    }
+}
+if (!empty($summaryBreakupLines)) {
+    $summaryGstAmount = array_sum(array_map(fn ($line) => (float) ($line['amount'] ?? 0), $summaryBreakupLines));
+    $summaryTotalPayable = $summarySubtotal + $summarySolarStructureCharges + $summaryGstAmount - $summaryDiscount;
+    $summaryLendingCost = $summaryTotalPayable - $summarySubsidy;
+}
+if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0) {
+    $summaryBreakupLines = [
+        ['label' => 'CGST', 'rate' => $summaryGstRate / 2, 'amount' => $summaryGstAmount / 2],
+        ['label' => 'SGST', 'rate' => $summaryGstRate / 2, 'amount' => $summaryGstAmount / 2],
+    ];
+}
 ?>
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:0;margin-bottom:12px;border-collapse:collapse;">
@@ -186,12 +253,7 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
         <td style="<?= $summaryRightCellStyle ?>"><?= number_format($summarySolarStructureCharges, 2) ?></td>
     </tr>
     <?php endif; ?>
-    <?php if ($summaryIsQuotation === 1 && $summaryShowGst): ?>
-    <tr>
-        <td colspan="2" style="<?= $summaryRightCellStyle ?>">GST<?= $summaryGstRateText !== '' ? ' (' . esc($summaryGstRateText) . '%)' : '' ?></td>
-        <td style="<?= $summaryRightCellStyle ?>"><?= number_format((float) $summaryGstAmount, 2) ?></td>
-    </tr>
-    <?php elseif ($summaryShowGst && !empty($summaryBreakupLines)): ?>
+    <?php if ($summaryShowGst && !empty($summaryBreakupLines)): ?>
         <?php foreach ($summaryBreakupLines as $line): ?>
             <?php
             $lineLabel = trim((string) ($line['label'] ?? ''));
@@ -207,6 +269,11 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
                 <td style="<?= $summaryRightCellStyle ?>"><?= number_format($lineAmount, 2) ?></td>
             </tr>
         <?php endforeach; ?>
+    <?php elseif ($summaryShowGst): ?>
+    <tr>
+        <td colspan="2" style="<?= $summaryRightCellStyle ?>">GST<?= $summaryGstRateText !== '' ? ' (' . esc($summaryGstRateText) . '%)' : '' ?></td>
+        <td style="<?= $summaryRightCellStyle ?>"><?= number_format((float) $summaryGstAmount, 2) ?></td>
+    </tr>
     <?php endif; ?>
     <?php if ($summaryDiscount > 0): ?>
     <tr>

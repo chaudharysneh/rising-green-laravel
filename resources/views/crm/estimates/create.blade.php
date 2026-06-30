@@ -21,7 +21,7 @@
         }
 
         .bom-row-grid .form-label {
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1.2;
             margin-bottom: 6px;
             white-space: nowrap;
@@ -307,7 +307,7 @@
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="form-label small fw-semibold">After Tax Amount</label>
+                                                <label class="form-label small fw-semibold">Total Amount</label>
                                                 <input type="number" min="0" step="1" value="0"
                                                     class="form-control product-total" placeholder="0" readonly>
                                             </div>
@@ -363,24 +363,17 @@
 
                                 <div class="totals-row align-items-center">
                                     <label class="switch mb-0">
-                                        <input type="checkbox" id="apply_gst">
+                                        <input type="checkbox" id="apply_gst" checked>
                                         <span class="slider"></span>
                                     </label>
                                     <span class="small fw-semibold">Apply GST</span>
                                 </div>
 
-                                <div id="gst_fields_box" style="display: none;">
-                                    @forelse ($estimateTaxRows as $index => $taxRow)
-                                        <div class="totals-row gst-tax-row" data-tax-rate="{{ $taxRow['rate'] }}">
-                                            <span class="small">{{ $taxRow['label'] }} ({{ rtrim(rtrim(number_format($taxRow['rate'], 2), '0'), '.') }}%):</span>
-                                            <span class="small gst-tax-amount" id="tax_display_{{ $index }}">0.00</span>
-                                        </div>
-                                    @empty
-                                        <div class="totals-row">
-                                            <span class="small text-muted">No active taxes configured.</span>
-                                            <span class="small">0.00</span>
-                                        </div>
-                                    @endforelse
+                                <div id="gst_fields_box">
+                                    <div class="totals-row">
+                                        <span class="small text-muted">Select BOM tax to apply GST.</span>
+                                        <span class="small">0.00</span>
+                                    </div>
                                 </div>
 
                                 <div class="totals-row">
