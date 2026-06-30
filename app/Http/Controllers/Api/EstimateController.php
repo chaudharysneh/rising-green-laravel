@@ -44,6 +44,11 @@ class EstimateController extends Controller
                 $query->where('user_id', $user->id);
             }
 
+            // Filter by customer_id
+            if ($request->has('customer_id') && !empty($request->customer_id)) {
+                $query->where('customer_id', $request->customer_id);
+            }
+
             // Apply filter for staff users only
             if (!$user->isAdmin() && $filter === 'created_by_me') {
                 // All records I created (regardless of assignment)

@@ -3,420 +3,453 @@
 @section('page_title', 'Dashboard')
 
 @section('content')
-<div class="container-fluid p-0 dashboard-page">
-    @php
-        $dashboardUser = auth()->user();
-        $planName = $currentSubscriptionPlan?->name ?? 'No Plan Assigned';
-        $isPremiumPlan = str_contains(strtolower($planName), 'premium');
-        $planStaffLimit = (int) ($currentSubscriptionPlan?->staff_limit ?? 0);
-        $planRenewalDate = optional($currentSubscriptionAssignment?->updated_at ?? $currentSubscriptionAssignment?->created_at)->format('d M Y') ?? '-';
-        $canViewCustomers = $canViewCustomers ?? \App\Models\Customer::query()->visibleToUser($dashboardUser)->exists();
-        $canViewFollowUps = $dashboardUser?->hasMatrixPermission('view_followups') ?? false;
-        $canViewLeads = $dashboardUser?->hasMatrixPermission('view_leads') ?? false;
-        $canViewDeals = $dashboardUser?->hasMatrixPermission('view_deals') ?? false;
-        $canViewTasks = $dashboardUser?->hasMatrixPermission('view_tasks') ?? false;
-        $canViewBookings = $dashboardUser?->hasMatrixPermission('view_bookings') ?? false;
-        $canViewEstimates = $dashboardUser?->hasMatrixPermission('view_estimates') ?? false;
-        $hasDashboardAccess = $dashboardUser?->isAdmin()
-            || $canViewCustomers
-            || $canViewFollowUps
-            || $canViewLeads
-            || $canViewDeals
-            || $canViewTasks
-            || $canViewBookings
-            || $canViewEstimates;
-    @endphp
+    <div class="container-fluid p-0 dashboard-page">
+        @php
+            $dashboardUser = auth()->user();
+            $planName = $currentSubscriptionPlan?->name ?? 'No Plan Assigned';
+            $isPremiumPlan = str_contains(strtolower($planName), 'premium');
+            $planStaffLimit = (int) ($currentSubscriptionPlan?->staff_limit ?? 0);
+            $planRenewalDate =
+                optional(
+                    $currentSubscriptionAssignment?->updated_at ?? $currentSubscriptionAssignment?->created_at,
+                )->format('d M Y') ?? '-';
+            $canViewCustomers =
+                $canViewCustomers ?? \App\Models\Customer::query()->visibleToUser($dashboardUser)->exists();
+            $canViewFollowUps = $dashboardUser?->hasMatrixPermission('view_followups') ?? false;
+            $canViewLeads = $dashboardUser?->hasMatrixPermission('view_leads') ?? false;
+            $canViewDeals = $dashboardUser?->hasMatrixPermission('view_deals') ?? false;
+            $canViewTasks = $dashboardUser?->hasMatrixPermission('view_tasks') ?? false;
+            $canViewBookings = $dashboardUser?->hasMatrixPermission('view_bookings') ?? false;
+            $canViewEstimates = $dashboardUser?->hasMatrixPermission('view_estimates') ?? false;
+            $hasDashboardAccess =
+                $dashboardUser?->isAdmin() ||
+                $canViewCustomers ||
+                $canViewFollowUps ||
+                $canViewLeads ||
+                $canViewDeals ||
+                $canViewTasks ||
+                $canViewBookings ||
+                $canViewEstimates;
+        @endphp
 
-    <div class="row g-3 mb-2" id="dashboardStats">
+        <div class="row g-3 mb-2" id="dashboardStats">
 
-        <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-            <a href="{{ route('masters.customers.index') }}" class="text-decoration-none">
-                <div class="metric-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <p class="metric-label mb-1">Customers</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="metric-value mb-0" id="metricCustomers">{{ $stats['customers'] ?? 0 }}</h3>
-                            <span class="metric-icon icon-customers"><i class="bi bi-people-fill"></i></span>
+            <div class="col-6 col-sm-6 col-md-3 col-lg-3">
+                <a href="{{ route('masters.customers.index') }}" class="text-decoration-none">
+                    <div class="metric-card card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="metric-label mb-1">Customers</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="metric-value mb-0" id="metricCustomers">{{ $stats['customers'] ?? 0 }}</h3>
+                                <span class="metric-icon icon-customers"><i class="bi bi-people-fill"></i></span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-            <a href="{{ route('followups.index') }}" class="text-decoration-none">
-                <div class="metric-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <p class="metric-label mb-1">Follow Up</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="metric-value mb-0" id="metricFollowUps">{{ $stats['follow_ups'] ?? 0 }}</h3>
-                            <span class="metric-icon icon-followups"><i class="bi bi-chat-dots-fill"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-            <a href="{{ route('leads.index') }}" class="text-decoration-none">
-                <div class="metric-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <p class="metric-label mb-1">Leads</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="metric-value mb-0" id="metricLeads">{{ $stats['leads'] ?? 0 }}</h3>
-                            <span class="metric-icon icon-leads"><i class="bi bi-megaphone-fill"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-6 col-sm-6 col-md-3 col-lg-3">
-            <a href="{{ route('deals.index') }}" class="text-decoration-none">
-                <div class="metric-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <p class="metric-label mb-1">Deals</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="metric-value mb-0" id="metricDeals">{{ $stats['deals'] ?? 0 }}</h3>
-                            <span class="metric-icon icon-deals"><i class="bi bi-award-fill"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-    </div>
-
-    <div class="lead-board-wrapper p-0" id="leadBoardWrapper">
-        <button type="button" class="lead-board-arrow lead-board-arrow--left" id="leadBoardLeft" title="Scroll Left">
-            <i class="fa-solid fa-angle-left fs-5"></i>
-        </button>
-        <div class="status-board mb-2 px-0" id="leadBoardContainer">
-            <div class="card border-0 shadow-sm w-100">
-                <div class="card-body text-muted small">Loading lead board...</div>
+                </a>
             </div>
+
+            <div class="col-6 col-sm-6 col-md-3 col-lg-3">
+                <a href="{{ route('followups.index') }}" class="text-decoration-none">
+                    <div class="metric-card card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="metric-label mb-1">Follow Up</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="metric-value mb-0" id="metricFollowUps">{{ $stats['follow_ups'] ?? 0 }}</h3>
+                                <span class="metric-icon icon-followups"><i class="bi bi-chat-dots-fill"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-6 col-sm-6 col-md-3 col-lg-3">
+                <a href="{{ route('leads.index') }}" class="text-decoration-none">
+                    <div class="metric-card card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="metric-label mb-1">Leads</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="metric-value mb-0" id="metricLeads">{{ $stats['leads'] ?? 0 }}</h3>
+                                <span class="metric-icon icon-leads"><i class="bi bi-megaphone-fill"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-6 col-sm-6 col-md-3 col-lg-3">
+                <a href="{{ route('deals.index') }}" class="text-decoration-none">
+                    <div class="metric-card card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="metric-label mb-1">Deals</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="metric-value mb-0" id="metricDeals">{{ $stats['deals'] ?? 0 }}</h3>
+                                <span class="metric-icon icon-deals"><i class="bi bi-award-fill"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
         </div>
-        <button type="button" class="lead-board-arrow lead-board-arrow--right" id="leadBoardRight" title="Scroll Right">
-            <i class="fa-solid fa-angle-right fs-5"></i>
-        </button>
-    </div>
+
+        <div class="lead-board-wrapper p-0" id="leadBoardWrapper">
+            <button type="button" class="lead-board-arrow lead-board-arrow--left" id="leadBoardLeft" title="Scroll Left">
+                <i class="fa-solid fa-angle-left fs-5"></i>
+            </button>
+            <div class="status-board px-0 pb-0" id="leadBoardContainer">
+                <div class="card border-0 shadow-sm w-100">
+                    <div class="card-body text-muted small">Loading lead board...</div>
+                </div>
+            </div>
+            <button type="button" class="lead-board-arrow lead-board-arrow--right" id="leadBoardRight"
+                title="Scroll Right">
+                <i class="fa-solid fa-angle-right fs-5"></i>
+            </button>
+        </div>
 
 
-    <div class="row g-3">
+        <div class="row g-3 mt-1">
 
-        <div class="col-12 col-xl-7">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="col-12 col-xl-7">
+                <div class="card border-0 shadow-sm h-100">
                 <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
                     <h5 class="mb-0 fw-bold">Estimate Overview</h5>
                     @if(($estimateStats['can_view'] ?? false))
-                        <a href="{{ route('estimates.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
-                            style="color: #0c0c0c !important;">View All</a>
+                        <a href="{{ route('estimates.index') }}" class="badge bg-light text-dark px-3 py-2 fw-semibold small">View All</a>
                     @endif
                 </div>
-                <div class="card-body estimate-overview-card">
-                    @if(!($estimateStats['can_view'] ?? false))
-                        <div class="text-center text-muted py-5">Estimate data is not available for your account.</div>
-                    @else
-                        <div class="estimate-overview-hero mb-3">
-                            <div>
-                                <p class="estimate-overview-label mb-1">Total Estimate Value</p>
-                                <h3 class="estimate-overview-value mb-0">₹{{ number_format((float) ($estimateStats['total_value'] ?? 0), 2) }}</h3>
-                            </div>
-                            <div class="estimate-overview-icon">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <div class="estimate-mini-stat">
-                                    <span>Total</span>
-                                    <strong>{{ number_format($estimateStats['total'] ?? 0) }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="estimate-mini-stat">
-                                    <span>This Month</span>
-                                    <strong>{{ number_format($estimateStats['this_month'] ?? 0) }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="estimate-mini-stat estimate-mini-stat--pending">
-                                    <span>Pending</span>
-                                    <strong>{{ number_format($estimateStats['pending'] ?? 0) }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="estimate-mini-stat estimate-mini-stat--approved">
-                                    <span>Approved</span>
-                                    <strong>{{ number_format($estimateStats['approved'] ?? 0) }}</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="estimate-status-strip mb-3">
-                            <div><span>Rejected</span><strong>{{ number_format($estimateStats['rejected'] ?? 0) }}</strong></div>
-                            <div><span>Completed</span><strong>{{ number_format($estimateStats['completed'] ?? 0) }}</strong></div>
-                        </div>
-
-                        @if(($estimateStats['latest'] ?? collect())->isNotEmpty())
-                            @php($latestEstimate = ($estimateStats['latest'] ?? collect())->first())
-                            <a href="{{ route('estimates.show', $latestEstimate) }}" class="estimate-latest-item estimate-latest-item--compact text-decoration-none mb-3">
-                                <div class="min-w-0">
-                                    <div class="fw-semibold text-dark text-truncate">{{ $latestEstimate->estimate_name ?: ($latestEstimate->estimate_no ?: 'Estimate') }}</div>
-                                    <div class="text-muted small text-truncate">{{ $latestEstimate->customer?->name ?? 'No customer' }} · {{ optional($latestEstimate->estimate_date)->format('d M Y') ?? '-' }}</div>
-                                </div>
-                                <div class="text-end flex-shrink-0">
-                                    <div class="fw-bold text-dark">₹{{ number_format((float) $latestEstimate->amount, 2) }}</div>
-                                    <span class="badge-status {{ strtolower((string) $latestEstimate->status) }}">{{ strtoupper((string) ($latestEstimate->status ?: 'pending')) }}</span>
-                                </div>
-                            </a>
-                        @endif
-
-                        <div class="estimate-footnote">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Overview is based on all visible estimates and their current statuses.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head py-3">
-                    <h5 class="mb-0 fw-bold">Lead Conversion Snapshot</h5>
-                </div>
-                <div class="card-body conversion-snapshot-card">
-                    @if(!($leadConversionSnapshot['can_view'] ?? false))
-                        <div class="text-center text-muted py-5">Lead conversion data is not available for your account.</div>
-                    @else
-                        <div class="conversion-rate-circle mx-auto mb-3" style="--conversion-rate: {{ min(100, max(0, (int) ($leadConversionSnapshot['conversion_rate'] ?? 0))) }}%;">
-                            <span>{{ $leadConversionSnapshot['conversion_rate'] ?? 0 }}%</span>
-                            <small>Conversion</small>
-                        </div>
-
-                        <div class="conversion-grid">
-                            <div class="conversion-stat">
-                                <span>New Leads</span>
-                                <strong>{{ number_format($leadConversionSnapshot['new_leads'] ?? 0) }}</strong>
-                            </div>
-                            <div class="conversion-stat">
-                                <span>Qualified</span>
-                                <strong>{{ number_format($leadConversionSnapshot['qualified_leads'] ?? 0) }}</strong>
-                            </div>
-                            <div class="conversion-stat">
-                                <span>Estimates Created</span>
-                                <strong>{{ number_format($leadConversionSnapshot['estimates_created'] ?? 0) }}</strong>
-                            </div>
-                            <div class="conversion-stat conversion-stat--approved">
-                                <span>Approved Estimates</span>
-                                <strong>{{ number_format($leadConversionSnapshot['approved_estimates'] ?? 0) }}</strong>
-                            </div>
-                        </div>
-
-                        <div class="conversion-footnote mt-3">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Conversion is calculated from approved estimates against total leads.
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row g-3 mt-1">
-        <div class="col-12 col-xl-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
-                    <h5 class="mb-0 fw-bold">Upcoming Follow-ups</h5>
-                    @if($canViewFollowUps)
-                        <a href="{{ route('followups.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
-                            style="color: #0c0c0c !important;">View All</a>
-                    @endif
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 dashboard-followups-table">
-                            <thead>
-                                <tr>
-                                    <th>Customer</th>
-                                    <th class="d-none d-md-table-cell">Assigned Staff</th>
-                                    <th class="d-none d-md-table-cell">Phone</th>
-                                    <th class="text-center">Status</th>
-                                    <th class="text-end">Due</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse(($upcomingFollowUps ?? collect()) as $followUp)
-                                    <tr>
-                                        <td>
-                                            <div class="fw-semibold text-dark">{{ $followUp->lead?->name ?? '-' }}</div>
-                                            <div class="text-muted small text-truncate">{{ $followUp->purpose ?? 'Follow-up' }}</div>
-                                        </td>
-                                        <td class="d-none d-md-table-cell">{{ $followUp->assignedUser?->name ?? 'Unassigned' }}</td>
-                                        <td class="d-none d-md-table-cell">{{ $followUp->lead?->phone ?? '-' }}</td>
-                                        <td class="text-center">
-                                            <span class="badge-status {{ strtolower((string) $followUp->status) }}">{{ strtoupper((string) ($followUp->status ?: 'pending')) }}</span>
-                                        </td>
-                                        <td class="text-end text-muted small">{{ optional($followUp->follow_up_at)->format('d M, h:i A') ?? '-' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">No upcoming follow-ups.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
-                    <h5 class="mb-0 fw-bold">All Tasks</h5>
-                    <a href="{{ route('tasks.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
-                        style="color: #0c0c0c !important;">View All</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="dashboardTasksTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 35%;">Task Name</th>
-                                    <th style="width: 25%;" class="d-none d-md-table-cell">Assigned To</th>
-                                    <th style="width: 15%;" class="text-center">Priority</th>
-                                    <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
-                                    <th style="width: 10%;" class="text-center d-md-none">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">Loading tasks...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mt-1">
-
-        <div class="col-12 col-xl-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold text-white">Customer Report</h5>
-                    <select id="customerReportYear" class="form-select form-select-sm dashboard-year-select">
-                        @php($thisYear = now()->year)
-                        <option value="{{ $thisYear }}">{{ $thisYear }}</option>
-                        <option value="{{ $thisYear - 1 }}">{{ $thisYear - 1 }}</option>
-                        <option value="{{ $thisYear - 2 }}">{{ $thisYear - 2 }}</option>
-                    </select>
-                </div>
-                <div class="card-body pt-2">
-                    <div class="chart-wrap">
-                        <canvas id="customerReportChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-xl-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold text-white">All Deals</h5>
-                    <a href="{{ route('deals.index') }}" class="text-dark badge bg-light px-3 py-2 fw-semibold small"
-                        style="color: #0c0c0c !important;">View All</a>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="dashboardDealsTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%;">Deals Name</th>
-                                    <th style="width: 25%;" class="d-none d-md-table-cell">Deal Value</th>
-                                    <th style="width: 20%;" class="text-center">Probability(%)</th>
-                                    <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
-                                    <th style="width: 10%;" class="text-center d-md-none">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted py-4">Loading deals...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <footer class="mt-4 text-center text-muted" style="font-size: 0.9rem;">
-        &copy; {{ date('Y') }} Copyright - Fablead Developers Technolab
-    </footer>
-
-    <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1" aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : 'plan-basic' }} border-0">
-                    <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
-                        <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
-                        <span id="dashboardPlanModalTitle">Your Subscription Plan</span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body px-4 py-4">
-                    <div class="text-center mb-4">
-                        <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : '' }}" id="dashboardPlanBadge">{{ $planName }}</div>
-                    </div>
-
-                    <div class="dashboard-plan-modal__details">
-                        <div class="dashboard-plan-modal__row">
-                            <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
-                            <span class="fw-semibold">Staff Limit:</span>
-                            <span id="dashboardPlanStaffLimit" class="text-muted">{{ $currentStaffCount ?? 0 }} / {{ $planStaffLimit }} users</span>
-                        </div>
-                        <div class="dashboard-plan-modal__row">
-                            <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
-                            <span class="fw-semibold">Renewal Date:</span>
-                            <span id="dashboardPlanRenewalDate" class="text-muted">{{ $planRenewalDate }}</span>
-                        </div>
-                        <div class="dashboard-plan-modal__row">
-                            <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status"><i class="fa-solid fa-circle-check"></i></span>
-                            <span class="fw-semibold">Status:</span>
-                            <span id="dashboardPlanStatus" class="text-muted">{{ $currentSubscriptionPlan ? 'Active' : 'Not Assigned' }}</span>
-                        </div>
-                    </div>
-
-                    <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
-                        @if($currentSubscriptionPlan)
-                            Staff accounts are counted under your admin ID. When the plan limit is reached, new staff creation will be blocked automatically.
+                    <div class="card-body estimate-overview-card">
+                        @if (!($estimateStats['can_view'] ?? false))
+                            <div class="text-center text-muted py-5">Estimate data is not available for your account.</div>
                         @else
-                            No subscription plan is assigned to this admin account yet.
-                        @endif
-                    </p>
+                            <div class="estimate-overview-hero mb-3">
+                                <div>
+                                    <p class="estimate-overview-label mb-1">Total Estimate Value</p>
+                                    <h3 class="estimate-overview-value mb-0">
+                                        ₹{{ number_format((float) ($estimateStats['total_value'] ?? 0), 2) }}</h3>
+                                </div>
+                                <div class="estimate-overview-icon">
+                                    <i class="bi bi-file-earmark-text-fill"></i>
+                                </div>
+                            </div>
 
-                    <div class="text-center">
-                        <button type="button" class="btn dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Contact Us</button>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="estimate-mini-stat">
+                                        <span>Total</span>
+                                        <strong>{{ number_format($estimateStats['total'] ?? 0) }}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="estimate-mini-stat">
+                                        <span>This Month</span>
+                                        <strong>{{ number_format($estimateStats['this_month'] ?? 0) }}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="estimate-mini-stat estimate-mini-stat--pending">
+                                        <span>Pending</span>
+                                        <strong>{{ number_format($estimateStats['pending'] ?? 0) }}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="estimate-mini-stat estimate-mini-stat--approved">
+                                        <span>Approved</span>
+                                        <strong>{{ number_format($estimateStats['approved'] ?? 0) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="estimate-status-strip mb-3">
+                                <div>
+                                    <span>Rejected</span><strong>{{ number_format($estimateStats['rejected'] ?? 0) }}</strong>
+                                </div>
+                                <div>
+                                    <span>Completed</span><strong>{{ number_format($estimateStats['completed'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+
+                            @if (($estimateStats['latest'] ?? collect())->isNotEmpty())
+                                @php($latestEstimate = ($estimateStats['latest'] ?? collect())->first())
+                                <a href="{{ route('estimates.show', $latestEstimate) }}"
+                                    class="estimate-latest-item estimate-latest-item--compact text-decoration-none mb-3">
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-dark text-truncate">
+                                            {{ $latestEstimate->estimate_name ?: ($latestEstimate->estimate_no ?: 'Estimate') }}
+                                        </div>
+                                        <div class="text-muted small text-truncate">
+                                            {{ $latestEstimate->customer?->name ?? 'No customer' }} ·
+                                            {{ optional($latestEstimate->estimate_date)->format('d M Y') ?? '-' }}</div>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        <div class="fw-bold text-dark">
+                                            ₹{{ number_format((float) $latestEstimate->amount, 2) }}</div>
+                                        <span
+                                            class="badge-status {{ strtolower((string) $latestEstimate->status) }}">{{ strtoupper((string) ($latestEstimate->status ?: 'pending')) }}</span>
+                                    </div>
+                                </a>
+                            @endif
+
+                            <div class="estimate-footnote">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Overview is based on all visible estimates and their current statuses.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header dashboard-widget-head py-3">
+                        <h5 class="mb-0 fw-bold">Lead Conversion Snapshot</h5>
+                    </div>
+                    <div class="card-body conversion-snapshot-card">
+                        @if (!($leadConversionSnapshot['can_view'] ?? false))
+                            <div class="text-center text-muted py-5">Lead conversion data is not available for your
+                                account.</div>
+                        @else
+                            <div class="conversion-rate-circle mx-auto mb-3"
+                                style="--conversion-rate: {{ min(100, max(0, (int) ($leadConversionSnapshot['conversion_rate'] ?? 0))) }}%;">
+                                <span>{{ $leadConversionSnapshot['conversion_rate'] ?? 0 }}%</span>
+                                <small>Conversion</small>
+                            </div>
+
+                            <div class="conversion-grid">
+                                <div class="conversion-stat">
+                                    <span>New Leads</span>
+                                    <strong>{{ number_format($leadConversionSnapshot['new_leads'] ?? 0) }}</strong>
+                                </div>
+                                <div class="conversion-stat">
+                                    <span>Qualified</span>
+                                    <strong>{{ number_format($leadConversionSnapshot['qualified_leads'] ?? 0) }}</strong>
+                                </div>
+                                <div class="conversion-stat">
+                                    <span>Estimates Created</span>
+                                    <strong>{{ number_format($leadConversionSnapshot['estimates_created'] ?? 0) }}</strong>
+                                </div>
+                                <div class="conversion-stat conversion-stat--approved">
+                                    <span>Approved Estimates</span>
+                                    <strong>{{ number_format($leadConversionSnapshot['approved_estimates'] ?? 0) }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="conversion-footnote mt-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Conversion is calculated from approved estimates against total leads.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-12 col-xl-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
+                        <h5 class="mb-0 fw-bold">Upcoming Follow-ups</h5>
+                        @if ($canViewFollowUps)
+                            <a href="{{ route('followups.index') }}" class="badge bg-light text-dark px-3 py-2 fw-semibold small">View All</a>
+                        @endif
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 dashboard-followups-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th class="d-none d-md-table-cell">Assigned Staff</th>
+                                        <th class="d-none d-md-table-cell">Phone</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-end">Due</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse(($upcomingFollowUps ?? collect()) as $followUp)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold text-dark">{{ $followUp->lead?->name ?? '-' }}
+                                                </div>
+                                                <div class="text-muted small text-truncate">
+                                                    {{ $followUp->purpose ?? 'Follow-up' }}</div>
+                                            </td>
+                                            <td class="d-none d-md-table-cell">
+                                                {{ $followUp->assignedUser?->name ?? 'Unassigned' }}</td>
+                                            <td class="d-none d-md-table-cell">{{ $followUp->lead?->phone ?? '-' }}</td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge-status {{ strtolower((string) $followUp->status) }}">{{ strtoupper((string) ($followUp->status ?: 'pending')) }}</span>
+                                            </td>
+                                            <td class="text-end text-muted small">
+                                                {{ optional($followUp->follow_up_at)->format('d M, h:i A') ?? '-' }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">No upcoming follow-ups.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header dashboard-widget-head d-flex align-items-center justify-content-between py-3">
+                        <h5 class="mb-0 fw-bold">All Tasks</h5>
+                        <a href="{{ route('tasks.index') }}" class="badge bg-light text-dark px-3 py-2 fw-semibold small">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="dashboardTasksTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 35%;">Task Name</th>
+                                        <th style="width: 25%;" class="d-none d-md-table-cell">Assigned To</th>
+                                        <th style="width: 15%;" class="text-center">Priority</th>
+                                        <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
+                                        <th style="width: 10%;" class="text-center d-md-none">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">Loading tasks...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+
+            <div class="col-12 col-xl-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold text-white">Customer Report</h5>
+                        <select id="customerReportYear" class="form-select form-select-sm dashboard-year-select" style="color: #f1f5f9 !important;">
+                            @php($thisYear = now()->year)
+                            <option value="{{ $thisYear }}">{{ $thisYear }}</option>
+                            <option value="{{ $thisYear - 1 }}">{{ $thisYear - 1 }}</option>
+                            <option value="{{ $thisYear - 2 }}">{{ $thisYear - 2 }}</option>
+                        </select>
+                    </div>
+                    <div class="card-body pt-2">
+                        <div class="chart-wrap">
+                            <canvas id="customerReportChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold text-white">All Deals</h5>
+                        <a href="{{ route('deals.index') }}" class="badge bg-light text-dark px-3 py-2 fw-semibold small">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="dashboardDealsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%;">Deals Name</th>
+                                        <th style="width: 25%;" class="d-none d-md-table-cell">Deal Value</th>
+                                        <th style="width: 20%;" class="text-center">Probability(%)</th>
+                                        <th style="width: 15%;" class="text-center d-none d-md-table-cell">Status</th>
+                                        <th style="width: 10%;" class="text-center d-md-none">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">Loading deals...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <footer class="dashboard-footer text-center py-2 mt-4">
+            © {{ date('Y') }} Copyright - Rising Green Energy
+        </footer>
+
+        <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"
+            aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div
+                        class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : 'plan-basic' }} border-0">
+                        <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
+                            <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
+                            <span id="dashboardPlanModalTitle">Your Subscription Plan</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4 py-4">
+                        <div class="text-center mb-4">
+                            <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : '' }}"
+                                id="dashboardPlanBadge">{{ $planName }}</div>
+                        </div>
+
+                        <div class="dashboard-plan-modal__details">
+                            <div class="dashboard-plan-modal__row">
+                                <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
+                                <span class="fw-semibold">Staff Limit:</span>
+                                <span id="dashboardPlanStaffLimit" class="text-muted">{{ $currentStaffCount ?? 0 }} /
+                                    {{ $planStaffLimit }} users</span>
+                            </div>
+                            <div class="dashboard-plan-modal__row">
+                                <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
+                                <span class="fw-semibold">Renewal Date:</span>
+                                <span id="dashboardPlanRenewalDate" class="text-muted">{{ $planRenewalDate }}</span>
+                            </div>
+                            <div class="dashboard-plan-modal__row">
+                                <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status"><i
+                                        class="fa-solid fa-circle-check"></i></span>
+                                <span class="fw-semibold">Status:</span>
+                                <span id="dashboardPlanStatus"
+                                    class="text-muted">{{ $currentSubscriptionPlan ? 'Active' : 'Not Assigned' }}</span>
+                            </div>
+                        </div>
+
+                        <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
+                            @if ($currentSubscriptionPlan)
+                                Staff accounts are counted under your admin ID. When the plan limit is reached, new staff
+                                creation will be blocked automatically.
+                            @else
+                                No subscription plan is assigned to this admin account yet.
+                            @endif
+                        </p>
+
+                        <div class="text-center">
+                            <button type="button" class="btn dashboard-plan-modal__cta"
+                                id="dashboardPlanContactBtn">Contact Us</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ ((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
+    <link rel="stylesheet"
+        href="{{ (env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/dashboard.css' }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
 @endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="{{ ((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/dashboard.js') }}?v={{ filemtime(public_path('js/dashboard.js')) }}"></script>
+    <script
+        src="{{ (env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/dashboard.js' }}?v={{ filemtime(public_path('js/dashboard.js')) }}">
+    </script>
 @endpush
