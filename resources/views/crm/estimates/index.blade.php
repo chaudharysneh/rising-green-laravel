@@ -114,12 +114,19 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
-                            <select class="form-select" name="customer_id" id="quick_estimate_customer_id" required>
-                                <option value="">Select Customer</option>
-                                @foreach ($customers ?? [] as $customer)
-                                    <option value="{{ $customer->id }}" data-name="{{ $customer->name }}">{{ $customer->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="flex-grow-1 w-100">
+                                    <select class="form-select" name="customer_id" id="quick_estimate_customer_id" required>
+                                        <option value="">Select Customer</option>
+                                        @foreach ($customers ?? [] as $customer)
+                                            <option value="{{ $customer->id }}" data-name="{{ $customer->name }}">{{ $customer->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback" id="quick_customer_id-error">Please select a customer.</div>
                         </div>
                         <div class="col-md-4">
@@ -245,6 +252,36 @@
         </div>
     </div>
 </div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Add New Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addCustomerQuickForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="quick_customer_name" required>
+                        <div class="invalid-feedback">Please enter customer name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="quick_customer_number" required>
+                        <div class="invalid-feedback">Please enter mobile number</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark-blue" id="saveQuickCustomerBtn">Save Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -274,4 +311,80 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#saveQuickCustomerBtn').click(function() {
+                let name = $('#quick_customer_name').val().trim();
+                let number = $('#quick_customer_number').val().trim();
+                
+                $('#quick_customer_name').removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter customer name');
+                $('#quick_customer_number').removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter mobile number');
+                
+                if (!name || !number) {
+                    if(!name) $('#quick_customer_name').addClass('is-invalid');
+                    if(!number) $('#quick_customer_number').addClass('is-invalid');
+                    return;
+                }
+                
+                let btn = $(this);
+                let originalText = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+                
+                $.ajax({
+                    url: '/api/customers',
+                    type: 'POST',
+                    data: {
+                        name: name,
+                        phone: number,
+                        status: 'active',
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        if (res.success && res.data) {
+                            let selectEl = document.getElementById('quick_estimate_customer_id');
+                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            $(newOption).attr('data-name', res.data.name);
+                            $(selectEl).append(newOption).trigger('change');
+                            
+                            $('#addCustomerModal').modal('hide');
+                            $('#addCustomerQuickForm')[0].reset();
+                            
+                            // Reopen Quick Estimate modal
+                            $('#quickEstimateModal').modal('show');
+                            
+                            if (window.showAlert) window.showAlert('success', 'Customer added successfully');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = xhr.responseJSON?.message || 'Failed to add customer';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            let errors = xhr.responseJSON.errors;
+                            if (errors.phone) {
+                                $('#quick_customer_number').addClass('is-invalid');
+                                $('#quick_customer_number').siblings('.invalid-feedback').text(errors.phone[0]);
+                                errorMessage = errors.phone[0];
+                            }
+                            if (errors.name) {
+                                $('#quick_customer_name').addClass('is-invalid');
+                                $('#quick_customer_name').siblings('.invalid-feedback').text(errors.name[0]);
+                                errorMessage = errors.name[0];
+                            }
+                        }
+                        if (window.showAlert) window.showAlert('error', errorMessage);
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+            
+            $('#addCustomerModal').on('hidden.bs.modal', function () {
+                $('#addCustomerQuickForm')[0].reset();
+                $('.is-invalid').removeClass('is-invalid');
+                
+                // Always reopen the Quick Estimate modal when Customer modal closes (whether saved or cancelled)
+                $('#quickEstimateModal').modal('show');
+            });
+        });
+    </script>
 @endpush

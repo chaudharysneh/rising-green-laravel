@@ -171,15 +171,19 @@
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <!-- <script src="{{ asset('js/deal.js') }}"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
     <script>
         $(document).ready(function() {
+            $('#customer_id, #estimate_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
             $('#saveQuickCustomerBtn').click(function() {
                 let name = $('#quick_customer_name').val().trim();
                 let number = $('#quick_customer_number').val().trim();
@@ -215,21 +219,10 @@
                     success: function(res) {
                         if (res.success && res.data) {
                             let selectEl = document.getElementById('customer_id');
-                            if (selectEl && selectEl.tomselect) {
-                                const idStr = String(res.data.id);
-                                selectEl.tomselect.addOption({
-                                    id: idStr, 
-                                    name: res.data.name, 
-                                    email: res.data.email || '', 
-                                    phone: res.data.phone || ''
-                                });
-                                selectEl.tomselect.setValue(idStr);
-                            } else {
-                                let newOption = new Option(res.data.name, res.data.id, true, true);
-                                $(newOption).attr('data-email', res.data.email || '');
-                                $(newOption).attr('data-phone', res.data.phone || '');
-                                $('#customer_id').append(newOption).trigger('change');
-                            }
+                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            $(newOption).attr('data-email', res.data.email || '');
+                            $(newOption).attr('data-phone', res.data.phone || '');
+                            $('#customer_id').append(newOption).trigger('change');
                             
                             $('#addCustomerModal').modal('hide');
                             $('#addCustomerQuickForm')[0].reset();
