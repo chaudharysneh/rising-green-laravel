@@ -73,7 +73,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Estimate Amount </label>
                             <input type="number" step="0.01" min="0" name="amount" id="amount" value="{{ old('amount') }}"
-                                class="form-control" required>
+                                class="form-control" placeholder="Enter estimate amount" required>
                             <div class="invalid-feedback" id="amount-error"></div>
                         </div>
 
@@ -81,7 +81,7 @@
                             <label class="form-label fw-semibold">Time Line </label>
                             <div class="input-group">
                                 <input type="number" min="1" name="timeline_value" id="timeline_value" value="{{ $defaultTimelineValue }}"
-                                    class="form-control" required>
+                                    class="form-control" placeholder="Enter timeline value (e.g. 5)" required>
                                 <select name="timeline_unit" id="timeline_unit" class="form-select" required style="max-width: 200px;">
                                     <option value="days" @selected(old('timeline_unit', 'days') === 'days')>Days</option>
                                     <option value="months" @selected(old('timeline_unit') === 'months')>Months</option>

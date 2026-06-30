@@ -51,7 +51,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="name">
                                     <i class="bi bi-person-fill"></i> Name 
                                 </label>
-                                <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
+                                <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="Enter staff name">
                                 @error('name')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -62,7 +62,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="email">
                                     <i class="bi bi-envelope-fill"></i> Email 
                                 </label>
-                                <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                                <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="Enter email address">
                                 @error('email')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -73,7 +73,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="password">
                                     <i class="bi bi-key-fill"></i> Password 
                                 </label>
-                                <input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror">
+                                <input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password">
                                 @error('password')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -84,7 +84,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="phone">
                                     <i class="bi bi-telephone-fill"></i> Phone no. 
                                 </label>
-                                <input type="text" id="phone" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" maxlength="10">
+                                <input type="text" id="phone" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" maxlength="10" placeholder="Enter 10-digit phone number">
                                 @error('phone')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -95,7 +95,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="whatsapp">
                                     <i class="bi bi-whatsapp"></i> WhatsApp no.
                                 </label>
-                                <input type="text" id="whatsapp" name="whatsapp" class="form-control @error('whatsapp') is-invalid @enderror" value="{{ old('whatsapp') }}" maxlength="10">
+                                <input type="text" id="whatsapp" name="whatsapp" class="form-control @error('whatsapp') is-invalid @enderror" value="{{ old('whatsapp') }}" maxlength="10" placeholder="Enter 10-digit WhatsApp number">
                                 @error('whatsapp')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -121,7 +121,7 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="address">
                                     <i class="bi bi-geo-alt-fill"></i> Address 
                                 </label>
-                                <textarea id="address" name="address" class="form-control @error('address') is-invalid @enderror" rows="3">{{ old('address') }}</textarea>
+                                <textarea id="address" name="address" class="form-control @error('address') is-invalid @enderror" rows="3" placeholder="Enter address details">{{ old('address') }}</textarea>
                                 @error('address')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror

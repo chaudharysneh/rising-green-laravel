@@ -64,7 +64,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Meeting Title </label>
-                            <input type="text" name="title" id="title" class="form-control" required>
+                            <input type="text" name="title" id="title" class="form-control" placeholder="Enter meeting title" required>
                             <div class="invalid-feedback" id="title-error"></div>
                         </div>
 
@@ -98,13 +98,13 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Agenda </label>
-                            <textarea name="agenda" id="agenda" rows="4" class="form-control" required></textarea>
+                            <textarea name="agenda" id="agenda" rows="4" class="form-control" placeholder="Enter meeting agenda" required></textarea>
                             <div class="invalid-feedback" id="agenda-error"></div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Address</label>
-                            <textarea name="address" id="address" rows="4" class="form-control"></textarea>
+                            <textarea name="address" id="address" rows="4" class="form-control" placeholder="Enter meeting location/address"></textarea>
                             <div class="invalid-feedback" id="address-error"></div>
                         </div>
                     </div>

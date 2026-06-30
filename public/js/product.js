@@ -544,6 +544,9 @@ $(document).ready(function () {
         if (categorySelect) {
             categorySelect.value = '';
             categorySelect.classList.remove('is-invalid');
+            if (window.jQuery && $.fn.select2 && $(categorySelect).hasClass('select2-hidden-accessible')) {
+                $(categorySelect).trigger('change');
+            }
         }
 
         // Clear/reset quantity to empty
@@ -608,6 +611,9 @@ $(document).ready(function () {
         const categorySelect = document.getElementById('category_id');
         if (categorySelect) {
             categorySelect.value = productData.category_id || '';
+            if (window.jQuery && $.fn.select2 && $(categorySelect).hasClass('select2-hidden-accessible')) {
+                $(categorySelect).trigger('change');
+            }
         }
 
         // Prefill quantity - set value even if empty
