@@ -357,8 +357,8 @@
         </div>
 
     </div>
-    <footer class="dashboard-footer text-center py-2 mt-4">
-        © {{ date('Y') }} Copyright - Rising Green Energy
+    <footer class="mt-4 text-center text-muted" style="font-size: 0.9rem;">
+        &copy; {{ date('Y') }} Copyright - Fablead Developers Technolab
     </footer>
 
     <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1" aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
