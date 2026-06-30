@@ -2101,6 +2101,8 @@ $__timeLineActive = $_isActive($__timeLine);
 
     $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : '';
     $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : '';
+    $timelineImg1 = (is_string($timelineImg1) && strpos($timelineImg1, 'data:image') === 0) ? $timelineImg1 : '';
+    $timelineImg2 = (is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0) ? $timelineImg2 : '';
     ?>
             <!-- ================= TIMELINE ================= -->
             <div
