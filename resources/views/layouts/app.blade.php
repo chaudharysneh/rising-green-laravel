@@ -725,7 +725,7 @@
                                     @if($notificationCount > 0)
                                         <span
                                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                            style="font-size: 0.6rem;">
+                                            style="font-size: 0.6rem; background-color: #dc3545 !important; color: white !important;">
                                             {{ $notificationCount > 99 ? '99+' : $notificationCount }}
                                         </span>
                                     @endif
@@ -739,7 +739,7 @@
                                             <div class="flex-grow-1">
                                                 <div class="notification-message">{{ $item['message'] }}</div>
                                                 <div class="d-flex align-items-center gap-1">
-                                                    <i class="bi bi-clock"></i>
+                                                    <i class="bi bi-clock" style="color: #94a3b8;"></i>
                                                     <div class="notification-time mt-0">{{ $item['time'] }}</div>
                                                 </div>
                                             </div>
@@ -753,14 +753,19 @@
                                             <div class="notification-message">No notifications yet.</div>
                                         </div>
                                     @endforelse
-                                    <div class="d-flex border-top w-100 bg-white notification-buttons-container">
-                                        <a href="{{ route('notifications.list') }}" class="btn flex-fill rounded-0 py-2 border-end"
-                                           style="background-color: #eef2ff; color: #4f46e5; font-size: 0.9rem; font-weight: 600; border: none;">
+                                    <div class="d-flex" id="notificationDropdownFooter">
+                                        <a class="flex-grow-1 text-center fw-semibold m-0 d-flex align-items-center justify-content-center gap-1" 
+                                           style="background: #eef2ff; color: #4338ca; padding: 10px; font-size: 0.8rem; text-decoration: none; border-bottom-left-radius: 12px; transition: background 0.2s; letter-spacing: 0.3px;margin: 5px 2.5px 5px 5px !important;" 
+                                           onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'"
+                                           href="{{ route('notifications.list') }}">
                                             <i class="bi bi-list-ul"></i> View All
                                         </a>
-                                        <button type="button" class="btn flex-fill rounded-0 py-2" id="clearAllNotifications"
-                                                style="background-color: #fef2f2; color: #dc2626; font-size: 0.9rem; font-weight: 600; border: none;">
-                                            <i class="bi bi-trash"></i> Clear All
+                                        <button type="button" class="flex-grow-1 text-center fw-semibold border-0 m-0 d-flex align-items-center justify-content-center gap-1" 
+                                                id="clearAllNotifications" 
+                                                style="background: #fef2f2; color: #dc2626; padding: 10px; font-size: 0.8rem; border-bottom-right-radius: 12px; transition: background 0.2s; letter-spacing: 0.3px;margin: 5px 5px 5px 2.5px !important;" 
+                                                onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'"
+                                                title="Clear all notifications">
+                                            <i class="bi bi-trash3"></i> Clear All
                                         </button>
                                     </div>
                                 </div>

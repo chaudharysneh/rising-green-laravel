@@ -502,32 +502,45 @@ $(document).ready(function () {
         const estimatePlaceholder = estimateSelect.options[0]?.textContent || "Select Estimate";
 
         const rebuildEstimateOptions = (customerId, preferredEstimateId = "") => {
-            const matchingOptions = estimateOptions.filter(
-                (option) => option.customerId && option.customerId === String(customerId || ""),
-            );
+            let ajaxData = { per_page: 100 };
 
-            estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
 
-            matchingOptions.forEach((option) => {
-                const optionEl = document.createElement("option");
-                optionEl.value = option.value;
-                optionEl.textContent = option.text;
-                optionEl.dataset.customerId = option.customerId;
-                optionEl.dataset.amount = option.amount;
-                optionEl.dataset.title = option.title;
-                if (preferredEstimateId && String(preferredEstimateId) === String(option.value)) {
-                    optionEl.selected = true;
+            $.ajax({
+                url: `/api/estimates`,
+                type: 'GET',
+                data: ajaxData,
+                success: function(res) {
+                    const data = res.data?.data || res.data || [];
+                    estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
+                    
+                    data.forEach(est => {
+                        const optionEl = document.createElement("option");
+                        optionEl.value = est.estimate_id;
+                        optionEl.textContent = est.estimate_name || ('Estimate #' + est.estimate_id);
+                        optionEl.dataset.customerId = est.customer_id;
+                        optionEl.dataset.amount = est.amount || est.total || '';
+                        optionEl.dataset.title = est.estimate_name || ('Estimate #' + est.estimate_id);
+                        
+                        if (preferredEstimateId && String(preferredEstimateId) === String(est.estimate_id)) {
+                            optionEl.selected = true;
+                        }
+                        estimateSelect.appendChild(optionEl);
+                    });
+
+                    if (estimateSelect.tomselect) {
+                        estimateSelect.tomselect.sync();
+                    }
+
+                    if (!data.length || !preferredEstimateId) {
+                        setSelectValue(estimateSelect, "");
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error fetching estimates:', xhr);
+                    estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
+                    if (estimateSelect.tomselect) estimateSelect.tomselect.sync();
                 }
-                estimateSelect.appendChild(optionEl);
             });
-
-            if (estimateSelect.tomselect) {
-                estimateSelect.tomselect.sync();
-            }
-
-            if (!matchingOptions.length || !preferredEstimateId) {
-                setSelectValue(estimateSelect, "");
-            }
         };
 
         const syncEstimateDetails = () => {
