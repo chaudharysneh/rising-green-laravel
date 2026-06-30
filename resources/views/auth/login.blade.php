@@ -18,12 +18,12 @@
             <div class="row justify-content-center">
                 <div class="col-lg-5 col-md-7">
                     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                        <div class="card-body p-5 p-lg-5">
+                        <div class="card-body p-5 p-lg-5 py-lg-4">
 
                             <!-- Header -->
-                            <div class="text-center">
-                                <h1 class="h3 fw-bold mb-2 text-dark-blue">Rising Green Energy CRM</h1>
-                                <p class="text-muted mb-0">Welcome to Rising Green Energy CRM, the all-in-one solution for your solar business.</p>
+                            <div class="text-center mb-1">
+                                <img src="{{ asset('images/template/Fablead logo.jpg') }}" alt="Fablead CRM" style="max-width: 130px;" class="img-fluid mb-2">
+                                <p class="text-muted mb-0" style="font-size: 1rem;">Welcome to Fablead CRM, Empowering your solar business with a smart, all-in-one CRM.</p>
                             </div>
 
                             <div class="my-4">
@@ -68,6 +68,10 @@
                                     <button type="submit" class="btn btn-lg fw-semibold text-white" style="background: linear-gradient(135deg, #2b3a69, #182244); border: none;">Sign In</button>
                                 </div>
                             </form>
+
+                            <footer class="mt-4 text-center text-muted" style="font-size: 0.8rem;">
+                                &copy; {{ date('Y') }} Copyright - Fablead Developers Technolab
+                            </footer>
 
                         </div>
                     </div>
