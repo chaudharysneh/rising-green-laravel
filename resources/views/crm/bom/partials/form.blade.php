@@ -36,25 +36,13 @@
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Make <span class="text-danger">*</span></label>
                     <div class="position-relative">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="make-select-wrapper flex-grow-1 position-relative">
-                                <select name="category_id[]" id="category_id" class="form-select make-multiselect" multiple required style="display: none;">
+                            <div class="flex-grow-1 position-relative">
+                                <select name="category_id[]" id="category_id" class="form-select searchable-select" multiple required>
+                                    <option value="">Select Make</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" @selected(in_array($category->id, old('category_id', $product?->categories?->pluck('id')->toArray() ?? [])))>{{ $category->name }}</option>
                                     @endforeach
                                 </select>
-                                
-                                <!-- Custom Multi-Select Display -->
-                                <div class="make-display-wrapper form-control d-flex flex-wrap align-items-center gap-1 p-1" style="height: auto; min-height: calc(1.5em + 0.75rem + 2px); background-color: white; cursor: text;" id="make-display-wrapper">
-                                    <div id="make-selected-tags" class="d-flex flex-wrap gap-2 align-items-center">
-                                        <!-- Selected make tags will appear here -->
-                                    </div>
-                                    <input type="text" id="make-search-input" class="border-0 outline-0 flex-grow-1" style="min-width: 120px; outline: none; box-shadow: none;" placeholder="Select Make" autocomplete="off">
-                                </div>
-                                
-                                <!-- Dropdown List -->
-                                <div class="make-dropdown-list border rounded shadow-sm" id="make-dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; z-index: 1050; margin-top: 2px;">
-                                    <!-- Make options will be populated here -->
-                                </div>
                             </div>
                             <button type="button" class="btn btn-dark-blue" id="add-make-btn" data-bs-toggle="modal" data-bs-target="#addMakeModal" style="padding: 0.5rem 0.75rem;" title="Add New Make">
                                 <i class="fa-solid fa-plus"></i>
@@ -72,7 +60,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-percent me-2"></i>Tax Type</label>
-                    <select name="tax_type" id="tax_type" class="form-select">
+                    <select name="tax_type" id="tax_type" class="form-select searchable-select">
                         <option value="">Select Tax</option>
                         @foreach($taxes->groupBy('name') as $taxName => $taxGroup)
                             <option value="{{ $taxName }}" @selected(old('tax_type', $product?->tax_type) == $taxName)>{{ $taxName }}</option>
@@ -90,7 +78,7 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Technology</label>
                     <div class="d-flex align-items-center gap-2">
-                        <select name="technology_id" id="technology_id" class="form-select flex-grow-1">
+                        <select name="technology_id" id="technology_id" class="form-select searchable-select flex-grow-1" required>
                             <option value="">Select Technology</option>
                             @foreach($technologies as $technology)
                                 <option value="{{ $technology->id }}" @selected(old('technology_id', $product?->technology_id) == $technology->id)>{{ $technology->title }}</option>
@@ -107,7 +95,7 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Warranty</label>
                     <div class="d-flex align-items-center gap-2">
-                        <select name="warranty_id" id="warranty_id" class="form-select flex-grow-1">
+                        <select name="warranty_id" id="warranty_id" class="form-select searchable-select flex-grow-1">
                             <option value="">Select Warranty</option>
                             @foreach($warranties as $warranty)
                                 <option value="{{ $warranty->id }}" @selected(old('warranty_id', $product?->warranty_id) == $warranty->id)>{{ $warranty->title }}</option>
@@ -189,84 +177,6 @@
 <!-- ✅ Dynamic Tax Rate Dropdown Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add custom CSS for make multi-select
-    const style = document.createElement('style');
-    style.textContent = `
-        .make-display-wrapper {
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            padding: 0.25rem 0.5rem !important;
-        }
-        .make-display-wrapper:focus-within {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-        .make-dropdown-list {
-            border: 1px solid #dee2e6;
-        }
-        .make-option {
-            border-bottom: 1px solid #f0f0f0 !important;
-        }
-        .make-option:hover {
-            background-color: #e3f2fd;
-        }
-        .make-option:last-child {
-            border-bottom: none !important;
-        }
-        #make-search-input {
-            border: none !important;
-            box-shadow: none !important;
-            background: transparent;
-        }
-        #make-search-input:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-        .make-selected-tags .badge {
-            background-color: #f8f9fa !important;
-            color: #495057 !important;
-            border: 1px solid #6c757d !important;
-            font-weight: 500;
-            font-size: 0.75rem;
-            padding: 0.125rem 0.375rem;
-            line-height: 1.2;
-        }
-        .make-selected-tags .badge i {
-            margin-left: 3px;
-            color: #495057 !important;
-            font-size: 0.8rem;
-        }
-        .make-selected-tags .badge:hover {
-            background-color: #e9ecef !important;
-            border-color: #495057 !important;
-        }
-        .make-display-wrapper.is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
-        }
-        .make-display-wrapper.is-invalid:focus-within {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
-        }
-        #image.form-control {
-            height: calc(1.5em + 0.75rem + 2px) !important;
-            padding: 0.375rem 0.75rem !important;
-            line-height: 1.5 !important;
-            border: 1px solid #dee2e6 !important;
-            background-color: #fff !important;
-        }
-        #image.form-control::-webkit-file-upload-button {
-            padding: 0.375rem 0.75rem;
-            margin: -0.375rem -0.75rem -0.375rem -0.75rem;
-            margin-inline-end: 0.75rem;
-            color: #212529;
-            background-color: #e9ecef;
-            border: 0;
-            border-inline-end: 1px solid #dee2e6;
-            border-radius: 0.375rem 0 0 0.375rem;
-        }
-    `;
-    document.head.appendChild(style);
-
     // ===== TAX RATE DYNAMIC DROPDOWN =====
     const taxTypeSelect = document.getElementById('tax_type');
     const taxRateSelect = document.getElementById('tax_rate');
@@ -309,271 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update when Tax Type changes
     taxTypeSelect.addEventListener('change', updateTaxRateOptions);
-
-    // ===== MAKE MULTI-SELECT WITH SEARCH =====
-    const makeSearchInput = document.getElementById('make-search-input');
-    const makeDropdownList = document.getElementById('make-dropdown-list');
-    const categorySelect = document.getElementById('category_id');
-    const makeDisplayWrapper = document.getElementById('make-display-wrapper');
-    const makeSelectedTags = document.getElementById('make-selected-tags');
-    let searchTimeout;
-    let allMakes = [];
-    let selectedMakes = [];
-
-    // Initialize with existing selected makes
-    function initializeSelectedMakes() {
-        const selectedOptions = Array.from(categorySelect.selectedOptions);
-        selectedMakes = []; // Reset array
-        selectedOptions.forEach(option => {
-            if (option.value) {
-                selectedMakes.push({
-                    id: option.value,
-                    name: option.textContent.trim()
-                });
-            }
-        });
-        renderSelectedTags();
-    }
-
-    // Render selected make tags
-    function renderSelectedTags() {
-        makeSelectedTags.innerHTML = '';
-        selectedMakes.forEach(make => {
-            const tag = document.createElement('span');
-            tag.className = 'badge d-flex align-items-center gap-1';
-            tag.style.cssText = 'font-size: 0.75rem; padding: 0.125rem 0.375rem; background-color: #f8f9fa; color: #495057; border: 1px solid #6c757d; font-weight: 500; line-height: 1.2;';
-            tag.innerHTML = `
-                ${make.name}
-                <i class="bi bi-x" style="cursor: pointer; font-size: 0.8rem; margin-left: 3px; color: #495057;" data-make-id="${make.id}"></i>
-            `;
-            
-            // Remove tag on click
-            tag.querySelector('i').addEventListener('click', function(e) {
-                e.stopPropagation();
-                removeMake(make.id);
-            });
-            
-            makeSelectedTags.appendChild(tag);
-        });
-        
-        // Update placeholder
-        makeSearchInput.placeholder = selectedMakes.length > 0 ? 'Add more makes...' : 'Select Make';
-    }
-
-    // Load all makes initially (but don't show dropdown)
-    function loadAllMakes() {
-        fetch('/api/makes/search?limit=100', {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (Array.isArray(data)) {
-                allMakes = data;
-                // Don't show dropdown automatically - only when clicked
-            }
-        })
-        .catch(error => {
-            console.error('Error loading makes:', error);
-        });
-    }
-
-    // Show dropdown with makes
-    function showDropdown(makes) {
-        makeDropdownList.innerHTML = '';
-        
-        if (makes.length === 0) {
-            makeDropdownList.innerHTML = '<div class="p-2 text-muted">No makes found</div>';
-        } else {
-            makes.forEach(make => {
-                // Skip if already selected
-                if (selectedMakes.some(selected => selected.id == make.id)) {
-                    return;
-                }
-                
-                const option = document.createElement('div');
-                option.className = 'make-option px-3 py-2 border-bottom';
-                option.style.cssText = 'cursor: pointer; transition: background-color 0.2s; font-size: 0.875rem;';
-                option.textContent = make.name;
-                option.dataset.makeId = make.id;
-                
-                // Hover effects
-                option.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = '#f8f9fa';
-                });
-                option.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
-                });
-                
-                option.addEventListener('click', function() {
-                    selectMake(make.id, make.name);
-                });
-                
-                makeDropdownList.appendChild(option);
-            });
-        }
-        
-        makeDropdownList.style.display = 'block';
-    }
-
-    // Select a make
-    function selectMake(id, name) {
-        // Check if already selected
-        if (selectedMakes.some(make => make.id == id)) {
-            return;
-        }
-        
-        // Clear error state when make is selected
-        makeDisplayWrapper.classList.remove('is-invalid');
-        const errorElement = document.getElementById('category_id-error');
-        if (errorElement) {
-            errorElement.textContent = '';
-        }
-        
-        // Add to selected makes
-        selectedMakes.push({ id, name });
-        
-        // Update the hidden select
-        const option = categorySelect.querySelector(`option[value="${id}"]`);
-        if (option) {
-            option.selected = true;
-        } else {
-            // Create new option if it doesn't exist
-            const newOption = document.createElement('option');
-            newOption.value = id;
-            newOption.textContent = name;
-            newOption.selected = true;
-            categorySelect.appendChild(newOption);
-        }
-        
-        // Re-render tags and clear search
-        renderSelectedTags();
-        makeSearchInput.value = '';
-        makeDropdownList.style.display = 'none';
-        
-        // Refresh dropdown to hide selected item
-        const currentSearch = makeSearchInput.value.trim();
-        if (currentSearch) {
-            searchMakes(currentSearch);
-        } else {
-            showDropdown(allMakes);
-        }
-    }
-
-    // Remove a make
-    function removeMake(id) {
-        selectedMakes = selectedMakes.filter(make => make.id != id);
-        
-        // Update the hidden select
-        const option = categorySelect.querySelector(`option[value="${id}"]`);
-        if (option) {
-            option.selected = false;
-        }
-        
-        renderSelectedTags();
-        
-        // Refresh dropdown
-        const currentSearch = makeSearchInput.value.trim();
-        if (makeDropdownList.style.display === 'block') {
-            if (currentSearch) {
-                searchMakes(currentSearch);
-            } else {
-                showDropdown(allMakes);
-            }
-        }
-    }
-
-    // Search makes
-    function searchMakes(query) {
-        if (query.length === 0) {
-            showDropdown(allMakes);
-            return;
-        }
-        
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            fetch(`/api/makes/search?q=${encodeURIComponent(query)}&limit=50`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    showDropdown(data);
-                }
-            })
-            .catch(error => {
-                console.error('Error searching makes:', error);
-                makeDropdownList.innerHTML = '<div class="p-2 text-danger">Error loading makes</div>';
-                makeDropdownList.style.display = 'block';
-            });
-        }, 300);
-    }
-
-    // Event listeners
-    makeDisplayWrapper.addEventListener('click', function() {
-        // Clear error state when user clicks
-        this.classList.remove('is-invalid');
-        const errorElement = document.getElementById('category_id-error');
-        if (errorElement) {
-            errorElement.textContent = '';
-        }
-        
-        makeSearchInput.focus();
-        // Only show dropdown when clicked and makes are loaded
-        if (allMakes.length > 0 && makeDropdownList.style.display === 'none') {
-            if (makeSearchInput.value.trim()) {
-                searchMakes(makeSearchInput.value.trim());
-            } else {
-                showDropdown(allMakes);
-            }
-        } else if (allMakes.length === 0) {
-            // Load makes if not loaded yet
-            loadAllMakes();
-        }
-    });
-
-    makeSearchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        searchMakes(query);
-    });
-
-    makeSearchInput.addEventListener('focus', function() {
-        // Only show dropdown when user actually focuses the input
-        if (allMakes.length > 0) {
-            if (this.value.trim()) {
-                searchMakes(this.value.trim());
-            } else {
-                showDropdown(allMakes);
-            }
-        } else {
-            // Load makes if not loaded yet
-            loadAllMakes();
-        }
-    });
-
-    makeSearchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Backspace' && this.value === '' && selectedMakes.length > 0) {
-            // Remove last selected make on backspace
-            const lastMake = selectedMakes[selectedMakes.length - 1];
-            removeMake(lastMake.id);
-        } else if (e.key === 'Escape') {
-            makeDropdownList.style.display = 'none';
-        }
-    });
-
-    // Hide dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!makeDisplayWrapper.contains(e.target) && !makeDropdownList.contains(e.target)) {
-            makeDropdownList.style.display = 'none';
-        }
-    });
-
-    // Initialize
-    initializeSelectedMakes();
-    loadAllMakes();
 
     // ===== CLEAR VALIDATION ERRORS ON INPUT =====
     function clearFieldError(fieldId, inputElement) {

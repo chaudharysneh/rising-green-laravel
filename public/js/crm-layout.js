@@ -361,6 +361,19 @@
                 placeholder: element.dataset.searchPlaceholder,
             });
         });
+
+        document.querySelectorAll("select.searchable-select:not([data-search-url])").forEach(function (element) {
+            if (element.tomselect) {
+                return;
+            }
+            new TomSelect(element, {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                }
+            });
+        });
     }
 
     window.showToast = showToast;
