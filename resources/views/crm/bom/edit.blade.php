@@ -114,11 +114,27 @@
         border-color: #dc3545;
     }
 </style>
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    .select2-results__options {
+        max-height: 200px !important;
+        overflow-y: auto !important;
+    }
+</style>
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2-searchable').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            allowClear: true
+        });
+    });
+</script>
 <script>
     window.bomFormConfig = {
         redirectUrl: @json(route('bom-products.index'))

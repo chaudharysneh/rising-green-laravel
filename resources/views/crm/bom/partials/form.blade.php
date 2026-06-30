@@ -37,8 +37,7 @@
                     <div class="position-relative">
                         <div class="d-flex align-items-center gap-2">
                             <div class="flex-grow-1 position-relative">
-                                <select name="category_id[]" id="category_id" class="form-select searchable-select" multiple required>
-                                    <option value="">Select Make</option>
+                                <select name="category_id[]" id="category_id" class="form-select select2-searchable" multiple required data-placeholder="Select Make">
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" @selected(in_array($category->id, old('category_id', $product?->categories?->pluck('id')->toArray() ?? [])))>{{ $category->name }}</option>
                                     @endforeach
@@ -60,7 +59,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-percent me-2"></i>Tax Type</label>
-                    <select name="tax_type" id="tax_type" class="form-select searchable-select">
+                    <select name="tax_type" id="tax_type" class="form-select select2-searchable">
                         <option value="">Select Tax</option>
                         @foreach($taxes->groupBy('name') as $taxName => $taxGroup)
                             <option value="{{ $taxName }}" @selected(old('tax_type', $product?->tax_type) == $taxName)>{{ $taxName }}</option>
@@ -71,14 +70,14 @@
                 <!-- Row 3: Tax Rate (%) | Technology -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-percentage me-2"></i>Tax Rate (%)</label>
-                    <select name="tax_rate" id="tax_rate" class="form-select">
+                    <select name="tax_rate" id="tax_rate" class="form-select select2-searchable">
                         <option value="">Select Rate</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Technology</label>
                     <div class="d-flex align-items-center gap-2">
-                        <select name="technology_id" id="technology_id" class="form-select searchable-select flex-grow-1" required>
+                        <select name="technology_id" id="technology_id" class="form-select select2-searchable flex-grow-1" required>
                             <option value="">Select Technology</option>
                             @foreach($technologies as $technology)
                                 <option value="{{ $technology->id }}" @selected(old('technology_id', $product?->technology_id) == $technology->id)>{{ $technology->title }}</option>
@@ -95,7 +94,7 @@
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Warranty</label>
                     <div class="d-flex align-items-center gap-2">
-                        <select name="warranty_id" id="warranty_id" class="form-select searchable-select flex-grow-1">
+                        <select name="warranty_id" id="warranty_id" class="form-select select2-searchable flex-grow-1">
                             <option value="">Select Warranty</option>
                             @foreach($warranties as $warranty)
                                 <option value="{{ $warranty->id }}" @selected(old('warranty_id', $product?->warranty_id) == $warranty->id)>{{ $warranty->title }}</option>
@@ -211,6 +210,10 @@ document.addEventListener('DOMContentLoaded', function() {
             customOption.textContent = `${selectedTaxType} (${currentTaxRate}%)`;
             customOption.selected = true;
             taxRateSelect.appendChild(customOption);
+        }
+
+        if (window.jQuery && $(taxRateSelect).data('select2')) {
+            $(taxRateSelect).trigger('change');
         }
     }
 
@@ -367,11 +370,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Add the new make to the list
-                allMakes.unshift(data.data);
-                
-                // Auto-select the new make
-                selectMake(data.data.id, data.data.name);
+                // Add new option to Select2
+                const newOption = new Option(data.data.name, data.data.id, true, true);
+                $('#category_id').append(newOption).trigger('change');
                 
                 // Reset form and close modal
                 addMakeForm.reset();
@@ -469,6 +470,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 newOption.textContent = data.data.title;
                 newOption.selected = true;
                 technologySelect.appendChild(newOption);
+                if (window.jQuery && $(technologySelect).data('select2')) {
+                    $(technologySelect).trigger('change');
+                }
                 
                 // Reset form and close modal
                 addTechnologyForm.reset();
@@ -574,6 +578,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 newOption.textContent = data.data.title;
                 newOption.selected = true;
                 warrantySelect.appendChild(newOption);
+                if (window.jQuery && $(warrantySelect).data('select2')) {
+                    $(warrantySelect).trigger('change');
+                }
                 
                 // Reset form and close modal
                 addWarrantyForm.reset();
