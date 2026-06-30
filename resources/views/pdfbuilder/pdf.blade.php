@@ -806,6 +806,64 @@ if (!empty($monthlyData)) {
         // Keep default values
     }
 }
+
+// --- START PLACEHOLDER LOGIC ---
+$placeholders = [
+    '{{client_name}}' => $preparedForName ?? '--',
+    '{{client_address}}' => $clientAddress ?? '--',
+    '{{company_name}}' => $globalCompanyName ?? '--',
+    '{{company_contact}}' => $companySettings['phone'] ?? ($user['mobile'] ?? '--'),
+    '{{company_website}}' => $companySettings['website'] ?? ($user['website'] ?? '--'),
+    '{{sales_person_name}}' => $preparedByName ?? '--',
+    '{{sales_person_designation}}' => $user['designation'] ?? '--',
+    '{{system_capacity}}' => $quantity ?? '--',
+    '{{daily_generation}}' => (isset($quantity) && isset($avgUnitsPerKwPerDay_Roi)) ? round((float)$quantity * (float)$avgUnitsPerKwPerDay_Roi, 1) : '--',
+    '{{monthly_generation}}' => isset($yearlyUnits) ? round($yearlyUnits / 12) : '--',
+    '{{annual_generation}}' => $yearlyUnits ?? '--',
+    '{{tariff_rate}}' => $unitRate ?? '--',
+    '{{monthly_savings}}' => isset($year1Savings) ? round($year1Savings / 12) : '--',
+    '{{annual_savings}}' => $yearlySavingsFormatted ?? '--',
+    '{{lifetime_savings}}' => $totalLifetimeSavingsFormatted ?? '--',
+    '{{payback_period}}' => $paybackPeriodFormatted ?? '--',
+    '{{co2_offset}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.82) / 1000, 1) : '--',
+    '{{coal_equivalent}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.4) / 1000, 1) : '--',
+    '{{tree_equivalent}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.0117), 0) : '--',
+    '{{base_cost}}' => isset($subtotalForCost) ? number_format($subtotalForCost, 0) : '--',
+    '{{gst_amount}}' => isset($gstAmountForCost) ? number_format($gstAmountForCost, 0) : '--',
+    '{{gross_value}}' => isset($customerPayableForCost) ? number_format($customerPayableForCost, 0) : '--',
+    '{{subsidy_amount}}' => isset($subsidyForCost) ? number_format($subsidyForCost, 0) : '--',
+    '{{net_investment}}' => isset($lendingCost) ? number_format($lendingCost, 0) : '--',
+    '{{estimate_date}}' => $estimateDate ?? date('j, F Y'),
+];
+
+$applyPlaceholders = function($text) use ($placeholders) {
+    if (empty($text) || !is_string($text)) return $text;
+    return str_replace(array_keys($placeholders), array_values($placeholders), $text);
+};
+
+if (isset($quotation_html)) {
+    $quotation_html = $applyPlaceholders($quotation_html);
+}
+
+// Process before_blocks
+if (isset($before_blocks) && is_array($before_blocks)) {
+    foreach ($before_blocks as $idx => $block) {
+        if (isset($block['description'])) {
+            $before_blocks[$idx]['description'] = $applyPlaceholders($block['description']);
+        }
+    }
+}
+
+// Process after_blocks
+if (isset($after_blocks) && is_array($after_blocks)) {
+    foreach ($after_blocks as $idx => $block) {
+        if (isset($block['description'])) {
+            $after_blocks[$idx]['description'] = $applyPlaceholders($block['description']);
+        }
+    }
+}
+// --- END PLACEHOLDER LOGIC ---
+
 ?>
 <html>
 
