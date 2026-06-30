@@ -359,15 +359,109 @@ $company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_
                 </tbody>
                 <tfoot>
                     <?php
-// Use the estimate's main price as base
-$subtotal = (float) ($estdata->price ?? 0);
+// Main estimate price plus saved custom BOM line totals.
+$summaryProducts = is_array($estdata->product_name)
+    ? $estdata->product_name
+    : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []);
+$summaryProductsTotal = 0.0;
+if (is_array($summaryProducts)) {
+    foreach ($summaryProducts as $summaryProduct) {
+        $summaryProductsTotal += (float) ($summaryProduct['quantity'] ?? 0) * (float) ($summaryProduct['price'] ?? 0);
+    }
+}
+$subtotal = (float) ($estdata->price ?? 0) + $summaryProductsTotal;
 $gstRate = (float) ($estdata->gst ?? 0);
 $discount = (float) ($estdata->discount ?? 0);
 $subsidy = (float) ($estdata->subsidy_amount ?? 0);
 $solarStructureCharges = (float) ($estdata->solar_structure_charges ?? 0);
+$gstBreakupLines = [];
 
 // Calculate totals
-$gstAmount = $subtotal * ($gstRate / 100);
+$gstAmount = (isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '')
+    ? (float) $estdata->gst_amount
+    : null;
+if (!empty($estdata->gst_breakdown)) {
+    $decodedGstBreakdown = is_array($estdata->gst_breakdown)
+        ? $estdata->gst_breakdown
+        : json_decode($estdata->gst_breakdown, true);
+    if (is_array($decodedGstBreakdown)) {
+        if ($gstAmount === null && isset($decodedGstBreakdown['gst_amount'])) {
+            $gstAmount = (float) $decodedGstBreakdown['gst_amount'];
+        }
+        foreach (($decodedGstBreakdown['groups'] ?? []) as $group) {
+            foreach (($group['lines'] ?? []) as $line) {
+                $lineLabel = trim((string) ($line['label'] ?? ''));
+                $lineAmount = (float) ($line['amount'] ?? 0);
+                if ($lineLabel !== '' && strtoupper($lineLabel) !== 'GST' && $lineAmount > 0) {
+                    $gstBreakupLines[] = [
+                        'label' => $lineLabel,
+                        'rate' => $line['rate'] ?? null,
+                        'amount' => $lineAmount,
+                    ];
+                }
+            }
+        }
+    }
+}
+if (!empty($estdata->product_name)) {
+    $items = is_array($estdata->product_name)
+        ? $estdata->product_name
+        : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []);
+    if (is_array($items)) {
+        $productTaxBreakupLines = [];
+        foreach ($items as $item) {
+            $itemRate = (float) ($item['tax_rate'] ?? 0);
+            $itemLabel = strtoupper(trim((string) ($item['tax_label'] ?? '')));
+            $itemTaxable = (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
+            if ($itemRate <= 0 || $itemTaxable <= 0) {
+                continue;
+            }
+            if (str_contains($itemLabel, 'CGST') && str_contains($itemLabel, 'SGST')) {
+                $halfRate = $itemRate / 2;
+                foreach (['CGST', 'SGST'] as $splitLabel) {
+                    $productTaxBreakupLines[] = [
+                        'label' => $splitLabel,
+                        'rate' => $halfRate,
+                        'amount' => ($itemTaxable * $halfRate) / 100,
+                    ];
+                }
+            } else {
+                $productTaxBreakupLines[] = [
+                    'label' => str_contains($itemLabel, 'IGST') ? 'IGST' : 'GST',
+                    'rate' => $itemRate,
+                    'amount' => ($itemTaxable * $itemRate) / 100,
+                ];
+            }
+        }
+        if (!empty($productTaxBreakupLines)) {
+            $aggregatedTaxLines = [];
+            foreach ($productTaxBreakupLines as $taxLine) {
+                $taxKey = ($taxLine['label'] ?? '') . '|' . number_format((float) ($taxLine['rate'] ?? 0), 4, '.', '');
+                if (!isset($aggregatedTaxLines[$taxKey])) {
+                    $aggregatedTaxLines[$taxKey] = [
+                        'label' => $taxLine['label'] ?? '',
+                        'rate' => $taxLine['rate'] ?? null,
+                        'amount' => 0,
+                    ];
+                }
+                $aggregatedTaxLines[$taxKey]['amount'] += (float) ($taxLine['amount'] ?? 0);
+            }
+            $gstBreakupLines = array_values($aggregatedTaxLines);
+        }
+    }
+}
+if (!empty($gstBreakupLines)) {
+    $gstAmount = array_sum(array_map(fn ($line) => (float) ($line['amount'] ?? 0), $gstBreakupLines));
+}
+if ($gstAmount === null) {
+    $gstAmount = $subtotal * ($gstRate / 100);
+}
+if (empty($gstBreakupLines) && $gstRate > 0 && $gstAmount > 0) {
+    $gstBreakupLines = [
+        ['label' => 'CGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
+        ['label' => 'SGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
+    ];
+}
 $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount; // exclude subsidy
 $lendingCost = $totalPayable - $subsidy;
 // $totalBeforeDiscount = $subtotal + $gstAmount + $solarStructureCharges;
@@ -383,7 +477,15 @@ $lendingCost = $totalPayable - $subsidy;
                         <td><?php    echo number_format($solarStructureCharges, 2); ?></td>
                     </tr>
                     <?php endif; ?>
-                    <?php if ($gstRate > 0): ?>
+                    <?php if (!empty($gstBreakupLines)): ?>
+                        <?php foreach ($gstBreakupLines as $gstLine): ?>
+                            <?php $lineRate = is_numeric($gstLine['rate'] ?? null) ? rtrim(rtrim(number_format((float) $gstLine['rate'], 2, '.', ''), '0'), '.') : ''; ?>
+                            <tr>
+                                <td colspan="2"><?php echo htmlspecialchars($gstLine['label']); ?><?php echo $lineRate !== '' ? ' (' . htmlspecialchars($lineRate) . '%)' : ''; ?></td>
+                                <td><?php echo number_format((float) $gstLine['amount'], 2); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php elseif ($gstRate > 0 || $gstAmount > 0): ?>
                     <tr>
                         <td colspan="2">GST (<?php    echo $gstRate; ?>%)</td>
                         <td><?php    echo number_format($gstAmount, 2); ?></td>
@@ -528,7 +630,7 @@ $lendingCost = $totalPayable - $subsidy;
                     </thead>
                     <tbody>
                         <?php
-$allproduct = json_decode($estdata->product_name, true); // since you used getRow()
+$allproduct = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
 if (is_array($allproduct) && !empty($allproduct)) {
     foreach ($allproduct as $item) {
         $product_id = $item['product_id'] ?? null;

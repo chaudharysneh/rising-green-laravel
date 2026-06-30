@@ -424,8 +424,10 @@ if ($estdata && isset($estdata->gst_amount) && $estdata->gst_amount !== null && 
     $gstAmountForCost = (float) $estdata->gst_amount;
 }
 if ($gstAmountForCost === null && $estdata && !empty($estdata->gst_breakdown)) {
-    $decoded = json_decode($estdata->gst_breakdown, true);
-    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && isset($decoded['gst_amount'])) {
+    $decoded = is_array($estdata->gst_breakdown)
+        ? $estdata->gst_breakdown
+        : json_decode($estdata->gst_breakdown, true);
+    if (is_array($decoded) && isset($decoded['gst_amount'])) {
         $gstAmountForCost = (float) $decoded['gst_amount'];
     }
 }
@@ -1552,7 +1554,7 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
             </table>
 
             <!-- ================= TITLE ================= -->
-            <div style="font-size:45px; font-weight:700; margin-bottom:4px; font-family: 'Montserrat', sans-serif;">
+            <div style="font-size:45px; font-weight:700; margin-bottom:4px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
                 <?= esc($genTitle) ?>
             </div>
             <div style="font-size:22px; margin-bottom:2px; font-family: 'Montserrat', sans-serif;">
@@ -1957,7 +1959,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                             <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                         <div
-                            style="font-size:45px; font-weight:700; color:#fff; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
+                            style="font-size:45px; font-weight:700; color:#fff; margin-bottom:8px; font-family: 'Montserrat', sans-serif; border-left:7px solid #fff; padding-left:16px; line-height:1.1;">
                             <?= $quantity ?>KW <?= esc($roiTitle) ?>
                         </div>
                         <div style="font-size:18px; color:#e0f2ef; font-family: 'Montserrat', sans-serif;">
@@ -2431,7 +2433,7 @@ $__timeLineActive = $_isActive($__timeLine);
     ?>
             <!-- ================= TIMELINE ================= -->
             <div
-                style="font-size:35px; font-weight:bold; color:#000; margin-bottom:5px; font-family: 'Montserrat', sans-serif;">
+                style="font-size:35px; font-weight:bold; color:#000; margin-bottom:8px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
                 <?= $timelineMainTitle !== '' ? esc($timelineMainTitle) : 'TIMELINE' ?>
             </div>
             <div style="font-size:20px; font-weight:bold; margin-bottom:28px; font-family: 'Montserrat', sans-serif;">
@@ -2468,7 +2470,7 @@ $__timeLineActive = $_isActive($__timeLine);
             <?php endif; ?>
 
             <!-- ================= SYSTEM SPECIFICATION ================= -->
-            <div style="font-size:20px; font-weight:bold; margin-bottom:18px; font-family: 'Montserrat', sans-serif;">
+            <div style="font-size:20px; font-weight:bold; margin-bottom:18px; font-family: 'Montserrat', sans-serif; border-left:5px solid #4b9349; padding-left:12px; line-height:1.2;">
                 <?= $timelineTitle2 !== '' ? esc($timelineTitle2) : 'SYSTEM SPECIFICATION' ?>
             </div>
 
@@ -3000,7 +3002,7 @@ $__componentsActive = $_isActive($__components);
             <table width="100%" cellpadding="0" cellspacing="0" style="">
                 <tr>
                     <td align="left">
-                        <div style="font-size: 35px; font-weight: bold; font-family: 'Montserrat', sans-serif;">OFFER &
+                        <div style="font-size: 35px; font-weight: bold; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">OFFER &
                             TERMS</div>
                     </td>
                 </tr>
@@ -3008,8 +3010,17 @@ $__componentsActive = $_isActive($__components);
 
             <?php
     // Calculate cost breakdown from estimate data
-    // Use the estimate's main price as base (this already represents products total)
-    $subtotal = ($estdata && isset($estdata->price)) ? (float) $estdata->price : 0;
+    // Use main estimate price plus saved custom BOM line totals.
+    $summaryProductsForInvoice = ($estdata && !empty($estdata->product_name))
+        ? (is_array($estdata->product_name) ? $estdata->product_name : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []))
+        : [];
+    $summaryProductsTotalForInvoice = 0.0;
+    if (is_array($summaryProductsForInvoice)) {
+        foreach ($summaryProductsForInvoice as $summaryProductForInvoice) {
+            $summaryProductsTotalForInvoice += (float) ($summaryProductForInvoice['quantity'] ?? 0) * (float) ($summaryProductForInvoice['price'] ?? 0);
+        }
+    }
+    $subtotal = (($estdata && isset($estdata->price)) ? (float) $estdata->price : 0) + $summaryProductsTotalForInvoice;
     $gstRate = ($estdata && isset($estdata->gst)) ? (float) $estdata->gst : 0;
     $discount = ($estdata && isset($estdata->discount)) ? (float) $estdata->discount : 0;
     $subsidy = ($estdata && isset($estdata->subsidy_amount)) ? (float) $estdata->subsidy_amount : 0;
@@ -3025,8 +3036,10 @@ $__componentsActive = $_isActive($__components);
     }
 
     if ($estdata && !empty($estdata->gst_breakdown)) {
-        $decoded = json_decode($estdata->gst_breakdown, true);
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $decoded = is_array($estdata->gst_breakdown)
+            ? $estdata->gst_breakdown
+            : json_decode($estdata->gst_breakdown, true);
+        if (is_array($decoded)) {
             $gstBreakdown = $decoded;
             if ($gstAmount === null && isset($decoded['gst_amount'])) {
                 $gstAmount = (float) $decoded['gst_amount'];
@@ -3049,7 +3062,6 @@ $__componentsActive = $_isActive($__components);
         }
     }
 
-    // Calculate totals (excluding subsidy in intermediate totals)
     if ($gstAmount === null) {
         $gstAmount = ($subtotal + $solarStructureCharges) * ($gstRate / 100);
     }
@@ -3131,6 +3143,62 @@ $__componentsActive = $_isActive($__components);
             }
         }
     }
+    if ($estdata && !empty($estdata->product_name)) {
+        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
+        if (is_array($items)) {
+            $productTaxBreakupLines = [];
+            foreach ($items as $item) {
+                $itemRate = (float) ($item['tax_rate'] ?? 0);
+                $itemLabel = strtoupper(trim((string) ($item['tax_label'] ?? '')));
+                $itemTaxable = (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
+                if ($itemRate <= 0 || $itemTaxable <= 0) {
+                    continue;
+                }
+                if (str_contains($itemLabel, 'CGST') && str_contains($itemLabel, 'SGST')) {
+                    $halfRate = $itemRate / 2;
+                    foreach (['CGST', 'SGST'] as $splitLabel) {
+                        $productTaxBreakupLines[] = [
+                            'label' => $splitLabel,
+                            'rate' => $halfRate,
+                            'amount' => ($itemTaxable * $halfRate) / 100,
+                        ];
+                    }
+                } else {
+                    $productTaxBreakupLines[] = [
+                        'label' => str_contains($itemLabel, 'IGST') ? 'IGST' : 'GST',
+                        'rate' => $itemRate,
+                        'amount' => ($itemTaxable * $itemRate) / 100,
+                    ];
+                }
+            }
+            if (!empty($productTaxBreakupLines)) {
+                $aggregatedTaxLines = [];
+                foreach ($productTaxBreakupLines as $taxLine) {
+                    $taxKey = ($taxLine['label'] ?? '') . '|' . number_format((float) ($taxLine['rate'] ?? 0), 4, '.', '');
+                    if (!isset($aggregatedTaxLines[$taxKey])) {
+                        $aggregatedTaxLines[$taxKey] = [
+                            'label' => $taxLine['label'] ?? '',
+                            'rate' => $taxLine['rate'] ?? null,
+                            'amount' => 0,
+                        ];
+                    }
+                    $aggregatedTaxLines[$taxKey]['amount'] += (float) ($taxLine['amount'] ?? 0);
+                }
+                $breakupLines = array_values($aggregatedTaxLines);
+            }
+        }
+    }
+    if (!empty($breakupLines)) {
+        $gstAmount = array_sum(array_map(fn ($line) => (float) ($line['amount'] ?? 0), $breakupLines));
+        $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
+        $lendingCost = $totalPayable - $subsidy;
+    }
+    if (empty($breakupLines) && $gstRate > 0 && $gstAmount > 0) {
+        $breakupLines = [
+            ['label' => 'CGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
+            ['label' => 'SGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
+        ];
+    }
             ?>
 
             <?php if (false): ?>
@@ -3204,12 +3272,7 @@ $__componentsActive = $_isActive($__components);
                     <td style="<?= $rightCellStyle ?>"><?= number_format($solarStructureCharges, 2) ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if ($isQuotation === 1 && $showGst): ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>">GST<?= $gstRateTxt !== '' ? ' (' . esc($gstRateTxt) . '%)' : '' ?></td>
-                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) $gstAmount, 2) ?></td>
-                </tr>
-                <?php elseif ($showGst && !empty($breakupLines)): ?>
+                <?php if ($showGst && !empty($breakupLines)): ?>
                     <?php foreach ($breakupLines as $ln): ?>
                         <?php
             $lnLabel = trim((string) ($ln['label'] ?? ''));
@@ -3225,6 +3288,11 @@ $__componentsActive = $_isActive($__components);
                     <td style="<?= $rightCellStyle ?>"><?= number_format($lnAmt, 2) ?></td>
                 </tr>
                     <?php endforeach; ?>
+                <?php elseif ($showGst): ?>
+                <tr>
+                    <td colspan="2" style="<?= $rightCellStyle ?>">GST<?= $gstRateTxt !== '' ? ' (' . esc($gstRateTxt) . '%)' : '' ?></td>
+                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) $gstAmount, 2) ?></td>
+                </tr>
                 <?php endif; ?>
                 <?php if ($discount > 0): ?>
                 <tr>
@@ -3379,7 +3447,7 @@ $__componentsActive = $_isActive($__components);
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;">
                 <tr>
                     <td>
-                        <div style="font-size: 20px; font-weight: bold; font-family: 'Montserrat', sans-serif;">
+                        <div style="font-size: 20px; font-weight: bold; font-family: 'Montserrat', sans-serif; border-left:5px solid #4b9349; padding-left:12px; line-height:1.2;">
                             <?= ($estdata->type ?? '') === 'residential' ? '12. Payment Terms' : ($paymentTermsTitle !== '' ? esc($paymentTermsTitle) : 'PAYMENT TERMS') ?>
                         </div>
 
@@ -3489,7 +3557,7 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                 <tr>
                     <td align="left">
                         <div
-                            style="font-size: 30px; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; font-family: 'Montserrat', sans-serif;">
+                            style="font-size: 30px; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
                             <?= $envTitle !== '' ? esc($envTitle) : 'ENVIRONMENT IMPACT' ?>
                         </div>
                         <div style="font-size: 25px; color: #000; font-family: 'Montserrat', sans-serif;">
@@ -3658,7 +3726,7 @@ $__footerActive = $_isActive($__footer);
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
                 <tr>
                     <td align="left"
-                        style="font-size: 80px; color: #000; padding-bottom: 20px; letter-spacing: 3px; font-family: 'Montserrat', sans-serif;">
+                        style="font-size: 80px; color: #000; padding-bottom: 20px; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; border-left:8px solid #4b9349; padding-left:18px; line-height:1.05;">
                         <?= $footerTitle !== '' ? esc($footerTitle) : 'THANK YOU' ?>
                     </td>
                 </tr>

@@ -1837,23 +1837,76 @@
 
 
     function getSelectedTaxBreakdown(taxableAmount) {
-        const rows = document.querySelectorAll('.gst-tax-row');
+        const rows = document.querySelectorAll('#bomContainer .bom-row');
+        const fieldsBox = document.getElementById('gst_fields_box');
+        const buckets = {};
         let totalRate = 0;
         let totalAmount = 0;
         const shouldUpdateDisplay = taxableAmount !== null;
-        const amountBase = shouldUpdateDisplay ? taxableAmount : 0;
+        const shouldApplyTaxes = taxableAmount !== 0;
 
         rows.forEach(function (row) {
-            const rate = parseFloat(row.dataset.taxRate || 0);
-            const amount = amountBase > 0 && rate > 0 ? (amountBase * rate) / 100 : 0;
-            totalRate += rate;
-            totalAmount += amount;
+            const select = row.querySelector('.product-select');
+            const qtyInput = row.querySelector('input[name="product_qty[]"]');
+            const priceInput = row.querySelector('.product-price');
+            const taxSelect = row.querySelector('.product-tax-rate');
+            const rate = parseFloat(taxSelect?.value || 0);
 
-            const amountEl = row.querySelector('.gst-tax-amount');
-            if (amountEl && shouldUpdateDisplay) {
-                amountEl.textContent = amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (!select?.value || !rate || !shouldApplyTaxes) {
+                return;
+            }
+
+            const qty = parseFloat(qtyInput?.value || 0);
+            const price = parseFloat(priceInput?.value || 0);
+            const rowBaseTotal = qty * price;
+            if (rowBaseTotal <= 0) {
+                return;
+            }
+
+            const selectedOption = taxSelect.options[taxSelect.selectedIndex];
+            const label = (selectedOption?.dataset?.label || selectedOption?.textContent || 'GST').trim();
+
+            if (label.toUpperCase().includes('CGST') && label.toUpperCase().includes('SGST')) {
+                const halfRate = rate / 2;
+                [
+                    { label: 'CGST', rate: halfRate },
+                    { label: 'SGST', rate: halfRate },
+                ].forEach(function (taxLine) {
+                    const key = taxLine.label + '|' + taxLine.rate.toFixed(4);
+                    const amount = (rowBaseTotal * taxLine.rate) / 100;
+                    buckets[key] = buckets[key] || { label: taxLine.label, rate: taxLine.rate, amount: 0 };
+                    buckets[key].amount += amount;
+                    totalAmount += amount;
+                });
+            } else {
+                const normalizedLabel = label.toUpperCase().includes('IGST') ? 'IGST' : label;
+                const key = normalizedLabel + '|' + rate.toFixed(4);
+                const amount = (rowBaseTotal * rate) / 100;
+                buckets[key] = buckets[key] || { label: normalizedLabel, rate, amount: 0 };
+                buckets[key].amount += amount;
+                totalAmount += amount;
             }
         });
+
+        totalRate = Object.values(buckets).reduce(function (sum, line) {
+            return sum + parseFloat(line.rate || 0);
+        }, 0);
+
+        if (fieldsBox && shouldUpdateDisplay) {
+            const lines = Object.values(buckets);
+            if (!lines.length) {
+                fieldsBox.innerHTML = '<div class="totals-row"><span class="small text-muted">Select BOM tax to apply GST.</span><span class="small">0.00</span></div>';
+            } else {
+                fieldsBox.innerHTML = lines.map(function (line) {
+                    const rateText = parseFloat(line.rate || 0).toFixed(2).replace(/\.?0+$/, '');
+                    const amountText = parseFloat(line.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return '<div class="totals-row gst-tax-row">' +
+                        '<span class="small">' + line.label + ' (' + rateText + '%):</span>' +
+                        '<span class="small gst-tax-amount">' + amountText + '</span>' +
+                    '</div>';
+                }).join('');
+            }
+        }
 
         return { totalRate, totalAmount };
     }
@@ -1876,7 +1929,6 @@
             const select = row.querySelector('.product-select');
             const qtyIn = row.querySelector('input[name="product_qty[]"]');
             const priceIn = row.querySelector('.product-price');
-            const taxSelect = row.querySelector('.product-tax-rate');
             
             if (select && select.value && qtyIn) {
                 const qty = parseFloat(qtyIn.value || 0);
@@ -1887,10 +1939,7 @@
                     const opt = select.options[select.selectedIndex];
                     p = parseFloat(opt?.dataset?.price || 0);
                 }
-                const rowBaseTotal = qty * p;
-                const rowTaxRate = parseFloat(taxSelect?.value || 0);
-                const rowTaxAmount = rowTaxRate > 0 ? (rowBaseTotal * rowTaxRate) / 100 : 0;
-                const rowTotal = rowBaseTotal + rowTaxAmount;
+                const rowTotal = qty * p;
                 productsTotal += rowTotal;
 
                 // Update per-row readout if element exists

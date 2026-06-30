@@ -178,7 +178,7 @@ class EstimateController extends Controller
             // Calculate subtotal and GST from the active tax settings.
             $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-            $gstBreakdown = $this->buildGstBreakdown($subtotal, (bool) $applyCharges);
+            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
             $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
             $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
@@ -359,7 +359,7 @@ class EstimateController extends Controller
             // Calculate subtotal and GST
             $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-            $gstBreakdown = $this->buildGstBreakdown($subtotal, (bool) $applyCharges);
+            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
             $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
             $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
@@ -652,11 +652,73 @@ class EstimateController extends Controller
         return array_reduce($products, function (float $total, array $product) {
             $quantity = (float) ($product['quantity'] ?? 0);
             $price = (float) ($product['price'] ?? 0);
-            $taxRate = (float) ($product['tax_rate'] ?? 0);
-            $baseTotal = $quantity * $price;
-
-            return $total + $baseTotal + (($baseTotal * $taxRate) / 100);
+            return $total + ($quantity * $price);
         }, 0.0);
+    }
+
+    private function buildProductGstBreakdown(array $products, bool $applyTaxes): array
+    {
+        if (!$applyTaxes) {
+            return [
+                'tax_rate' => 0,
+                'gst_amount' => 0,
+                'groups' => [],
+            ];
+        }
+
+        $lines = [];
+        foreach ($products as $product) {
+            $quantity = (float) ($product['quantity'] ?? 0);
+            $price = (float) ($product['price'] ?? 0);
+            $rate = (float) ($product['tax_rate'] ?? 0);
+            $label = trim((string) ($product['tax_label'] ?? 'GST'));
+            $taxableAmount = $quantity * $price;
+
+            if ($taxableAmount <= 0 || $rate <= 0) {
+                continue;
+            }
+
+            $upperLabel = strtoupper($label);
+            if (str_contains($upperLabel, 'CGST') && str_contains($upperLabel, 'SGST')) {
+                $halfRate = $rate / 2;
+                foreach (['CGST', 'SGST'] as $splitLabel) {
+                    $key = $splitLabel . '|' . number_format($halfRate, 4, '.', '');
+                    if (!isset($lines[$key])) {
+                        $lines[$key] = [
+                            'label' => $splitLabel,
+                            'rate' => round($halfRate, 2),
+                            'amount' => 0,
+                        ];
+                    }
+                    $lines[$key]['amount'] += ($taxableAmount * $halfRate) / 100;
+                }
+            } else {
+                $lineLabel = str_contains($upperLabel, 'IGST') ? 'IGST' : ($label !== '' ? $label : 'GST');
+                $key = $lineLabel . '|' . number_format($rate, 4, '.', '');
+                if (!isset($lines[$key])) {
+                    $lines[$key] = [
+                        'label' => $lineLabel,
+                        'rate' => round($rate, 2),
+                        'amount' => 0,
+                    ];
+                }
+                $lines[$key]['amount'] += ($taxableAmount * $rate) / 100;
+            }
+        }
+
+        $lines = array_values(array_map(function (array $line) {
+            $line['amount'] = round((float) $line['amount'], 2);
+            return $line;
+        }, $lines));
+
+        return [
+            'tax_rate' => round(array_sum(array_column($lines, 'rate')), 2),
+            'gst_amount' => round(array_sum(array_column($lines, 'amount')), 2),
+            'groups' => $lines ? [[
+                'tax_type' => 'bom_selected_tax',
+                'lines' => $lines,
+            ]] : [],
+        ];
     }
 
     private function buildGstBreakdown(float $taxableAmount, bool $applyTaxes): array
