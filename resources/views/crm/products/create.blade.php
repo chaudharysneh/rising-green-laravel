@@ -61,7 +61,7 @@
                             <label class="form-label fw-semibold"><i class="bi bi-box-seam"></i> Stock</label>
                             <select name="availability" id="availability" class="form-select @error('availability') is-invalid @enderror">
                                 <option value="">Select Stock Status</option>
-                                <option value="in_stock" @selected(old('availability') == 'in_stock')>In Stock</option>
+                                <option value="in_stock" @selected(old('availability', 'in_stock') == 'in_stock')>In Stock</option>
                                 <option value="out_of_stock" @selected(old('availability') == 'out_of_stock')>Out of Stock</option>
                             </select>
                             <div class="invalid-feedback" id="availability-error">@error('availability') {{ $message }} @enderror</div>
@@ -85,7 +85,7 @@
                             <label class="form-label fw-semibold"><i class="bi bi-bullseye"></i> Status</label>
                             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
                                 <option value="">Select Status</option>
-                                <option value="active" @selected(old('status') == 'active')>Active</option>
+                                <option value="active" @selected(old('status', 'active') == 'active')>Active</option>
                                 <option value="inactive" @selected(old('status') == 'inactive')>Inactive</option>
                             </select>
                             <div class="invalid-feedback" id="status-error">@error('status') {{ $message }} @enderror</div>

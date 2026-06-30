@@ -2,6 +2,11 @@
 
 @section('page_title', 'Purchases - Create')
 
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+@endpush
+
 @section('content')
     <div class="container-fluid p-0">
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden purchase-form-card">
@@ -25,10 +30,10 @@
                     <div class="row g-3">
                         <!-- Left Column -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Vendor </label>
+                            <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Vendor <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <select name="customer_id" id="customer_id"
-                                    class="form-select @error('customer_id') is-invalid @enderror" required>
+                                    class="form-select searchable-select @error('customer_id') is-invalid @enderror" required>
                                     <option value="">Select Vendor</option>
                                     @foreach($vendors as $vendor)
                                         <option value="{{ $vendor->id }}" @selected(old('customer_id') == $vendor->id)>
@@ -203,8 +208,34 @@
 @endsection
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            line-height: 1.6;
+            padding-left: 0;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.45rem 0.65rem;
+            outline: none;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-search--dropdown {
+            display: block !important;
+            padding: 0.5rem;
+        }
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .input-group .select2-container {
+            flex: 1 1 auto;
+            width: 1% !important;
+            min-width: 0;
+        }
         .product-item {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6 !important;
@@ -251,6 +282,36 @@
     </style>
     <script>
         let productItemIndex = 0;
+
+        function initPurchaseSelect2(scope) {
+            if (!window.jQuery || !$.fn.select2) {
+                return;
+            }
+
+            const $scope = scope ? $(scope) : $(document);
+            $scope.find('.searchable-select, .product-select').each(function () {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    return;
+                }
+
+                $(this).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: this.querySelector('option[value=""]')?.textContent || 'Select',
+                    allowClear: false,
+                    minimumResultsForSearch: 0,
+                });
+            });
+        }
+
+        function retryInitPurchaseSelect2(attempts = 8) {
+            initPurchaseSelect2();
+            if (attempts > 0 && (!window.jQuery || !$.fn.select2 || !$('.searchable-select').first().hasClass('select2-hidden-accessible'))) {
+                setTimeout(function () {
+                    retryInitPurchaseSelect2(attempts - 1);
+                }, 250);
+            }
+        }
 
         // Handle Add Vendor Form Submission
         document.getElementById('submitVendorBtn').addEventListener('click', function() {
@@ -315,6 +376,9 @@
                         newOption.textContent = response.data.name;
                         newOption.selected = true;
                         vendorSelect.appendChild(newOption);
+                        if (window.jQuery && $.fn.select2) {
+                            $(vendorSelect).trigger('change');
+                        }
 
                         // Reset form and close modal
                         form.reset();
@@ -449,6 +513,9 @@
                         const firstSelect = document.querySelector('.product-select');
                         if (firstSelect) {
                             firstSelect.value = response.data.id;
+                            if (window.jQuery && $.fn.select2) {
+                                $(firstSelect).trigger('change');
+                            }
                         }
 
                         // Reset form and close modal
@@ -550,6 +617,7 @@
             `;
             
             productItemsContainer.appendChild(newProductItem);
+            initPurchaseSelect2(newProductItem);
             updateRemoveButtons();
         }
 
@@ -582,6 +650,8 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
+            retryInitPurchaseSelect2();
+
             // Add Product Button
             document.getElementById('addProductBtn').addEventListener('click', addProductItem);
             

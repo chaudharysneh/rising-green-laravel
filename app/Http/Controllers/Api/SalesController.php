@@ -143,15 +143,23 @@ class SalesController extends ApiBaseController
 
         $data = $basicValidator->validated();
 
-        // Check stock availability for all products first
+        // Check stock availability for all products first, grouped by product.
         $stockErrors = [];
+        $requestedByProduct = [];
+        foreach ($data['products'] as $index => $productData) {
+            $requestedByProduct[$productData['product_id']] = ($requestedByProduct[$productData['product_id']] ?? 0) + (int) $productData['quantity'];
+        }
+
         foreach ($data['products'] as $index => $productData) {
             $latestInventory = \App\Models\ProductInventory::where('product_id', $productData['product_id'])->latest()->first();
             $currentStock = $latestInventory?->current_stock ?? 0;
             $requestedQuantity = $productData['quantity'];
+            $totalRequestedQuantity = $requestedByProduct[$productData['product_id']] ?? $requestedQuantity;
 
             if ($currentStock < $requestedQuantity) {
                 $stockErrors["products.{$index}.quantity"] = ["Insufficient stock! Available: {$currentStock}, Requested: {$requestedQuantity}"];
+            } elseif ($currentStock < $totalRequestedQuantity) {
+                $stockErrors["products.{$index}.quantity"] = ["Insufficient stock! Available: {$currentStock}, Total requested for this product: {$totalRequestedQuantity}"];
             }
         }
 

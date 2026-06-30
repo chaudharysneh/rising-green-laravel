@@ -73,7 +73,12 @@
                                 <label class="form-label d-flex align-items-center gap-2" for="password">
                                     <i class="bi bi-key-fill"></i> Password 
                                 </label>
-                                <input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Enter password">
+                                <div class="password-field-wrap position-relative">
+                                    <input type="password" id="password" name="password" class="form-control pe-5 @error('password') is-invalid @enderror" placeholder="Enter password" autocomplete="new-password">
+                                    <button type="button" class="password-toggle-btn position-absolute top-50 end-0 translate-middle-y me-3" id="toggleCreatePassword" aria-label="Toggle password visibility">
+                                        <i class="bi bi-eye-slash-fill"></i>
+                                    </button>
+                                </div>
                                 @error('password')
                                     <div class="staff-validation">{{ $message }}</div>
                                 @enderror
@@ -167,6 +172,8 @@
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('staffCreateForm');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('toggleCreatePassword');
         const imageInput = document.getElementById('image');
         const imagePreviewWrap = document.getElementById('createImagePreviewWrap');
         const imagePreview = document.getElementById('createImagePreview');
@@ -202,6 +209,18 @@
             if (errorDiv) {
                 errorDiv.style.display = isValid ? 'none' : 'block';
             }
+        }
+
+        // Password Toggle
+        if (passwordToggle && passwordInput) {
+            passwordToggle.addEventListener('click', function () {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+
+                this.innerHTML = isPassword
+                    ? '<i class="bi bi-eye-fill"></i>'
+                    : '<i class="bi bi-eye-slash-fill"></i>';
+            });
         }
 
         // Image Preview

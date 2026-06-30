@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sales;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\HandoverPerson;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -19,10 +20,11 @@ class SalesController extends Controller
     public function create()
     {
         $customers = Customer::orderBy('name')->get();
-        $products = Product::orderBy('name')->get();
+        $products = Product::with('inventories')->orderBy('name')->get();
+        $categories = ProductCategory::orderBy('name')->get();
         $handoverPersons = HandoverPerson::orderBy('name')->get();
 
-        return view('crm.sales.create', compact('customers', 'products', 'handoverPersons'));
+        return view('crm.sales.create', compact('customers', 'products', 'categories', 'handoverPersons'));
     }
 
     public function show(Sales $sale)
