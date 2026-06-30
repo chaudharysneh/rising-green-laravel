@@ -2,6 +2,11 @@
 
 @section('page_title', 'Sales - Create')
 
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+@endpush
+
 @section('content')
     <div class="container-fluid p-0">
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
@@ -22,34 +27,41 @@
                     @csrf
 
                     <div class="row g-3">
-                        <!-- Left Column -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Customer </label>
-                            <select name="customer_id" id="customer_id" class="form-select @error('customer_id') is-invalid @enderror" data-search-url="{{ route('customers.search.api') }}" data-search-type="customer" data-search-placeholder="-- Search Customer --" required>
-                                <option value="">-- Search Customer --</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Customer <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select name="customer_id" id="customer_id" class="form-select searchable-select @error('customer_id') is-invalid @enderror" required>
+                                    <option value="">Select Customer</option>
+                                    @foreach($customers as $customer)
+                                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal" data-bs-target="#quickCustomerModal" title="Add Customer">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback">Please select a customer!</div>
                         </div>
 
-                        <!-- Right Column -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-person-check"></i> Select Handover Person</label>
-                            <select name="handover_id" id="handover_id" class="form-select @error('handover_id') is-invalid @enderror">
-                                <option value="">Select Handover Person</option>
-                                @foreach($handoverPersons as $person)
-                                    <option value="{{ $person->id }}" @selected(old('handover_id') == $person->id)>{{ $person->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="input-group">
+                                <select name="handover_id" id="handover_id" class="form-select searchable-select @error('handover_id') is-invalid @enderror">
+                                    <option value="">Select Handover Person</option>
+                                    @foreach($handoverPersons as $person)
+                                        <option value="{{ $person->id }}" @selected(old('handover_id') == $person->id)>{{ $person->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal" data-bs-target="#quickHandoverModal" title="Add Handover Person">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback">@error('handover_id') {{ $message }} @enderror</div>
                         </div>
 
-                        <!-- Left Column -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-calendar"></i> OUT Date </label>
-                            <input type="date" name="invoice_date" id="invoice_date" value="{{ old('invoice_date', date('Y-m-d')) }}" class="form-control @error('invoice_date') is-invalid @enderror" required>
+                            <input type="date" name="invoice_date" id="invoice_date" value="{{ old('invoice_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="form-control @error('invoice_date') is-invalid @enderror" required>
                             <div class="invalid-feedback">Please enter OUT date!</div>
                         </div>
 
@@ -67,17 +79,25 @@
                                 <!-- Initial Product Item -->
                                 <div class="product-item border rounded p-3 mb-3" data-item-index="0">
                                     <div class="row g-3">
-                                        <div class="col-md-5">
+                                        <div class="col-md-6">
                                             <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                                            <select name="products[0][product_id]" class="form-select product-select" required>
-                                                <option value="">Select Product</option>
-                                                @foreach($products as $product)
-                                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="input-group">
+                                                <select name="products[0][product_id]" class="form-select product-select" required>
+                                                    <option value="">Select Product</option>
+                                                    @foreach($products as $product)
+                                                        @php
+                                                            $currentStock = optional($product->inventories->sortByDesc('id')->first())->current_stock ?? $product->quantity ?? 0;
+                                                        @endphp
+                                                        <option value="{{ $product->id }}" data-stock="{{ $currentStock }}">{{ $product->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="button" class="btn btn-dark-blue quick-add-product-btn" data-bs-toggle="modal" data-bs-target="#quickProductModal" title="Add Product">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </div>
                                             <div class="invalid-feedback">Please select a product.</div>
                                         </div>
-                                        <div class="col-md-5">
+                                        <div class="col-md-4">
                                             <label class="form-label fw-semibold">Qty <span class="text-danger">*</span></label>
                                             <input type="number" min="0" name="products[0][quantity]" class="form-control quantity-input" placeholder="0" required>
                                             <div class="invalid-feedback">Please enter a valid quantity.</div>
@@ -115,14 +135,147 @@
                         </button>
                     </div>
                 </form>
+
+                <div class="modal fade" id="quickCustomerModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Customer</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="quickCustomerForm" novalidate>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="quick_customer_name" class="form-control" required>
+                                        <div class="invalid-feedback" id="quick_customer_name-error"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
+                                        <input type="text" name="phone" id="quick_customer_phone" class="form-control" maxlength="10" inputmode="numeric" required>
+                                        <div class="invalid-feedback" id="quick_customer_phone-error"></div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-dark-blue" id="submitQuickCustomerBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" id="quickCustomerSpinner" aria-hidden="true"></span>
+                                    <span>Add Customer</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="quickHandoverModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Handover Person</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="quickHandoverForm" novalidate>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="quick_handover_name" class="form-control" required>
+                                        <div class="invalid-feedback" id="quick_handover_name-error"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
+                                        <input type="text" name="phone" id="quick_handover_phone" class="form-control" maxlength="10" inputmode="numeric" required>
+                                        <div class="invalid-feedback" id="quick_handover_phone-error"></div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-dark-blue" id="submitQuickHandoverBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" id="quickHandoverSpinner" aria-hidden="true"></span>
+                                    <span>Add Handover Person</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="quickProductModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Product</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="quickProductForm" novalidate>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="quick_product_name" class="form-control" required>
+                                        <div class="invalid-feedback" id="quick_product_name-error"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                                        <select name="category_id" id="quick_product_category" class="form-select" required>
+                                            <option value="">Select or Add Category</option>
+                                            @foreach($categories as $category)
+                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text">Type a category name and press Enter to create it.</div>
+                                        <div class="invalid-feedback" id="quick_product_category-error"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+                                        <input type="number" name="quantity" id="quick_product_quantity" class="form-control" min="0" placeholder="0" required>
+                                        <div class="invalid-feedback" id="quick_product_quantity-error"></div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-dark-blue" id="submitQuickProductBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" id="quickProductSpinner" aria-hidden="true"></span>
+                                    <span>Add Product</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <style>
+        .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            line-height: 1.6;
+            padding-left: 0;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.45rem 0.65rem;
+            outline: none;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-search--dropdown {
+            display: block !important;
+            padding: 0.5rem;
+        }
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .input-group .select2-container {
+            flex: 1 1 auto;
+            width: 1% !important;
+            min-width: 0;
+        }
         .product-item {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6 !important;
@@ -145,9 +298,144 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        #quickCustomerModal .invalid-feedback,
+        #quickHandoverModal .invalid-feedback,
+        #quickProductModal .invalid-feedback {
+            display: block;
+        }
     </style>
     <script>
         let productItemIndex = 0;
+        let quickProductTargetSelect = null;
+
+        const salesQuickConfig = {
+            customerStoreUrl: @json(route('api.customers.store')),
+            handoverStoreUrl: @json(route('api.handover-persons.store')),
+            productStoreUrl: @json(route('api.products.store')),
+            categoryIndexUrl: @json(route('api.products.categories.index')),
+            categoryStoreUrl: @json(route('api.products.categories.store')),
+        };
+
+        function initSalesSelect2(scope) {
+            if (!window.jQuery || !$.fn.select2) {
+                return;
+            }
+
+            const $scope = scope ? $(scope) : $(document);
+            $scope.find('.searchable-select, .product-select').each(function () {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    return;
+                }
+                $(this).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: this.querySelector('option[value=""]')?.textContent || 'Select',
+                    allowClear: false,
+                    minimumResultsForSearch: 0,
+                });
+            });
+        }
+
+        function retryInitSalesSelect2(attempts = 8) {
+            initSalesSelect2();
+            initCategorySelect2();
+            if (attempts > 0 && (!window.jQuery || !$.fn.select2 || !$('.searchable-select').first().hasClass('select2-hidden-accessible'))) {
+                setTimeout(function () {
+                    retryInitSalesSelect2(attempts - 1);
+                }, 250);
+            }
+        }
+
+        function initCategorySelect2() {
+            if (!window.jQuery || !$.fn.select2) {
+                return;
+            }
+
+            const $category = $('#quick_product_category');
+            if ($category.hasClass('select2-hidden-accessible')) {
+                return;
+            }
+            $category.select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                tags: true,
+                dropdownParent: $('#quickProductModal'),
+                placeholder: 'Select or Add Category',
+                createTag: function (params) {
+                    const term = $.trim(params.term);
+                    if (!term) {
+                        return null;
+                    }
+                    return { id: term, text: term, newTag: true };
+                },
+                templateResult: function (data) {
+                    if (data.newTag) {
+                        return $('<span>Create category: <strong></strong></span>').find('strong').text(data.text).end();
+                    }
+                    return data.text;
+                },
+            });
+        }
+
+        function showFieldError(input, message) {
+            if (!input) {
+                return;
+            }
+            input.classList.add('is-invalid');
+            const error = document.getElementById(input.id + '-error');
+            if (error) {
+                error.textContent = message || 'Invalid value';
+            }
+        }
+
+        function clearQuickFormErrors(form) {
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        }
+
+        function csrfHeaders(json = true) {
+            const headers = {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            };
+            if (json) {
+                headers['Content-Type'] = 'application/json';
+            }
+            return headers;
+        }
+
+        function parseJsonResponse(response) {
+            return response.text().then(function (text) {
+                let payload = {};
+                try {
+                    payload = text ? JSON.parse(text) : {};
+                } catch (error) {
+                    payload = { message: text || 'Invalid server response.' };
+                }
+
+                if (!response.ok) {
+                    throw payload;
+                }
+
+                return payload;
+            });
+        }
+
+        function closeModalById(modalId) {
+            const modal = document.getElementById(modalId);
+            const closeBtn = modal?.querySelector('[data-bs-dismiss="modal"]');
+            if (closeBtn) {
+                closeBtn.click();
+                return;
+            }
+            modal?.classList.remove('show');
+            modal?.setAttribute('aria-hidden', 'true');
+            modal?.removeAttribute('aria-modal');
+            modal?.style.removeProperty('display');
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+        }
 
         // Add Product Item Function
         function addProductItem() {
@@ -160,17 +448,25 @@
             
             newProductItem.innerHTML = `
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                        <select name="products[${productItemIndex}][product_id]" class="form-select product-select" required>
-                            <option value="">Select Product</option>
-                            @foreach($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="input-group">
+                            <select name="products[${productItemIndex}][product_id]" class="form-select product-select" required>
+                                <option value="">Select Product</option>
+                                @foreach($products as $product)
+                                    @php
+                                        $currentStock = optional($product->inventories->sortByDesc('id')->first())->current_stock ?? $product->quantity ?? 0;
+                                    @endphp
+                                    <option value="{{ $product->id }}" data-stock="{{ $currentStock }}">{{ $product->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="btn btn-dark-blue quick-add-product-btn" data-bs-toggle="modal" data-bs-target="#quickProductModal" title="Add Product">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
                         <div class="invalid-feedback">Please select a product.</div>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Qty <span class="text-danger">*</span></label>
                         <input type="number" min="0" name="products[${productItemIndex}][quantity]" class="form-control quantity-input" placeholder="0" required>
                         <div class="invalid-feedback">Please enter a valid quantity.</div>
@@ -184,6 +480,7 @@
             `;
             
             productItemsContainer.appendChild(newProductItem);
+            initSalesSelect2(newProductItem);
             updateRemoveButtons();
         }
 
@@ -214,8 +511,267 @@
             });
         }
 
+        function addOptionToSelect(select, id, text, selected) {
+            if (!select || !id) {
+                return;
+            }
+            let option = select.querySelector('option[value="' + id + '"]');
+            if (!option) {
+                option = new Option(text, id, selected, selected);
+                select.appendChild(option);
+            }
+            if (selected) {
+                option.selected = true;
+                if ($(select).hasClass('select2-hidden-accessible')) {
+                    $(select).trigger('change');
+                }
+            }
+        }
+
+        function resolveQuickCategory() {
+            const categorySelect = document.getElementById('quick_product_category');
+            const selectedValue = categorySelect.value;
+            const selectedText = categorySelect.options[categorySelect.selectedIndex]?.textContent?.trim() || selectedValue;
+
+            if (/^\d+$/.test(String(selectedValue))) {
+                return Promise.resolve(selectedValue);
+            }
+
+            if (!selectedText) {
+                return Promise.reject({ errors: { category_id: ['Please select or add category.'] } });
+            }
+
+            const findExistingCategory = function () {
+                const url = salesQuickConfig.categoryIndexUrl + '?search=' + encodeURIComponent(selectedText) + '&per_page=20';
+                return fetch(url, {
+                    headers: csrfHeaders(false),
+                }).then(parseJsonResponse).then(function (payload) {
+                    const categories = payload?.data?.data || payload?.data || [];
+                    const match = Array.isArray(categories)
+                        ? categories.find(category => String(category.name || '').toLowerCase() === selectedText.toLowerCase())
+                        : null;
+
+                    if (!match) {
+                        throw { errors: { category_id: ['Category already exists. Please select it from the dropdown.'] } };
+                    }
+
+                    addOptionToSelect(categorySelect, match.id, match.name, true);
+                    return match.id;
+                });
+            };
+
+            return fetch(salesQuickConfig.categoryStoreUrl, {
+                method: 'POST',
+                headers: csrfHeaders(true),
+                body: JSON.stringify({ name: selectedText }),
+            }).then(parseJsonResponse).then(payload => {
+                const category = payload.data;
+                addOptionToSelect(categorySelect, category.id, category.name, true);
+                return category.id;
+            }).catch(error => {
+                if (error?.errors?.name) {
+                    return findExistingCategory();
+                }
+
+                error._categoryError = true;
+                throw error;
+            }));
+        }
+
+        function submitQuickCustomer() {
+            const form = document.getElementById('quickCustomerForm');
+            const submitBtn = document.getElementById('submitQuickCustomerBtn');
+            const spinner = document.getElementById('quickCustomerSpinner');
+            clearQuickFormErrors(form);
+
+            const payload = {
+                name: document.getElementById('quick_customer_name').value.trim(),
+                phone: document.getElementById('quick_customer_phone').value.trim(),
+                address: '',
+            };
+
+            let hasError = false;
+            if (!payload.name) {
+                showFieldError(document.getElementById('quick_customer_name'), 'Please enter customer name.');
+                hasError = true;
+            }
+            if (!/^[0-9]{10}$/.test(payload.phone)) {
+                showFieldError(document.getElementById('quick_customer_phone'), 'Please enter 10 digit phone number.');
+                hasError = true;
+            }
+            if (hasError) {
+                return;
+            }
+
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            fetch(salesQuickConfig.customerStoreUrl, {
+                method: 'POST',
+                headers: csrfHeaders(true),
+                body: JSON.stringify(payload),
+            }).then(parseJsonResponse).then(data => {
+                const customer = data.data;
+                addOptionToSelect(document.getElementById('customer_id'), customer.id, customer.name, true);
+                form.reset();
+                closeModalById('quickCustomerModal');
+            }).catch(error => {
+                const errors = error.errors || {};
+                if (errors.name) showFieldError(document.getElementById('quick_customer_name'), errors.name[0]);
+                if (errors.phone) showFieldError(document.getElementById('quick_customer_phone'), errors.phone[0]);
+                if (!Object.keys(errors).length) {
+                    window.showAlert ? window.showAlert('error', error.message || 'Unable to add customer.') : alert(error.message || 'Unable to add customer.');
+                }
+            }).finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+            });
+        }
+
+        function submitQuickHandover() {
+            const form = document.getElementById('quickHandoverForm');
+            const submitBtn = document.getElementById('submitQuickHandoverBtn');
+            const spinner = document.getElementById('quickHandoverSpinner');
+            clearQuickFormErrors(form);
+
+            const payload = {
+                name: document.getElementById('quick_handover_name').value.trim(),
+                phone: document.getElementById('quick_handover_phone').value.trim(),
+            };
+
+            let hasError = false;
+            if (payload.name.length < 3) {
+                showFieldError(document.getElementById('quick_handover_name'), 'Name must be at least 3 characters.');
+                hasError = true;
+            }
+            if (!/^[0-9]{10}$/.test(payload.phone)) {
+                showFieldError(document.getElementById('quick_handover_phone'), 'Please enter 10 digit phone number.');
+                hasError = true;
+            }
+            if (hasError) {
+                return;
+            }
+
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            fetch(salesQuickConfig.handoverStoreUrl, {
+                method: 'POST',
+                headers: csrfHeaders(true),
+                body: JSON.stringify(payload),
+            }).then(parseJsonResponse).then(data => {
+                const person = data.data;
+                addOptionToSelect(document.getElementById('handover_id'), person.id, person.name, true);
+                form.reset();
+                closeModalById('quickHandoverModal');
+            }).catch(error => {
+                const errors = error.errors || {};
+                if (errors.name) showFieldError(document.getElementById('quick_handover_name'), errors.name[0]);
+                if (errors.phone) showFieldError(document.getElementById('quick_handover_phone'), errors.phone[0]);
+                if (!Object.keys(errors).length) {
+                    window.showAlert ? window.showAlert('error', error.message || 'Unable to add handover person.') : alert(error.message || 'Unable to add handover person.');
+                }
+            }).finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+            });
+        }
+
+        function submitQuickProduct() {
+            const form = document.getElementById('quickProductForm');
+            const submitBtn = document.getElementById('submitQuickProductBtn');
+            const spinner = document.getElementById('quickProductSpinner');
+            clearQuickFormErrors(form);
+
+            const nameInput = document.getElementById('quick_product_name');
+            const quantityInput = document.getElementById('quick_product_quantity');
+            let hasError = false;
+            if (!nameInput.value.trim()) {
+                showFieldError(nameInput, 'Please enter product name.');
+                hasError = true;
+            }
+            if (parseInt(quantityInput.value || 0, 10) < 0 || quantityInput.value === '') {
+                showFieldError(quantityInput, 'Please enter valid quantity.');
+                hasError = true;
+            }
+            if (!document.getElementById('quick_product_category').value) {
+                showFieldError(document.getElementById('quick_product_category'), 'Please select or add category.');
+                hasError = true;
+            }
+            if (hasError) {
+                return;
+            }
+
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+
+            resolveQuickCategory().then(categoryId => {
+                return fetch(salesQuickConfig.productStoreUrl, {
+                    method: 'POST',
+                    headers: csrfHeaders(true),
+                    body: JSON.stringify({
+                        name: nameInput.value.trim(),
+                        category_id: categoryId,
+                        quantity: quantityInput.value,
+                        status: 'active',
+                        availability: parseInt(quantityInput.value || 0, 10) > 0 ? 'in_stock' : 'out_of_stock',
+                    }),
+                });
+            }).then(parseJsonResponse).then(data => {
+                const product = data.data;
+                if (!product?.id) {
+                    throw { message: 'Product was saved, but product data was not returned.' };
+                }
+                document.querySelectorAll('.product-select').forEach(select => {
+                    addOptionToSelect(select, product.id, product.name, select === quickProductTargetSelect);
+                    const option = select.querySelector('option[value="' + product.id + '"]');
+                    if (option) {
+                        option.dataset.stock = product.current_stock ?? product.quantity ?? 0;
+                    }
+                });
+                if (quickProductTargetSelect) {
+                    quickProductTargetSelect.value = product.id;
+                    $(quickProductTargetSelect).trigger('change');
+                }
+                form.reset();
+                if (window.jQuery && $.fn.select2) {
+                    $('#quick_product_category').val('').trigger('change');
+                } else {
+                    document.getElementById('quick_product_category').value = '';
+                }
+                closeModalById('quickProductModal');
+            }).catch(error => {
+                const errors = error.errors || {};
+                if (errors.name && error._categoryError) {
+                    showFieldError(document.getElementById('quick_product_category'), errors.name[0]);
+                } else if (errors.name) {
+                    showFieldError(document.getElementById('quick_product_name'), errors.name[0]);
+                }
+                if (errors.category_id) showFieldError(document.getElementById('quick_product_category'), errors.category_id[0]);
+                if (errors.quantity) showFieldError(document.getElementById('quick_product_quantity'), errors.quantity[0]);
+                if (!Object.keys(errors).length) {
+                    window.showAlert ? window.showAlert('error', error.message || 'Unable to add product.') : alert(error.message || 'Unable to add product.');
+                }
+            }).finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+            });
+        }
+
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
+            retryInitSalesSelect2();
+            document.getElementById('submitQuickCustomerBtn')?.addEventListener('click', submitQuickCustomer);
+            document.getElementById('submitQuickHandoverBtn')?.addEventListener('click', submitQuickHandover);
+            document.getElementById('submitQuickProductBtn')?.addEventListener('click', submitQuickProduct);
+
+            document.addEventListener('click', function (e) {
+                const quickAddBtn = e.target.closest('.quick-add-product-btn');
+                if (quickAddBtn) {
+                    quickProductTargetSelect = quickAddBtn.closest('.product-item')?.querySelector('.product-select') || document.querySelector('.product-select');
+                }
+            });
+
             // Add Product Button
             document.getElementById('addProductBtn').addEventListener('click', addProductItem);
             
@@ -230,12 +786,103 @@
             updateRemoveButtons();
         });
 
+        function validateStockQuantities(showErrors = true) {
+            let valid = true;
+            const requestedByProduct = {};
+            const stockByProduct = {};
+
+            document.querySelectorAll('.quantity-input.is-invalid').forEach(function (input) {
+                input.classList.remove('is-invalid');
+                const feedback = input.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.textContent = 'Please enter a valid quantity.';
+                }
+            });
+
+            document.querySelectorAll('.product-item').forEach(function (item) {
+                const select = item.querySelector('.product-select');
+                const qtyInput = item.querySelector('.quantity-input');
+                if (!select || !qtyInput || !select.value) {
+                    return;
+                }
+
+                const selectedOption = select.options[select.selectedIndex];
+                const stock = parseInt(selectedOption?.dataset?.stock || 0, 10);
+                const requested = parseInt(qtyInput.value || 0, 10);
+                qtyInput.setAttribute('max', stock);
+                requestedByProduct[select.value] = (requestedByProduct[select.value] || 0) + requested;
+                stockByProduct[select.value] = stock;
+
+                if (requested > stock) {
+                    valid = false;
+                    if (showErrors) {
+                        qtyInput.classList.add('is-invalid');
+                        const feedback = qtyInput.nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                            feedback.textContent = `Available quantity is ${stock}.`;
+                            feedback.style.display = 'block';
+                        }
+                    }
+                }
+            });
+
+            Object.keys(requestedByProduct).forEach(function (productId) {
+                if (requestedByProduct[productId] <= stockByProduct[productId]) {
+                    return;
+                }
+
+                valid = false;
+                if (!showErrors) {
+                    return;
+                }
+
+                document.querySelectorAll('.product-item').forEach(function (item) {
+                    const select = item.querySelector('.product-select');
+                    const qtyInput = item.querySelector('.quantity-input');
+                    if (select?.value !== productId || !qtyInput) {
+                        return;
+                    }
+                    qtyInput.classList.add('is-invalid');
+                    const feedback = qtyInput.nextElementSibling;
+                    if (feedback && feedback.classList.contains('invalid-feedback')) {
+                        feedback.textContent = `Total requested for this product is ${requestedByProduct[productId]}, available quantity is ${stockByProduct[productId]}.`;
+                        feedback.style.display = 'block';
+                    }
+                });
+            });
+
+            return valid;
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target.matches('.product-select')) {
+                const item = e.target.closest('.product-item');
+                const qtyInput = item?.querySelector('.quantity-input');
+                const stock = parseInt(e.target.options[e.target.selectedIndex]?.dataset?.stock || 0, 10);
+                if (qtyInput) {
+                    qtyInput.setAttribute('max', stock);
+                    validateStockQuantities(false);
+                }
+            }
+        });
+
+        document.addEventListener('input', function (e) {
+            if (e.target.matches('.quantity-input')) {
+                validateStockQuantities(true);
+            }
+        });
+
         // Form Submission
         document.getElementById('salesCreateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             if (!this.checkValidity()) {
                 e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            if (!validateStockQuantities(true)) {
                 this.classList.add('was-validated');
                 return;
             }

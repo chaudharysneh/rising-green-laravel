@@ -343,6 +343,56 @@
                         </li>
                     @endif
 
+                    <!-- Manage BOM -->
+                    @if(
+                        auth()->user()?->hasMatrixPermission('view_bom') || auth()->user()?->hasMatrixPermission('create_bom') ||
+                        auth()->user()?->hasMatrixPermission('view_make') || auth()->user()?->hasMatrixPermission('create_make') ||
+                        auth()->user()?->hasMatrixPermission('view_warranty') || auth()->user()?->hasMatrixPermission('create_warranty') ||
+                        auth()->user()?->hasMatrixPermission('view_technology') || auth()->user()?->hasMatrixPermission('create_technology')
+                    )
+                        <li class="nav-item mt-2">
+
+                            <a class="nav-link nav-link-collapse" data-bs-toggle="collapse"
+                                href="#bomMenu" role="button"
+                                aria-expanded="{{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') || request()->is('make') || request()->is('make/*') || request()->is('warranty') || request()->is('warranty/*') || request()->is('technology') || request()->is('technology/*') ? 'true' : 'false' }}">
+
+                                <i class="fa-solid fa-layer-group me-2"></i>
+                                <span>Manage BOM</span>
+
+                                <i class="fa fa-chevron-down small sidebar-chevron"></i>
+                            </a>
+
+                            <div id="bomMenu"
+                                class="collapse {{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') || request()->is('make') || request()->is('make/*') || request()->is('warranty') || request()->is('warranty/*') || request()->is('technology') || request()->is('technology/*') ? 'show' : '' }}"
+                                data-bs-parent="#sidebarMenu">
+
+                                <ul class="nav flex-column ms-3 mt-2">
+
+                                    @if(auth()->user()?->hasMatrixPermission('view_bom') || auth()->user()?->hasMatrixPermission('create_bom'))
+                                        <li><a class="nav-link {{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') ? 'active' : '' }}"
+                                                href="{{ url('all_product') }}"><i class="fa-solid fa-file-lines me-2"></i>All BOM</a></li>
+                                    @endif
+
+                                    @if(auth()->user()?->hasMatrixPermission('view_make') || auth()->user()?->hasMatrixPermission('create_make'))
+                                        <li><a class="nav-link {{ request()->is('make') || request()->is('make/*') ? 'active' : '' }}"
+                                                href="{{ url('make') }}"><i class="fa-solid fa-file-lines me-2"></i>All Make</a></li>
+                                    @endif
+
+                                    @if(auth()->user()?->hasMatrixPermission('view_warranty') || auth()->user()?->hasMatrixPermission('create_warranty'))
+                                        <li><a class="nav-link {{ request()->is('warranty') || request()->is('warranty/*') ? 'active' : '' }}"
+                                                href="{{ url('warranty') }}"><i class="fa-solid fa-file-lines me-2"></i>All Warranty</a></li>
+                                    @endif
+
+                                    @if(auth()->user()?->hasMatrixPermission('view_technology') || auth()->user()?->hasMatrixPermission('create_technology'))
+                                        <li><a class="nav-link {{ request()->is('technology') || request()->is('technology/*') ? 'active' : '' }}"
+                                                href="{{ url('technology') }}"><i class="fa-solid fa-file-lines me-2"></i>All Technology</a></li>
+                                    @endif
+
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+
                     @if(
                         auth()->user()?->hasMatrixPermission('view_estimates') || auth()->user()?->hasMatrixPermission('create_estimates') ||
                         auth()->user()?->hasMatrixPermission('view_invoices') || auth()->user()?->hasMatrixPermission('create_invoices') ||
@@ -435,56 +485,6 @@
                         </li>
                     @endif
 
-                    <!-- Manage BOM -->
-                    @if(
-                        auth()->user()?->hasMatrixPermission('view_bom') || auth()->user()?->hasMatrixPermission('create_bom') ||
-                        auth()->user()?->hasMatrixPermission('view_make') || auth()->user()?->hasMatrixPermission('create_make') ||
-                        auth()->user()?->hasMatrixPermission('view_warranty') || auth()->user()?->hasMatrixPermission('create_warranty') ||
-                        auth()->user()?->hasMatrixPermission('view_technology') || auth()->user()?->hasMatrixPermission('create_technology')
-                    )
-                        <li class="nav-item mt-2">
-
-                            <a class="nav-link nav-link-collapse" data-bs-toggle="collapse"
-                                href="#bomMenu" role="button"
-                                aria-expanded="{{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') || request()->is('make') || request()->is('make/*') || request()->is('warranty') || request()->is('warranty/*') || request()->is('technology') || request()->is('technology/*') ? 'true' : 'false' }}">
-
-                                <i class="fa-solid fa-layer-group me-2"></i>
-                                <span>Manage BOM</span>
-
-                                <i class="fa fa-chevron-down small sidebar-chevron"></i>
-                            </a>
-
-                            <div id="bomMenu"
-                                class="collapse {{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') || request()->is('make') || request()->is('make/*') || request()->is('warranty') || request()->is('warranty/*') || request()->is('technology') || request()->is('technology/*') ? 'show' : '' }}"
-                                data-bs-parent="#sidebarMenu">
-
-                                <ul class="nav flex-column ms-3 mt-2">
-
-                                    @if(auth()->user()?->hasMatrixPermission('view_bom') || auth()->user()?->hasMatrixPermission('create_bom'))
-                                        <li><a class="nav-link {{ request()->is('all_product') || request()->is('all_product/*') || request()->is('add-product') ? 'active' : '' }}"
-                                                href="{{ url('all_product') }}"><i class="fa-solid fa-file-lines me-2"></i>All BOM</a></li>
-                                    @endif
-
-                                    @if(auth()->user()?->hasMatrixPermission('view_make') || auth()->user()?->hasMatrixPermission('create_make'))
-                                        <li><a class="nav-link {{ request()->is('make') || request()->is('make/*') ? 'active' : '' }}"
-                                                href="{{ url('make') }}"><i class="fa-solid fa-file-lines me-2"></i>All Make</a></li>
-                                    @endif
-
-                                    @if(auth()->user()?->hasMatrixPermission('view_warranty') || auth()->user()?->hasMatrixPermission('create_warranty'))
-                                        <li><a class="nav-link {{ request()->is('warranty') || request()->is('warranty/*') ? 'active' : '' }}"
-                                                href="{{ url('warranty') }}"><i class="fa-solid fa-file-lines me-2"></i>All Warranty</a></li>
-                                    @endif
-
-                                    @if(auth()->user()?->hasMatrixPermission('view_technology') || auth()->user()?->hasMatrixPermission('create_technology'))
-                                        <li><a class="nav-link {{ request()->is('technology') || request()->is('technology/*') ? 'active' : '' }}"
-                                                href="{{ url('technology') }}"><i class="fa-solid fa-file-lines me-2"></i>All Technology</a></li>
-                                    @endif
-
-                                </ul>
-                            </div>
-                        </li>
-                    @endif
-
                     @if(auth()->user()?->hasMatrixPermission('view_tasks'))
                         <!-- Manage Tasks -->
                         <li class="nav-item mt-2">
@@ -548,16 +548,6 @@
                             </div>
                         </li>
                     @endif
-
-                    @if(auth()->user()?->isAdmin())
-                        <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('settings.index')) active @endif"
-                                href="{{ route('settings.index') }}">
-                                <i class="fa fa-gear me-2 text-secondary"></i>
-                                <span>Settings</span>
-                            </a>
-                        </li>
-                    @endif  
 
                 </nav>
             </aside>
