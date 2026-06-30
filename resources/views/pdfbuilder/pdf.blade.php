@@ -169,6 +169,29 @@ if (!function_exists('normalize_pdf_image')) {
     }
 }
 
+if (!function_exists('sanitize_pdf_rich_html')) {
+    function sanitize_pdf_rich_html($html): string
+    {
+        $html = trim((string) $html);
+        if ($html === '') {
+            return '';
+        }
+
+        $allowed = '<p><br><br/><b><strong><i><em><u><h2><h3><h4><ul><ol><li>';
+        $html = strip_tags($html, $allowed);
+        $html = str_replace(['<br/>', '<br />'], '<br>', $html);
+
+        return trim($html);
+    }
+}
+
+if (!function_exists('pdf_rich_html_plain_length')) {
+    function pdf_rich_html_plain_length($html): int
+    {
+        return mb_strlen(trim(strip_tags((string) $html)));
+    }
+}
+
 // Compatibility helper: CodeIgniter-style `base_url()` used in this PDF template.
 if (!function_exists('base_url')) {
     function base_url($path = '')
@@ -913,6 +936,142 @@ if (isset($after_blocks) && is_array($after_blocks)) {
             page-break-after: always;
         }
 
+        .pdf-rich-content {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #333;
+        }
+
+        .pdf-rich-content h2 {
+            font-size: 17px;
+            font-weight: bold;
+            color: #4b9349;
+            margin: 0 0 10px 0;
+            padding: 0;
+            line-height: 1.3;
+        }
+
+        .pdf-rich-content h3 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2f5f2f;
+            margin: 14px 0 8px 0;
+            padding: 0;
+            line-height: 1.3;
+        }
+
+        .pdf-rich-content h4 {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0 6px 0;
+        }
+
+        .pdf-rich-content p {
+            margin: 0 0 10px 0;
+            text-align: justify;
+            line-height: 1.55;
+        }
+
+        .pdf-rich-content ul,
+        .pdf-rich-content ol {
+            margin: 6px 0 12px 0;
+            padding-left: 24px;
+        }
+
+        .pdf-rich-content ul {
+            list-style-type: disc;
+        }
+
+        .pdf-rich-content ol {
+            list-style-type: decimal;
+        }
+
+        .pdf-rich-content li {
+            margin: 0 0 7px 0;
+            line-height: 1.45;
+            padding-left: 2px;
+            display: list-item;
+        }
+
+        .pdf-rich-content strong,
+        .pdf-rich-content b {
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .pdf-rich-content-spacious {
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .pdf-rich-content-spacious h2 {
+            font-size: 21px;
+            margin: 0 0 14px 0;
+            line-height: 1.35;
+        }
+
+        .pdf-rich-content-spacious h3 {
+            font-size: 17px;
+            margin: 18px 0 12px 0;
+            line-height: 1.35;
+        }
+
+        .pdf-rich-content-spacious p {
+            font-size: 15px;
+            margin: 0 0 14px 0;
+            line-height: 1.65;
+        }
+
+        .pdf-rich-content-spacious ul,
+        .pdf-rich-content-spacious ol {
+            margin: 10px 0 18px 0;
+            padding-left: 30px;
+        }
+
+        .pdf-rich-content-spacious li {
+            font-size: 15px;
+            margin: 0 0 11px 0;
+            line-height: 1.55;
+            padding-left: 4px;
+        }
+
+        .pdf-company-page-about {
+            font-size: 16px;
+            line-height: 1.68;
+        }
+
+        .pdf-company-page-about h2 {
+            font-size: 22px;
+            color: #4b9349;
+            margin: 0 0 16px 0;
+        }
+
+        .pdf-company-page-about h3 {
+            font-size: 18px;
+            color: #2f5f2f;
+            margin: 20px 0 14px 0;
+        }
+
+        .pdf-company-page-about p {
+            font-size: 16px;
+            margin: 0 0 16px 0;
+            line-height: 1.68;
+        }
+
+        .pdf-company-page-about ul,
+        .pdf-company-page-about ol {
+            margin: 12px 0 20px 0;
+            padding-left: 32px;
+        }
+
+        .pdf-company-page-about li {
+            font-size: 16px;
+            margin: 0 0 12px 0;
+            line-height: 1.58;
+        }
+
         .with-logo {
             padding-top: 10px;
         }
@@ -1232,21 +1391,10 @@ $__companyInfo = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo 
 $__companyInfoActive = $_isActive($__companyInfo);
     ?>
     <?php if ($__companyInfoActive): ?>
-    <div class="<?= $_pageClass('p2') ?>" style="position: relative; min-height: 842px; background: white;">
-        <!-- Header -->
-        <div style="padding: 40px;">
-            <?php
-    // Template-specific company information (saved in pdfbuilder_forms.company_information JSON)
+    <?php
     $companyInfo = isset($companyInfo) && is_array($companyInfo) ? $companyInfo : [];
-
-    // CKEditor stores HTML (<p>, <br>, etc). For PDF we want to render HTML (not show tags),
-    // but still keep it safe and avoid strange line breaks from stored newlines.
     $companyDescriptionRaw = (string) ($companyInfo['company_description'] ?? '');
-    $companyDescriptionRaw = preg_replace("/\R+/", ' ', $companyDescriptionRaw); // remove hard newlines
-    $companyDescription = trim(strip_tags($companyDescriptionRaw, '<p><br><b><strong><i><em><u>'));
-    // Prevent long unbroken text from overflowing outside the PDF page
-    // (insert zero‑width break opportunities into long runs of non-space chars, but avoid breaking HTML tags)
-    $companyDescription = preg_replace('/([^\s<]{30})/', '$1&#8203;', $companyDescription);
+    $companyDescription = sanitize_pdf_rich_html($companyDescriptionRaw);
     $cap = trim((string) ($companyInfo['company_capacity_installed'] ?? ''));
     $happy = trim((string) ($companyInfo['happy_customers'] ?? ''));
     $cities = trim((string) ($companyInfo['cities'] ?? ''));
@@ -1258,181 +1406,58 @@ $__companyInfoActive = $_isActive($__companyInfo);
     $img1 = !empty($companyInfo['image1']) ? normalize_pdf_image($companyInfo['image1']) : normalize_pdf_image('public/assets/img/seconpage_1.png');
     $img2 = !empty($companyInfo['image2']) ? normalize_pdf_image($companyInfo['image2']) : normalize_pdf_image('public/assets/img/secondpage_2.png');
     $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
-            ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 40px;">
-                <tr>
-                    <td width="50%" align="left" valign="top">
-                        <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </div>
-                    </td>
-                    <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block;">
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
-                        </div>
-                        <?php    endif; ?>
-                    </td>
-                </tr>
-            </table>
 
-            <!-- Company Name (Centered) -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td align="left">
-                        <div
-                            style="font-size: 45px; color: #000; font-family: 'Montserrat', sans-serif; text-align: left;">
-                            <?php
-    $companyName = esc($globalCompanyName);
-    echo $companyName;
-                        ?>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    $isResidentialIntro = ($estdata->type ?? '') === 'residential';
+    $companyAboutLength = $isResidentialIntro ? 1200 : pdf_rich_html_plain_length($companyDescriptionRaw);
+    $companyInfoSinglePage = !$isResidentialIntro && $companyAboutLength <= 500;
 
-            <!-- Mission Statement -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                <tr>
-                    <td>
-                        <div
-                            style="font-size: 21px; text-align: left; font-family: 'Montserrat', sans-serif; word-wrap: break-word; word-break: break-word;">
-                            <?php if (($estdata->type ?? '') === 'residential'): ?>
-                                <p style="margin-bottom: 12px; font-size: 14px; font-weight: normal;">Dear <strong><?= esc($preparedForName) ?></strong>,</p>
-                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
-                                    Thank you for giving <strong><?= esc($globalCompanyName) ?></strong> the opportunity to present this customized solar energy proposal for your property located at <strong><?= esc($clientAddress) ?></strong>.
-                                </p>
-                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
-                                    With electricity tariffs rising consistently year after year, switching to solar is no longer just an environmental choice—it is one of the smartest and safest financial investments available today. At <strong><?= esc($globalCompanyName) ?></strong>, we combine premium Tier-1 components, precise engineering, and seamless multi-stage execution to ensure your transition to clean energy is entirely effortless and highly profitable.
-                                </p>
-                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
-                                    Enclosed, you will find a comprehensive breakdown of your custom tailored solar solution, expected annual generation metrics, long-term financial returns, and an end-to-end implementation roadmap.
-                                </p>
-                                <p style="margin-bottom: 15px; font-size: 14px; line-height: 1.5; font-weight: normal;">
-                                    Best Regards,<br><br>
-                                    <strong><?= e($profileUser->name ?? 'Rising Green Energy Team') ?></strong><br>
-                                    <?= esc($globalCompanyName) ?>
-                                </p>
-                            <?php else: ?>
-                                <?= $companyDescription !== '' ? $companyDescription : esc("We are on a mission to deliver 10,000 world-class solar installations ensuring maximum performance, durability, and ROI for every project.") ?>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    $galleryGap = 10;
+    $galleryRightHeight = $companyInfoSinglePage ? 150 : 275;
+    $galleryLeftHeight = ($galleryRightHeight * 2) + $galleryGap;
+    $companyInfoPageClass = $_pageClass('p2');
+    ?>
 
-            <!-- Statistics Boxes -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 15px;">
-                <tr>
-                    <td width="33.33%" valign="top" style="padding-right: 10px;">
-                        <div style="background-color: #4b9349; color: #fff; padding: 25px 10px; text-align: center;">
-                            <div style="font-size: 30px; margin-bottom: 0px; font-family: 'Montserrat', sans-serif;">
-                                <?= $capDisplay ?>
-                            </div>
-                            <div style="font-size: 14px; font-family: 'Montserrat', sans-serif;">Total capacity
-                                installed</div>
-                        </div>
-                    </td>
-                    <td width="33.33%" valign="top" style="padding: 0 5px;">
-                        <div style="background-color: #4b9349; color: #fff; padding: 25px 20px; text-align: center;">
-                            <div style="font-size: 30px; margin-bottom: 0px; font-family: 'Montserrat', sans-serif;">
-                                <?= $happyDisplay ?>
-                            </div>
-                            <div style="font-size: 14px; font-family: 'Montserrat', sans-serif;">Happy customers</div>
-                        </div>
-                    </td>
-                    <td width="33.33%" valign="top" style="padding-left: 10px;">
-                        <div style="background-color: #4b9349; color: #fff; padding: 25px 20px; text-align: center;">
-                            <div style="font-size: 30px; margin-bottom: 0px; font-family: 'Montserrat', sans-serif;">
-                                <?= $citiesDisplay ?>
-                            </div>
-                            <div style="font-size: 14px; font-family: 'Montserrat', sans-serif;">Cities</div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
+    <?php if (!$companyInfoSinglePage): ?>
+    <!-- Company about (continues on next page with stats + gallery) -->
+    <div class="page page-break" style="position: relative; background: white;">
+        <div style="padding: 36px 40px 44px;">
+            @include('pdfbuilder.partials.pdf-page-header')
+            <div
+                style="font-size: 40px; font-weight: bold; margin-bottom: 16px; line-height: 1.12; font-family: 'Montserrat', sans-serif; color: #000; border-left: 8px solid #4b9349; padding-left: 18px;">
+                <?= esc($globalCompanyName) ?>
+            </div>
+            @include('pdfbuilder.partials.company-info-about')
         </div>
-
-        <!-- Footer -->
-
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
-
-                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                    PAGE 2
-                </td>
-
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE 2</td>
                 <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
-                    <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                        ?>
-                    Generated by <?= esc($companyName) ?>
+                    Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
         </table>
-
     </div>
-    <div class="page page-break" style="position: relative; min-height: 842px; background: white;">
-        <div style="padding: 40px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
-                <tr>
-                    <td width="50%" align="left" valign="top">
-                        <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </div>
-                    </td>
-                    <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block;">
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
-                        </div>
-                        <?php    endif; ?>
-                    </td>
-                </tr>
-            </table>
+    <?php endif; ?>
 
-            <!-- Image Gallery (Left: Vertical, Right: Two Horizontal) -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 8px 0 12px;">
-                <tr>
-                    <td width="50%" valign="top" style="padding-right: 10px;" rowspan="2">
-                        <div style="width: 100%; height: 520px; box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img1 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                    <td width="50%" valign="top" style="padding-left: 10px; padding-bottom: 10px;">
-                        <div style="width: 100%; height: 253px; box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img2 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td width="50%" valign="top" style="padding-left: 10px; padding-top: 5px;">
-                        <div style="width: 100%; height: 253px; box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img3 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    <!-- Stats + gallery (same page; full company section when intro is short) -->
+    <div class="<?= $companyInfoSinglePage ? $companyInfoPageClass : 'page page-break' ?>" style="position: relative; background: white;">
+        <div style="padding: 36px 40px 44px;">
+            @include('pdfbuilder.partials.pdf-page-header')
 
-            <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td align="center">
-                        <div style="font-size: 13px; text-align: center; font-style: normal; font-family: 'Montserrat', sans-serif;">
-                            Each site is installed end to end with 5 years of AMC & monitoring
-                        </div>
-                    </td>
-                </tr>
-            </table>
+            <?php if ($companyInfoSinglePage): ?>
+            <div
+                style="font-size: 40px; font-weight: bold; margin-bottom: 16px; line-height: 1.12; font-family: 'Montserrat', sans-serif; color: #000; border-left: 8px solid #4b9349; padding-left: 18px;">
+                <?= esc($globalCompanyName) ?>
+            </div>
+            @include('pdfbuilder.partials.company-info-about')
+            <?php endif; ?>
+
+            @include('pdfbuilder.partials.company-info-stats')
+            @include('pdfbuilder.partials.company-gallery')
         </div>
 
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
@@ -1441,9 +1466,7 @@ $__companyInfoActive = $_isActive($__companyInfo);
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
-                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                    PAGE 2
-                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE 2</td>
                 <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
                     Generated by <?= esc($globalCompanyName) ?>
                 </td>
@@ -2598,81 +2621,13 @@ $__components = (isset($components) && is_array($components)) ? $components : []
 $__componentsActive = $_isActive($__components);
 ?>
     <?php if ($__componentsActive): ?>
-    <!-- ================= PAGE 6 : SOLAR COMPONENTS ================= -->
-    <div class="<?= $_pageClass('p6') ?>" style="position: relative; min-height: 842px; background: white;">
-        <!-- Header -->
-        <div style="padding: 50px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 40px;">
-                <tr>
-                    <td width="50%" align="left" valign="top">
-                        <div style="font-size: 18px;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </div>
-                    </td>
-                    <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block; text-align: right;">
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo"
-                                style="max-width: 160px; height: auto; margin-bottom: 5px;">
-                        </div>
-                        <?php    endif; ?>
-                    </td>
-                </tr>
-            </table>
-
-            @include('pdfbuilder.partials.estimate-invoice-summary')
-
-            <div style="page-break-before: always; height: 1px;"></div>
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 50px; margin-bottom: 34px;">
-                <tr>
-                    <td width="50%" align="left" valign="top">
-                        <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </div>
-                    </td>
-                    <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block; text-align: right;">
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo"
-                                style="max-width: 160px; height: auto; margin-bottom: 5px;">
-                        </div>
-                        <?php    endif; ?>
-                    </td>
-                </tr>
-            </table>
-
-            <!-- Main Title (Template-driven) -->
-            <?php
+    <?php
     $components = isset($components) && is_array($components) ? $components : [];
     $componentsActive = (int) ($components['active'] ?? 1);
     $componentsTitle = trim((string) ($components['title'] ?? ''));
     $componentsDescRaw = (string) ($components['description'] ?? '');
-    // CKEditor stores HTML; allow basic tags
-    $componentsDescRaw = preg_replace("/\\R+/", ' ', $componentsDescRaw);
-    $componentsDesc = trim(strip_tags($componentsDescRaw, '<p><br><b><strong><i><em><u>'));
-        ?>
-            <div style="page-break-inside: avoid; margin-top: 26px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
-                <tr>
-                    <td align="left">
-                        <div
-                            style="font-size: 38px; font-weight: bold; margin-bottom: 10px; line-height:1.1; font-family: 'Montserrat', sans-serif; color:#000; border-left:7px solid #4b9349; padding-left:16px;">
-                            <?= esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
-                        </div>
-                        <div style="font-size: 16px; line-height: 1.5; font-family: 'Montserrat', sans-serif; color:#333; background:#f7fbf7; border:1px solid #dfe9df; padding:12px 14px;">
-                            <?php    if ($componentsActive === 1 && $componentsDesc !== ''): ?>
-                            <?= $componentsDesc ?>
-                            <?php    else: ?>
-                            <b>High-quality</b> components from trusted <b>Tier-1</b> OEMs, selected for performance,
-                            safety, and long-term ROI.
-                            <?php    endif; ?>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    $componentsDesc = sanitize_pdf_rich_html($componentsDescRaw);
 
-            <!-- Components Table -->
-            <?php
     // Load product data, technology map, warranty map, and categories
     $product_data = [];
     $technology_map = [];
@@ -2907,129 +2862,108 @@ $__componentsActive = $_isActive($__components);
 
         ];
     }
-        ?>
 
-                <!-- Two-column table like screenshot: Product Name + Specifications -->
-                <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
-                    <tr style="background-color:#4b9349; color:#fff;">
-                        <td
-                            style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
-                            Product Name
-                        </td>
-                        <td
-                            style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
-                            Specifications
-                        </td>
-                    </tr>
+    $componentsIntroLength = pdf_rich_html_plain_length(
+        ($componentsActive === 1 && $componentsDescRaw !== '')
+            ? $componentsDescRaw
+            : 'High-quality components from trusted Tier-1 OEMs, selected for performance, safety, and long-term ROI.'
+    );
+    $componentsRowCount = count($componentsData);
+    $componentsSplitTablePage = $componentsIntroLength > 420 || $componentsRowCount > 4;
+    $componentsPageClass = $_pageClass('p6');
+    ?>
 
-                    <?php    foreach ($componentsData as $componentKey => $component):
-            $specs = $component['specifications'] ?? [];
-            $make = trim((string) ($component['category'] ?? ''));
-            $qty = trim((string) ($component['quantity'] ?? ''));
-
-            $productImage = $component['image'] ?? $component['product_image'] ?? $component['photo'] ?? null;
-            $productImagePath = null;
-            if (!empty($productImage)) {
-                $productImage = trim((string) $productImage);
-                if ($productImage !== '') {
-                    $resolved = normalize_pdf_image($productImage);
-                    if ($resolved && strpos($resolved, 'data:image') === 0) {
-                        $productImagePath = $resolved;
-                    }
-                }
-            }
-
-            $specRows = [];
-            if ($make !== '')
-                $specRows[] = ['Make', htmlspecialchars($make)];
-            if ($qty !== '')
-                $specRows[] = ['Quantity', htmlspecialchars($qty)];
-
-            if (is_array($specs)) {
-                foreach ($specs as $row) {
-                    if (!is_array($row) || count($row) < 2)
-                        continue;
-                    $k = trim((string) ($row[0] ?? ''));
-                    $v = trim((string) ($row[1] ?? ''));
-                    if ($k === '' || $v === '')
-                        continue;
-                    $specRows[] = [htmlspecialchars($k), $v];
-                }
-            } else {
-                $legacy = trim((string) $specs);
-                if ($legacy !== '') {
-                    $legacy = strip_tags(str_replace(['<br>', '<br/>', '<br />'], ' ', $legacy));
-                    $specRows[] = ['Specs', htmlspecialchars($legacy)];
-                }
-            }
-
-            $specHtml = '--';
-            if (!empty($specRows)) {
-                $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; line-height:1.35; font-size:14px;">';
-                foreach ($specRows as $r) {
-                    $k = (string) ($r[0] ?? '');
-                    $v = (string) ($r[1] ?? '');
-                    $specHtml .= '<tr>'
-                        . '<td style="font-weight:bold; width:22%; padding:1px 10px 4px 0; vertical-align:top;">' . $k . ':</td>'
-                        . '<td style="width:78%; padding:1px 0 4px 0; vertical-align:top;">' . $v . '</td>'
-                        . '</tr>';
-                }
-                $specHtml .= '</table>';
-            }
-                ?>
-                    <tr style="page-break-inside: avoid;">
-                        <td
-                            style="padding: 18px 14px; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: middle; background:#fbfbfb;">
-                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                                <?php        if (!empty($productImagePath)): ?>
-                                <tr>
-                                    <td align="center" valign="middle" style="padding-bottom:6px;">
-                                        <img src="<?= $productImagePath ?>"
-                                            alt="<?= esc($component['name'] ?? 'Product') ?>"
-                                            style="width:92px; height:92px; object-fit:contain; display:inline-block; border:1px solid #c8d8c8; padding:6px; background:#fff;">
-                                    </td>
-                                </tr>
-                                <?php        endif; ?>
-                                <tr>
-                                    <td align="center" valign="middle"
-                                        style="font-size:13px; font-family:'Montserrat', sans-serif; font-weight:700; color:#000;">
-                                        <?= esc($component['name'] ?? '--') ?>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                        <td
-                            style="padding: 18px 18px; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: top; line-height:1.4;">
-                            <?= $specHtml ?>
-                        </td>
-                    </tr>
-                    <?php    endforeach; ?>
-                </table>
-            </div>
+    <!-- PAGE 6A: ESTIMATION / INVOICE -->
+    <div class="page page-break" style="position: relative; background: white;">
+        <div style="padding: 40px;">
+            @include('pdfbuilder.partials.pdf-page-header')
+            @include('pdfbuilder.partials.estimate-invoice-summary')
         </div>
-        <!-- Footer -->
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
-                <td width="33.33%" style="padding:10px;">
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
-
-                <td width="33.33%" align="center" style="padding:10px;">
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     PAGE 6
                 </td>
-
-                <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
-                    <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                        ?>
-                    Generated by <?= esc($companyName) ?>
+                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
         </table>
     </div>
+
+    <?php if ($componentsSplitTablePage): ?>
+    <!-- PAGE 6B: SOLAR COMPONENTS INTRO (long content — table on next page) -->
+    <div class="page page-break" style="position: relative; background: white;">
+        <div style="padding: 40px;">
+            @include('pdfbuilder.partials.pdf-page-header')
+            @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => true])
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+                    background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE 6
+                </td>
+                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- PAGE 6C: SOLAR COMPONENTS TABLE -->
+    <div class="<?= $componentsPageClass ?>" style="position: relative; background: white;">
+        <div style="padding: 40px;">
+            @include('pdfbuilder.partials.pdf-page-header')
+            @include('pdfbuilder.partials.company-components-title')
+            @include('pdfbuilder.partials.company-components-table')
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+                    background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE 6
+                </td>
+                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <?php else: ?>
+    <!-- PAGE 6B: SOLAR COMPONENTS (intro + table on same page) -->
+    <div class="<?= $componentsPageClass ?>" style="position: relative; background: white;">
+        <div style="padding: 40px;">
+            @include('pdfbuilder.partials.pdf-page-header')
+            @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
+            @include('pdfbuilder.partials.company-components-table')
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+                    background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE 6
+                </td>
+                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <?php endif; ?>
     <!-- ================= END PAGE 6 ================= -->
     <?php endif; ?>
 
@@ -3783,15 +3717,24 @@ $__footerActive = $_isActive($__footer);
             <!-- Thank You Section -->
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
                 <tr>
-                    <td align="left"
-                        style="font-size: 80px; color: #000; padding-bottom: 20px; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; border-left:8px solid #4b9349; padding-left:18px; line-height:1.05;">
-                        <?= $footerTitle !== '' ? esc($footerTitle) : 'THANK YOU' ?>
+                    <td align="left" style="padding-bottom: 12px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                            <tr>
+                                <td width="8" valign="top" style="padding: 0; font-size: 0; line-height: 0;">
+                                    <div style="width: 8px; height: 77px; background-color: #4b9349; display: block;"></div>
+                                </td>
+                                <td valign="top"
+                                    style="font-size: 80px; color: #000; padding-left: 18px; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; line-height: 1.05;">
+                                    <?= $footerTitle !== '' ? esc($footerTitle) : 'THANK YOU' ?>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: -20px;">
+                    <td style="padding-left: 26px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
                             <tr>
                                 <!-- Text -->
                                 <td align="left" style="font-size: 20px; font-family: 'Montserrat', sans-serif;">
