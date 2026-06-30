@@ -46,7 +46,7 @@
                                     <option value="">-- Search User --</option>
                                     @foreach($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
-                                            @selected(old('assigned_user_id') == $user->id)>{{ $user->name }}</option>
+                                            @selected(old('assigned_user_id', auth()->id()) == $user->id)>{{ $user->name }}</option>
                                     @endforeach
                                 </select>
                             @else
@@ -70,14 +70,14 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-bars me-2 text-muted"></i>Description</label>
                             <textarea name="description" id="description" rows="1"
                                 class="form-control @error('description') is-invalid @enderror"
-                                placeholder="Enter task description" required>{{ old('description') }}</textarea>
+                                placeholder="Enter task description">{{ old('description') }}</textarea>
                             <div class="invalid-feedback d-block" id="description-error">{{ $errors->first('description') }}</div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-calendar-days me-2 text-muted"></i>Due Date</label>
-                            <input type="text" name="due_date" id="due_date" value="{{ old('due_date') }}"
-                                placeholder="mm/dd/yyyy"
+                            <input type="date" name="due_date" id="due_date" value="{{ old('due_date') }}"
+                                min="{{ date('Y-m-d') }}"
                                 class="form-control js-date @error('due_date') is-invalid @enderror" required>
                             <div class="invalid-feedback d-block" id="due_date-error">{{ $errors->first('due_date') }}</div>
                         </div>
@@ -85,7 +85,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-arrow-up-long me-2 text-muted"></i>Priority</label>
                             <select name="priority" id="priority"
-                                class="form-select @error('priority') is-invalid @enderror" required>
+                                class="form-select @error('priority') is-invalid @enderror">
                                 <option value="">Select Priority</option>
                                 <option value="low" @selected(old('priority') === 'low')>Low</option>
                                 <option value="medium" @selected(old('priority') === 'medium')>Medium</option>
@@ -96,8 +96,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-circle-info me-2 text-muted"></i>Status</label>
-                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror"
-                                required>
+                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
                                 <option value="">Select Status</option>
                                 <option value="pending" @selected(old('status') === 'pending')>Pending</option>
                                 <option value="in_progress" @selected(old('status') === 'in_progress')>In Progress</option>

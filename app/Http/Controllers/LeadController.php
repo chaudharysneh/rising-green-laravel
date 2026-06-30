@@ -33,7 +33,7 @@ class LeadController extends Controller
         $stages = Stage::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
-            $users = User::nonAdmin()->orderBy('name')->get();
+            $users = User::orderBy('name')->get();
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
@@ -59,7 +59,7 @@ class LeadController extends Controller
         $stages = Stage::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
-            $users = User::nonAdmin()->orderBy('name')->get();
+            $users = User::orderBy('name')->get();
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
@@ -205,3 +205,4 @@ class LeadController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 }
+

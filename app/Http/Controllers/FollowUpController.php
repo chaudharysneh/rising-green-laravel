@@ -22,7 +22,7 @@ class FollowUpController extends Controller
         $leads = Lead::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
-            $users = User::nonAdmin()->orderBy('name')->get();
+            $users = User::orderBy('name')->get();
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
@@ -57,7 +57,7 @@ class FollowUpController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
-            $users = User::nonAdmin()->orderBy('name')->get();
+            $users = User::orderBy('name')->get();
         } else {
             $users = User::where('id', auth()->id())->orderBy('name')->get();
         }
@@ -133,3 +133,4 @@ class FollowUpController extends Controller
         return response()->json(['success' => true, 'status' => $followUp->status]);
     }
 }
+

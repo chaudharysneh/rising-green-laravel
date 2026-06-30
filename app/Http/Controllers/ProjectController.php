@@ -21,7 +21,7 @@ class ProjectController extends Controller
     {
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
 
         return view('crm.projects.create', compact('customers', 'users'));
@@ -41,7 +41,7 @@ class ProjectController extends Controller
         $project->load(['statusHistories.updater']);
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $users = auth()->user()->isAdmin()
-            ? User::nonAdmin()->orderBy('name')->get()
+            ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
 
         return view('crm.projects.edit', compact('project', 'customers', 'users'));
@@ -104,3 +104,4 @@ class ProjectController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 }
+

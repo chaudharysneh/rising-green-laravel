@@ -39,7 +39,7 @@
                                     <option value="">-- Search User --</option>
                                     @foreach($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
-                                            @selected(old('assigned_user_id') == $user->id)>{{ $user->name }}</option>
+                                            @selected(old('assigned_user_id', auth()->id()) == $user->id)>{{ $user->name }}</option>
                                     @endforeach
                                 </select>
                             @else
