@@ -54,9 +54,7 @@
                             <label class="form-label">Assigned To</label>
                             @if(auth()->user()->isAdmin())
                                 <select name="assigned_user_id" id="assigned_user_id"
-                                    class="form-select @error('assigned_user_id') is-invalid @enderror"
-                                    data-search-url="{{ route('api.users.search') }}" data-search-type="user"
-                                    data-search-placeholder="-- Search User --" required>
+                                    class="form-select @error('assigned_user_id') is-invalid @enderror" required>
                                     <option value="">-- Search User --</option>
                                     @foreach ($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
@@ -109,7 +107,8 @@
                         <div class="col-md-6">
                             <label class="form-label">Follow Up Date </label>
                             <input type="datetime-local" name="follow_up_at" id="follow_up_at"
-                                value="{{ old('follow_up_at', \Illuminate\Support\Carbon::parse($followUp->follow_up_at)->format('Y-m-d\\TH:i')) }}"
+                                value="{{ old('follow_up_at', \Illuminate\Support\Carbon::parse($followUp->follow_up_at)->format('Y-m-d\TH:i')) }}"
+                                min="{{ now()->format('Y-m-d\TH:i') }}"
                                 class="form-control" required>
                             <div class="invalid-feedback d-block" id="follow_up_at-error"></div>
                         </div>
@@ -170,6 +169,12 @@
         <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap-5-theme@1.5.2/dist/select2-bootstrap-5-theme.min.css"
             rel="stylesheet" />
         <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+        <style>
+            .select2-results__options {
+                max-height: 200px !important;
+                overflow-y: auto !important;
+            }
+        </style>
     @endpush
 
     @push('scripts')
@@ -178,6 +183,10 @@
         <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/followup.js') }}"></script>
         <script>
             $(document).ready(function () {
+                $('#lead_id, #assigned_user_id').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
                 const isAdmin = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
                 const $leadSelect = $('#lead_id');
                 const $assignedUserSelect = $('#assigned_user_id');

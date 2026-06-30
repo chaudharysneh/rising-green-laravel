@@ -79,7 +79,7 @@
                             <label class="form-label fw-semibold">Address </label>
                             <textarea name="address" id="address"
                                 class="form-control @error('address') is-invalid @enderror" rows="1"
-                                placeholder="Lead Address" required>{{ old('address', $lead->address) }}</textarea>
+                                placeholder="Lead Address">{{ old('address', $lead->address) }}</textarea>
                             <div class="invalid-feedback" id="address-error">@error('address') {{ $message }} @enderror
                             </div>
                         </div>
@@ -165,7 +165,8 @@
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <style>
         /* Clean file input styling */
         .form-control[type="file"] {
@@ -194,6 +195,14 @@
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/leads.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#assigned_user_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
+    </script>
 @endpush
