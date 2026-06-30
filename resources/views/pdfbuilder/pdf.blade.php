@@ -1292,46 +1292,6 @@ $__companyInfoActive = $_isActive($__companyInfo);
                 </tr>
             </table>
 
-            <!-- Image Gallery (Left: Vertical, Right: Two Horizontal) -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
-                <tr>
-                    <!-- Left Panel: Large Vertical Image -->
-                    <td width="50%" valign="top" style="padding-right: 10px;" rowspan="2">
-                        <div style="width: 100%; height: 560px; box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img1 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                    <!-- Top-Right Panel: Horizontal Image -->
-                    <td width="50%" valign="top" style="padding-left: 10px; padding-bottom: 10px;">
-                        <div style="width: 100%; height: 273px; box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img2 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <!-- Bottom-Right Panel: Horizontal Image -->
-                    <td width="50%" valign="top" style="padding-left: 10px; padding-top: 5px;">
-                        <div style="width: 100%; height: 273px;box-sizing: border-box; overflow: hidden;">
-                            <img src="<?= $img3 ?>" alt="Solar Installation"
-                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
-            <!-- Image Caption -->
-            <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td align="center">
-                        <div
-                            style="font-size: 15px; text-align: center; font-style: normal; font-family: 'Montserrat', sans-serif;">
-                            Each site is installed end to end with 5 years of AMC & monitoring
-                        </div>
-                    </td>
-                </tr>
-            </table>
         </div>
 
         <!-- Footer -->
@@ -1358,6 +1318,77 @@ $__companyInfoActive = $_isActive($__companyInfo);
             </tr>
         </table>
 
+    </div>
+    <div class="page page-break" style="position: relative; min-height: 842px; background: white;">
+        <div style="padding: 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                <tr>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </div>
+                    </td>
+                    <td width="50%" align="right" valign="top">
+                        <?php    if (!empty($logoBase64)): ?>
+                        <div style="display: inline-block;">
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                        </div>
+                        <?php    endif; ?>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Image Gallery (Left: Vertical, Right: Two Horizontal) -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 8px 0 12px;">
+                <tr>
+                    <td width="50%" valign="top" style="padding-right: 10px;" rowspan="2">
+                        <div style="width: 100%; height: 520px; box-sizing: border-box; overflow: hidden;">
+                            <img src="<?= $img1 ?>" alt="Solar Installation"
+                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                        </div>
+                    </td>
+                    <td width="50%" valign="top" style="padding-left: 10px; padding-bottom: 10px;">
+                        <div style="width: 100%; height: 253px; box-sizing: border-box; overflow: hidden;">
+                            <img src="<?= $img2 ?>" alt="Solar Installation"
+                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50%" valign="top" style="padding-left: 10px; padding-top: 5px;">
+                        <div style="width: 100%; height: 253px; box-sizing: border-box; overflow: hidden;">
+                            <img src="<?= $img3 ?>" alt="Solar Installation"
+                                style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center">
+                        <div style="font-size: 13px; text-align: center; font-style: normal; font-family: 'Montserrat', sans-serif;">
+                            Each site is installed end to end with 5 years of AMC & monitoring
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+                    background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE 2
+                </td>
+                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
     </div>
     <?php endif; ?>
 
@@ -2818,124 +2849,15 @@ $__componentsActive = $_isActive($__components);
     }
         ?>
 
-            <!-- Two-column table like screenshot: Product Name + Specifications -->
-            <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
-                <tr style="background-color:#4b9349; color:#fff;">
-                    <td
-                        style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
-                        Product Name
-                    </td>
-                    <td
-                        style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
-                        Specifications
-                    </td>
-                </tr>
-
-                foreach ($componentsData as $key => $component) {
-                    $name = strtolower($component['name'] ?? '');
-                    
-                    if (strpos($name, 'panel') !== false || strpos($name, 'pv') !== false || strpos($name, 'module') !== false) {
-                        $panelMatch = $component;
-                    } elseif (strpos($name, 'inverter') !== false) {
-                        $inverterMatch = $component;
-                    } elseif (strpos($name, 'structure') !== false || strpos($name, 'mounting') !== false) {
-                        $structureMatch = $component;
-                    } elseif (strpos($name, 'cable') !== false || strpos($name, 'cabling') !== false || strpos($name, 'wire') !== false) {
-                        $cableMatch = $component;
-                    } elseif (strpos($name, 'safety') !== false || strpos($name, 'switchgear') !== false || strpos($name, 'acdb') !== false || strpos($name, 'dcdb') !== false) {
-                        $safetyMatch = $component;
-                    }
-                }
-
-                // If no direct name match, check category
-                foreach ($componentsData as $key => $component) {
-                    $cat = strtolower($component['category'] ?? '');
-                    if (strpos($cat, 'panel') !== false || strpos($cat, 'pv') !== false || strpos($cat, 'module') !== false) {
-                        if (!$panelMatch) $panelMatch = $component;
-                    } elseif (strpos($cat, 'inverter') !== false) {
-                        if (!$inverterMatch) $inverterMatch = $component;
-                    } elseif (strpos($cat, 'structure') !== false || strpos($cat, 'mounting') !== false) {
-                        if (!$structureMatch) $structureMatch = $component;
-                    } elseif (strpos($cat, 'cable') !== false || strpos($cat, 'cabling') !== false) {
-                        if (!$cableMatch) $cableMatch = $component;
-                    } elseif (strpos($cat, 'safety') !== false || strpos($cat, 'switchgear') !== false || strpos($cat, 'acdb') !== false || strpos($cat, 'dcdb') !== false) {
-                        if (!$safetyMatch) $safetyMatch = $component;
-                    }
-                }
-
-                // Dynamic panels capacity estimation (fallback to 550Wp)
-                $panelWp = '550';
-                if ($panelMatch && is_array($panelMatch['specifications'])) {
-                    foreach ($panelMatch['specifications'] as $sp) {
-                        if (isset($sp[0]) && strtolower($sp[0]) === 'watt peak') {
-                            $panelWp = $sp[1];
-                        }
-                    }
-                }
-
-                $rowsToRender = [
-                    [
-                        'type' => 'Solar PV Panels',
-                        'make' => $panelMatch ? $panelMatch['category'] : 'Waaree / Adani / Tata',
-                        'specs' => 'Mono PERC - Half Cut Module (' . esc($panelWp) . 'Wp)',
-                        'warranty' => '10-Yr Product / 25-Yr Performance'
-                    ],
-                    [
-                        'type' => 'Grid-Tied Inverter',
-                        'make' => $inverterMatch ? $inverterMatch['category'] : 'Growatt / Sungrow / Solis',
-                        'specs' => 'High Efficiency String Inverter with App Monitoring',
-                        'warranty' => '5 Years Base Warranty'
-                    ],
-                    [
-                        'type' => 'Mounting Structure',
-                        'make' => $structureMatch ? $structureMatch['category'] : 'Custom Engineered',
-                        'specs' => 'Hot-Dip Galvanized Structural Steel (HDG) / Al',
-                        'warranty' => '5 Years Structural'
-                    ],
-                    [
-                        'type' => 'AC / DC Cabling',
-                        'make' => $cableMatch ? $cableMatch['category'] : 'Polycab / KEI Industries',
-                        'specs' => 'Multi-strand Copper, FRLS, XLPE Solar Grade',
-                        'warranty' => 'Standard OEM Warranty'
-                    ],
-                    [
-                        'type' => 'Switchgear / Safety',
-                        'make' => $safetyMatch ? $safetyMatch['category'] : 'Schneider / Legrand',
-                        'specs' => 'IP65 Enclosed ACDB & DCDB with Type-II SPD & Fuses',
-                        'warranty' => '1 Year Comprehensive'
-                    ]
-                ];
-                ?>
-                <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #4b9349; color: #fff;">
-                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 25%;">Component Type</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 25%;">Approved Brand / Make</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 30%;">Technical Specification</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 20%;">Warranty Terms</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($rowsToRender as $r): ?>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; background-color: #fbfbfb;"><?= esc($r['type']) ?></td>
-                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['make']) ?></td>
-                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['specs']) ?></td>
-                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['warranty']) ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
                 <!-- Two-column table like screenshot: Product Name + Specifications -->
                 <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
                     <tr style="background-color:#4b9349; color:#fff;">
                         <td
-                            style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
+                            style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
                             Product Name
                         </td>
                         <td
-                            style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
+                            style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
                             Specifications
                         </td>
                     </tr>
@@ -2976,20 +2898,20 @@ $__componentsActive = $_isActive($__components);
             } else {
                 $legacy = trim((string) $specs);
                 if ($legacy !== '') {
-                    $legacy = strip_tags($legacy);
+                    $legacy = strip_tags(str_replace(['<br>', '<br/>', '<br />'], ' ', $legacy));
                     $specRows[] = ['Specs', htmlspecialchars($legacy)];
                 }
             }
 
             $specHtml = '--';
             if (!empty($specRows)) {
-                $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; line-height:1.15;">';
+                $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; line-height:1.35; font-size:14px;">';
                 foreach ($specRows as $r) {
                     $k = (string) ($r[0] ?? '');
                     $v = (string) ($r[1] ?? '');
                     $specHtml .= '<tr>'
-                        . '<td style="font-weight:bold; width:20%; padding:0 8px 2px 0; vertical-align:top;">' . $k . ':</td>'
-                        . '<td style="width:80%; padding:0 0 2px 0; vertical-align:top;">' . $v . '</td>'
+                        . '<td style="font-weight:bold; width:22%; padding:1px 10px 4px 0; vertical-align:top;">' . $k . ':</td>'
+                        . '<td style="width:78%; padding:1px 0 4px 0; vertical-align:top;">' . $v . '</td>'
                         . '</tr>';
                 }
                 $specHtml .= '</table>';
@@ -2997,7 +2919,7 @@ $__componentsActive = $_isActive($__components);
                 ?>
                     <tr style="page-break-inside: avoid;">
                         <td
-                            style="padding: 14px 12px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: middle; background:#fbfbfb;">
+                            style="padding: 18px 14px; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: middle; background:#fbfbfb;">
                             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                                 <?php        if (!empty($productImagePath)): ?>
                                 <tr>
@@ -3010,20 +2932,19 @@ $__componentsActive = $_isActive($__components);
                                 <?php        endif; ?>
                                 <tr>
                                     <td align="center" valign="middle"
-                                        style="font-size:11px; font-family:'Montserrat', sans-serif; font-weight:700; color:#000;">
+                                        style="font-size:13px; font-family:'Montserrat', sans-serif; font-weight:700; color:#000;">
                                         <?= esc($component['name'] ?? '--') ?>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                         <td
-                            style="padding: 14px 16px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: top; line-height:1.35;">
+                            style="padding: 18px 18px; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: top; line-height:1.4;">
                             <?= $specHtml ?>
                         </td>
                     </tr>
                     <?php    endforeach; ?>
                 </table>
-            <?php endif; ?>
             </div>
         </div>
         <!-- Footer -->

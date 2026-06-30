@@ -7,6 +7,67 @@
     <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/estimates.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        .bom-row-grid {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.45fr) minmax(145px, 1fr) minmax(90px, .65fr) minmax(120px, .8fr) minmax(130px, .9fr) minmax(145px, 1fr) 42px;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .bom-row-grid > div,
+        .bom-row-grid .d-flex {
+            min-width: 0;
+        }
+
+        .bom-row-grid .form-label {
+            font-size: 11px;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            white-space: nowrap;
+        }
+
+        .bom-row-grid .form-control,
+        .bom-row-grid .form-select {
+            min-height: 38px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .select2-container--bootstrap-5 .select2-selection__rendered {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .quick-add-bom-row,
+        .bom-row-grid .delete-bom-row {
+            width: 42px;
+            min-height: 38px;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .bom-row-grid .product-select,
+        .bom-row-grid .select2-container {
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+
+        @media (max-width: 1199.98px) {
+            .bom-row-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .bom-row-grid .bom-action-cell {
+                grid-column: span 2;
+            }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -30,25 +91,20 @@
             return [['label' => $name, 'rate' => $rate]];
         })->values();
 
-        $bomTaxOptions = [];
-        $cgstSgstRate = 0;
-        foreach (collect($gstTaxes ?? []) as $tax) {
+        $bomTaxOptions = collect($gstTaxes ?? [])->map(function ($tax) {
             $taxName = strtoupper((string) $tax->name);
-            if (str_contains($taxName, 'CGST') || str_contains($taxName, 'SGST')) {
-                $cgstSgstRate += (float) $tax->rate;
+            $label = (string) $tax->name;
+
+            if (str_contains($taxName, 'CGST') && str_contains($taxName, 'SGST')) {
+                $label = 'CGST + SGST';
+            } elseif (str_contains($taxName, 'IGST')) {
+                $label = 'IGST';
             }
-        }
-        if ($cgstSgstRate > 0) {
-            $bomTaxOptions[] = ['label' => 'CGST + SGST', 'rate' => $cgstSgstRate];
-        }
-        foreach (collect($gstTaxes ?? []) as $tax) {
-            $taxName = strtoupper((string) $tax->name);
-            if (str_contains($taxName, 'IGST')) {
-                $bomTaxOptions[] = ['label' => $tax->name, 'rate' => (float) $tax->rate];
-            } elseif (!str_contains($taxName, 'CGST') && !str_contains($taxName, 'SGST')) {
-                $bomTaxOptions[] = ['label' => $tax->name, 'rate' => (float) $tax->rate];
-            }
-        }
+
+            return ['label' => $label, 'rate' => (float) $tax->rate];
+        })->filter(function ($taxOption) {
+            return (float) ($taxOption['rate'] ?? 0) > 0;
+        })->values();
     @endphp
 
     <div class="container-fluid p-0">
@@ -197,8 +253,8 @@
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
-                                        <div class="row g-2 align-items-end">
-                                            <div class="col-md-2">
+                                        <div class="bom-row-grid">
+                                            <div>
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
                                                 <div class="d-flex align-items-start gap-2">
@@ -223,23 +279,23 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div>
                                                 <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
                                                 <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-1">
+                                            <div>
                                                 <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="" class="form-control" placeholder="Add Quantity">
                                             </div>
-                                            <div class="col-md-2">
+                                            <div>
                                                 <label class="form-label small fw-semibold">Unit Price <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_price[]"
                                                     value="0" class="form-control product-price" placeholder="0">
                                             </div>
-                                            <div class="col-md-2">
+                                            <div>
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="product_tax_rate[]" class="form-select product-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
@@ -250,12 +306,12 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div>
                                                 <label class="form-label small fw-semibold">After Tax Amount</label>
                                                 <input type="number" min="0" step="1" value="0"
                                                     class="form-control product-total" placeholder="0" readonly>
                                             </div>
-                                            <div class="col-md-1">
+                                            <div class="bom-action-cell">
                                                 <button type="button" class="btn btn-outline-danger w-100 delete-bom-row"
                                                     style="display: none;">
                                                     <i class="bi bi-trash"></i>
