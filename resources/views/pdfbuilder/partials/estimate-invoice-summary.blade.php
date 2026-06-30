@@ -54,8 +54,10 @@ if ($summaryGstAmount === null) {
 
 $summaryTotalPayable = $summarySubtotal + $summarySolarStructureCharges + $summaryGstAmount - $summaryDiscount;
 $summaryLendingCost = $summaryTotalPayable - $summarySubsidy;
-$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:9px 11px;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.4;";
-$summaryCellStyle = "border:1px solid #333;padding:9px 11px;font-size:13px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.4;";
+$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:7px 9px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.35;";
+$summaryCellStyle = "border:1px solid #333;padding:7px 9px;font-size:12px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.35;";
+$summaryFooterHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:5px 7px;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.25;";
+$summaryFooterCellStyle = "border:1px solid #333;padding:5px 7px;font-size:10px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.25;vertical-align:top;";
 $summaryRightCellStyle = $summaryCellStyle . 'text-align:right;';
 $summaryHighlightCellStyle = $summaryRightCellStyle . 'background-color:#4b9349;color:#fff;font-weight:bold;';
 $summaryHeaderTextStyle = "font-size:13.5px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.45;";
@@ -67,13 +69,13 @@ $summaryCompanyPhone = $companySettings['phone'] ?? $user['phone'] ?? $user['con
 $summaryEstimateTypeLabel = $estdata && isset($estdata->type) ? ucfirst((string) $estdata->type) : '--';
 $summarySolarMeterLabel = ($estdata && !empty($estdata->solar_meter_charges)) ? ucwords(str_replace('_', ' ', (string) $estdata->solar_meter_charges)) : '--';
 $summaryEstimateComment = $estdata && isset($estdata->estimate_comment) ? $estdata->estimate_comment : ($estdata->comment ?? '--');
-$summaryBankLines = array_filter([
-    !empty($companySettings['bank_name']) ? '<strong>Bank:</strong> ' . esc($companySettings['bank_name']) : '',
-    !empty($companySettings['account_name']) ? '<strong>Account Name:</strong> ' . esc($companySettings['account_name']) : '',
-    !empty($companySettings['account_number']) ? '<strong>Account No.:</strong> ' . esc($companySettings['account_number']) : '',
-    !empty($companySettings['ifsc_code']) ? '<strong>IFSC:</strong> ' . esc($companySettings['ifsc_code']) : '',
-    !empty($companySettings['branch_name']) ? '<strong>Branch:</strong> ' . esc($companySettings['branch_name']) : '',
-]);
+$summaryBankFields = array_values(array_filter([
+    ['label' => 'Account Name', 'value' => $companySettings['account_name'] ?? ''],
+    ['label' => 'Account No.', 'value' => $companySettings['account_number'] ?? ''],
+    ['label' => 'IFSC Code', 'value' => $companySettings['ifsc_code'] ?? ''],
+    ['label' => 'Branch', 'value' => $companySettings['branch_name'] ?? ''],
+], fn ($field) => trim((string) ($field['value'] ?? '')) !== ''));
+$summaryBankName = trim((string) ($companySettings['bank_name'] ?? ''));
 $summaryQrImage = !empty($companyQrCodePath) ? normalize_pdf_image($companyQrCodePath) : '';
 $summaryGstRateText = is_numeric($summaryGstRate) ? rtrim(rtrim(number_format((float) $summaryGstRate, 2, '.', ''), '0'), '.') : '';
 $summaryShowGst = ((float) $summaryGstAmount > 0) || ((float) $summaryGstRate > 0);
@@ -197,8 +199,7 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
         <td width="55%" valign="top" align="right" style="<?= $summaryHeaderTextStyle ?>padding-bottom:12px;">
             <strong style="font-size:16px;"><?= esc($summaryCompanyName) ?></strong><br>
             <?= esc($summaryCompanyAddress ?: '--') ?><br>
-            <?= esc($summaryCompanyPhone ?: '--') ?><br>
-            <span style="color:#4b9349;font-weight:bold;">Google Location Map</span>
+            <?= esc($summaryCompanyPhone ?: '--') ?>
         </td>
     </tr>
     <tr>
@@ -303,7 +304,8 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
 </div>
 <?php endif; ?>
 
-<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
+<div style="page-break-inside:avoid;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;page-break-inside:avoid;">
     <tr>
         <td style="<?= $summaryHeaderCellStyle ?>width:38%;">System Capacity</td>
         <td style="<?= $summaryCellStyle ?>"><?= esc($quantity) ?> kW</td>
@@ -318,23 +320,47 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
     </tr>
 </table>
 
-<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;margin-bottom:20px;border-collapse:collapse;">
-    <tr>
-        <td style="<?= $summaryHeaderCellStyle ?>width:35%;">Comment</td>
-        <td style="<?= $summaryHeaderCellStyle ?>width:40%;">Bank Details</td>
-        <td style="<?= $summaryHeaderCellStyle ?>width:25%;">QR Code</td>
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;margin-bottom:12px;border-collapse:collapse;page-break-inside:avoid;">
+    <tr style="page-break-inside:avoid;">
+        <td style="<?= $summaryFooterHeaderCellStyle ?>width:35%;">Comment</td>
+        <td style="<?= $summaryFooterHeaderCellStyle ?>width:40%;">Bank Details</td>
+        <td style="<?= $summaryFooterHeaderCellStyle ?>width:25%;">QR Code</td>
     </tr>
-    <tr>
-        <td style="<?= $summaryCellStyle ?>vertical-align:top;"><?= nl2br(esc($summaryEstimateComment ?: '--')) ?></td>
-        <td style="<?= $summaryCellStyle ?>vertical-align:top;">
-            <?= !empty($summaryBankLines) ? implode('<br>', $summaryBankLines) : 'No bank details available.' ?>
+    <tr style="page-break-inside:avoid;">
+        <td style="<?= $summaryFooterCellStyle ?>"><?= nl2br(esc($summaryEstimateComment ?: '--')) ?></td>
+        <td style="<?= $summaryFooterCellStyle ?>padding:6px 8px;">
+            <?php if ($summaryBankName !== '' || !empty($summaryBankFields)): ?>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background-color:#f6fbf6;border:1px solid #cfe5cf;">
+                <?php if ($summaryBankName !== ''): ?>
+                <tr>
+                    <td colspan="2" style="background-color:#4b9349;color:#fff;padding:6px 8px;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:bold;letter-spacing:0.3px;">
+                        <?= esc($summaryBankName) ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
+                <?php foreach ($summaryBankFields as $bankIndex => $bankField): ?>
+                <?php $bankRowBorder = ($bankIndex > 0 || $summaryBankName !== '') ? 'border-top:1px solid #e3efe3;' : ''; ?>
+                <tr>
+                    <td width="38%" style="padding:4px 8px;font-size:8.5px;font-family:'Montserrat',sans-serif;color:#5a6b5a;text-transform:uppercase;letter-spacing:0.4px;vertical-align:top;<?= $bankRowBorder ?>">
+                        <?= esc($bankField['label']) ?>
+                    </td>
+                    <td width="62%" style="padding:4px 8px;font-size:10px;font-family:'Montserrat',sans-serif;color:#1a1a1a;font-weight:600;vertical-align:top;<?= $bankRowBorder ?><?= ($bankField['label'] === 'Account No.') ? 'letter-spacing:0.6px;' : '' ?>">
+                        <?= esc($bankField['value']) ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <?php else: ?>
+            <span style="font-size:10px;color:#888;font-style:italic;">No bank details available.</span>
+            <?php endif; ?>
         </td>
-        <td style="<?= $summaryCellStyle ?>vertical-align:top;text-align:center;">
+        <td style="<?= $summaryFooterCellStyle ?>text-align:center;">
             <?php if (!empty($summaryQrImage)): ?>
-                <img src="<?= $summaryQrImage ?>" alt="QR Code" style="max-width:80px;max-height:80px;">
+                <img src="<?= $summaryQrImage ?>" alt="QR Code" style="max-width:65px;max-height:65px;">
             <?php else: ?>
                 No QR code available.
             <?php endif; ?>
         </td>
     </tr>
 </table>
+</div>
