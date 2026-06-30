@@ -652,8 +652,10 @@ class EstimateController extends Controller
         return array_reduce($products, function (float $total, array $product) {
             $quantity = (float) ($product['quantity'] ?? 0);
             $price = (float) ($product['price'] ?? 0);
+            $taxRate = (float) ($product['tax_rate'] ?? 0);
+            $baseTotal = $quantity * $price;
 
-            return $total + ($quantity * $price);
+            return $total + $baseTotal + (($baseTotal * $taxRate) / 100);
         }, 0.0);
     }
 
@@ -732,6 +734,8 @@ class EstimateController extends Controller
                     'category_name' => (string) ($product['category_name'] ?? ''),
                     'quantity' => (float) ($product['quantity'] ?? 0),
                     'price' => (float) ($product['price'] ?? 0),
+                    'tax_rate' => (float) ($product['tax_rate'] ?? 0),
+                    'tax_label' => (string) ($product['tax_label'] ?? ''),
                 ];
             }, $products)));
         }
@@ -740,6 +744,7 @@ class EstimateController extends Controller
         $makes = (array) $request->input('product_make', []);
         $quantities = (array) $request->input('product_qty', []);
         $prices = (array) $request->input('product_price', []);
+        $taxRates = (array) $request->input('product_tax_rate', []);
 
         $productIds = array_values(array_unique(array_filter($serviceIds, function ($value) {
             return (string) $value !== '';
@@ -767,6 +772,8 @@ class EstimateController extends Controller
                 'price' => array_key_exists($index, $prices)
                     ? (float) ($prices[$index] ?? 0)
                     : (float) ($product->price ?? 0),
+                'tax_rate' => (float) ($taxRates[$index] ?? 0),
+                'tax_label' => '',
             ];
         }
 

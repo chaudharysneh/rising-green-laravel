@@ -1606,7 +1606,7 @@
             const newRow = firstRow.cloneNode(true);
             newRow.querySelectorAll('input, select').forEach(function (el) {
                 if (el.tagName === 'SELECT') {
-                    el.value = '';
+                    el.value = el.classList.contains('product-tax-rate') ? '0' : '';
                     if (el.classList.contains('product-make')) {
                         el.innerHTML = '<option value="">Select Make</option>';
                         el.disabled = true;
@@ -1678,6 +1678,7 @@
         const deleteBtn = row.querySelector('.delete-bom-row');
         const qtyInput = row.querySelector('input[name="product_qty[]"]');
         const priceInput = row.querySelector('.product-price');
+        const taxSelect = row.querySelector('.product-tax-rate');
 
         if (qtyInput) {
             restrictNegative(qtyInput);
@@ -1775,6 +1776,13 @@
             });
         }
 
+        if (taxSelect) {
+            taxSelect.addEventListener('change', function () {
+                toggleBomError(false);
+                calculateTotals();
+            });
+        }
+
         if (makeSelect) {
             makeSelect.addEventListener('change', function () {
                 toggleBomError(false);
@@ -1800,6 +1808,7 @@
             const makeSelect = row.querySelector('.product-make');
             const qtyInput = row.querySelector('input[name="product_qty[]"]');
             const priceInput = row.querySelector('.product-price');
+            const taxSelect = row.querySelector('.product-tax-rate');
 
             if (productSelect && productSelect.value) {
                 const option = productSelect.options[productSelect.selectedIndex];
@@ -1816,6 +1825,8 @@
                     category_name: makeSelect?.value || '',
                     quantity: parseFloat(qtyInput?.value || 0),
                     price: itemPrice,
+                    tax_rate: parseFloat(taxSelect?.value || 0),
+                    tax_label: taxSelect?.options[taxSelect.selectedIndex]?.dataset?.label || '',
                 });
             }
         });
@@ -1865,6 +1876,7 @@
             const select = row.querySelector('.product-select');
             const qtyIn = row.querySelector('input[name="product_qty[]"]');
             const priceIn = row.querySelector('.product-price');
+            const taxSelect = row.querySelector('.product-tax-rate');
             
             if (select && select.value && qtyIn) {
                 const qty = parseFloat(qtyIn.value || 0);
@@ -1875,7 +1887,10 @@
                     const opt = select.options[select.selectedIndex];
                     p = parseFloat(opt?.dataset?.price || 0);
                 }
-                const rowTotal = qty * p;
+                const rowBaseTotal = qty * p;
+                const rowTaxRate = parseFloat(taxSelect?.value || 0);
+                const rowTaxAmount = rowTaxRate > 0 ? (rowBaseTotal * rowTaxRate) / 100 : 0;
+                const rowTotal = rowBaseTotal + rowTaxAmount;
                 productsTotal += rowTotal;
 
                 // Update per-row readout if element exists

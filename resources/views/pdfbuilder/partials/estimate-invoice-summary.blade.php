@@ -43,11 +43,11 @@ if ($summaryGstAmount === null) {
 
 $summaryTotalPayable = $summarySubtotal + $summarySolarStructureCharges + $summaryGstAmount - $summaryDiscount;
 $summaryLendingCost = $summaryTotalPayable - $summarySubsidy;
-$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:5px 7px;font-size:10.5px;font-family:'Montserrat',sans-serif;font-weight:bold;";
-$summaryCellStyle = "border:1px solid #333;padding:5px 7px;font-size:10.5px;font-family:'Montserrat',sans-serif;color:#000;";
+$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:9px 11px;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.4;";
+$summaryCellStyle = "border:1px solid #333;padding:9px 11px;font-size:13px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.4;";
 $summaryRightCellStyle = $summaryCellStyle . 'text-align:right;';
 $summaryHighlightCellStyle = $summaryRightCellStyle . 'background-color:#4b9349;color:#fff;font-weight:bold;';
-$summaryHeaderTextStyle = "font-size:11px;font-family:'Montserrat',sans-serif;color:#000;";
+$summaryHeaderTextStyle = "font-size:13.5px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.45;";
 $summaryEstimateNo = $estdata->estimate_no ?? ($estimate_no ?? '--');
 $summaryDate = ($estdata && !empty($estdata->estimate_date)) ? date('Y-m-d', strtotime($estdata->estimate_date)) : date('Y-m-d');
 $summaryCompanyName = $companySettings['company_name'] ?? $globalCompanyName ?? '--';
@@ -118,28 +118,28 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
 }
 ?>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:0;margin-bottom:8px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:0;margin-bottom:12px;border-collapse:collapse;">
     <tr>
-        <td width="45%" valign="top" align="left" style="<?= $summaryHeaderTextStyle ?>padding-bottom:9px;">
+        <td width="45%" valign="top" align="left" style="<?= $summaryHeaderTextStyle ?>padding-bottom:12px;">
             <?php if (!empty($logoBase64)): ?>
-                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:140px;height:auto;">
+                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
             <?php else: ?>
                 <span style="color:#666;">Company Logo</span>
             <?php endif; ?>
         </td>
-        <td width="55%" valign="top" align="right" style="<?= $summaryHeaderTextStyle ?>line-height:1.35;padding-bottom:9px;">
-            <strong style="font-size:13px;"><?= esc($summaryCompanyName) ?></strong><br>
+        <td width="55%" valign="top" align="right" style="<?= $summaryHeaderTextStyle ?>padding-bottom:12px;">
+            <strong style="font-size:16px;"><?= esc($summaryCompanyName) ?></strong><br>
             <?= esc($summaryCompanyAddress ?: '--') ?><br>
             <?= esc($summaryCompanyPhone ?: '--') ?><br>
             <span style="color:#4b9349;font-weight:bold;">Google Location Map</span>
         </td>
     </tr>
     <tr>
-        <td colspan="2" style="border-top:1px solid #e5e5e5;padding-top:11px;"></td>
+        <td colspan="2" style="border-top:1px solid #e5e5e5;padding-top:14px;"></td>
     </tr>
 </table>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:10px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:12px;border-collapse:collapse;">
     <tr>
         <td width="33%" align="left" style="<?= $summaryHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($summaryEstimateNo) ?></td>
         <td width="34%" align="center" style="<?= $summaryHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
@@ -147,7 +147,7 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
     </tr>
 </table>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
     <tr>
         <td colspan="4" style="<?= $summaryHeaderCellStyle ?>">Customer Details</td>
     </tr>
@@ -165,7 +165,7 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
     </tr>
 </table>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
     <tr>
         <td style="<?= $summaryHeaderCellStyle ?>">Estimate Name</td>
         <td style="<?= $summaryHeaderCellStyle ?>">Quantity (kW)</td>
@@ -231,12 +231,12 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
 </table>
 
 <?php if ($summarySubsidy > 0): ?>
-<div style="width:96%;margin:6px auto 0;font-size:9px;font-family:'Montserrat',sans-serif;color:#000;">
+<div style="width:98%;margin:8px auto 0;font-size:11.5px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.4;">
     <strong>Note:</strong> Subsidy Amount to be credited in clients account.
 </div>
 <?php endif; ?>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
     <tr>
         <td style="<?= $summaryHeaderCellStyle ?>width:38%;">System Capacity</td>
         <td style="<?= $summaryCellStyle ?>"><?= esc($quantity) ?> kW</td>
@@ -251,7 +251,7 @@ if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
     </tr>
 </table>
 
-<table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;margin-bottom:18px;border-collapse:collapse;">
+<table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;margin-bottom:20px;border-collapse:collapse;">
     <tr>
         <td style="<?= $summaryHeaderCellStyle ?>width:35%;">Comment</td>
         <td style="<?= $summaryHeaderCellStyle ?>width:40%;">Bank Details</td>

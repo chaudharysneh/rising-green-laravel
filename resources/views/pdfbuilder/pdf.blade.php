@@ -2384,10 +2384,19 @@ $__timeLineActive = $_isActive($__timeLine);
     $timelineTitle2 = trim((string) ($timeLine['title2'] ?? ''));
     $timelineNote = trim((string) ($timeLine['note'] ?? ''));
 
-    $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : '';
-    $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : '';
-    $timelineImg1 = (is_string($timelineImg1) && strpos($timelineImg1, 'data:image') === 0) ? $timelineImg1 : '';
-    $timelineImg2 = (is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0) ? $timelineImg2 : '';
+    $timelineImg1 = !empty($timeLine['image1'])
+        ? normalize_pdf_image($timeLine['image1'])
+        : null;
+    $timelineImg2 = !empty($timeLine['image2'])
+        ? normalize_pdf_image($timeLine['image2'])
+        : null;
+
+    $timelineImg1 = (is_string($timelineImg1) && strpos($timelineImg1, 'data:image') === 0)
+        ? $timelineImg1
+        : normalize_pdf_image('public/assets/img/page-5-1.png');
+    $timelineImg2 = (is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0)
+        ? $timelineImg2
+        : normalize_pdf_image('public/assets/img/page-5-2.png');
     ?>
             <!-- ================= TIMELINE ================= -->
             <div
@@ -2556,18 +2565,16 @@ $__componentsActive = $_isActive($__components);
                 <tr>
                     <td align="left">
                         <div
-                            style="font-size: 34px; font-weight: bold; margin-bottom: 8px; line-height:1.1; font-family: 'Montserrat', sans-serif; color:#000; border-left:6px solid #4b9349; padding-left:14px;">
-                            <?= ($estdata->type ?? '') === 'residential' ? '10. Material Make & Specifications' : esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
+                            style="font-size: 38px; font-weight: bold; margin-bottom: 10px; line-height:1.1; font-family: 'Montserrat', sans-serif; color:#000; border-left:7px solid #4b9349; padding-left:16px;">
+                            <?= esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
                         </div>
-                        <div style="font-size: 14px; line-height: 1.45; font-family: 'Montserrat', sans-serif; color:#333; background:#f7fbf7; border:1px solid #dfe9df; padding:10px 12px;">
-                            <?php if (($estdata->type ?? '') === 'residential'): ?>
-                                Our residential solar systems are constructed using only certified materials and components from Tier-1 manufacturers, ensuring highest reliability and compliance with MNRE guidelines.
-                            <?php elseif ($componentsActive === 1 && $componentsDesc !== ''): ?>
-                                <?= $componentsDesc ?>
-                            <?php else: ?>
-                                <b>High-quality</b> components from trusted <b>Tier-1</b> OEMs, selected for performance,
-                                safety, and long-term ROI.
-                            <?php endif; ?>
+                        <div style="font-size: 16px; line-height: 1.5; font-family: 'Montserrat', sans-serif; color:#333; background:#f7fbf7; border:1px solid #dfe9df; padding:12px 14px;">
+                            <?php    if ($componentsActive === 1 && $componentsDesc !== ''): ?>
+                            <?= $componentsDesc ?>
+                            <?php    else: ?>
+                            <b>High-quality</b> components from trusted <b>Tier-1</b> OEMs, selected for performance,
+                            safety, and long-term ROI.
+                            <?php    endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -2811,14 +2818,18 @@ $__componentsActive = $_isActive($__components);
     }
         ?>
 
-            <?php if (($estdata->type ?? '') === 'residential'): ?>
-                <?php
-                // Scan $componentsData to find matches
-                $panelMatch = null;
-                $inverterMatch = null;
-                $structureMatch = null;
-                $cableMatch = null;
-                $safetyMatch = null;
+            <!-- Two-column table like screenshot: Product Name + Specifications -->
+            <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
+                <tr style="background-color:#4b9349; color:#fff;">
+                    <td
+                        style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
+                        Product Name
+                    </td>
+                    <td
+                        style="padding: 12px 14px; font-weight: bold; font-size: 14px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
+                        Specifications
+                    </td>
+                </tr>
 
                 foreach ($componentsData as $key => $component) {
                     $name = strtolower($component['name'] ?? '');
