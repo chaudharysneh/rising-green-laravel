@@ -298,8 +298,9 @@ $company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_
                             <div style="line-height:22px;color:#000">
                                 <strong
                                     style="font-size:18px;color:#000"><?php echo htmlspecialchars($settings['company_name'] ?? ($user['company'] ?? 'Rising Green Energy')); ?></strong><br>
-                                <?php echo htmlspecialchars($settings['company_address'] ?? ($user['address'] ?? '--')); ?><br>
-                                <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
+                                <div style="max-width: 250px; display: inline-block; text-align: right; white-space: normal;">
+                                    <?php echo htmlspecialchars($settings['company_address'] ?? ($user['address'] ?? '--')); ?>
+                                </div><br>
                             </div>
                         </td>
                     </tr>
