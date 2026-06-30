@@ -763,7 +763,16 @@
                                             <div class="notification-message">No notifications yet.</div>
                                         </div>
                                     @endforelse
-                                    <a class="view-all-notifications" href="{{ route('notifications.list') }}">View all notifications</a>
+                                    <div class="d-flex border-top w-100 bg-white notification-buttons-container">
+                                        <a href="{{ route('notifications.list') }}" class="btn flex-fill rounded-0 py-2 border-end"
+                                           style="background-color: #eef2ff; color: #4f46e5; font-size: 0.9rem; font-weight: 600; border: none;">
+                                            <i class="bi bi-list-ul"></i> View All
+                                        </a>
+                                        <button type="button" class="btn flex-fill rounded-0 py-2" id="clearAllNotifications"
+                                                style="background-color: #fef2f2; color: #dc2626; font-size: 0.9rem; font-weight: 600; border: none;">
+                                            <i class="bi bi-trash"></i> Clear All
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1100,7 +1109,11 @@
                                         const emptyState = document.createElement('div');
                                         emptyState.className = 'notification-row';
                                         emptyState.innerHTML = '<span class="notification-avatar"><i class="bi bi-bell"></i></span><div class="notification-message">No notifications yet.</div>';
-                                        dropdown.insertBefore(emptyState, dropdown.querySelector('.view-all-notifications'));
+                                        const listGroup = dropdown.querySelector('.list-group');
+                                        const btnContainer = listGroup ? listGroup.querySelector('.notification-buttons-container') : null;
+                                        if (listGroup) {
+                                            listGroup.insertBefore(emptyState, btnContainer);
+                                        }
                                     }
                                 }, 300);
                             }
@@ -1112,6 +1125,43 @@
                         console.error('Error:', error);
                     });
                 }
+            });
+
+            // Clear All Handler
+            document.getElementById('clearAllNotifications')?.addEventListener('click', function () {
+                fetch('{{ route('notifications.deleteAll') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof window.showAlert === 'function') {
+                            window.showAlert('success', data.message || 'All notifications deleted');
+                        }
+                        const dropdown = document.querySelector('.notifications-dropdown');
+                        if (dropdown) {
+                            const listGroup = dropdown.querySelector('.list-group');
+                            if (listGroup) {
+                                listGroup.querySelectorAll('.notification-row').forEach(row => row.remove());
+                                const emptyState = document.createElement('div');
+                                emptyState.className = 'notification-row';
+                                emptyState.innerHTML = '<span class="notification-avatar"><i class="bi bi-bell"></i></span><div class="notification-message">No notifications yet.</div>';
+                                listGroup.insertBefore(emptyState, listGroup.querySelector('.notification-buttons-container'));
+                            }
+                        }
+                        const badge = document.querySelector('.notification-btn .badge');
+                        if (badge) badge.remove();
+                    } else {
+                        if (typeof window.showAlert === 'function') {
+                            window.showAlert('error', data.message || 'Failed to delete notifications');
+                        }
+                    }
+                });
             });
         });
     </script>

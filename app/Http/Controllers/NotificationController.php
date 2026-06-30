@@ -146,6 +146,36 @@ class NotificationController extends Controller
     }
 
     /**
+     * Mark all notifications as read for the logged-in user.
+     * PATCH: /notifications/mark-all-read
+     */
+    public function markAllAsRead()
+    {
+        $updated = Notification::where('user_id', Auth::id())
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "All notifications marked as read ({$updated} updated).",
+        ]);
+    }
+
+    /**
+     * Delete all notifications for the logged-in user.
+     * DELETE: /notifications/delete-all
+     */
+    public function deleteAll()
+    {
+        $deleted = Notification::where('user_id', Auth::id())->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "All notifications deleted ({$deleted} removed).",
+        ]);
+    }
+
+    /**
      * Save push subscription for the logged-in user.
      * POST: /notifications/subscribe
      */

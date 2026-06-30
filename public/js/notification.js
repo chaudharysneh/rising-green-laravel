@@ -57,17 +57,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">
-                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                    <div class="ms-3">
+                        <button class="btn btn-sm bg-white mark-as-read-ajax d-flex align-items-center gap-1 border-0 shadow-none" type="button" data-id="${notification.id}" style="color: #3b82f6; font-weight: 500; font-size: 0.85rem;">
+                            <i class="fa-solid fa-check" style="font-size: 0.75rem;"></i> Read
                         </button>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <button class="dropdown-item mark-as-read-ajax fw-semibold" type="button"
-                                data-id="${notification.id}">
-                                <i class="fa-solid fa-check-double me-2"></i>Mark as Read
-                            </button>
-                        </div>
                     </div>
                 </div>
             `).join("");
@@ -161,6 +154,74 @@
         }
 
         function attachEvents() {
+            const btnMarkAllRead = document.getElementById('btnMarkAllRead');
+            if (btnMarkAllRead) {
+                const newBtn = btnMarkAllRead.cloneNode(true);
+                btnMarkAllRead.parentNode.replaceChild(newBtn, btnMarkAllRead);
+                newBtn.addEventListener('click', function () {
+                    fetch(`/notifications/mark-all-read`, {
+                        method: 'PATCH',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if(d.success) {
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('success', d.message || 'All notifications marked as read');
+                            }
+                            fetchNotifications();
+                        } else {
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('error', d.message || 'Failed to update notifications');
+                            }
+                        }
+                    });
+                });
+            }
+
+            const btnDeleteAll = document.getElementById('btnDeleteAll');
+            if (btnDeleteAll) {
+                const newBtn = btnDeleteAll.cloneNode(true);
+                btnDeleteAll.parentNode.replaceChild(newBtn, btnDeleteAll);
+                newBtn.addEventListener('click', function () {
+                    const deleteAction = () => {
+                        fetch(`/notifications/delete-all`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(r => r.json())
+                        .then(d => {
+                            if(d.success) {
+                                if (typeof window.showAlert === 'function') {
+                                    window.showAlert('success', d.message || 'All notifications deleted');
+                                }
+                                fetchNotifications();
+                            } else {
+                                if (typeof window.showAlert === 'function') {
+                                    window.showAlert('error', d.message || 'Failed to delete notifications');
+                                }
+                            }
+                        });
+                    };
+
+                    if (typeof window.showDeleteConfirm === 'function') {
+                        window.showDeleteConfirm("Are you sure you want to delete all notifications?").then((result) => {
+                            if (result.isConfirmed) deleteAction();
+                        });
+                    } else {
+                        if (confirm('Are you sure you want to delete all notifications?')) deleteAction();
+                    }
+                });
+            }
+
             document.querySelectorAll('.mark-as-read-ajax').forEach(button => {
                 button.addEventListener('click', function () {
                     const id = this.getAttribute('data-id');
