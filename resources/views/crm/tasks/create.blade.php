@@ -25,7 +25,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-diagram-project me-2 text-muted"></i>Estimates</label>
                             <select name="estimate_id" id="estimate_id"
-                                class="form-select @error('estimate_id') is-invalid @enderror" required>
+                                class="form-select searchable-select @error('estimate_id') is-invalid @enderror" required>
                                 <option value="">Select Estimates</option>
                                 @foreach($estimates as $estimate)
                                     <option value="{{ $estimate->estimate_id }}" @selected(old('estimate_id') == $estimate->estimate_id)>
@@ -85,7 +85,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-arrow-up-long me-2 text-muted"></i>Priority</label>
                             <select name="priority" id="priority"
-                                class="form-select @error('priority') is-invalid @enderror">
+                                class="form-select searchable-select @error('priority') is-invalid @enderror">
                                 <option value="">Select Priority</option>
                                 <option value="low" @selected(old('priority') === 'low')>Low</option>
                                 <option value="medium" @selected(old('priority') === 'medium')>Medium</option>
@@ -96,7 +96,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-circle-info me-2 text-muted"></i>Status</label>
-                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
+                            <select name="status" id="status" class="form-select searchable-select @error('status') is-invalid @enderror">
                                 <option value="">Select Status</option>
                                 <option value="pending" @selected(old('status') === 'pending')>Pending</option>
                                 <option value="in_progress" @selected(old('status') === 'in_progress')>In Progress</option>
