@@ -233,6 +233,9 @@
         const fields = body.querySelectorAll('input, select, textarea, button');
         fields.forEach((el) => {
             el.disabled = !enabled;
+            if (window.CKEDITOR && el.tagName === 'TEXTAREA' && CKEDITOR.instances && CKEDITOR.instances[el.id]) {
+                CKEDITOR.instances[el.id].setReadOnly(!enabled);
+            }
         });
     }
 
@@ -260,7 +263,10 @@
         const el = document.getElementById(textareaId);
         if (!el) return;
         if (CKEDITOR.instances && CKEDITOR.instances[textareaId]) return;
-        CKEDITOR.replace(textareaId);
+        const editor = CKEDITOR.replace(textareaId);
+        editor.on('instanceReady', function () {
+            editor.setReadOnly(!!el.disabled);
+        });
     }
 
     function initEditorsForPdfStep(stepNum) {
@@ -269,6 +275,7 @@
         }
         if (stepNum === 3) {
             initCkeditorIfPresent('components_description');
+            initCkeditorIfPresent('estimate_template_comment');
         }
         if (stepNum === 4) {
             initCkeditorIfPresent('environment_impact_content');
@@ -345,6 +352,7 @@
         } else {
             initCkeditorIfPresent('company_description');
             initCkeditorIfPresent('components_description');
+            initCkeditorIfPresent('estimate_template_comment');
             initCkeditorIfPresent('environment_impact_content');
         }
 

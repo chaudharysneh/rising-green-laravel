@@ -43,6 +43,9 @@
 
     $ongridRoiSection = $formData['ongrid_roi'] ?? [];
     $ongridRoiSection = is_array($ongridRoiSection) ? $ongridRoiSection : [];
+
+    $estimateCommentSection = $formData['estimate_comment'] ?? [];
+    $estimateCommentSection = is_array($estimateCommentSection) ? $estimateCommentSection : [];
 @endphp
 
 @push('styles')
@@ -591,6 +594,36 @@
                         <hr class="my-4">
 
                         <!-- PAYMENT TERMS -->
+                        <div class="payment-terms-block mt-4" id="block-estimate-comment">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-comment-dots"></i> Estimate Comment</h5>
+                                <div class="form-check form-switch mb-0">
+                                    <input type="hidden" id="estimate_comment_active" name="estimate_comment_active" value="{{ (int)($estimateCommentSection['active'] ?? 0) }}">
+                                    <input class="form-check-input block-toggle"
+                                           type="checkbox"
+                                           role="switch"
+                                           id="toggle-estimate-comment"
+                                           data-target="#block-estimate-comment-body"
+                                           data-active-input="#estimate_comment_active"
+                                           {{ ((int)($estimateCommentSection['active'] ?? 0) === 1) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="toggle-estimate-comment">Active/Inactive</label>
+                                </div>
+                            </div>
+                            <div id="block-estimate-comment-body" class="block-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label"><i class="fas fa-align-left"></i> Comment</label>
+                                        <textarea class="form-control"
+                                                  id="estimate_template_comment"
+                                                  name="estimate_template_comment"
+                                                  rows="4"
+                                                  placeholder="Enter default estimate comment...">{{ $estimateCommentSection['content'] ?? '' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+
                         <div class="payment-terms-block mt-4" id="block-payment-terms">
                             <div class="d-flex align-items-center justify-content-between mb-3">
                                 <h5 class="text-primary mb-0"><i class="fas fa-clock"></i> Payment Terms</h5>

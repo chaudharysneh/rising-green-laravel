@@ -589,6 +589,7 @@
         initCalculations();
         initQuickAddBom();
         initEstimateNameFromCustomer();
+        initTemplateCommentAutofill();
 
         $('body').off('submit.estimate').on('submit.estimate', '.ajax-estimate-form', function (e) {
             e.preventDefault();
@@ -1127,6 +1128,52 @@
         }
 
         return isValid;
+    }
+
+    function htmlToPlainText(html) {
+        const holder = document.createElement('div');
+        holder.innerHTML = String(html || '')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>/gi, '\n')
+            .replace(/<\/div>/gi, '\n');
+        return (holder.textContent || holder.innerText || '')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
+    function initTemplateCommentAutofill() {
+        const templateSelect = document.getElementById('template_id');
+        const commentField = document.getElementById('comment');
+        const templates = window.estimateTemplateComments || {};
+
+        if (!templateSelect || !commentField) {
+            return;
+        }
+
+        const fillFromSelectedTemplate = function (overwrite) {
+            const config = templates[String(templateSelect.value)] || {};
+            if (parseInt(config.active || 0, 10) !== 1) {
+                return;
+            }
+
+            const commentText = htmlToPlainText(config.content || '');
+            if (commentText && (overwrite || !commentField.value.trim())) {
+                commentField.value = commentText;
+                commentField.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+
+        templateSelect.addEventListener('change', function () {
+            fillFromSelectedTemplate(true);
+        });
+
+        if (window.jQuery) {
+            window.jQuery(templateSelect).on('change select2:select', function () {
+                fillFromSelectedTemplate(true);
+            });
+        }
+
+        fillFromSelectedTemplate(false);
     }
 
     function validateTopFieldsBeforeBom(showErrors) {
