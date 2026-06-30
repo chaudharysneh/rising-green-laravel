@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
-use App\Models\Category;
 use App\Models\ProductInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -37,6 +37,8 @@ class ProductController extends ApiBaseController
 
     public function store(Request $request)
     {
+        $this->normalizeCategoryId($request);
+
         $validator = Validator::make($request->all(), $this->rules(), $this->messages());
 
         if ($validator->fails()) {
@@ -85,6 +87,8 @@ class ProductController extends ApiBaseController
 
     public function update(Request $request, Product $product)
     {
+        $this->normalizeCategoryId($request);
+
         $validator = Validator::make($request->all(), $this->rules($product), $this->messages());
 
         if ($validator->fails()) {
@@ -182,13 +186,58 @@ class ProductController extends ApiBaseController
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'exists:product_categories,id'],
+            'category_id' => ['required', 'exists:categories,id'],
             'quantity' => ['required', 'integer', 'min:0'],
             'availability' => ['nullable', 'in:in_stock,out_of_stock'],
             'serial_no' => ['nullable', 'string', 'max:255', Rule::unique('products', 'serial_no')->ignore($product?->id)->whereNull('deleted_at')],
             'status' => ['nullable', 'in:active,inactive'],
             'description' => ['nullable', 'string'],
         ];
+    }
+
+    private function normalizeCategoryId(Request $request): void
+    {
+        $categoryValue = trim((string) $request->input('category_id', ''));
+
+        if ($categoryValue === '') {
+            return;
+        }
+
+        if (ctype_digit($categoryValue)) {
+            if (DB::table('categories')->where('id', $categoryValue)->exists()) {
+                return;
+            }
+
+            $legacyCategory = DB::table('product_categories')
+                ->where('id', $categoryValue)
+                ->first();
+
+            if (!$legacyCategory) {
+                return;
+            }
+
+            $categoryValue = $legacyCategory->name;
+        }
+
+        $category = DB::table('categories')
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($categoryValue)])
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$category) {
+            $categoryId = DB::table('categories')->insertGetId([
+                'name' => $categoryValue,
+                'created_by' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            $categoryId = $category->id;
+        }
+
+        $request->merge([
+            'category_id' => $categoryId,
+        ]);
     }
 
     private function messages(): array

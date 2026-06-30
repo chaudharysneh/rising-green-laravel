@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Sales;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\HandoverPerson;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SalesController extends Controller
@@ -21,7 +21,10 @@ class SalesController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $products = Product::with('inventories')->orderBy('name')->get();
-        $categories = ProductCategory::orderBy('name')->get();
+        $categories = DB::table('categories')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['id', 'name']);
         $handoverPersons = HandoverPerson::orderBy('name')->get();
 
         return view('crm.sales.create', compact('customers', 'products', 'categories', 'handoverPersons'));
@@ -37,11 +40,15 @@ class SalesController extends Controller
     public function edit(Sales $sale)
     {
         $customers = Customer::orderBy('name')->get();
-        $products = Product::orderBy('name')->get();
+        $products = Product::with('inventories')->orderBy('name')->get();
+        $categories = DB::table('categories')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['id', 'name']);
         $handoverPersons = HandoverPerson::orderBy('name')->get();
         $sale->load(['customer', 'product', 'handoverPerson']);
 
-        return view('crm.sales.edit', compact('sale', 'customers', 'products', 'handoverPersons'));
+        return view('crm.sales.edit', compact('sale', 'customers', 'products', 'categories', 'handoverPersons'));
     }
 
     public function downloadPdf(Sales $sale)
