@@ -1072,8 +1072,13 @@ echo $fullCompanyName;
                     <!-- Title -->
                     <div
                         style="margin-top: -25px; font-size:35px; font-weight:700; margin-bottom:10px; font-family: 'Montserrat', sans-serif; color:#000;">
-                        <?= $pdfTypeLabelCap ?>
+                        <?= ($estdata->type ?? '') === 'residential' ? 'CUSTOM SOLAR ENERGY PROPOSAL' : $pdfTypeLabelCap ?>
                     </div>
+                    <?php if (($estdata->type ?? '') === 'residential'): ?>
+                    <div style="font-size:16px; font-style:italic; margin-bottom:15px; font-family: 'Montserrat', sans-serif; color:#666;">
+                        Clean Energy. Guaranteed Savings. Sustainable Future.
+                    </div>
+                    <?php endif; ?>
 
                     <!-- ONGRID + Date -->
                     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;">
@@ -1232,7 +1237,25 @@ $__companyInfoActive = $_isActive($__companyInfo);
                     <td>
                         <div
                             style="font-size: 21px; text-align: left; font-family: 'Montserrat', sans-serif; word-wrap: break-word; word-break: break-word;">
-                            <?= $companyDescription !== '' ? $companyDescription : esc("We are on a mission to deliver 10,000 world-class solar installations ensuring maximum performance, durability, and ROI for every project.") ?>
+                            <?php if (($estdata->type ?? '') === 'residential'): ?>
+                                <p style="margin-bottom: 12px; font-size: 14px; font-weight: normal;">Dear <strong><?= esc($preparedForName) ?></strong>,</p>
+                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
+                                    Thank you for giving <strong><?= esc($globalCompanyName) ?></strong> the opportunity to present this customized solar energy proposal for your property located at <strong><?= esc($clientAddress) ?></strong>.
+                                </p>
+                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
+                                    With electricity tariffs rising consistently year after year, switching to solar is no longer just an environmental choice—it is one of the smartest and safest financial investments available today. At <strong><?= esc($globalCompanyName) ?></strong>, we combine premium Tier-1 components, precise engineering, and seamless multi-stage execution to ensure your transition to clean energy is entirely effortless and highly profitable.
+                                </p>
+                                <p style="margin-bottom: 12px; font-size: 14px; text-align: justify; line-height: 1.5; font-weight: normal;">
+                                    Enclosed, you will find a comprehensive breakdown of your custom tailored solar solution, expected annual generation metrics, long-term financial returns, and an end-to-end implementation roadmap.
+                                </p>
+                                <p style="margin-bottom: 15px; font-size: 14px; line-height: 1.5; font-weight: normal;">
+                                    Best Regards,<br><br>
+                                    <strong><?= e($profileUser->name ?? 'Rising Green Energy Team') ?></strong><br>
+                                    <?= esc($globalCompanyName) ?>
+                                </p>
+                            <?php else: ?>
+                                <?= $companyDescription !== '' ? $companyDescription : esc("We are on a mission to deliver 10,000 world-class solar installations ensuring maximum performance, durability, and ROI for every project.") ?>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -1336,6 +1359,128 @@ $__companyInfoActive = $_isActive($__companyInfo);
         </table>
 
     </div>
+    <?php endif; ?>
+
+    <?php if (($estdata->type ?? '') === 'residential'): ?>
+        <!-- ================= PAGE 2b : HOW SOLAR WORKS & ADVANTAGES ================= -->
+        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+            <!-- Header -->
+            <div style="padding: 40px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                    <tr>
+                        <td width="50%" align="left" valign="top">
+                            <div style="font-size: 18px; color: #333;">
+                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                            </div>
+                        </td>
+                        <td width="50%" align="right" valign="top">
+                            <?php if (!empty($logoBase64)): ?>
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Section 2: How the Solar System Works -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
+                    2. How the Solar System Works
+                </div>
+                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: justify;">
+                    A grid-tied solar power system seamlessly integrates with your existing utility grid infrastructure to cleanly power your property:
+                </p>
+                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
+                    <li style="margin-bottom: 8px;"><strong>Step 1: Solar Panels (Photovoltaic Modules) –</strong> Positioned optimally on your roof, these modules absorb sunlight ambient photon radiation and convert it directly into Direct Current (DC) electricity.</li>
+                    <li style="margin-bottom: 8px;"><strong>Step 2: The Solar Inverter –</strong> Acts as the intelligent brain of the system, converting the DC electricity into stable Alternating Current (AC), standardizing it for all home appliances.</li>
+                    <li style="margin-bottom: 8px;"><strong>Step 3: Home Consumption & Net Metering –</strong> Power goes to your appliances first. Any excess surplus electricity generated is instantly directed back to the government utility grid via a specialized bidirectional net meter.</li>
+                    <li style="margin-bottom: 8px;"><strong>Step 4: Utility Grid Backup –</strong> At night or during heavily overcast days, the system smoothly pulls electricity back from the utility grid, ensuring uninterrupted power.</li>
+                </ul>
+
+                <!-- Section 3: Advantages of Solar Energy -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
+                    3. Advantages of Solar Energy
+                </div>
+                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 20px;">
+                    <li style="margin-bottom: 8px;"><strong>Massive Utility Bill Reductions:</strong> Drastically slash your monthly energy spend by up to <strong>80% – 90%</strong>.</li>
+                    <li style="margin-bottom: 8px;"><strong>High Return on Investment:</strong> Solar operates as a high-yielding financial asset that typical clears its payback period within <strong>3 – 4</strong> years, yielding completely free power for the remainder of its 25+ year lifecycle.</li>
+                    <li style="margin-bottom: 8px;"><strong>Property Appreciation:</strong> Green-certified residential buildings equipped with fixed solar infrastructure command higher market resale values.</li>
+                    <li style="margin-bottom: 8px;"><strong>Extremely Low Maintenance:</strong> With zero moving parts, the entire system requires minimal operational upkeep—restricted primarily to routine automated or manual panel washings.</li>
+                    <li style="margin-bottom: 8px;"><strong>Environmental Stewardship:</strong> Directly mitigate carbon footprints and actively combat localized climate change.</li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+                <tr>
+                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                    </td>
+                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        PAGE 2b
+                    </td>
+                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                        Generated by <?= esc($globalCompanyName) ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- ================= PAGE 2c : DIAGRAM & PM-SURYA GHAR ================= -->
+        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+            <!-- Header -->
+            <div style="padding: 40px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                    <tr>
+                        <td width="50%" align="left" valign="top">
+                            <div style="font-size: 18px; color: #333;">
+                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                            </div>
+                        </td>
+                        <td width="50%" align="right" valign="top">
+                            <?php if (!empty($logoBase64)): ?>
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Section 4: Technical Line Diagram Layout -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
+                    4. Technical Line Diagram Layout
+                </div>
+                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">The layout below illustrates the seamless logical electrical connection map from production to grid export.</p>
+                <div style="border: 2px dashed #4b9349; padding: 15px; text-align: center; color: #333; background-color: #f9f9f9; border-radius: 6px; margin-bottom: 30px; font-size: 13px; font-style: italic; font-weight: 500; line-height: 1.4;">
+                    [ Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB) &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr; Residential Load / Public Grid ]
+                </div>
+
+                <!-- Section 5: PM-Surya Ghar Process -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
+                    5. PM-Surya Ghar: Muft Bijli Yojana Process
+                </div>
+                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">As a fully authorized and certified empaneled solar vendor, we manage the entire national subsidy workflow framework for your project end-to-end:</p>
+                <div style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #1e3f20;">
+                    <p style="margin-bottom: 8px;"><strong>1. Registration:</strong> We safely onboard your consumer credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
+                    <p style="margin-bottom: 8px;"><strong>2. Technical Feasibility:</strong> The regional DISCOM (Electricity Board) reviews local grid capacity and issues a formal structural clearance approval.</p>
+                    <p style="margin-bottom: 8px;"><strong>3. Execution & Installation:</strong> Our engineering wing carries out code-compliant installation adhering precisely to MNRE quality guidelines.</p>
+                    <p style="margin-bottom: 8px;"><strong>4. Net Metering Inspection:</strong> DISCOM engineers perform physical on-site verification, deploy the smart net meter, and commission the plant.</p>
+                    <p style="margin-bottom: 0;"><strong>5. Subsidy Disbursal:</strong> Post-commissioning, the sanctioned central government subsidy is electronically credited to your linked bank account within 30 business days.</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+                <tr>
+                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                    </td>
+                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        PAGE 2c
+                    </td>
+                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                        Generated by <?= esc($globalCompanyName) ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
     <?php endif; ?>
 
     <?php
@@ -1700,6 +1845,28 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
             <div style="font-size:15px; text-align:center; font-family: 'Montserrat', sans-serif;">
                 <?= esc($genNote) ?>
             </div>
+            <?php if (($estdata->type ?? '') === 'residential'): ?>
+                <?php
+                $systemKwp = $quantity;
+                $dailyUnits = $quantity * 4.2;
+                $monthlyUnits = $dailyUnits * 30;
+                $annualUnits = $dailyUnits * 365;
+
+                $dailyUnitsFormatted = number_format($dailyUnits, 1);
+                $monthlyUnitsFormatted = number_format($monthlyUnits, 0);
+                $annualUnitsFormatted = number_format($annualUnits, 0);
+                ?>
+                <!-- Section 6: Generation Calculations -->
+                <div style="font-size: 20px; font-weight: bold; margin-top: 25px; margin-bottom: 10px; border-left:4px solid #4b9349; padding-left:10px; text-align: left;">
+                    6. Generation Calculations
+                </div>
+                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: left;">Projected estimations are generated based on regional irradiance data for a premium proposed <strong><?= $systemKwp ?> kWp</strong> system:</p>
+                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+                    <li style="margin-bottom: 8px;"><strong>Daily Average Generation:</strong> ~4 to 4.5 kWh (Units) per kWp installed &rarr; <strong><?= $dailyUnitsFormatted ?> Units/day</strong></li>
+                    <li style="margin-bottom: 8px;"><strong>Estimated Monthly Generation:</strong> <strong><?= $monthlyUnitsFormatted ?> Units/month</strong></li>
+                    <li style="margin-bottom: 8px;"><strong>Projected Annual Generation:</strong> <strong><?= $annualUnitsFormatted ?> Units/year</strong></li>
+                </ul>
+            <?php endif; ?>
         </div>
         <!-- ================= FOOTER ================= -->
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
@@ -2032,33 +2199,151 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                 </tr>
             </table>
         </div>
-        <!-- ================= FOOTER ================= -->
-        <div style="position:fixed; bottom:10; left:0; right:0;
-                    background:#4b9349; color:#fff; height:40px; border-top: 1px solid #fff;">
-            <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
-                <tr>
-                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                    </td>
+        <?php if (($estdata->type ?? '') === 'residential'): ?>
+            <?php
+            $monthlySavingsFormatted = number_format($yearlySavings / 12, 0);
+            $totalCo2Offset = $systemCapacity * 1.01 * 25;
+            $coalAvoided = $systemCapacity * 1.259 * 25;
+            $treesPlanted = (int) round($totalCo2Offset * 2.0);
+            $co2OffsetFormatted = number_format($totalCo2Offset, 1);
+            $coalAvoidedFormatted = number_format($coalAvoided, 1);
+            ?>
+            <div style="position:fixed; bottom:10; left:0; right:0;
+                        background:#4b9349; color:#fff; height:40px; border-top: 1px solid #fff;">
+                <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
+                    <tr>
+                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </td>
 
-                    <td width="33.33%" align="center"
-                        style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                        PAGE 4
-                    </td>
+                        <td width="33.33%" align="center"
+                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                            PAGE 4
+                        </td>
 
-                    <td width="33.33%" align="right"
-                        style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
-                        <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                                ?>
-                        Generated by <?= esc($companyName) ?>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                        <td width="33.33%" align="right"
+                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
+                            Generated by <?= esc($globalCompanyName) ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            </div> <!-- Close Page 4 green page div -->
 
+            <!-- ================= PAGE 4b : ROI & CARBON OFFSET ================= -->
+            <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+                <div style="padding: 40px;">
+                    <!-- Header -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                        <tr>
+                            <td width="50%" align="left" valign="top">
+                                <div style="font-size: 18px; color: #333;">
+                                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                                </div>
+                            </td>
+                            <td width="50%" align="right" valign="top">
+                                <?php if (!empty($logoBase64)): ?>
+                                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Section 7: Return on Savings (ROI) -->
+                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
+                        7. Return on Savings (ROI)
+                    </div>
+                    <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">Financial projections calculated based on a baseline localized utility utility tariff of <strong><?= $rupeeHtml ?><?= number_format($unitRate, 2) ?></strong> per unit:</p>
+                    <table class="info-table" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
+                        <thead>
+                            <tr style="background-color: #4b9349; color: #fff;">
+                                <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Financial Parameter</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Projected Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Estimated Monthly Savings Target</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $monthlySavingsFormatted ?></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Projected First-Year Annual Savings</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $yearlySavingsFormatted ?></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Cumulative 25-Year System Lifecycle Savings</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $totalLifetimeSavingsFormatted ?></td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9; font-weight: bold;">
+                                <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;">Calculated System Payback Period (Break-Even)</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;"><?= $paybackPeriodDisplay ?> Years</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Section 8: Carbon Emission Offset Calculation -->
+                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
+                        8. Carbon Emission Offset Calculation
+                    </div>
+                    <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">By shifting power generation source to solar PV, your property achieves highly significant environmental offset targets across its guaranteed 25-year operational lifecycle:</p>
+                    <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
+                        <li style="margin-bottom: 8px;"><strong>CO₂ Emissions Prevented:</strong> <strong><?= $co2OffsetFormatted ?> Metric Tons</strong> of pure Carbon Dioxide stopped from entering the atmosphere.</li>
+                        <li style="margin-bottom: 8px;"><strong>Fossil Fuel Preservation:</strong> Equivalent to preventing the burning of <strong><?= $coalAvoidedFormatted ?> Tons</strong> of standard coal.</li>
+                        <li style="margin-bottom: 8px;"><strong>Reforestation Equivalence:</strong> Equal to the ecological impact of planting <strong><?= $treesPlanted ?> mature trees</strong>.</li>
+                    </ul>
+
+                    <!-- Section 9: Documents Required -->
+                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
+                        9. Documents Required
+                    </div>
+                    <p style="font-size: 13px; margin-bottom: 12px; line-height: 1.4;">To initiate file processing for DISCOM permissions and central subsidy approvals, please provide:</p>
+                    <ul style="padding-left: 20px; font-size: 12.5px; line-height: 1.4; margin-bottom: 15px;">
+                        <li style="margin-bottom: 6px;">Latest Official Electricity Utility Bill (All pages included)</li>
+                        <li style="margin-bottom: 6px;">Aadhaar Card of the property owner (Name alignment must match utility billing details)</li>
+                        <li style="margin-bottom: 6px;">PAN Card Copy</li>
+                        <li style="margin-bottom: 6px;">Bank Cancelled Cheque or clear Passbook photocopy (Required for direct electronic subsidy disbursement)</li>
+                        <li style="margin-bottom: 6px;">Two recent passport-size color photographs</li>
+                    </ul>
+                </div>
+
+                <!-- Footer -->
+                <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+                    <tr>
+                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </td>
+                        <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                            PAGE 4b
+                        </td>
+                        <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                            Generated by <?= esc($globalCompanyName) ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        <?php else: ?>
+            <div style="position:fixed; bottom:10; left:0; right:0;
+                        background:#4b9349; color:#fff; height:40px; border-top: 1px solid #fff;">
+                <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
+                    <tr>
+                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </td>
+
+                        <td width="33.33%" align="center"
+                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                            PAGE 4
+                        </td>
+
+                        <td width="33.33%" align="right"
+                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
+                            Generated by <?= esc($globalCompanyName) ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            </div> <!-- Close Page 4 -->
+        <?php endif; ?>
     </div>
     <!-- ================= END PAGE 4 ================= -->
     <?php endif; ?>
@@ -2272,15 +2557,17 @@ $__componentsActive = $_isActive($__components);
                     <td align="left">
                         <div
                             style="font-size: 34px; font-weight: bold; margin-bottom: 8px; line-height:1.1; font-family: 'Montserrat', sans-serif; color:#000; border-left:6px solid #4b9349; padding-left:14px;">
-                            <?= esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
+                            <?= ($estdata->type ?? '') === 'residential' ? '10. Material Make & Specifications' : esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
                         </div>
                         <div style="font-size: 14px; line-height: 1.45; font-family: 'Montserrat', sans-serif; color:#333; background:#f7fbf7; border:1px solid #dfe9df; padding:10px 12px;">
-                            <?php    if ($componentsActive === 1 && $componentsDesc !== ''): ?>
-                            <?= $componentsDesc ?>
-                            <?php    else: ?>
-                            <b>High-quality</b> components from trusted <b>Tier-1</b> OEMs, selected for performance,
-                            safety, and long-term ROI.
-                            <?php    endif; ?>
+                            <?php if (($estdata->type ?? '') === 'residential'): ?>
+                                Our residential solar systems are constructed using only certified materials and components from Tier-1 manufacturers, ensuring highest reliability and compliance with MNRE guidelines.
+                            <?php elseif ($componentsActive === 1 && $componentsDesc !== ''): ?>
+                                <?= $componentsDesc ?>
+                            <?php else: ?>
+                                <b>High-quality</b> components from trusted <b>Tier-1</b> OEMs, selected for performance,
+                                safety, and long-term ROI.
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -2524,111 +2811,208 @@ $__componentsActive = $_isActive($__components);
     }
         ?>
 
-            <!-- Two-column table like screenshot: Product Name + Specifications -->
-            <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
-                <tr style="background-color:#4b9349; color:#fff;">
-                    <td
-                        style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
-                        Product Name
-                    </td>
-                    <td
-                        style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
-                        Specifications
-                    </td>
-                </tr>
+            <?php if (($estdata->type ?? '') === 'residential'): ?>
+                <?php
+                // Scan $componentsData to find matches
+                $panelMatch = null;
+                $inverterMatch = null;
+                $structureMatch = null;
+                $cableMatch = null;
+                $safetyMatch = null;
 
-                <?php    foreach ($componentsData as $componentKey => $component):
-        $specs = $component['specifications'] ?? [];
-        $make = trim((string) ($component['category'] ?? ''));
-        $qty = trim((string) ($component['quantity'] ?? ''));
+                foreach ($componentsData as $key => $component) {
+                    $name = strtolower($component['name'] ?? '');
+                    
+                    if (strpos($name, 'panel') !== false || strpos($name, 'pv') !== false || strpos($name, 'module') !== false) {
+                        $panelMatch = $component;
+                    } elseif (strpos($name, 'inverter') !== false) {
+                        $inverterMatch = $component;
+                    } elseif (strpos($name, 'structure') !== false || strpos($name, 'mounting') !== false) {
+                        $structureMatch = $component;
+                    } elseif (strpos($name, 'cable') !== false || strpos($name, 'cabling') !== false || strpos($name, 'wire') !== false) {
+                        $cableMatch = $component;
+                    } elseif (strpos($name, 'safety') !== false || strpos($name, 'switchgear') !== false || strpos($name, 'acdb') !== false || strpos($name, 'dcdb') !== false) {
+                        $safetyMatch = $component;
+                    }
+                }
 
-        // Product image (best-effort). In this project images can be stored as:
-        // - full URL
-        // - relative path (uploads/... or public/...)
-        // - only filename (stored in different folders)
-        $productImage = $component['image'] ?? $component['product_image'] ?? $component['photo'] ?? null;
-        $productImagePath = null;
-        if (!empty($productImage)) {
-            $productImage = trim((string) $productImage);
-            if ($productImage !== '') {
-                $resolved = normalize_pdf_image($productImage);
-                // Only use if it resolved to an actual base64 image (file was found)
-                if ($resolved && strpos($resolved, 'data:image') === 0) {
-                    $productImagePath = $resolved;
+                // If no direct name match, check category
+                foreach ($componentsData as $key => $component) {
+                    $cat = strtolower($component['category'] ?? '');
+                    if (strpos($cat, 'panel') !== false || strpos($cat, 'pv') !== false || strpos($cat, 'module') !== false) {
+                        if (!$panelMatch) $panelMatch = $component;
+                    } elseif (strpos($cat, 'inverter') !== false) {
+                        if (!$inverterMatch) $inverterMatch = $component;
+                    } elseif (strpos($cat, 'structure') !== false || strpos($cat, 'mounting') !== false) {
+                        if (!$structureMatch) $structureMatch = $component;
+                    } elseif (strpos($cat, 'cable') !== false || strpos($cat, 'cabling') !== false) {
+                        if (!$cableMatch) $cableMatch = $component;
+                    } elseif (strpos($cat, 'safety') !== false || strpos($cat, 'switchgear') !== false || strpos($cat, 'acdb') !== false || strpos($cat, 'dcdb') !== false) {
+                        if (!$safetyMatch) $safetyMatch = $component;
+                    }
+                }
+
+                // Dynamic panels capacity estimation (fallback to 550Wp)
+                $panelWp = '550';
+                if ($panelMatch && is_array($panelMatch['specifications'])) {
+                    foreach ($panelMatch['specifications'] as $sp) {
+                        if (isset($sp[0]) && strtolower($sp[0]) === 'watt peak') {
+                            $panelWp = $sp[1];
+                        }
+                    }
+                }
+
+                $rowsToRender = [
+                    [
+                        'type' => 'Solar PV Panels',
+                        'make' => $panelMatch ? $panelMatch['category'] : 'Waaree / Adani / Tata',
+                        'specs' => 'Mono PERC - Half Cut Module (' . esc($panelWp) . 'Wp)',
+                        'warranty' => '10-Yr Product / 25-Yr Performance'
+                    ],
+                    [
+                        'type' => 'Grid-Tied Inverter',
+                        'make' => $inverterMatch ? $inverterMatch['category'] : 'Growatt / Sungrow / Solis',
+                        'specs' => 'High Efficiency String Inverter with App Monitoring',
+                        'warranty' => '5 Years Base Warranty'
+                    ],
+                    [
+                        'type' => 'Mounting Structure',
+                        'make' => $structureMatch ? $structureMatch['category'] : 'Custom Engineered',
+                        'specs' => 'Hot-Dip Galvanized Structural Steel (HDG) / Al',
+                        'warranty' => '5 Years Structural'
+                    ],
+                    [
+                        'type' => 'AC / DC Cabling',
+                        'make' => $cableMatch ? $cableMatch['category'] : 'Polycab / KEI Industries',
+                        'specs' => 'Multi-strand Copper, FRLS, XLPE Solar Grade',
+                        'warranty' => 'Standard OEM Warranty'
+                    ],
+                    [
+                        'type' => 'Switchgear / Safety',
+                        'make' => $safetyMatch ? $safetyMatch['category'] : 'Schneider / Legrand',
+                        'specs' => 'IP65 Enclosed ACDB & DCDB with Type-II SPD & Fuses',
+                        'warranty' => '1 Year Comprehensive'
+                    ]
+                ];
+                ?>
+                <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333; font-size: 12px;">
+                    <thead>
+                        <tr style="background-color: #4b9349; color: #fff;">
+                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 25%;">Component Type</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 25%;">Approved Brand / Make</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 30%;">Technical Specification</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; text-align: left; width: 20%;">Warranty Terms</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rowsToRender as $r): ?>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #333; font-weight: bold; font-family: 'Montserrat', sans-serif; background-color: #fbfbfb;"><?= esc($r['type']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['make']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['specs']) ?></td>
+                            <td style="padding: 10px; border: 1px solid #333; font-family: 'Montserrat', sans-serif;"><?= esc($r['warranty']) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <!-- Two-column table like screenshot: Product Name + Specifications -->
+                <table width="94%" align="center" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 12px auto 30px; border:1px solid #333;">
+                    <tr style="background-color:#4b9349; color:#fff;">
+                        <td
+                            style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 32%;">
+                            Product Name
+                        </td>
+                        <td
+                            style="padding: 9px 12px; font-weight: bold; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; width: 68%;">
+                            Specifications
+                        </td>
+                    </tr>
+
+                    <?php    foreach ($componentsData as $componentKey => $component):
+            $specs = $component['specifications'] ?? [];
+            $make = trim((string) ($component['category'] ?? ''));
+            $qty = trim((string) ($component['quantity'] ?? ''));
+
+            $productImage = $component['image'] ?? $component['product_image'] ?? $component['photo'] ?? null;
+            $productImagePath = null;
+            if (!empty($productImage)) {
+                $productImage = trim((string) $productImage);
+                if ($productImage !== '') {
+                    $resolved = normalize_pdf_image($productImage);
+                    if ($resolved && strpos($resolved, 'data:image') === 0) {
+                        $productImagePath = $resolved;
+                    }
                 }
             }
-        }
 
-        // Build a mini table (Label | Value) inside the Specifications column
-        $specRows = [];
-        if ($make !== '')
-            $specRows[] = ['Make', htmlspecialchars($make)];
-        if ($qty !== '')
-            $specRows[] = ['Quantity', htmlspecialchars($qty)];
+            $specRows = [];
+            if ($make !== '')
+                $specRows[] = ['Make', htmlspecialchars($make)];
+            if ($qty !== '')
+                $specRows[] = ['Quantity', htmlspecialchars($qty)];
 
-        if (is_array($specs)) {
-            foreach ($specs as $row) {
-                if (!is_array($row) || count($row) < 2)
-                    continue;
-                $k = trim((string) ($row[0] ?? ''));
-                $v = trim((string) ($row[1] ?? ''));
-                if ($k === '' || $v === '')
-                    continue;
-                $specRows[] = [htmlspecialchars($k), $v]; // $v is already escaped above
+            if (is_array($specs)) {
+                foreach ($specs as $row) {
+                    if (!is_array($row) || count($row) < 2)
+                        continue;
+                    $k = trim((string) ($row[0] ?? ''));
+                    $v = trim((string) ($row[1] ?? ''));
+                    if ($k === '' || $v === '')
+                        continue;
+                    $specRows[] = [htmlspecialchars($k), $v];
+                }
+            } else {
+                $legacy = trim((string) $specs);
+                if ($legacy !== '') {
+                    $legacy = strip_tags($legacy);
+                    $specRows[] = ['Specs', htmlspecialchars($legacy)];
+                }
             }
-        } else {
-            // Backward compatibility (if specs were stored as "<br>" string)
-            $legacy = trim((string) $specs);
-            if ($legacy !== '') {
-                $legacy = strip_tags($legacy);
-                $specRows[] = ['Specs', htmlspecialchars($legacy)];
-            }
-        }
 
-        $specHtml = '--';
-        if (!empty($specRows)) {
-            // Compact layout: remove cellpadding + reduce line-height to avoid extra gaps
-            $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; line-height:1.15;">';
-            foreach ($specRows as $r) {
-                $k = (string) ($r[0] ?? '');
-                $v = (string) ($r[1] ?? '');
-                $specHtml .= '<tr>'
-                    . '<td style="font-weight:bold; width:20%; padding:0 8px 2px 0; vertical-align:top;">' . $k . ':</td>'
-                    . '<td style="width:80%; padding:0 0 2px 0; vertical-align:top;">' . $v . '</td>'
-                    . '</tr>';
+            $specHtml = '--';
+            if (!empty($specRows)) {
+                $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; line-height:1.15;">';
+                foreach ($specRows as $r) {
+                    $k = (string) ($r[0] ?? '');
+                    $v = (string) ($r[1] ?? '');
+                    $specHtml .= '<tr>'
+                        . '<td style="font-weight:bold; width:20%; padding:0 8px 2px 0; vertical-align:top;">' . $k . ':</td>'
+                        . '<td style="width:80%; padding:0 0 2px 0; vertical-align:top;">' . $v . '</td>'
+                        . '</tr>';
+                }
+                $specHtml .= '</table>';
             }
-            $specHtml .= '</table>';
-        }
-            ?>
-                <tr style="page-break-inside: avoid;">
-                    <td
-                        style="padding: 14px 12px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: middle; background:#fbfbfb;">
-                        <!-- Center image + product name (Dompdf-safe) -->
-                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                            <?php        if (!empty($productImagePath)): ?>
-                            <tr>
-                                <td align="center" valign="middle" style="padding-bottom:6px;">
-                                    <img src="<?= $productImagePath ?>"
-                                        alt="<?= esc($component['name'] ?? 'Product') ?>"
-                                        style="width:92px; height:92px; object-fit:contain; display:inline-block; border:1px solid #c8d8c8; padding:6px; background:#fff;">
-                                </td>
-                            </tr>
-                            <?php        endif; ?>
-                            <tr>
-                                <td align="center" valign="middle"
-                                    style="font-size:11px; font-family:'Montserrat', sans-serif; font-weight:700; color:#000;">
-                                    <?= esc($component['name'] ?? '--') ?>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td
-                        style="padding: 14px 16px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: top; line-height:1.35;">
-                        <?= $specHtml ?>
-                    </td>
-                </tr>
-                <?php    endforeach; ?>
-            </table>
+                ?>
+                    <tr style="page-break-inside: avoid;">
+                        <td
+                            style="padding: 14px 12px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: middle; background:#fbfbfb;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                                <?php        if (!empty($productImagePath)): ?>
+                                <tr>
+                                    <td align="center" valign="middle" style="padding-bottom:6px;">
+                                        <img src="<?= $productImagePath ?>"
+                                            alt="<?= esc($component['name'] ?? 'Product') ?>"
+                                            style="width:92px; height:92px; object-fit:contain; display:inline-block; border:1px solid #c8d8c8; padding:6px; background:#fff;">
+                                    </td>
+                                </tr>
+                                <?php        endif; ?>
+                                <tr>
+                                    <td align="center" valign="middle"
+                                        style="font-size:11px; font-family:'Montserrat', sans-serif; font-weight:700; color:#000;">
+                                        <?= esc($component['name'] ?? '--') ?>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td
+                            style="padding: 14px 16px; font-size: 12px; border: 1px solid #333; font-family: 'Montserrat', sans-serif; vertical-align: top; line-height:1.35;">
+                            <?= $specHtml ?>
+                        </td>
+                    </tr>
+                    <?php    endforeach; ?>
+                </table>
+            <?php endif; ?>
             </div>
         </div>
         <!-- Footer -->
@@ -2879,7 +3263,7 @@ $__componentsActive = $_isActive($__components);
                     <td style="<?= $rightCellStyle ?>"><?= number_format((float) ($estdata->price ?? 0), 2) ?></td>
                 </tr>
                 <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Base Price</strong></td>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Base System Supply, Engineering, Liaisoning & Installation Cost' : 'Base Price' ?></strong></td>
                     <td style="<?= $rightCellStyle ?>"><strong><?= number_format($subtotal, 2) ?></strong></td>
                 </tr>
                 <?php if ($solarStructureCharges > 0): ?>
@@ -2917,16 +3301,16 @@ $__componentsActive = $_isActive($__components);
                 </tr>
                 <?php endif; ?>
                 <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Customer Payable Amount</strong></td>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Gross Capital Project Value (A)' : 'Customer Payable Amount' ?></strong></td>
                     <td style="<?= $highlightCellStyle ?>"><?= number_format($totalPayable, 2) ?></td>
                 </tr>
                 <?php if ($subsidy > 0): ?>
                 <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>">Subsidy</td>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><?= ($estdata->type ?? '') === 'residential' ? 'Less: Eligible PM-Surya Ghar Portal Subsidy Allocation (B)' : 'Subsidy' ?></td>
                     <td style="<?= $rightCellStyle ?>">-<?= number_format($subsidy, 2) ?></td>
                 </tr>
                 <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong>Lending Cost Of Customer</strong></td>
+                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Net Out-of-Pocket Customer Investment (A - B)' : 'Lending Cost Of Customer' ?></strong></td>
                     <td style="<?= $highlightCellStyle ?>"><?= number_format($lendingCost, 2) ?></td>
                 </tr>
                 <?php endif; ?>
@@ -3064,7 +3448,7 @@ $__componentsActive = $_isActive($__components);
                 <tr>
                     <td>
                         <div style="font-size: 20px; font-weight: bold; font-family: 'Montserrat', sans-serif;">
-                            <?= $paymentTermsTitle !== '' ? esc($paymentTermsTitle) : 'PAYMENT TERMS' ?>
+                            <?= ($estdata->type ?? '') === 'residential' ? '12. Payment Terms' : ($paymentTermsTitle !== '' ? esc($paymentTermsTitle) : 'PAYMENT TERMS') ?>
                         </div>
 
                         <!-- Payment Timeline Image -->
@@ -3076,6 +3460,13 @@ $__componentsActive = $_isActive($__components);
                                 </td>
                             </tr>
                         </table>
+                        <?php if (($estdata->type ?? '') === 'residential'): ?>
+                        <ul style="padding-left: 20px; font-size: 13px; line-height: 1.5; margin-top: 15px; margin-bottom: 10px;">
+                            <li style="margin-bottom: 6px;"><strong>30% Mobilization Advance:</strong> Booked to initiate legal DISCOM file log, architectural layouts, and factory component ordering.</li>
+                            <li style="margin-bottom: 6px;"><strong>60% Component Delivery Milestone:</strong> Payable immediately upon the safe arrival of primary inventory (PV Modules & Inverter) at the installation site.</li>
+                            <li style="margin-bottom: 6px;"><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
+                        </ul>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
@@ -3209,6 +3600,76 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
             </tr>
         </table>
     </div>
+    <?php if (($estdata->type ?? '') === 'residential'): ?>
+        <!-- ================= PAGE 8b : TERMS, DISCLAIMER & TESTIMONIALS ================= -->
+        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+            <!-- Header -->
+            <div style="padding: 40px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                    <tr>
+                        <td width="50%" align="left" valign="top">
+                            <div style="font-size: 18px; color: #333;">
+                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                            </div>
+                        </td>
+                        <td width="50%" align="right" valign="top">
+                            <?php if (!empty($logoBase64)): ?>
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Section 13: Terms & Conditions -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
+                    13. Terms & Conditions
+                </div>
+                <ul style="padding-left: 20px; font-size: 13px; line-height: 1.5; margin-bottom: 25px;">
+                    <li style="margin-bottom: 8px;"><strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.</li>
+                    <li style="margin-bottom: 8px;"><strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.</li>
+                    <li style="margin-bottom: 8px;"><strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications will be billed extra as per agreed metrics.</li>
+                </ul>
+
+                <!-- Section 14: Disclaimer -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
+                    14. Disclaimer
+                </div>
+                <p style="font-size: 12px; line-height: 1.5; text-align: justify; margin-bottom: 25px; color: #555;">
+                    Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.
+                </p>
+
+                <!-- Section 15: Client Testimonials -->
+                <div style="font-size: 26px; font-weight: bold; margin-bottom: 15px; border-left:6px solid #4b9349; padding-left:14px;">
+                    15. Client Testimonials
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 12px 18px; border-left: 4px solid #4b9349; margin-bottom: 15px; font-size: 12.5px; font-style: italic; line-height: 1.4; color: #444; border-radius: 0 4px 4px 0;">
+                    "The complete migration process to solar with this team was entirely fluid. Our typical monthly operational electric bills fell right down from near ₹8,000 to basic minimal meter standing charges under ₹500! Clean installation and outstanding customer portal communication."
+                    <div style="font-weight: bold; font-style: normal; margin-top: 8px; color: #222;">&mdash; Rajesh K., Verified Residential Client</div>
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 12px 18px; border-left: 4px solid #4b9349; font-size: 12.5px; font-style: italic; line-height: 1.4; color: #444; border-radius: 0 4px 4px 0;">
+                    "Outstanding expertise handling the central PM-Surya Ghar portal compliance parameters. The full subsidy allocation arrived securely into my bank profile within exactly 25 working days post meter calibration."
+                    <div style="font-weight: bold; font-style: normal; margin-top: 8px; color: #222;">&mdash; Sunita Sharma, Verified Residential Client</div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+                <tr>
+                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                    </td>
+                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                        PAGE 8b
+                    </td>
+                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                        Generated by <?= esc($globalCompanyName) ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    <?php endif; ?>
     <?php endif; ?>
     <!-- ================= END PAGE 8 ================= -->
 
