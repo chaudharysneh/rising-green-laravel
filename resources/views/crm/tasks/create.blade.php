@@ -25,7 +25,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="fa-solid fa-diagram-project me-2 text-muted"></i>Estimates</label>
                             <select name="estimate_id" id="estimate_id"
-                                class="form-select searchable-select @error('estimate_id') is-invalid @enderror" required>
+                                class="form-select @error('estimate_id') is-invalid @enderror" required>
                                 <option value="">Select Estimates</option>
                                 @foreach($estimates as $estimate)
                                     <option value="{{ $estimate->estimate_id }}" @selected(old('estimate_id') == $estimate->estimate_id)>
@@ -40,9 +40,7 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-user me-2 text-muted"></i>Assigned To</label>
                             @if(auth()->user()->isAdmin())
                                 <select name="assigned_user_id" id="assigned_user_id"
-                                    class="form-select @error('assigned_user_id') is-invalid @enderror"
-                                    data-search-url="{{ route('api.users.search') }}" data-search-type="user"
-                                    data-search-placeholder="-- Search User --">
+                                    class="form-select @error('assigned_user_id') is-invalid @enderror">
                                     <option value="">-- Search User --</option>
                                     @foreach($users as $user)
                                         <option value="{{ $user->id }}" data-email="{{ $user->email }}"
@@ -78,7 +76,7 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-calendar-days me-2 text-muted"></i>Due Date</label>
                             <input type="date" name="due_date" id="due_date" value="{{ old('due_date') }}"
                                 min="{{ date('Y-m-d') }}"
-                                class="form-control js-date @error('due_date') is-invalid @enderror" required>
+                                class="form-control @error('due_date') is-invalid @enderror" required>
                             <div class="invalid-feedback d-block" id="due_date-error">{{ $errors->first('due_date') }}</div>
                         </div>
 
@@ -88,7 +86,7 @@
                                 class="form-select searchable-select @error('priority') is-invalid @enderror">
                                 <option value="">Select Priority</option>
                                 <option value="low" @selected(old('priority') === 'low')>Low</option>
-                                <option value="medium" @selected(old('priority') === 'medium')>Medium</option>
+                                <option value="medium" @selected(old('priority', 'medium') === 'medium')>Medium</option>
                                 <option value="high" @selected(old('priority') === 'high')>High</option>
                             </select>
                             <div class="invalid-feedback d-block" id="priority-error">{{ $errors->first('priority') }}</div>
@@ -98,7 +96,7 @@
                             <label class="form-label fw-semibold"><i class="fa-solid fa-circle-info me-2 text-muted"></i>Status</label>
                             <select name="status" id="status" class="form-select searchable-select @error('status') is-invalid @enderror">
                                 <option value="">Select Status</option>
-                                <option value="pending" @selected(old('status') === 'pending')>Pending</option>
+                                <option value="pending" @selected(old('status', 'pending') === 'pending')>Pending</option>
                                 <option value="in_progress" @selected(old('status') === 'in_progress')>In Progress</option>
                                 <option value="completed" @selected(old('status') === 'completed')>Completed</option>
                             </select>
@@ -119,11 +117,34 @@
         </div>
     </div>
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        .select2-results__options {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+    </style>
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/tasks.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#estimate_id, #assigned_user_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+            
+            flatpickr("#due_date", {
+                allowInput: true,
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                minDate: "today"
+            });
+        });
+    </script>
 @endpush
 @endsection
