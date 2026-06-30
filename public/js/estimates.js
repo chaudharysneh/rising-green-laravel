@@ -64,6 +64,8 @@
             });
         });
 
+        initQuickEstimateModal();
+
         function formatDate(dateValue) {
             if (!dateValue) return '-';
             const date = new Date(dateValue);
@@ -177,6 +179,357 @@
                     const nextStatus = currentStatus === 'approved' ? 'pending' : 'approved';
                     updateEstimateStatus(estimateId, nextStatus, button);
                 });
+            });
+        }
+
+        function initQuickEstimateModal() {
+            const form = document.getElementById('quickEstimateForm');
+            const modalEl = document.getElementById('quickEstimateModal');
+            const customerSelect = document.getElementById('quick_estimate_customer_id');
+            const nameInput = document.getElementById('quick_estimate_name');
+            const submitBtn = document.getElementById('quickEstimateSubmitBtn');
+            const modal = modalEl && window.bootstrap ? new bootstrap.Modal(modalEl) : null;
+
+            if (!form || !customerSelect || !submitBtn) {
+                return;
+            }
+
+            const initQuickEstimateSelects = function () {
+                if (!window.jQuery || !window.jQuery.fn.select2) {
+                    return;
+                }
+
+                const $modal = window.jQuery(modalEl || document.body);
+                window.jQuery('#quick_estimate_customer_id, #quick_template_id, .quick-bom-select').each(function () {
+                    const $select = window.jQuery(this);
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        return;
+                    }
+
+                    $select.select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dropdownParent: $modal.length ? $modal : window.jQuery(document.body),
+                    });
+                });
+            };
+
+            const initQuickBomSelect = function (select) {
+                if (!select || !window.jQuery || !window.jQuery.fn.select2) {
+                    return;
+                }
+
+                const $select = window.jQuery(select);
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+
+                $select.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: window.jQuery(modalEl || document.body),
+                });
+            };
+
+            const calculateQuickBomRow = function (row) {
+                const qty = parseFloat(row.querySelector('.quick-bom-qty')?.value || 0);
+                const price = parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
+                const amountInput = row.querySelector('.quick-bom-amount');
+                if (amountInput) {
+                    amountInput.value = formatStepOneInputValue(qty * price);
+                }
+            };
+
+            const syncQuickBomRowFromSelection = function (row) {
+                const select = row.querySelector('.quick-bom-select');
+                const option = select?.options[select.selectedIndex];
+                const makeInput = row.querySelector('.quick-bom-make');
+                const priceInput = row.querySelector('.quick-bom-price');
+                const qtyInput = row.querySelector('.quick-bom-qty');
+
+                if (makeInput) {
+                    makeInput.value = option?.dataset?.make || '';
+                }
+                if (priceInput) {
+                    priceInput.value = formatStepOneInputValue(option?.dataset?.price || 0);
+                }
+                if (qtyInput && !parseFloat(qtyInput.value || 0)) {
+                    qtyInput.value = '1';
+                }
+                calculateQuickBomRow(row);
+            };
+
+            const updateQuickBomDeleteButtons = function () {
+                const rows = form.querySelectorAll('.quick-bom-row');
+                rows.forEach(function (row) {
+                    const removeBtn = row.querySelector('.quick-remove-bom-row');
+                    if (removeBtn) {
+                        removeBtn.style.display = rows.length > 1 ? 'block' : 'none';
+                    }
+                });
+            };
+
+            const attachQuickBomRowHandlers = function (row) {
+                const select = row.querySelector('.quick-bom-select');
+                const qtyInput = row.querySelector('.quick-bom-qty');
+                const priceInput = row.querySelector('.quick-bom-price');
+                const removeBtn = row.querySelector('.quick-remove-bom-row');
+
+                initQuickBomSelect(select);
+
+                select?.addEventListener('change', function () {
+                    syncQuickBomRowFromSelection(row);
+                });
+                if (window.jQuery && select) {
+                    window.jQuery(select).off('change.quickBom select2:select.quickBom').on('change.quickBom select2:select.quickBom', function () {
+                        syncQuickBomRowFromSelection(row);
+                    });
+                }
+                qtyInput?.addEventListener('input', function () {
+                    calculateQuickBomRow(row);
+                });
+                priceInput?.addEventListener('input', function () {
+                    calculateQuickBomRow(row);
+                });
+                removeBtn?.addEventListener('click', function () {
+                    row.remove();
+                    updateQuickBomDeleteButtons();
+                });
+            };
+
+            const quickBomRows = document.getElementById('quickBomRows');
+            quickBomRows?.querySelectorAll('.quick-bom-row').forEach(attachQuickBomRowHandlers);
+            updateQuickBomDeleteButtons();
+
+            document.getElementById('quickAddBomRow')?.addEventListener('click', function () {
+                const firstRow = quickBomRows?.querySelector('.quick-bom-row');
+                if (!firstRow || !quickBomRows) {
+                    return;
+                }
+
+                const clone = firstRow.cloneNode(true);
+                clone.querySelectorAll('.select2-container').forEach(function (el) { el.remove(); });
+                clone.querySelectorAll('.select2-hidden-accessible').forEach(function (el) {
+                    el.classList.remove('select2-hidden-accessible');
+                    el.removeAttribute('data-select2-id');
+                    el.removeAttribute('tabindex');
+                    el.removeAttribute('aria-hidden');
+                });
+                clone.querySelectorAll('option').forEach(function (option) {
+                    option.removeAttribute('data-select2-id');
+                    option.selected = option.value === '';
+                });
+                clone.querySelector('.quick-bom-make').value = '';
+                clone.querySelector('.quick-bom-qty').value = '1';
+                clone.querySelector('.quick-bom-price').value = '0';
+                clone.querySelector('.quick-bom-amount').value = '0';
+                quickBomRows.appendChild(clone);
+                attachQuickBomRowHandlers(clone);
+                updateQuickBomDeleteButtons();
+            });
+
+            const fillQuickCommentFromTemplate = function (overwrite) {
+                const templateSelect = document.getElementById('quick_template_id');
+                const commentField = document.getElementById('quick_estimate_comment');
+                const templates = window.estimateTemplateComments || {};
+
+                if (!templateSelect || !commentField) {
+                    return;
+                }
+
+                const config = templates[String(templateSelect.value)] || {};
+                if (parseInt(config.active || 0, 10) !== 1) {
+                    return;
+                }
+
+                const commentText = htmlToPlainText(config.content || '');
+                if (commentText && (overwrite || !commentField.value.trim())) {
+                    commentField.value = commentText;
+                    commentField.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            const fillQuickEstimateName = function () {
+                const selected = customerSelect.options[customerSelect.selectedIndex];
+                if (!customerSelect.value) {
+                    if (nameInput && nameInput.value === 'EST-Select Customer') {
+                        nameInput.value = '';
+                    }
+                    return;
+                }
+                const customerName = selected?.dataset?.name || selected?.textContent?.trim() || '';
+                if (nameInput && customerName) {
+                    nameInput.value = 'EST-' + customerName;
+                }
+            };
+
+            customerSelect.addEventListener('change', fillQuickEstimateName);
+            if (window.jQuery) {
+                window.jQuery(customerSelect).on('change select2:select', fillQuickEstimateName);
+            }
+
+            const quickTemplateSelect = document.getElementById('quick_template_id');
+            quickTemplateSelect?.addEventListener('change', function () {
+                fillQuickCommentFromTemplate(true);
+            });
+            if (window.jQuery && quickTemplateSelect) {
+                window.jQuery(quickTemplateSelect).on('change select2:select', function () {
+                    fillQuickCommentFromTemplate(true);
+                });
+            }
+
+            modalEl?.addEventListener('shown.bs.modal', function () {
+                initQuickEstimateSelects();
+                const templateSelect = document.getElementById('quick_template_id');
+                if (templateSelect) {
+                    templateSelect.value = '';
+                    templateSelect.dataset.userSelected = '';
+                    if (window.jQuery && window.jQuery.fn.select2) {
+                        window.jQuery(templateSelect).val('').trigger('change.select2');
+                    }
+                }
+                fillQuickEstimateName();
+                fillQuickCommentFromTemplate(false);
+            });
+
+            quickTemplateSelect?.addEventListener('change', function () {
+                this.dataset.userSelected = this.value ? '1' : '';
+            });
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                form.querySelectorAll('.is-invalid').forEach(function (field) {
+                    field.classList.remove('is-invalid');
+                });
+
+                const customerId = form.customer_id.value;
+                const quantity = parseFloat(form.quantity.value || 0);
+                const price = parseFloat(form.price.value || 0);
+                const templateId = form.template_id.value;
+                const bomRows = Array.from(form.querySelectorAll('.quick-bom-row'));
+                const products = [];
+
+                let hasError = false;
+                if (!customerId) {
+                    customerSelect.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!(quantity > 0)) {
+                    document.getElementById('quick_quantity')?.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!(price > 0)) {
+                    document.getElementById('quick_price')?.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!templateId) {
+                    document.getElementById('quick_template_id')?.classList.add('is-invalid');
+                    hasError = true;
+                }
+                bomRows.forEach(function (row) {
+                    const select = row.querySelector('.quick-bom-select');
+                    const option = select?.options[select.selectedIndex];
+                    const bomId = select?.value || '';
+                    const rowQty = parseFloat(row.querySelector('.quick-bom-qty')?.value || 0);
+                    const rowPrice = parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
+
+                    if (!bomId) {
+                        return;
+                    }
+
+                    if (!(rowQty > 0)) {
+                        row.querySelector('.quick-bom-qty')?.classList.add('is-invalid');
+                        hasError = true;
+                    }
+                    if (rowPrice < 0) {
+                        row.querySelector('.quick-bom-price')?.classList.add('is-invalid');
+                        hasError = true;
+                    }
+
+                    products.push({
+                        product_id: String(bomId),
+                        name: option?.dataset?.name || option?.textContent?.trim() || '',
+                        description: '',
+                        category_name: row.querySelector('.quick-bom-make')?.value || option?.dataset?.make || '',
+                        quantity: rowQty,
+                        price: rowPrice,
+                    });
+                });
+                if (!products.length) {
+                    document.getElementById('quick_bom_id-error').style.display = 'block';
+                    form.querySelector('.quick-bom-select')?.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    document.getElementById('quick_bom_id-error').style.display = 'none';
+                }
+                if (hasError) {
+                    return;
+                }
+
+                const customerOption = customerSelect.options[customerSelect.selectedIndex];
+                const customerName = customerOption?.dataset?.name || customerOption?.textContent?.trim() || 'Customer';
+
+                const formData = new FormData();
+                formData.set('customer_id', customerId);
+                formData.set('estimate_name', (nameInput?.value || '').trim() || ('EST-' + customerName));
+                formData.set('type', form.type.value || 'residential');
+                formData.set('quantity', String(quantity));
+                formData.set('price', String(price));
+                formData.set('template_id', templateId);
+                formData.set('solar_meter_charges', 'as_per_actual');
+                formData.set('estimate_date', new Date().toISOString().slice(0, 10));
+                formData.set('products', JSON.stringify(products));
+                formData.set('apply_gst', '0');
+                formData.set('gst', '0');
+                formData.set('discount', '0');
+                formData.set('subsidy_amount', '0');
+                formData.set('solar_structure_charges', '0');
+                formData.set('comment', form.comment.value || '');
+
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+                fetch('/api/estimates', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                })
+                    .then(function (response) {
+                        return response.json().then(function (payload) {
+                            if (!response.ok) {
+                                throw payload;
+                            }
+                            return payload;
+                        });
+                    })
+                    .then(function (payload) {
+                        if (typeof window.showAlert === 'function') {
+                            window.showAlert('success', payload.message || 'Estimate created successfully.');
+                        }
+                        form.reset();
+                        modal?.hide();
+                        fetchEstimates(1);
+                    })
+                    .catch(function (error) {
+                        const errors = error?.errors || {};
+                        const firstMessage = Object.values(errors)[0]?.[0] || error?.message || 'Unable to create estimate.';
+                        if (typeof window.showAlert === 'function') {
+                            window.showAlert('error', firstMessage);
+                        } else {
+                            alert(firstMessage);
+                        }
+                    })
+                    .finally(function () {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
+                    });
             });
         }
 

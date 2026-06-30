@@ -20,7 +20,11 @@ class EstimateController extends Controller
 {
     public function index()
     {
-        return view('crm.estimates.index');
+        $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
+        $templates = PdfBuilderForm::orderBy('template_name')->get();
+        $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+
+        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts'));
     }
 
     public function create()
