@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Models\Customer;
+use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\BomProduct;
@@ -144,7 +145,7 @@ class InvoiceController extends ApiBaseController
             if (!$applyCharges) {
                 $gstPercent = 0;
             }
-            $currencyId = $request->input('currency_id');
+            $currencyId = $this->resolveInvoiceCurrencyId($request->input('currency_id'));
 
             // Handle file upload
             $attachFile = '';
@@ -157,6 +158,7 @@ class InvoiceController extends ApiBaseController
 
             // Parse products JSON (from BOM), with fallback to raw form arrays.
             $products = $this->normalizeInvoiceProducts($request);
+            $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected
             $hasProduct = false;
@@ -177,14 +179,12 @@ class InvoiceController extends ApiBaseController
                 ], 422);
             }
 
-            // Calculate subtotal and GST
-            $basePrice = $price;
+            // Calculate subtotal and GST from BOM-selected taxes.
+            $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-
-            $gstAmount = 0;
-            if ($applyCharges && $gstPercent > 0) {
-                $gstAmount = ($basePrice * $gstPercent) / 100;
-            }
+            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
+            $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
+            $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
             $finalAmount = $subtotal + $gstAmount - $discount - $subsidyAmount;
 
@@ -317,7 +317,7 @@ class InvoiceController extends ApiBaseController
             if (!$applyCharges) {
                 $gstPercent = 0;
             }
-            $currencyId = $request->input('currency_id');
+            $currencyId = $this->resolveInvoiceCurrencyId($request->input('currency_id'));
 
             // Handle file upload
             $attachFile = '';
@@ -330,6 +330,7 @@ class InvoiceController extends ApiBaseController
 
             // Parse products JSON, with fallback to raw form arrays.
             $products = $this->normalizeInvoiceProducts($request);
+            $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected
             $hasProduct = false;
@@ -350,14 +351,12 @@ class InvoiceController extends ApiBaseController
                 ], 422);
             }
 
-            // Calculate subtotal and GST
-            $basePrice = $price;
+            // Calculate subtotal and GST from BOM-selected taxes.
+            $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-
-            $gstAmount = 0;
-            if ($applyCharges && $gstPercent > 0) {
-                $gstAmount = ($basePrice * $gstPercent) / 100;
-            }
+            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
+            $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
+            $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
             $finalAmount = $subtotal + $gstAmount - $discount - $subsidyAmount;
 
@@ -526,6 +525,8 @@ class InvoiceController extends ApiBaseController
                     'category_name' => (string) ($product['category_name'] ?? ''),
                     'quantity' => (float) ($product['quantity'] ?? 0),
                     'price' => (float) ($product['price'] ?? 0),
+                    'tax_rate' => (float) ($product['tax_rate'] ?? 0),
+                    'tax_label' => (string) ($product['tax_label'] ?? ''),
                 ];
             }, $products)));
         }
@@ -533,6 +534,8 @@ class InvoiceController extends ApiBaseController
         $serviceIds = (array) $request->input('service', []);
         $makes = (array) $request->input('product_make', []);
         $quantities = (array) $request->input('product_qty', []);
+        $prices = (array) $request->input('product_price', []);
+        $taxRates = (array) $request->input('product_tax_rate', []);
 
         $productIds = array_values(array_unique(array_filter($serviceIds, function ($value) {
             return (string) $value !== '';
@@ -558,10 +561,120 @@ class InvoiceController extends ApiBaseController
                 'description' => (string) ($product->description ?? ''),
                 'category_name' => (string) ($makes[$index] ?? ''),
                 'quantity' => (float) ($quantities[$index] ?? 0),
-                'price' => (float) ($product->price ?? 0),
+                'price' => array_key_exists($index, $prices)
+                    ? (float) ($prices[$index] ?? 0)
+                    : (float) ($product->price ?? 0),
+                'tax_rate' => (float) ($taxRates[$index] ?? 0),
+                'tax_label' => '',
             ];
         }
 
         return $normalized;
+    }
+
+    private function calculateProductsTotal(array $products): float
+    {
+        return array_reduce($products, function (float $total, array $product) {
+            $quantity = (float) ($product['quantity'] ?? 0);
+            $price = (float) ($product['price'] ?? 0);
+            return $total + ($quantity * $price);
+        }, 0.0);
+    }
+
+    private function buildProductGstBreakdown(array $products, bool $applyTaxes): array
+    {
+        if (!$applyTaxes) {
+            return [
+                'tax_rate' => 0,
+                'gst_amount' => 0,
+                'groups' => [],
+            ];
+        }
+
+        $lines = [];
+        foreach ($products as $product) {
+            $quantity = (float) ($product['quantity'] ?? 0);
+            $price = (float) ($product['price'] ?? 0);
+            $rate = (float) ($product['tax_rate'] ?? 0);
+            $label = trim((string) ($product['tax_label'] ?? 'GST'));
+            $taxableAmount = $quantity * $price;
+
+            if ($taxableAmount <= 0 || $rate <= 0) {
+                continue;
+            }
+
+            $upperLabel = strtoupper($label);
+            if (str_contains($upperLabel, 'CGST') && str_contains($upperLabel, 'SGST')) {
+                $halfRate = $rate / 2;
+                foreach (['CGST', 'SGST'] as $splitLabel) {
+                    $key = $splitLabel . '|' . number_format($halfRate, 4, '.', '');
+                    if (!isset($lines[$key])) {
+                        $lines[$key] = [
+                            'label' => $splitLabel,
+                            'rate' => round($halfRate, 2),
+                            'amount' => 0,
+                        ];
+                    }
+                    $lines[$key]['amount'] += ($taxableAmount * $halfRate) / 100;
+                }
+            } else {
+                $lineLabel = str_contains($upperLabel, 'IGST') ? 'IGST' : ($label !== '' ? $label : 'GST');
+                $key = $lineLabel . '|' . number_format($rate, 4, '.', '');
+                if (!isset($lines[$key])) {
+                    $lines[$key] = [
+                        'label' => $lineLabel,
+                        'rate' => round($rate, 2),
+                        'amount' => 0,
+                    ];
+                }
+                $lines[$key]['amount'] += ($taxableAmount * $rate) / 100;
+            }
+        }
+
+        $lines = array_values(array_map(function (array $line) {
+            $line['amount'] = round((float) $line['amount'], 2);
+            return $line;
+        }, $lines));
+
+        return [
+            'tax_rate' => round(array_sum(array_column($lines, 'rate')), 2),
+            'gst_amount' => round(array_sum(array_column($lines, 'amount')), 2),
+            'groups' => $lines ? [[
+                'tax_type' => 'bom_selected_tax',
+                'lines' => $lines,
+            ]] : [],
+        ];
+    }
+
+    private function resolveInvoiceCurrencyId($currencyId): ?int
+    {
+        if ($currencyId) {
+            return (int) $currencyId;
+        }
+
+        $resolvedId = Currency::query()
+            ->where('is_active', true)
+            ->where('code', 'INR')
+            ->value('id');
+
+        if ($resolvedId) {
+            return (int) $resolvedId;
+        }
+
+        $resolvedId = Currency::query()
+            ->where('is_active', true)
+            ->where('is_default', true)
+            ->value('id');
+
+        if ($resolvedId) {
+            return (int) $resolvedId;
+        }
+
+        $resolvedId = Currency::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->value('id');
+
+        return $resolvedId ? (int) $resolvedId : null;
     }
 }

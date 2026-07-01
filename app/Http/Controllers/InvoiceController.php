@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -11,6 +12,7 @@ use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
 use App\Models\Subsidy;
+use App\Models\Tax;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,11 +29,18 @@ class InvoiceController extends Controller
     {
         $this->authorize('create', Invoice::class);
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
-        $currencies = Currency::where('is_active', true)->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
+        $categories = Category::orderBy('name')->get();
         $subsidies = Subsidy::active()->get();
-        return view('crm.invoices.create', compact('customers', 'currencies', 'bomProducts', 'templates', 'subsidies'));
+        $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+        $gstRate = (float) $gstTaxes->sum('rate');
+        if ($gstRate <= 0) {
+            $gstRate = 18;
+        }
+        $defaultCurrencyId = $this->defaultInvoiceCurrencyId();
+
+        return view('crm.invoices.create', compact('customers', 'bomProducts', 'templates', 'categories', 'subsidies', 'gstRate', 'gstTaxes', 'defaultCurrencyId'));
     }
 
     public function edit(Invoice $invoice)
@@ -39,11 +48,18 @@ class InvoiceController extends Controller
         $this->authorize('update', $invoice);
         $invoice->load('items');
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
-        $currencies = Currency::where('is_active', true)->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
+        $categories = Category::orderBy('name')->get();
         $subsidies = Subsidy::active()->get();
-        return view('crm.invoices.edit', compact('invoice', 'customers', 'currencies', 'bomProducts', 'templates', 'subsidies'));
+        $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+        $gstRate = (float) $gstTaxes->sum('rate');
+        if ($gstRate <= 0) {
+            $gstRate = 18;
+        }
+        $defaultCurrencyId = $this->defaultInvoiceCurrencyId();
+
+        return view('crm.invoices.edit', compact('invoice', 'customers', 'bomProducts', 'templates', 'categories', 'subsidies', 'gstRate', 'gstTaxes', 'defaultCurrencyId'));
     }
 
     // status update
@@ -276,5 +292,33 @@ class InvoiceController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);
+    }
+
+    private function defaultInvoiceCurrencyId(): ?int
+    {
+        $currencyId = Currency::query()
+            ->where('is_active', true)
+            ->where('code', 'INR')
+            ->value('id');
+
+        if ($currencyId) {
+            return (int) $currencyId;
+        }
+
+        $currencyId = Currency::query()
+            ->where('is_active', true)
+            ->where('is_default', true)
+            ->value('id');
+
+        if ($currencyId) {
+            return (int) $currencyId;
+        }
+
+        $currencyId = Currency::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->value('id');
+
+        return $currencyId ? (int) $currencyId : null;
     }
 }

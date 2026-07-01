@@ -7,7 +7,54 @@
 
     function init() {
         initEstimatesIndex();
-        initEstimateForm();
+        initDocumentForm();
+    }
+
+    function resolveDocumentFormConfig() {
+        const customConfig = window.documentFormConfig;
+        if (customConfig && document.querySelector(customConfig.formSelector)) {
+            return customConfig;
+        }
+
+        if (document.querySelector('.ajax-estimate-form')) {
+            return {
+                formSelector: '.ajax-estimate-form',
+                eventNs: 'estimate',
+                nameField: 'estimate_name',
+                nameErrorId: 'estimate_name-error',
+                nameLabel: 'estimate name',
+                namePrefix: 'EST-',
+                defaultRedirect: '/estimates',
+                templateCommentsKey: 'estimateTemplateComments',
+                bomQuickAddConfigKey: 'estimateBomQuickAddConfig',
+                requireCurrency: false,
+                typeErrorMessage: 'Please select estimate type',
+                bomPrereqMessage: 'Please fill required estimate details before adding BOM',
+                saveSuccessMessage: 'Estimate saved successfully.',
+                saveErrorMessage: 'Something went wrong while submitting the estimate.',
+            };
+        }
+
+        return null;
+    }
+
+    function getActiveDocumentFormConfig() {
+        return resolveDocumentFormConfig() || {
+            formSelector: '.ajax-estimate-form',
+            eventNs: 'estimate',
+            nameField: 'estimate_name',
+            nameErrorId: 'estimate_name-error',
+            nameLabel: 'estimate name',
+            namePrefix: 'EST-',
+            defaultRedirect: '/estimates',
+            templateCommentsKey: 'estimateTemplateComments',
+            bomQuickAddConfigKey: 'estimateBomQuickAddConfig',
+            requireCurrency: false,
+            typeErrorMessage: 'Please select estimate type',
+            bomPrereqMessage: 'Please fill required estimate details before adding BOM',
+            saveSuccessMessage: 'Estimate saved successfully.',
+            saveErrorMessage: 'Something went wrong while submitting the estimate.',
+        };
     }
 
     function initEstimatesIndex() {
@@ -934,8 +981,13 @@
         return String(Math.round(parseFloat(value || 0)));
     }
 
-    function initEstimateForm() {
-        const form = document.querySelector('.ajax-estimate-form');
+    function initDocumentForm() {
+        const config = resolveDocumentFormConfig();
+        if (!config) {
+            return;
+        }
+
+        const form = document.querySelector(config.formSelector);
         if (!form) {
             return;
         }
@@ -943,10 +995,11 @@
         initBomHandlers();
         initCalculations();
         initQuickAddBom();
-        initEstimateNameFromCustomer();
+        initDocumentNameFromCustomer();
         initTemplateCommentAutofill();
 
-        $('body').off('submit.estimate').on('submit.estimate', '.ajax-estimate-form', function (e) {
+        const eventNs = config.eventNs || 'document';
+        $('body').off('submit.' + eventNs).on('submit.' + eventNs, config.formSelector, function (e) {
             e.preventDefault();
             const $form = $(this);
             const btn = $form.find('button[type="submit"]');
@@ -984,11 +1037,12 @@
                     Accept: 'application/json',
                 },
                 success: function (response) {
+                    const activeConfig = getActiveDocumentFormConfig();
                     if (typeof window.showAlert === 'function') {
-                        window.showAlert('success', response.message || 'Estimate saved successfully.', 'Success!');
+                        window.showAlert('success', response.message || activeConfig.saveSuccessMessage, 'Success!');
                     }
                     setTimeout(function () {
-                        window.location.href = response.redirect || '/estimates';
+                        window.location.href = response.redirect || activeConfig.defaultRedirect;
                     }, 300);
                 },
                 error: function (xhr) {
@@ -997,7 +1051,8 @@
                         return;
                     }
 
-                    const message = xhr.responseJSON?.message || 'Something went wrong while submitting the estimate.';
+                    const activeConfig = getActiveDocumentFormConfig();
+                    const message = xhr.responseJSON?.message || activeConfig.saveErrorMessage;
                     if (typeof window.showAlert === 'function') {
                         window.showAlert('error', message);
                     }
@@ -1008,7 +1063,7 @@
             });
         });
 
-        $('body').off('input.estimate change.estimate').on('input.estimate change.estimate', '.ajax-estimate-form input, .ajax-estimate-form select, .ajax-estimate-form textarea', function () {
+        $('body').off('input.' + eventNs + ' change.' + eventNs).on('input.' + eventNs + ' change.' + eventNs, config.formSelector + ' input, ' + config.formSelector + ' select, ' + config.formSelector + ' textarea', function () {
             const $field = $(this);
             $field.removeClass('is-invalid');
             const id = $field.attr('id');
@@ -1022,15 +1077,16 @@
         });
     }
 
-    function initEstimateNameFromCustomer() {
+    function initDocumentNameFromCustomer() {
+        const config = getActiveDocumentFormConfig();
         const customerSelect = document.getElementById('select_customer');
-        const estimateNameInput = document.getElementById('estimate_name');
+        const nameInput = document.getElementById(config.nameField);
 
-        if (!customerSelect || !estimateNameInput) {
+        if (!customerSelect || !nameInput) {
             return;
         }
 
-        $(customerSelect).off('change.estimateName').on('change.estimateName', function () {
+        $(customerSelect).off('change.documentName').on('change.documentName', function () {
             const selectedOption = this.options[this.selectedIndex];
             const customerName = (selectedOption?.textContent || '').trim();
 
@@ -1038,9 +1094,9 @@
                 return;
             }
 
-            estimateNameInput.value = 'EST-' + customerName;
-            estimateNameInput.classList.remove('is-invalid');
-            const error = document.getElementById('estimate_name-error');
+            nameInput.value = (config.namePrefix || '') + customerName;
+            nameInput.classList.remove('is-invalid');
+            const error = document.getElementById(config.nameErrorId);
             if (error) {
                 error.textContent = '';
             }
@@ -1052,7 +1108,8 @@
     function initQuickAddBom() {
         const form = document.getElementById('quickAddBomForm');
         const saveBtn = document.getElementById('saveQuickBomBtn');
-        const config = window.estimateBomQuickAddConfig || {};
+        const formConfig = getActiveDocumentFormConfig();
+        const config = window[formConfig.bomQuickAddConfigKey] || window.estimateBomQuickAddConfig || {};
 
         if (!form || !saveBtn || !config.storeUrl) {
             return;
@@ -1431,15 +1488,17 @@
     }
 
     function runExactValidation($form) {
+        const config = getActiveDocumentFormConfig();
         let isValid = true;
 
         const customerId = ($form.find('[name="customer_id"]').val() || '').trim();
-        const estimateName = ($form.find('[name="estimate_name"]').val() || '').trim();
+        const documentName = ($form.find('[name="' + config.nameField + '"]').val() || '').trim();
         const type = ($form.find('[name="type"]').val() || '').trim();
         const quantity = parseFloat($form.find('[name="quantity"]').val() || 0);
         const price = parseFloat($form.find('[name="price"]').val() || 0);
         const solarMeterCharges = ($form.find('[name="solar_meter_charges"]').val() || '').trim();
         const templateId = ($form.find('[name="template_id"]').val() || '').trim();
+        const currencyId = ($form.find('[name="currency_id"]').val() || '').trim();
         const bomProducts = collectBomData();
 
         if (!customerId) {
@@ -1447,13 +1506,18 @@
             isValid = false;
         }
 
-        if (!estimateName) {
-            setFieldError($form, '[name="estimate_name"]', 'estimate_name-error', 'Please enter estimate name');
+        if (!documentName) {
+            setFieldError($form, '[name="' + config.nameField + '"]', config.nameErrorId, 'Please enter ' + config.nameLabel);
+            isValid = false;
+        }
+
+        if (config.requireCurrency && !currencyId) {
+            setFieldError($form, '[name="currency_id"]', 'currency_id-error', 'Please select currency');
             isValid = false;
         }
 
         if (!type) {
-            setFieldError($form, '[name="type"]', 'type-error', 'Please select estimate type');
+            setFieldError($form, '[name="type"]', 'type-error', config.typeErrorMessage || 'Please select type');
             isValid = false;
         }
 
@@ -1499,7 +1563,8 @@
     function initTemplateCommentAutofill() {
         const templateSelect = document.getElementById('template_id');
         const commentField = document.getElementById('comment');
-        const templates = window.estimateTemplateComments || {};
+        const formConfig = getActiveDocumentFormConfig();
+        const templates = window[formConfig.templateCommentsKey] || window.estimateTemplateComments || {};
 
         if (!templateSelect || !commentField) {
             return;
@@ -1532,7 +1597,8 @@
     }
 
     function validateTopFieldsBeforeBom(showErrors) {
-        const $form = $('.ajax-estimate-form').first();
+        const config = getActiveDocumentFormConfig();
+        const $form = $(config.formSelector).first();
         if (!$form.length) {
             return true;
         }
@@ -1542,13 +1608,22 @@
         const price = parseFloat($form.find('[name="price"]').val() || 0);
         const requiredFields = [
             ['[name="customer_id"]', 'customer_id-error', 'Please select a customer', function ($field) { return !!($field.val() || '').trim(); }],
-            ['[name="estimate_name"]', 'estimate_name-error', 'Please enter estimate name', function ($field) { return !!($field.val() || '').trim(); }],
-            ['[name="type"]', 'type-error', 'Please select estimate type', function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="' + config.nameField + '"]', config.nameErrorId, 'Please enter ' + config.nameLabel, function ($field) { return !!($field.val() || '').trim(); }],
+            ['[name="type"]', 'type-error', config.typeErrorMessage || 'Please select type', function ($field) { return !!($field.val() || '').trim(); }],
             ['[name="quantity"]', 'quantity-error', 'Please enter valid quantity (kW)', function () { return quantity > 0; }],
             ['[name="price"]', 'price-error', 'Please enter valid price', function () { return price > 0; }],
             ['[name="solar_meter_charges"]', 'solar_meter_charges-error', 'Please select solar meter charges', function ($field) { return !!($field.val() || '').trim(); }],
             ['[name="template_id"]', 'template_id-error', 'Please select quotation template', function ($field) { return !!($field.val() || '').trim(); }],
         ];
+
+        if (config.requireCurrency) {
+            requiredFields.splice(2, 0, [
+                '[name="currency_id"]',
+                'currency_id-error',
+                'Please select currency',
+                function ($field) { return !!($field.val() || '').trim(); },
+            ]);
+        }
 
         requiredFields.forEach(function (fieldConfig) {
             const $field = $form.find(fieldConfig[0]);
@@ -1561,7 +1636,8 @@
         });
 
         if (!isValid && showErrors) {
-            $('#products-error').text('Please fill required estimate details before adding BOM').addClass('d-block').show();
+            const config = getActiveDocumentFormConfig();
+            $('#products-error').text(config.bomPrereqMessage || 'Please fill required details before adding BOM').addClass('d-block').show();
         }
 
         return isValid;

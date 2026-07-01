@@ -44,25 +44,25 @@
         }
 
         const iconMatchers = [
-            { match: /(customer|client|assigned to|assigned staff|assigned for|lead name|lead|staff|user|contact)/, icon: "bi-person-fill" },
-            { match: /(email|mail)/, icon: "bi-envelope-fill" },
-            { match: /(phone|mobile|whatsapp|call)/, icon: "bi-telephone-fill" },
-            { match: /(address|location|city|country)/, icon: "bi-geo-alt-fill" },
-            { match: /(status)/, icon: "bi-info-circle-fill" },
-            { match: /(priority)/, icon: "bi-exclamation-circle-fill" },
-            { match: /(date|time|due|follow up|scheduled|start|end|deadline)/, icon: "bi-calendar-event-fill" },
-            { match: /(comment|description|agenda|note|remarks|message|details)/, icon: "bi-text-paragraph" },
-            { match: /(meeting type|type|category|stage|source)/, icon: "bi-diagram-3-fill" },
-            { match: /(amount|value|price|cost|budget|revenue)/, icon: "bi-currency-dollar" },
-            { match: /(probability|percent|percentage)/, icon: "bi-percent" },
-            { match: /(image|photo|logo|avatar|icon)/, icon: "bi-image-fill" },
-            { match: /(company|organization|business)/, icon: "bi-building" },
-            { match: /(project)/, icon: "bi-folder-fill" },
-            { match: /(task)/, icon: "bi-list-check" },
-            { match: /(deal|opportunity)/, icon: "bi-briefcase-fill" },
-            { match: /(ticket|support)/, icon: "bi-life-preserver" },
-            { match: /(service)/, icon: "bi-tools" },
-            { match: /(meeting)/, icon: "bi-camera-video-fill" },
+            { match: /(customer|client|assigned to|assigned staff|assigned for|lead name|lead|staff|user|contact)/, icon: "bi-person-fill", family: "bi" },
+            { match: /(email|mail)/, icon: "bi-envelope-fill", family: "bi" },
+            { match: /(phone|mobile|whatsapp|call)/, icon: "bi-telephone-fill", family: "bi" },
+            { match: /(address|location|city|country)/, icon: "bi-geo-alt-fill", family: "bi" },
+            { match: /(status)/, icon: "bi-info-circle-fill", family: "bi" },
+            { match: /(priority)/, icon: "bi-exclamation-circle-fill", family: "bi" },
+            { match: /(date|time|due|follow up|scheduled|start|end|deadline)/, icon: "bi-calendar-event-fill", family: "bi" },
+            { match: /(comment|description|agenda|note|remarks|message|details)/, icon: "bi-text-paragraph", family: "bi" },
+            { match: /(meeting type|type|category|stage|source)/, icon: "bi-diagram-3-fill", family: "bi" },
+            { match: /(amount|value|price|cost|budget|revenue|subsidy|discount)/, icon: "fa-money-bill", family: "fa-solid" },
+            { match: /(probability|percent|percentage)/, icon: "bi-percent", family: "bi" },
+            { match: /(image|photo|logo|avatar|icon)/, icon: "bi-image-fill", family: "bi" },
+            { match: /(company|organization|business)/, icon: "bi-building", family: "bi" },
+            { match: /(project)/, icon: "bi-folder-fill", family: "bi" },
+            { match: /(task)/, icon: "bi-list-check", family: "bi" },
+            { match: /(deal|opportunity)/, icon: "bi-briefcase-fill", family: "bi" },
+            { match: /(ticket|support)/, icon: "bi-life-preserver", family: "bi" },
+            { match: /(service)/, icon: "bi-tools", family: "bi" },
+            { match: /(meeting)/, icon: "bi-camera-video-fill", family: "bi" },
         ];
 
         const getLabelText = function (label) {
@@ -100,7 +100,7 @@
                 return entry.match.test(haystack);
             });
 
-            return match ? match.icon : "bi-tag-fill";
+            return match || { icon: "bi-tag-fill", family: "bi" };
         };
 
         document.querySelectorAll(".crm-form-page form label.form-label").forEach(function (label) {
@@ -109,9 +109,11 @@
             }
 
             const field = findAssociatedField(label);
-            const iconClass = resolveIcon(label, field);
+            const iconSpec = resolveIcon(label, field);
             const icon = document.createElement("i");
-            icon.className = "bi " + iconClass + " crm-label-icon";
+            icon.className = iconSpec.family === "fa-solid"
+                ? "fa-solid " + iconSpec.icon + " crm-label-icon"
+                : "bi " + iconSpec.icon + " crm-label-icon";
             icon.setAttribute("aria-hidden", "true");
 
             label.classList.add("crm-label-with-icon");

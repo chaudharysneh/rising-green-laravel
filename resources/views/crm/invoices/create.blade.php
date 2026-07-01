@@ -2,300 +2,616 @@
 
 @section('page_title', 'Create Invoice')
 
-@section('content')
-<div class="container-fluid p-0">
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden invoice-form-card">
-        <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <div>
-                    <h1 class="h4 mb-1 fw-semibold text-dark-blue">Create New Invoice</h1>
-                    <p class="text-muted small mb-0">Generate a professional invoice for your customer.</p>
-                </div>
-                <a href="{{ route('invoices.index') }}" class="btn btn-dark-blue back-btn">
-                    <i class="fa-solid fa-angle-left pe-1"></i>
-                    <span>Back</span>
-                </a>
-            </div>
-        </div>
-        @php
-            $selectedProducts = old('products');
-            if (!is_array($selectedProducts) || empty($selectedProducts)) {
-                $selectedProducts = [['product_id' => '', 'category_name' => '', 'quantity' => 1]];
+@push('styles')
+    <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/main.css') }}?v={{ filemtime(public_path('css/main.css')) }}">
+    <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/estimates.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        .bom-row-grid {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.45fr) minmax(145px, 1fr) minmax(90px, .65fr) minmax(120px, .8fr) minmax(130px, .9fr) minmax(145px, 1fr) 42px;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .bom-row-grid > div,
+        .bom-row-grid .d-flex {
+            min-width: 0;
+        }
+
+        .bom-row-grid .form-label {
+            font-size: 10px;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            white-space: nowrap;
+        }
+
+        .bom-row-grid .form-control,
+        .bom-row-grid .form-select {
+            min-height: 38px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .select2-container--bootstrap-5 .select2-selection {
+            min-height: 38px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .select2-container--bootstrap-5 .select2-selection__rendered {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .bom-row-grid .quick-add-bom-row,
+        .bom-row-grid .delete-bom-row {
+            width: 42px;
+            min-height: 38px;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .bom-row-grid .product-select,
+        .bom-row-grid .select2-container {
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+
+        @media (max-width: 1199.98px) {
+            .bom-row-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-        @endphp
-        <div class="card-body p-3 p-md-4">
-            <form action="/api/invoices" method="POST" class="ajax-invoice-form needs-validation" novalidate enctype="multipart/form-data">
-                @csrf
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Select Customer <span class="text-danger">*</span>
-                        </label>
-                        <select name="customer_id" id="select_customer" class="form-select @error('customer_id') is-invalid @enderror" required>
-                            <option value="">Select Customer</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
-                                    {{ $customer->name }}
-                                </option>
-                            @endforeach
-                        </select>
+            .bom-row-grid .bom-action-cell {
+                grid-column: span 2;
+            }
+        }
+    </style>
+@endpush
+
+@section('content')
+    @php
+        $invoiceTaxRows = collect($gstTaxes ?? [])->flatMap(function ($tax) {
+            $name = (string) $tax->name;
+            $upperName = strtoupper($name);
+            $rate = (float) $tax->rate;
+
+            if (str_contains($upperName, 'CGST') && str_contains($upperName, 'SGST')) {
+                return [
+                    ['label' => 'CGST', 'rate' => $rate / 2],
+                    ['label' => 'SGST', 'rate' => $rate / 2],
+                ];
+            }
+
+            if (str_contains($upperName, 'IGST')) {
+                return [['label' => 'IGST', 'rate' => $rate]];
+            }
+
+            return [['label' => $name, 'rate' => $rate]];
+        })->values();
+
+        $bomTaxOptions = collect($gstTaxes ?? [])->map(function ($tax) {
+            $taxName = strtoupper((string) $tax->name);
+            $label = (string) $tax->name;
+
+            if (str_contains($taxName, 'CGST') && str_contains($taxName, 'SGST')) {
+                $label = 'CGST + SGST';
+            } elseif (str_contains($taxName, 'IGST')) {
+                $label = 'IGST';
+            }
+
+            return ['label' => $label, 'rate' => (float) $tax->rate];
+        })->filter(function ($taxOption) {
+            return (float) ($taxOption['rate'] ?? 0) > 0;
+        })->values();
+    @endphp
+
+    <div class="container-fluid p-0">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h1 class="h4 mb-1 fw-semibold">Add Invoice</h1>
+                        <p class="text-muted small mb-0">Create a new invoice for your customer.</p>
                     </div>
+                    <a href="{{ route('invoices.index') }}" class="btn btn-dark-blue back-btn w-100 w-md-auto">
+                        <i class="fa-solid fa-angle-left pe-2"></i>Back
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-3 p-md-4">
+                <form method="POST" enctype="multipart/form-data" class="needs-validation ajax-invoice-form" novalidate
+                    id="invoiceCreateForm" action="/api/invoices">
+                    @csrf
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold mb-1">Select Customer <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-start gap-2">
+                                <select name="customer_id" id="select_customer"
+                                    class="form-select @error('customer_id') is-invalid @enderror" required>
+                                    <option value="">Select Customer</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Invoice Name <span class="text-danger">*</span></label>
+                            <input type="text" name="invoice_name" id="invoice_name" value="{{ old('invoice_name') }}"
+                                class="form-control @error('invoice_name') is-invalid @enderror"
+                                placeholder="Enter invoice name" required>
+                            <div class="invalid-feedback" id="invoice_name-error">Please enter invoice name</div>
+                        </div>
+
+                    <input type="hidden" name="currency_id" id="currency_id" value="{{ old('currency_id', $defaultCurrencyId) }}">
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Invoice Name <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="invoice_name" id="invoice_name" value="{{ old('invoice_name') }}" class="form-control @error('invoice_name') is-invalid @enderror" placeholder="Enter invoice name" required>
-                    </div>
+                            <label class="form-label fw-semibold">Invoice Type <span class="text-danger">*</span></label>
+                            <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
+                                required>
+                                <option value="">Select Type</option>
+                                <option value="residential" @selected(old('type') == 'residential')>Residential</option>
+                                <option value="commercial" @selected(old('type') == 'commercial')>Commercial</option>
+                                <option value="industrial" @selected(old('type') == 'industrial')>Industrial</option>
+                                <option value="common meter" @selected(old('type') == 'common meter')>Common Meter</option>
+                            </select>
+                            <div class="invalid-feedback" id="type-error">Please select invoice type</div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Currency <span class="text-danger">*</span>
-                        </label>
-                        <select name="currency_id" id="currency_id" class="form-select @error('currency_id') is-invalid @enderror" required>
-                            @foreach($currencies as $currency)
-                                <option value="{{ $currency->id }}" {{ old('currency_id') == $currency->id ? 'selected' : '' }}>
-                                    {{ $currency->code }} ({{ $currency->symbol }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" name="quantity" id="quantity"
+                                value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
+                                placeholder="Enter kW" required>
+                            <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Estimate Type <span class="text-danger">*</span>
-                        </label>
-                        <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required>
-                            <option value="">Select Type</option>
-                            <option value="residential">Residential</option>
-                            <option value="commercial">Commercial</option>
-                            <option value="industrial">Industrial</option>
-                            <option value="common meter">Common Meter</option>
-                        </select>
-                    </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" name="price" id="price"
+                                value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
+                                placeholder="Enter price" required>
+                            <div class="invalid-feedback" id="price-error">Please enter valid price</div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Quantity (kW) <span class="text-danger">*</span>
-                        </label>
-                        <input type="number" min="0" step="1" name="quantity" id="quantity" value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror" placeholder="Enter kW" required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Base Price <span class="text-danger">*</span>
-                        </label>
-                        <input type="number" min="0" step="0.01" name="price" id="price" value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror" placeholder="Enter price" required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Additional Charges
-                        </label>
-                        <div class="form-control d-flex align-items-center bg-light border-0" style="min-height: 42px;">
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="checkbox" id="solar_structure_charges_check" value="1">
-                                <label class="form-check-label fw-medium" for="solar_structure_charges_check">
-                                    Solar Structure Charges
-                                </label>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Solar Meter Charges <span
+                                    class="text-danger">*</span></label>
+                            <select name="solar_meter_charges" id="solar_meter_select"
+                                class="form-select @error('solar_meter_charges') is-invalid @enderror" required>
+                                <option value="">Select</option>
+                                <option value="as_per_actual" @selected(old('solar_meter_charges') == 'as_per_actual')>As per Actual</option>
+                                <option value="as_per_client_scope" @selected(old('solar_meter_charges') == 'as_per_client_scope')>As per client scope</option>
+                                <option value="included" @selected(old('solar_meter_charges') == 'included')>Included</option>
+                            </select>
+                            <div class="invalid-feedback" id="solar_meter_charges-error">Please select solar meter charges
                             </div>
                         </div>
-                        <div id="structure-charges-input" style="display: none; margin-top: 12px;">
-                            <label class="form-label fw-semibold small text-uppercase">Structure Charges Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-solar-panel text-muted"></i></span>
-                                <input type="number" min="0" step="0.01" name="solar_structure_charges" id="solar_structure_charges" class="form-control border-start-0" placeholder="0.00">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Charges</label>
+                            <div class="form-control d-flex align-items-center bg-light"
+                                style="min-height: 38px; padding: 0.375rem 0.75rem;">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" id="solar_structure_charges_check"
+                                        value="1" @checked(old('solar_structure_charges_check'))>
+                                    <label class="form-check-label small" for="solar_structure_charges_check">
+                                        Solar Structure Charges
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="structure-charges-input" style="display: none; margin-top: 12px;">
+                                <label class="form-label fw-semibold small">Enter Structure Charges</label>
+                                <input type="number" min="0" step="1" name="solar_structure_charges"
+                                    id="solar_structure_charges" value="{{ old('solar_structure_charges', 0) }}"
+                                    class="form-control @error('solar_structure_charges') is-invalid @enderror"
+                                    placeholder="0.00">
+                                <div class="invalid-feedback">
+                                    @error('solar_structure_charges')
+                                        {{ $message }}
+                                    @enderror
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Solar Meter Charges <span class="text-danger">*</span>
-                        </label>
-                        <select name="solar_meter_charges" id="solar_meter_select" class="form-select @error('solar_meter_charges') is-invalid @enderror" required>
-                            <option value="">Select</option>
-                            <option value="as_per_actual">As per Actual</option>
-                            <option value="as_per_client_scope">As per client scope</option>
-                            <option value="included">Included</option>
-                        </select>
-                    </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
+                            <select name="template_id" id="template_id"
+                                class="form-select @error('template_id') is-invalid @enderror" required>
+                                <option value="">Select Template</option>
+                                @if (isset($templates))
+                                    @foreach ($templates as $template)
+                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
+                                            {{ $template->template_name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Quotation Template
-                        </label>
-                        <select name="template_id" id="template_id" class="form-select @error('template_id') is-invalid @enderror">
-                            <option value="">Select Template</option>
-                            @if(isset($templates))
-                                @foreach($templates as $template)
-                                    <option value="{{ $template->id }}">{{ $template->template_name }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Invoice Date</label>
+                            <input type="date" name="invoice_date" id="invoice_date"
+                                value="{{ old('invoice_date', date('Y-m-d')) }}"
+                                class="form-control @error('invoice_date') is-invalid @enderror">
+                            <div class="invalid-feedback">
+                                @error('invoice_date')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">
-                            Invoice Date
-                        </label>
-                        <input type="date" name="invoice_date" id="invoice_date" value="{{ date('Y-m-d') }}" class="form-control @error('invoice_date') is-invalid @enderror">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
-                        <div class="bom-section bg-light rounded-3 p-3 border">
-                            <div id="bomContainer">
-                                @foreach ($selectedProducts as $index => $selectedProduct)
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
+                            <div class="bom-section bg-light rounded-3 p-3 border">
+                                <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
-                                        <div class="row g-2 align-items-end">
-                                            <div class="col-md-5">
+                                        <div class="bom-row-grid">
+                                            <div>
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
-                                                <select name="service[]" class="form-select product-select" required>
-                                                    <option value="">Select BOM</option>
-                                                    @if (isset($bomProducts))
-                                                        @foreach ($bomProducts as $bom)
-                                                            <option value="{{ $bom->id }}"
-                                                                data-name="{{ $bom->product_name }}"
-                                                                data-desc="{{ $bom->description ?? '' }}"
-                                                                data-categories="{{ json_encode($bom->categories->pluck('name')->toArray()) }}"
-                                                                data-price="{{ $bom->price ?? 0 }}"
-                                                                data-meter="{{ $bom->meter ?? '' }}"
-                                                                data-nos="{{ $bom->nos ?? '' }}"
-                                                                @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
-                                                                {{ $bom->product_name }}
-                                                            </option>
-                                                        @endforeach
-                                                    @endif
-                                                </select>
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <select name="service[]" class="form-select product-select" required>
+                                                        <option value="">Select BOM</option>
+                                                        @if (isset($bomProducts))
+                                                            @foreach ($bomProducts as $bom)
+                                                                <option value="{{ $bom->id }}"
+                                                                    data-name="{{ $bom->product_name }}"
+                                                                    data-desc="{{ $bom->description ?? '' }}"
+                                                                    data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
+                                                                    data-price="{{ $bom->price ?? 0 }}"
+                                                                    data-meter="{{ $bom->meter ?? '' }}"
+                                                                    data-nos="{{ $bom->nos ?? '' }}">
+                                                                    {{ $bom->product_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                    <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-add-bom-row" data-bs-toggle="modal" data-bs-target="#quickAddBomModal" title="Add New BOM">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label small fw-semibold">Make</label>
-                                                <select name="product_make[]" class="form-select product-make"
-                                                    data-selected="{{ $selectedProduct['category_name'] ?? '' }}"
-                                                    @disabled(empty($selectedProduct['product_id']))>
+                                            <div>
+                                                <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
+                                                <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
-                                                <label class="form-label small fw-semibold">Qty</label>
+                                            <div>
+                                                <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
-                                                    value="{{ $selectedProduct['quantity'] ?? 1 }}" class="form-control"
-                                                    placeholder="0">
+                                                    value="" class="form-control" placeholder="Add Quantity">
                                             </div>
-                                            <div class="col-md-1">
+                                            <div>
+                                                <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                                                <input type="number" min="0" step="1" name="product_price[]"
+                                                    value="0" class="form-control product-price" placeholder="0">
+                                            </div>
+                                            <div>
+                                                <label class="form-label small fw-semibold">Tax</label>
+                                                <select name="product_tax_rate[]" class="form-select product-tax-rate">
+                                                    <option value="0" data-label="">No Tax</option>
+                                                    @foreach ($bomTaxOptions as $taxOption)
+                                                        <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}">
+                                                            {{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Amount</label>
+                                                <input type="number" min="0" step="1" value="0"
+                                                    class="form-control product-total" placeholder="0" readonly>
+                                            </div>
+                                            <div class="bom-action-cell">
                                                 <button type="button" class="btn btn-outline-danger w-100 delete-bom-row"
-                                                    style="display: {{ $index === 0 ? 'none' : 'block' }};">
+                                                    style="display: none;">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                @endforeach
+                                </div>
+
+                                <button type="button" class="btn btn-outline-dark-blue btn-sm" id="add_more_bom">
+                                    <i class="bi bi-plus-circle me-2"></i>Add More BOM
+                                </button>
                             </div>
-
-                            <button type="button" class="btn btn-outline-dark-blue btn-sm" id="add_more_bom">
-                                <i class="bi bi-plus-circle me-2"></i>Add More BOM
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" id="products-error" style="display:none;">Please select at least
-                            one BOM</div>
-                    </div>
-
-                    <div class="col-md-6 mt-4">
-                        <label class="form-label fw-semibold">
-                            <i class="fa-solid fa-file-arrow-up text-primary me-2"></i>Design File
-                        </label>
-                        <div class="input-group">
-                            <input type="file" name="attach_file" id="attach_file" class="form-control @error('attach_file') is-invalid @enderror" accept=".pdf,.doc,.docx,.xls,.xlsx">
+                            <div class="invalid-feedback" id="products-error" style="display:none;">Please select at least
+                                one BOM</div>
                         </div>
 
-                        <label class="form-label fw-semibold mt-4">
-                            <i class="fa-solid fa-comment-dots text-primary me-2"></i>Special Instructions / Comments
-                        </label>
-                        <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="5" placeholder="Add any comments or special notes for this invoice...">{{ old('comment') }}</textarea>
-                    </div>
-
-                    <div class="col-md-6 mt-4">
-                        <div class="totals-card rounded-4 p-4 shadow-sm border h-100" style="background: #fdfdfd;">
-                            <h6 class="fw-bold mb-4 text-dark-blue border-bottom pb-2">Summary & Totals</h6>
-                            
-                            <div class="totals-row mb-3 d-flex justify-content-between align-items-center">
-                                <span class="text-muted fw-medium">Subtotal:</span>
-                                <span class="fw-bold h6 mb-0 text-dark" id="subtotal_display">0.00</span>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Design File</label>
+                                <input type="file" name="attach_file" id="attach_file"
+                                    class="form-control @error('attach_file') is-invalid @enderror"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx">
+                                <div class="invalid-feedback">
+                                    @error('attach_file')
+                                        {{ $message }}
+                                    @enderror
+                                </div>
                             </div>
 
-                            <div class="totals-row mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
-                                <div class="d-flex align-items-center gap-2">
+                            <div>
+                                <label class="form-label fw-semibold">Comment</label>
+                                <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="5"
+                                    placeholder="Add any comments...">{{ old('comment') }}</textarea>
+                                <div class="invalid-feedback">
+                                    @error('comment')
+                                        {{ $message }}
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
+                                <div class="totals-row">
+                                    <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
+                                    <span id="subtotal_display" class="fw-bold text-dark">0.00</span>
+                                </div>
+
+                                <div class="totals-row align-items-center">
                                     <label class="switch mb-0">
-                                        <input type="checkbox" id="apply_gst">
+                                        <input type="checkbox" id="apply_gst" checked>
                                         <span class="slider"></span>
                                     </label>
-                                    <span class="text-dark fw-medium">Apply GST</span>
+                                    <span class="small fw-semibold">Apply GST</span>
                                 </div>
-                                <div id="gst_fields_box" style="display: none;">
-                                    <div class="input-group input-group-sm" style="width: 100px;">
-                                        <input type="number" id="gst_percent" value="18" class="form-control rounded-start-pill">
-                                        <span class="input-group-text rounded-end-pill">%</span>
+
+                                <div id="gst_fields_box">
+                                    <div class="totals-row">
+                                        <span class="small text-muted">Select BOM tax to apply GST.</span>
+                                        <span class="small">0.00</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="totals-row mb-3 d-flex justify-content-between align-items-center">
-                                <span class="text-muted fw-medium">Discount:</span>
-                                <div class="input-group input-group-sm" style="width: 140px;">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-tag text-muted"></i></span>
-                                    <input type="number" name="discount" id="discount" value="0" class="form-control border-start-0 rounded-end-pill">
+                                <div class="totals-row">
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
+                                    <input type="number" name="discount" id="discount" value="0" step="1" class="input-small">
                                 </div>
-                            </div>
 
-                            <div class="totals-row mb-3 d-flex justify-content-between align-items-center">
-                                <span class="text-muted fw-medium">Subsidy Amount:</span>
-                                <div class="input-group input-group-sm" style="width: 140px;">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-hand-holding-dollar text-muted"></i></span>
-                                    <input type="number" name="subsidy_amount" id="subsidy_amount" value="0" class="form-control border-start-0 rounded-end-pill">
+                                <div class="totals-row">
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subsidy:</span>
+                                    <input type="number" name="subsidy_amount" id="subsidy_amount" value="{{ old('subsidy_amount', 0) }}"
+                                        step="1" class="input-small">
                                 </div>
-                            </div>
 
-                            <div class="border-top pt-3 mt-3">
-                                <div class="totals-row d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold text-dark-blue fs-5">Final Total:</span>
-                                    <span class="fw-bold text-primary fs-4" id="final_total_display">0.00</span>
+                                <hr class="my-2">
+
+                                <div class="totals-row total-row mb-0">
+                                    <span class="h5 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
+                                    <span id="final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>
                         </div>
+
+                        <input type="hidden" name="total" id="subtotal" value="0">
+                        <input type="hidden" name="final_total" id="final_total" value="0">
+                        <input type="hidden" name="gst" id="gst" value="0">
+                        <input type="hidden" name="status" id="status" value="unpaid">
                     </div>
 
-                    <input type="hidden" name="total" id="subtotal" value="0">
-                    <input type="hidden" name="final_total" id="final_total" value="0">
-                    <input type="hidden" name="gst" id="gst" value="0">
-                    <input type="hidden" name="status" id="status" value="unpaid">
-                </div>
-
-                <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
-                    <a href="{{ route('invoices.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
-                    <button type="submit" class="btn btn-dark-blue" id="submitBtn">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
-                        <span id="btnText">Submit</span>
-                    </button>
-                </div>
-            </form>
+                    <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
+                        <a href="{{ route('invoices.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
+                        <button type="submit" class="btn btn-dark-blue" id="submitBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
+                            <span id="btnText">Submit</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Quick Add BOM Modal -->
+    <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Add New BOM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="quickAddBomForm" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_bom_name" required>
+                            <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Make <span class="text-danger">*</span></label>
+                            <select class="form-select quick-bom-make-select" id="quick_bom_category_id" required>
+                                <option value="">Select Make</option>
+                                @foreach ($categories ?? [] as $category)
+                                    <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                            <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark-blue" id="saveQuickBomBtn">Save BOM</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Add New Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addCustomerQuickForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_customer_name" required>
+                            <div class="invalid-feedback">Please enter customer name</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_customer_number" required>
+                            <div class="invalid-feedback">Please enter mobile number</div>
+                        </div>
+                        <div class="mb-3">
+                            <a href="#" class="small text-decoration-none" onclick="$('#quick_address_container').toggleClass('d-none'); return false;">+ Add Address (Optional)</a>
+                        </div>
+                        <div class="mb-3 d-none" id="quick_address_container">
+                            <label class="form-label fw-semibold">Address</label>
+                            <textarea class="form-control" id="quick_customer_address" rows="2" placeholder="Address"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark-blue" id="saveQuickCustomerBtn">Save Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/estimates.css') }}">
-<link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/main.css') }}">
-@endpush
-
 @push('scripts')
-<script>
-    window.subsidiesData = @json($subsidies ?? []);
-</script>
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/invoice.js') }}"></script>
+    <script>
+        @php
+            $templateComments = ($templates ?? collect())->mapWithKeys(function ($template) {
+                $formData = is_array($template->form_data) ? $template->form_data : (json_decode($template->form_data ?? '[]', true) ?: []);
+                $comment = is_array($formData['estimate_comment'] ?? null) ? $formData['estimate_comment'] : [];
+                return [
+                    (string) $template->id => [
+                        'active' => (int) ($comment['active'] ?? 0),
+                        'content' => (string) ($comment['content'] ?? ''),
+                    ],
+                ];
+            });
+        @endphp
+        window.invoiceTemplateComments = @json($templateComments);
+        window.subsidiesData = @json($subsidies ?? []);
+        window.invoiceTaxes = @json($invoiceTaxRows);
+        window.invoiceBomQuickAddConfig = {
+            storeUrl: @json(route('api.bom-products.store')),
+            makeStoreUrl: @json(route('api.make.store'))
+        };
+        window.documentFormConfig = {
+            formSelector: '.ajax-invoice-form',
+            eventNs: 'invoice',
+            nameField: 'invoice_name',
+            nameErrorId: 'invoice_name-error',
+            nameLabel: 'invoice name',
+            namePrefix: 'INV-',
+            defaultRedirect: '/invoices',
+            templateCommentsKey: 'invoiceTemplateComments',
+            bomQuickAddConfigKey: 'invoiceBomQuickAddConfig',
+            requireCurrency: false,
+            typeErrorMessage: 'Please select invoice type',
+            bomPrereqMessage: 'Please fill required invoice details before adding BOM',
+            saveSuccessMessage: 'Invoice saved successfully.',
+            saveErrorMessage: 'Something went wrong while submitting the invoice.',
+        };
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
+    <script>
+        $(document).ready(function() {
+            function initSelect2(context = document) {
+                $(context).find('#select_customer, #template_id, .product-select, .product-make').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
+            }
+            initSelect2();
+
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1 && $(node).hasClass('bom-row')) {
+                            $(node).find('.select2-container').remove();
+                            $(node).find('.product-select, .product-make').removeClass('select2-hidden-accessible').removeAttr('data-select2-id tabindex aria-hidden');
+                            $(node).find('option').removeAttr('data-select2-id');
+                            initSelect2(node);
+                        }
+                    });
+                });
+            });
+            const bomContainer = document.getElementById('bomContainer');
+            if (bomContainer) observer.observe(bomContainer, { childList: true });
+
+            $('#saveQuickCustomerBtn').click(function() {
+                let name = $('#quick_customer_name').val().trim();
+                let number = $('#quick_customer_number').val().trim();
+                let address = $('#quick_customer_address').val().trim();
+
+                $('#quick_customer_name, #quick_customer_number').removeClass('is-invalid');
+
+                if (!name || !number) {
+                    if(!name) $('#quick_customer_name').addClass('is-invalid');
+                    if(!number) $('#quick_customer_number').addClass('is-invalid');
+                    return;
+                }
+
+                if (!address) {
+                    address = 'Address';
+                }
+
+                let btn = $(this);
+                let originalText = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                $.ajax({
+                    url: '/api/customers',
+                    type: 'POST',
+                    data: {
+                        name: name,
+                        phone: number,
+                        address: address,
+                        status: 'active',
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        if (res.success && res.data) {
+                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            $('#select_customer').append(newOption).trigger('change');
+                            $('#addCustomerModal').modal('hide');
+                            $('#addCustomerQuickForm')[0].reset();
+                            if (window.showAlert) window.showAlert('success', 'Customer added successfully');
+                        }
+                    },
+                    error: function(xhr) {
+                        if (window.showAlert) window.showAlert('error', xhr.responseJSON?.message || 'Failed to add customer');
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+
+            $(document).on('select2:select', '.product-select', function (e) {
+                $(this).trigger('change');
+            });
+        });
+    </script>
 @endpush
