@@ -26,7 +26,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Name </label>
+                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="name" value="{{ old('name', $lead->name) }}"
                                 class="form-control @error('name') is-invalid @enderror" placeholder="Lead Name" required>
                             <div class="invalid-feedback" id="name-error">@error('name') {{ $message }} @enderror</div>
@@ -61,7 +61,7 @@
                             <div class="invalid-feedback" id="email-error">@error('email') {{ $message }} @enderror</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Phone </label>
+                            <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
                             <input type="text" name="phone" id="phone" value="{{ old('phone', $lead->phone) }}"
                                 class="form-control @error('phone') is-invalid @enderror" placeholder="Phone Number"
                                 required>
@@ -158,9 +158,9 @@
                     </div>
                 </form>
 
-                @include('crm.partials.status-history-table', ['histories' => $lead->statusHistories])
             </div>
         </div>
+        @include('crm.partials.status-history-table', ['histories' => $lead->statusHistories])
     </div>
 @endsection
 

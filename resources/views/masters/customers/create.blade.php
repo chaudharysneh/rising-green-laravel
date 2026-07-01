@@ -39,7 +39,7 @@
                         </div>
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Name </label>
+                                <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                                 <input type="text" name="name" class="form-control" value="{{ old('name') }}"
                                     placeholder="Customer Full Name">
                             </div>
@@ -50,7 +50,7 @@
                                 <div class="invalid-feedback"></div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Phone no. </label>
+                                <label class="form-label fw-semibold">Phone no. <span class="text-danger">*</span></label>
                                 <input type="text" name="phone" class="form-control" value="{{ old('phone') }}"
                                     placeholder="+1 234 567 890">
                                 <div class="invalid-feedback"></div>

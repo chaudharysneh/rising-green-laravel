@@ -807,8 +807,7 @@
                             'name': 'Name is required',
                             'email': 'Email is required',
                             'password': 'Password is required (minimum 8 characters)',
-                            'phone': 'Phone number is required',
-                            'address': 'Address is required'
+                            'phone': 'Phone number is required'
                         };
                         
                         let hasErrors = false;

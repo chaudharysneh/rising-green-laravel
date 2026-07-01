@@ -43,11 +43,11 @@
                 <div class="row g-0 detail-view-grid">
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-envelope"></i>Email:</span>
-                        <span class="detail-view-value">{{ $lead->email ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->email ?? '--' }}</span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-phone"></i>Phone:</span>
-                        <span class="detail-view-value">{{ $lead->phone ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->phone ?? '--' }}</span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-circle-info"></i>Status:</span>
@@ -57,23 +57,23 @@
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-bullhorn"></i>Lead Source:</span>
-                        <span class="detail-view-value">{{ $lead->leadSource?->name ?? ($lead->source ?? '-') }}</span>
+                        <span class="detail-view-value">{{ $lead->leadSource?->name ?? ($lead->source ?? '--') }}</span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-layer-group"></i>Lead Stage:</span>
-                        <span class="detail-view-value">{{ $lead->leadStage?->name ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->leadStage?->name ?? '--' }}</span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-building"></i>Company:</span>
-                        <span class="detail-view-value">{{ $lead->company_name ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->company_name ?? '--' }}</span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-calendar-days"></i>Created:</span>
-                        <span class="detail-view-value">{{ $lead->created_at?->format('d M, Y') ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->created_at?->format('d M, Y') ?? '--' }}</span>
                     </div>
                     <div class="col-md-12 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-location-dot"></i>Address:</span>
-                        <span class="detail-view-value">{{ $lead->address ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $lead->address ?? '--' }}</span>
                     </div>
                 </div>
 
@@ -209,7 +209,7 @@
                 const checkbox = e.target;
 
                 fetch(`/follow-ups/${id}/toggle`, {
-                    method: 'PATCH',
+                    method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Content-Type': 'application/json',
