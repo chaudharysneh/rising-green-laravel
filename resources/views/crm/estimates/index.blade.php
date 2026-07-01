@@ -147,12 +147,12 @@
 <div class="modal fade" id="quickEstimateModal" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 rounded-4 shadow">
-            <div class="modal-header border-bottom">
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
                 <div>
-                    <h5 class="modal-title fw-bold mb-0">Quick Estimate</h5>
-                    <p class="small text-muted mb-0">Create a basic estimate with default/static settings.</p>
+                    <h5 class="modal-title fw-bold mb-0 text-white">Quick Estimate</h5>
+                    <p class="small text-white-50 mb-0">Create a basic estimate with default/static settings.</p>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="quickEstimateForm" novalidate>
                 <div class="modal-body p-4">
@@ -342,9 +342,9 @@
 <div class="modal fade" id="estimateDocsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Customer Documents</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Customer Documents</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="estimateDocsEstimateId">
@@ -366,9 +366,9 @@
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-bold">Add New Customer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Add New Customer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="addCustomerQuickForm">
@@ -403,9 +403,9 @@
 <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-bold">Add New BOM</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Add New BOM</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="quickAddBomForm" novalidate>

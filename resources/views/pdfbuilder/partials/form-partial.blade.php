@@ -133,10 +133,6 @@
     .btn-outline-primary:not(:disabled):not(.disabled).active, .btn-outline-primary:not(:disabled):not(.disabled):active, .show>.btn-outline-primary.dropdown-toggle{
         background-color:#4b9349 !important;
     }
-    .btn-check:focus+.btn, .btn:focus{
-        background-color:#4b9349 !important;
-    }
-
     /* Mobile-only multi-step wizard (do not affect desktop) */
     @media (max-width: 767px) {
         .pdf-mobile-step {
@@ -232,9 +228,7 @@
         form.pdfbuilder-wizard-form {
             padding-bottom: 0;
         }
-        #pdf-next-step .btn:focus, #pdf-next-step .btn:active{
-            background-color: #4b9349 !important;
-        }
+
     }
 </style>
 @endpush
@@ -247,7 +241,7 @@
                     <h1 class="h4 mb-1 fw-semibold">Manage PDF Template</h1>
                     <p class="text-muted small mb-0">Create or edit your custom PDF template record.</p>
                 </div>
-                <a href="{{ route('pdfbuilder.index') }}" class="btn btn-dark back-btn">
+                <a href="{{ route('pdfbuilder.index') }}" class="btn btn-dark-blue back-btn">
                     <i class="fa-solid fa-angle-left pe-1"></i>
                     <span>Back</span>
                 </a>
@@ -287,7 +281,7 @@
                         <div class="pdf-mobile-step active" data-step="1">
                         <div class="row mb-3">
                             <div class="col-md-12">
-                                <label for="template_name" class="form-label"><i class="fa-solid fa-file-pdf"></i> Template Name</label>
+                                <label for="template_name" class="form-label"><i class="fa-solid fa-file-pdf"></i> Template Name <span class="text-danger">*</span></label>
                                 <input type="text" id="template_name" name="template_name" class="form-control" value="{{ old('template_name', $template->template_name ?? '') }}" required>
                                 <div class="invalid-feedback text-danger small mt-1" id="template_name-error"></div>
                             </div>
@@ -810,14 +804,15 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between justify-content-md-end align-items-center mt-4">
+                        <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
                             <!-- Mobile-only inline previous (only visible in Step 4) -->
                             <button type="button" class="btn btn-secondary d-md-none" id="pdf-prev-step-inline">
                                 Previous
                             </button>
+                            <a href="{{ route('pdfbuilder.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
                             <button type="submit" class="btn btn-dark-blue" id="submitBtn">
                                 <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
-                                <i class="fa fa-file-pdf"></i> <span id="btnText">Save Template</span>
+                                <span id="btnText">Save Template</span>
                             </button>
                         </div>
                         </div>

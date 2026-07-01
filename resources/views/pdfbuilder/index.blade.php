@@ -15,7 +15,7 @@
                 <div class="d-flex flex-wrap gap-2">
                     @can('templates.create')
                         <a href="{{ route('pdfbuilder.create') }}" class="btn btn-dark-blue">
-                            <i class="bi bi-plus-lg me-2"></i>Add Template
+                            <i class="fa-solid fa-plus me-1"></i>Add Template
                         </a>
                     @endcan
                 </div>
