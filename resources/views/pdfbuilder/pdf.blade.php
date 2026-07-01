@@ -311,6 +311,9 @@ if (!isset($environmentImpact) || !is_array($environmentImpact)) {
     $environmentImpact = (isset($environment_impact) && is_array($environment_impact)) ? $environment_impact : [];
 }
 
+$pdfTemplateName = trim((string) ($template_name ?? ''));
+$__isResidentialTemplate = $pdfTemplateName !== '' && stripos($pdfTemplateName, 'resident') !== false;
+
 $__companyInfoSection = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
 $__generationSection0 = (isset($generationSection) && is_array($generationSection)) ? $generationSection : [];
 $__ongridRoiSection0 = (isset($ongridRoiSection) && is_array($ongridRoiSection)) ? $ongridRoiSection : [];
@@ -346,6 +349,8 @@ if ($__paymentTermsActive0)
     $__activePages[] = 'p7';
 if ($__environmentImpactActive0)
     $__activePages[] = 'p8';
+if ($__isResidentialTemplate)
+    $__activePages[] = 'p8b';
 if ($__footerActive0)
     $__activePages[] = 'p9';
 
@@ -2631,7 +2636,7 @@ $__timeLineActive = $_isActive($__timeLine);
             </div>
 
             <?php if (!empty($timelineImg1)): ?>
-            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:590px; max-height:400px; display:block; margin:0 auto 12px;">
+            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 12px;">
             <?php else: ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 12px; border-collapse:collapse;">
                 <tr>
@@ -2665,7 +2670,7 @@ $__timeLineActive = $_isActive($__timeLine);
             </div>
 
             <?php if (!empty($timelineImg2)): ?>
-            <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:590px; max-height:400px; display:block; margin:0 auto 10px;">
+            <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 10px;">
             <?php else: ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:0 auto 10px;">
                 <tr>
@@ -3345,78 +3350,106 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
             </tr>
         </table>
     </div>
-    <?php if (($estdata->type ?? '') === 'residential'): ?>
-        <!-- ================= PAGE 8b : TERMS, DISCLAIMER & TESTIMONIALS ================= -->
-        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
-            <!-- Header -->
-            <div style="padding: 40px;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+    <?php endif; ?>
+    <!-- ================= END PAGE 8 ================= -->
+
+    <?php if ($__isResidentialTemplate): ?>
+        <!-- ================= PAGE 8b : TERMS, DISCLAIMER & TESTIMONIALS (Residential templates) ================= -->
+        <div class="<?= $_pageClass('p8b') ?>" style="position:relative;min-height:842px;background:#fff;font-family:'Montserrat',sans-serif;">
+            <div style="padding:38px 42px 34px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
                     <tr>
                         <td width="50%" align="left" valign="top">
-                            <div style="font-size: 18px; color: #333;">
+                            <div style="font-size:14px;color:#111;">
                                 <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                             </div>
                         </td>
                         <td width="50%" align="right" valign="top">
                             <?php if (!empty($logoBase64)): ?>
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
                             <?php endif; ?>
                         </td>
                     </tr>
                 </table>
 
-                <!-- Section 13: Terms & Conditions -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
-                    13. Terms & Conditions
-                </div>
-                <ul style="padding-left: 20px; font-size: 13px; line-height: 1.5; margin-bottom: 25px;">
-                    <li style="margin-bottom: 8px;"><strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.</li>
-                    <li style="margin-bottom: 8px;"><strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.</li>
-                    <li style="margin-bottom: 8px;"><strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications will be billed extra as per agreed metrics.</li>
-                </ul>
+                <div style="page-break-inside:avoid;">
+                    <!-- Terms & Conditions -->
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:12px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
+                        Terms &amp; Conditions
+                    </div>
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px;border-collapse:collapse;">
+                        <tr>
+                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                                <strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.
+                            </td>
+                        </tr>
+                        <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                        <tr>
+                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                                <strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.
+                            </td>
+                        </tr>
+                        <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
+                        <tr>
+                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                                <strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications will be billed extra as per agreed metrics.
+                            </td>
+                        </tr>
+                    </table>
 
-                <!-- Section 14: Disclaimer -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
-                    14. Disclaimer
-                </div>
-                <p style="font-size: 12px; line-height: 1.5; text-align: justify; margin-bottom: 25px; color: #555;">
-                    Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.
-                </p>
+                    <!-- Disclaimer -->
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:12px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
+                        Disclaimer
+                    </div>
+                    <div style="padding:14px 16px 14px 18px;border-left:5px solid #4b9349;background-color:#fafcfa;font-size:13px;line-height:1.58;color:#444;margin-bottom:22px;text-align:justify;">
+                        Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.
+                    </div>
 
-                <!-- Section 15: Client Testimonials -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 15px; border-left:6px solid #4b9349; padding-left:14px;">
-                    15. Client Testimonials
-                </div>
-                
-                <div style="background-color: #f9f9f9; padding: 12px 18px; border-left: 4px solid #4b9349; margin-bottom: 15px; font-size: 12.5px; font-style: italic; line-height: 1.4; color: #444; border-radius: 0 4px 4px 0;">
-                    "The complete migration process to solar with this team was entirely fluid. Our typical monthly operational electric bills fell right down from near ₹8,000 to basic minimal meter standing charges under ₹500! Clean installation and outstanding customer portal communication."
-                    <div style="font-weight: bold; font-style: normal; margin-top: 8px; color: #222;">&mdash; Rajesh K., Verified Residential Client</div>
-                </div>
-                
-                <div style="background-color: #f9f9f9; padding: 12px 18px; border-left: 4px solid #4b9349; font-size: 12.5px; font-style: italic; line-height: 1.4; color: #444; border-radius: 0 4px 4px 0;">
-                    "Outstanding expertise handling the central PM-Surya Ghar portal compliance parameters. The full subsidy allocation arrived securely into my bank profile within exactly 25 working days post meter calibration."
-                    <div style="font-weight: bold; font-style: normal; margin-top: 8px; color: #222;">&mdash; Sunita Sharma, Verified Residential Client</div>
+                    <!-- Client Testimonials -->
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
+                        Client Testimonials
+                    </div>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;border-collapse:collapse;border:1px solid #d8e8d8;">
+                        <tr>
+                            <td style="padding:14px 16px;background-color:#f4faf4;border-left:5px solid #4b9349;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                                &ldquo;The complete migration process to solar with this team was entirely fluid. Our typical monthly operational electric bills fell right down from near <?= $rupeeHtml ?>8,000 to basic minimal meter standing charges under <?= $rupeeHtml ?>500! Clean installation and outstanding customer portal communication.&rdquo;
+                                <div style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
+                                    &mdash; Rajesh K., Verified Residential Client
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #d8e8d8;">
+                        <tr>
+                            <td style="padding:14px 16px;background-color:#f4faf4;border-left:5px solid #4b9349;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                                &ldquo;Outstanding expertise handling the central PM-Surya Ghar portal compliance parameters. The full subsidy allocation arrived securely into my bank profile within exactly 25 working days post meter calibration.&rdquo;
+                                <div style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
+                                    &mdash; Sunita Sharma, Verified Residential Client
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
-            <!-- Footer -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed;bottom:10;left:0;right:0;background:#fff;color:#4b9349;height:40px;border-top:1px solid #4b9349;">
                 <tr>
-                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <td width="33.33%" style="padding:10px;font-family:'Montserrat',sans-serif;">
                         <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                     </td>
-                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <td width="33.33%" align="center" style="padding:10px;font-family:'Montserrat',sans-serif;">
                         PAGE 8b
                     </td>
-                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    <td width="33.33%" align="right" style="padding:10px;font-family:'Montserrat',sans-serif;white-space:nowrap;">
                         Generated by <?= esc($globalCompanyName) ?>
                     </td>
                 </tr>
             </table>
         </div>
     <?php endif; ?>
-    <?php endif; ?>
-    <!-- ================= END PAGE 8 ================= -->
+    <!-- ================= END PAGE 8b ================= -->
 
     <!-- ================= PAGE 9 : THANK YOU ================= -->
     <?php
