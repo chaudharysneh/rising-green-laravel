@@ -433,6 +433,143 @@
                 if (amountInput) {
                     amountInput.value = formatStepOneInputValue(qty * price);
                 }
+                calculateQuickEstimateTotals();
+            };
+
+            const getQuickEstimateTaxBreakdown = function (taxableAmount) {
+                const fieldsBox = document.getElementById('quick_gst_fields_box');
+                const buckets = {};
+                let totalRate = 0;
+                let totalAmount = 0;
+                const shouldUpdateDisplay = taxableAmount !== null;
+                const shouldApplyTaxes = taxableAmount !== 0;
+                const rows = form.querySelectorAll('.quick-bom-row');
+
+                rows.forEach(function (row) {
+                    const select = row.querySelector('.quick-bom-select');
+                    const qtyInput = row.querySelector('.quick-bom-qty');
+                    const priceInput = row.querySelector('.quick-bom-price');
+                    const taxSelect = row.querySelector('.quick-bom-tax-rate');
+                    const rate = parseFloat(taxSelect?.value || 0);
+
+                    if (!select?.value || !rate || !shouldApplyTaxes) {
+                        return;
+                    }
+
+                    const qty = parseFloat(qtyInput?.value || 0);
+                    const price = parseFloat(priceInput?.value || 0);
+                    const rowBaseTotal = qty * price;
+                    if (rowBaseTotal <= 0) {
+                        return;
+                    }
+
+                    const selectedOption = taxSelect.options[taxSelect.selectedIndex];
+                    const label = (selectedOption?.dataset?.label || selectedOption?.textContent || 'GST').trim();
+
+                    if (label.toUpperCase().includes('CGST') && label.toUpperCase().includes('SGST')) {
+                        const halfRate = rate / 2;
+                        [
+                            { label: 'CGST', rate: halfRate },
+                            { label: 'SGST', rate: halfRate },
+                        ].forEach(function (taxLine) {
+                            const key = taxLine.label + '|' + taxLine.rate.toFixed(4);
+                            const amount = (rowBaseTotal * taxLine.rate) / 100;
+                            buckets[key] = buckets[key] || { label: taxLine.label, rate: taxLine.rate, amount: 0 };
+                            buckets[key].amount += amount;
+                            totalAmount += amount;
+                        });
+                    } else {
+                        const normalizedLabel = label.toUpperCase().includes('IGST') ? 'IGST' : label;
+                        const key = normalizedLabel + '|' + rate.toFixed(4);
+                        const amount = (rowBaseTotal * rate) / 100;
+                        buckets[key] = buckets[key] || { label: normalizedLabel, rate, amount: 0 };
+                        buckets[key].amount += amount;
+                        totalAmount += amount;
+                    }
+                });
+
+                totalRate = Object.values(buckets).reduce(function (sum, line) {
+                    return sum + parseFloat(line.rate || 0);
+                }, 0);
+
+                if (fieldsBox && shouldUpdateDisplay) {
+                    const lines = Object.values(buckets);
+                    if (!lines.length) {
+                        fieldsBox.innerHTML = '<div class="totals-row"><span class="small text-muted">Select BOM tax to apply GST.</span><span class="small">0.00</span></div>';
+                    } else {
+                        fieldsBox.innerHTML = lines.map(function (line) {
+                            const rateText = parseFloat(line.rate || 0).toFixed(2).replace(/\.?0+$/, '');
+                            const amountText = parseFloat(line.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            return '<div class="totals-row gst-tax-row">' +
+                                '<span class="small">' + line.label + ' (' + rateText + '%):</span>' +
+                                '<span class="small gst-tax-amount">' + amountText + '</span>' +
+                            '</div>';
+                        }).join('');
+                    }
+                }
+
+                return { totalRate, totalAmount };
+            };
+
+            const calculateQuickEstimateTotals = function () {
+                const subtotalField = document.getElementById('quick_subtotal');
+                const finalTotalField = document.getElementById('quick_final_total');
+                const subtotalDisplay = document.getElementById('quick_subtotal_display');
+                const finalTotalDisplay = document.getElementById('quick_final_total_display');
+                const priceInput = document.getElementById('quick_price');
+
+                if (!subtotalField || !finalTotalField || !subtotalDisplay || !finalTotalDisplay) {
+                    return;
+                }
+
+                let productsTotal = 0;
+                form.querySelectorAll('.quick-bom-row').forEach(function (row) {
+                    const select = row.querySelector('.quick-bom-select');
+                    const qtyInput = row.querySelector('.quick-bom-qty');
+                    const priceInputRow = row.querySelector('.quick-bom-price');
+                    const amountInput = row.querySelector('.quick-bom-amount');
+
+                    if (!select?.value || !qtyInput) {
+                        return;
+                    }
+
+                    const qty = parseFloat(qtyInput.value || 0);
+                    let price = 0;
+                    if (priceInputRow && priceInputRow.value !== '') {
+                        price = parseFloat(priceInputRow.value || 0);
+                    } else {
+                        const option = select.options[select.selectedIndex];
+                        price = parseFloat(option?.dataset?.price || 0);
+                    }
+
+                    const rowTotal = qty * price;
+                    productsTotal += rowTotal;
+                    if (amountInput) {
+                        amountInput.value = formatStepOneInputValue(rowTotal);
+                    }
+                });
+
+                const price = parseFloat(priceInput?.value || 0);
+                const discount = parseFloat(document.getElementById('quick_discount')?.value || 0);
+                const subsidy = parseFloat(document.getElementById('quick_subsidy_amount')?.value || 0);
+                const subtotal = price + productsTotal;
+                const taxBreakdown = document.getElementById('quick_apply_gst')?.checked
+                    ? getQuickEstimateTaxBreakdown(subtotal)
+                    : getQuickEstimateTaxBreakdown(0);
+                const gstAmount = taxBreakdown.totalAmount;
+                const finalTotal = subtotal + gstAmount - discount - subsidy;
+
+                subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                finalTotalDisplay.textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                subtotalField.value = subtotal.toFixed(2);
+                finalTotalField.value = finalTotal.toFixed(2);
+
+                const gstField = document.getElementById('quick_gst');
+                if (gstField) {
+                    gstField.value = document.getElementById('quick_apply_gst')?.checked
+                        ? taxBreakdown.totalRate.toFixed(2)
+                        : '0';
+                }
             };
 
             const populateQuickBomMakeOptions = function (makeSelect, categories, selectedValue) {
@@ -494,16 +631,19 @@
                 const select = row.querySelector('.quick-bom-select');
                 const qtyInput = row.querySelector('.quick-bom-qty');
                 const priceInput = row.querySelector('.quick-bom-price');
+                const taxSelect = row.querySelector('.quick-bom-tax-rate');
                 const removeBtn = row.querySelector('.quick-remove-bom-row');
 
                 initQuickBomSelect(select);
 
                 select?.addEventListener('change', function () {
                     syncQuickBomRowFromSelection(row);
+                    calculateQuickEstimateTotals();
                 });
                 if (window.jQuery && select) {
                     window.jQuery(select).off('change.quickBom select2:select.quickBom').on('change.quickBom select2:select.quickBom', function () {
                         syncQuickBomRowFromSelection(row);
+                        calculateQuickEstimateTotals();
                     });
                 }
                 qtyInput?.addEventListener('input', function () {
@@ -512,9 +652,13 @@
                 priceInput?.addEventListener('input', function () {
                     calculateQuickBomRow(row);
                 });
+                taxSelect?.addEventListener('change', function () {
+                    calculateQuickEstimateTotals();
+                });
                 removeBtn?.addEventListener('click', function () {
                     row.remove();
                     updateQuickBomDeleteButtons();
+                    calculateQuickEstimateTotals();
                 });
             };
 
@@ -546,13 +690,67 @@
                     makeSelect.disabled = true;
                     makeSelect.value = '';
                 }
+                const taxSelect = clone.querySelector('.quick-bom-tax-rate');
+                if (taxSelect) {
+                    taxSelect.value = '0';
+                }
                 clone.querySelector('.quick-bom-qty').value = '1';
                 clone.querySelector('.quick-bom-price').value = '0';
                 clone.querySelector('.quick-bom-amount').value = '0';
                 quickBomRows.appendChild(clone);
                 attachQuickBomRowHandlers(clone);
                 updateQuickBomDeleteButtons();
+                calculateQuickEstimateTotals();
             });
+
+            const quickSubsidyOptions = {
+                typeSelector: '#quickEstimateForm [name="type"]',
+                quantityId: 'quick_quantity',
+                subsidyId: 'quick_subsidy_amount',
+                onUpdated: calculateQuickEstimateTotals,
+            };
+
+            const runQuickSubsidyCalculation = function () {
+                autoCalculateSubsidy(quickSubsidyOptions);
+            };
+
+            const quickTypeField = form.querySelector('[name="type"]');
+            if (quickTypeField) {
+                quickTypeField.addEventListener('change', runQuickSubsidyCalculation);
+            }
+
+            const quickQuantityField = document.getElementById('quick_quantity');
+            if (quickQuantityField) {
+                ['input', 'change'].forEach(function (eventName) {
+                    quickQuantityField.addEventListener(eventName, runQuickSubsidyCalculation);
+                });
+            }
+
+            ['quick_price', 'quick_discount', 'quick_subsidy_amount'].forEach(function (fieldId) {
+                const input = document.getElementById(fieldId);
+                if (!input) {
+                    return;
+                }
+                restrictNegative(input);
+                ['input', 'change'].forEach(function (eventName) {
+                    input.addEventListener(eventName, calculateQuickEstimateTotals);
+                });
+            });
+
+            const quickGstCheckbox = document.getElementById('quick_apply_gst');
+            if (quickGstCheckbox) {
+                quickGstCheckbox.addEventListener('change', function () {
+                    const box = document.getElementById('quick_gst_fields_box');
+                    if (box) {
+                        box.style.display = this.checked ? 'block' : 'none';
+                    }
+                    calculateQuickEstimateTotals();
+                });
+                const gstBox = document.getElementById('quick_gst_fields_box');
+                if (gstBox) {
+                    gstBox.style.display = quickGstCheckbox.checked ? 'block' : 'none';
+                }
+            }
 
             const fillQuickCommentFromTemplate = function (overwrite) {
                 const templateSelect = document.getElementById('quick_template_id');
@@ -616,6 +814,8 @@
                 }
                 fillQuickEstimateName();
                 fillQuickCommentFromTemplate(false);
+                runQuickSubsidyCalculation();
+                calculateQuickEstimateTotals();
             });
 
             quickTemplateSelect?.addEventListener('change', function () {
@@ -675,6 +875,9 @@
                         hasError = true;
                     }
 
+                    const taxSelect = row.querySelector('.quick-bom-tax-rate');
+                    const taxOption = taxSelect?.options[taxSelect.selectedIndex];
+
                     products.push({
                         product_id: String(bomId),
                         name: option?.dataset?.name || option?.textContent?.trim() || '',
@@ -682,6 +885,8 @@
                         category_name: row.querySelector('.quick-bom-make-select')?.value || option?.dataset?.make || '',
                         quantity: rowQty,
                         price: rowPrice,
+                        tax_rate: parseFloat(taxSelect?.value || 0),
+                        tax_label: taxOption?.dataset?.label || '',
                     });
                 });
                 if (!products.length) {
@@ -698,6 +903,9 @@
                 const customerOption = customerSelect.options[customerSelect.selectedIndex];
                 const customerName = customerOption?.dataset?.name || customerOption?.textContent?.trim() || 'Customer';
 
+                const totalTaxRate = getQuickEstimateTaxBreakdown(null).totalRate;
+                const applyGst = document.getElementById('quick_apply_gst')?.checked;
+
                 const formData = new FormData();
                 formData.set('customer_id', customerId);
                 formData.set('estimate_name', (nameInput?.value || '').trim() || ('EST-' + customerName));
@@ -708,10 +916,12 @@
                 formData.set('solar_meter_charges', 'as_per_actual');
                 formData.set('estimate_date', new Date().toISOString().slice(0, 10));
                 formData.set('products', JSON.stringify(products));
-                formData.set('apply_gst', '0');
-                formData.set('gst', '0');
-                formData.set('discount', '0');
-                formData.set('subsidy_amount', '0');
+                formData.set('apply_gst', applyGst ? '1' : '0');
+                formData.set('gst', applyGst ? totalTaxRate.toFixed(2) : '0');
+                formData.set('total', document.getElementById('quick_subtotal')?.value || '0');
+                formData.set('final_total', document.getElementById('quick_final_total')?.value || '0');
+                formData.set('discount', document.getElementById('quick_discount')?.value || '0');
+                formData.set('subsidy_amount', document.getElementById('quick_subsidy_amount')?.value || '0');
                 formData.set('solar_structure_charges', '0');
                 formData.set('comment', form.comment.value || '');
 
@@ -2386,10 +2596,13 @@
             if (igstLabel) igstLabel.textContent = `IGST (${gstPercent.toFixed(1)}%):`;
         }
     }
-    function autoCalculateSubsidy() {
-        const typeField = document.getElementById('type');
-        const quantityField = document.getElementById('quantity');
-        const subsidyField = document.getElementById('subsidy_amount');
+    function autoCalculateSubsidy(options) {
+        options = options || {};
+        const typeField = options.typeField
+            || document.getElementById(options.typeId || 'type')
+            || (options.typeSelector ? document.querySelector(options.typeSelector) : null);
+        const quantityField = document.getElementById(options.quantityId || 'quantity');
+        const subsidyField = document.getElementById(options.subsidyId || 'subsidy_amount');
 
         if (!typeField || !quantityField || !subsidyField) {
             return;
@@ -2454,6 +2667,10 @@
 
         // Safely update the field value
         subsidyField.value = formatStepOneInputValue(calculatedSubsidy);
+
+        if (typeof options.onUpdated === 'function') {
+            options.onUpdated();
+        }
     }
 
     function initCalculations() {
