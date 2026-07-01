@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -95,15 +95,15 @@ class MeetingController extends Controller
                 fputcsv($file, [
                     $i++,
                     $meeting->title,
-                    $meeting->customer?->name ?? 'N/A',
+                    $meeting->customer?->name ?? '--',
                     $meeting->assignedUser?->name ?? 'Unassigned',
-                    $meeting->meeting_type ? ucfirst($meeting->meeting_type) : 'N/A',
-                    $meeting->status ? ucfirst($meeting->status) : 'N/A',
-                    $meeting->address ?? 'N/A',
-                    $meeting->scheduled_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $meeting->meeting_type ? ucfirst($meeting->meeting_type) : '--',
+                    $meeting->status ? ucfirst($meeting->status) : '--',
+                    $meeting->address ?? '--',
+                    $meeting->scheduled_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                     $meeting->is_synced ? 'Synced' : 'Not Synced',
-                    $meeting->createdBy?->name ?? 'N/A',
-                    $meeting->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $meeting->createdBy?->name ?? '--',
+                    $meeting->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -204,7 +204,7 @@ class MeetingController extends ApiBaseController
             $customerPhone = $meeting->customer?->whatsapp ?: $meeting->customer?->phone;
             $scheduledText = $meeting->scheduled_at ? \Illuminate\Support\Carbon::parse($meeting->scheduled_at)->format('d M Y h:i A') : '';
             $meetingType = $meeting->meeting_type ? ucfirst($meeting->meeting_type) : 'Meeting';
-            $addressText = $meeting->address ?: 'N/A';
+            $addressText = $meeting->address ?: '--';
             $agendaText = $meeting->agenda ?: '';
             $staffName = $meeting->assignedUser?->name ?? 'Staff';
 
@@ -359,7 +359,7 @@ class MeetingController extends ApiBaseController
             $customerName = $meeting->customer?->name ?? 'Customer';
             $scheduledText = $meeting->scheduled_at ? \Illuminate\Support\Carbon::parse($meeting->scheduled_at)->format('d M Y h:i A') : '';
             $meetingType = $meeting->meeting_type ? ucfirst($meeting->meeting_type) : 'Meeting';
-            $addressText = $meeting->address ?: 'N/A';
+            $addressText = $meeting->address ?: '--';
             $agendaText = $meeting->agenda ?: '';
             $customerPayload = [
                 $customerName,

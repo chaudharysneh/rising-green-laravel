@@ -1,4 +1,4 @@
-// ==================== CONFIGURATION ====================
+﻿// ==================== CONFIGURATION ====================
 const API_CONFIG = {
     services: '/api/services',
     products: '/api/products'
@@ -220,7 +220,7 @@ const ServiceTable = {
 
         let html = "";
         services.forEach((service, index) => {
-            let productName = service.product ? escapeHtml(service.product.name) : "N/A";
+            let productName = service.product ? escapeHtml(service.product.name) : "--";
             let currentPage = pageData?.current_page || 1;
             let perPage = pageData?.per_page || services.length || 10;
             let rowNumber = ((currentPage - 1) * perPage) + index + 1;

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -210,7 +210,7 @@ class UserController extends ApiBaseController
                     [
                         $user->name ?? 'Staff',
                         $user->name ?? 'Staff',
-                        $user->email ?? 'N/A',
+                        $user->email ?? '--',
                         $roleText,
                     ],
                     $user->id
@@ -294,7 +294,7 @@ class UserController extends ApiBaseController
                     [
                         $user->name ?? 'Staff',
                         $user->name ?? 'Staff',
-                        $user->email ?? 'N/A',
+                        $user->email ?? '--',
                         $roleText,
                     ],
                     $user->id

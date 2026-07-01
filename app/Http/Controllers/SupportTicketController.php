@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -85,14 +85,14 @@ class SupportTicketController extends Controller
             foreach ($tickets as $ticket) {
                 fputcsv($file, [
                     $i++,
-                    $ticket->customer?->name ?? 'N/A',
-                    $ticket->ticket_name ?? 'N/A',
-                    $ticket->priority ?? 'N/A',
-                    $ticket->status ?? 'N/A',
-                    $ticket->creator?->name ?? 'N/A',
+                    $ticket->customer?->name ?? '--',
+                    $ticket->ticket_name ?? '--',
+                    $ticket->priority ?? '--',
+                    $ticket->status ?? '--',
+                    $ticket->creator?->name ?? '--',
                     $ticket->created_at
                         ? $ticket->created_at->timezone('Asia/Kolkata')->format('d-m-Y h:i A')
-                        : 'N/A',
+                        : '--',
                 ]);
             }
 

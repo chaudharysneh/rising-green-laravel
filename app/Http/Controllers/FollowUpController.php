@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -110,8 +110,8 @@ class FollowUpController extends Controller
                     $followup->lead?->name ?? '-',
                     $followup->assignedUser?->name ?? '-',
                     $followup->purpose ?? '-',
-                    $followup->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
-                    $followup->follow_up_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $followup->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
+                    $followup->follow_up_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                     ucfirst($followup->status ?? 'pending'),
                 ]);
             }

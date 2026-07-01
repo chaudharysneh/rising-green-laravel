@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Projects Report')
 
@@ -128,8 +128,8 @@ $(document).ready(function () {
             const endDate = project.end_date ? new Date(project.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
             const statusBadge = { pending: 'bg-warning', ongoing: 'bg-info', completed: 'bg-success', canceled: 'bg-danger' }[project.status] || 'bg-secondary';
             const srNo = meta && meta.from ? meta.from + index : index + 1;
-            const customerName = project.customer ? project.customer.name : 'N/A';
-            const createdByName = project.creator?.name || project.created_by_user?.name || 'N/A';
+            const customerName = project.customer ? project.customer.name : '--';
+            const createdByName = project.creator?.name || project.created_by_user?.name || '--';
             return `
                 <tr>
                     <td class="ps-4"><span class="text-muted small fw-medium">${srNo}</span></td>

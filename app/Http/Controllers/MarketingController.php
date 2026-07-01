@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -386,7 +386,7 @@ class MarketingController extends Controller
                 $placeholders = [
                     '{customer_name}' => $recipient->name,
                     '{email}' => $recipient->email,
-                    '{phone}' => $recipient->phone ?? $recipient->mobile ?? 'N/A',
+                    '{phone}' => $recipient->phone ?? $recipient->mobile ?? '--',
                 ];
 
                 $finalContent = str_replace(array_keys($placeholders), array_values($placeholders), $content);

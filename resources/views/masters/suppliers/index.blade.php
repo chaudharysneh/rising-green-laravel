@@ -1,4 +1,4 @@
-@extends('layouts.masters')
+﻿@extends('layouts.masters')
 
 @section('page_title', 'Masters - Suppliers')
 
@@ -31,7 +31,7 @@
                             <tr>
                                 <td>{{ $supplier->name }}</td>
                                 <td>{{ $supplier->type }}</td>
-                                <td>{{ $supplier->city?->name ?? 'N/A' }}, {{ $supplier->country?->name ?? 'N/A' }}</td>
+                                <td>{{ $supplier->city?->name ?? '--' }}, {{ $supplier->country?->name ?? '--' }}</td>
                                 <td>{{ $supplier->contact_person }}</td>
                                 <td>{{ $supplier->email }}</td>
                                 <td>{{ $supplier->phone }}</td>

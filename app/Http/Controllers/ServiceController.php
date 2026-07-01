@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -80,11 +80,11 @@ class ServiceController extends Controller
             foreach ($services as $service) {
                 fputcsv($file, [
                     $i++,
-                    $service->service_name ?? 'N/A',
-                    $service->product?->name ?? 'N/A',
+                    $service->service_name ?? '--',
+                    $service->product?->name ?? '--',
                     number_format((float) ($service->service_price ?? 0), 2, '.', ''),
                     strtoupper($service->status ?? 'inactive'),
-                    $service->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $service->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

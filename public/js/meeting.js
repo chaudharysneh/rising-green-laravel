@@ -1,4 +1,4 @@
-const API_CONFIG = {
+﻿const API_CONFIG = {
     meetings: "/api/meetings",
     customers: "/api/meetings/customers",
     users: "/api/meetings/users",
@@ -285,7 +285,7 @@ const MeetingTable = {
         meetings.forEach((meeting, index) => {
             let customerName = meeting.customer
                 ? escapeHtml(meeting.customer.name)
-                : "N/A";
+                : "--";
             let srNo = meta.from ? meta.from + index : index + 1;
             
             const assignedUserData = meeting.assignedUser || meeting.assigned_user;
@@ -452,7 +452,7 @@ const MeetingTable = {
             phone: "Phone Call",
         };
 
-        return labels[type] || "N/A";
+        return labels[type] || "--";
     },
 
     renderPagination(data) {

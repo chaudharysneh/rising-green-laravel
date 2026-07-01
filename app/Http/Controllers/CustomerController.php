@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -128,10 +128,10 @@ class CustomerController extends Controller
                     $customer->phone,
                     $customer->whatsapp,
                     $customer->type,
-                    $customer->country?->name ?? 'N/A',
-                    $customer->city?->name ?? 'N/A',
+                    $customer->country?->name ?? '--',
+                    $customer->city?->name ?? '--',
                     $customer->is_active ? 'Active' : 'Inactive',
-                    $customer->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $customer->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

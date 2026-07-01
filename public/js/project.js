@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     // Wait for DOM to be fully loaded
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);
@@ -275,10 +275,10 @@
                     const createdByName =
                         project.creator?.name ||
                         project.created_by_user?.name ||
-                        "N/A";
+                        "--";
                     const customerName = project.customer
                         ? project.customer.name
-                        : "N/A";
+                        : "--";
 
                     return `
                     <tr>

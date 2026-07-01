@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Console\Commands;
 
@@ -135,7 +135,7 @@ class SendMarketingAutomations extends Command
             $placeholders = [
                 '{customer_name}' => $recipient->name,
                 '{email}' => $recipient->email,
-                '{phone}' => $recipient->phone ?? 'N/A',
+                '{phone}' => $recipient->phone ?? '--',
             ];
 
             $content = str_replace(array_keys($placeholders), array_values($placeholders), $template->content);

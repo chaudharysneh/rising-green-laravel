@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -83,12 +83,12 @@ class PipelineController extends Controller
             foreach ($pipelines as $pipeline) {
                 fputcsv($file, [
                     $i++,
-                    $pipeline->customer?->name ?? 'N/A',
-                    $pipeline->pipeline_name ?? 'N/A',
-                    $pipeline->stage?->name ?? 'N/A',
-                    $pipeline->status ? ucfirst(str_replace('_', ' ', $pipeline->status)) : 'N/A',
-                    $pipeline->creator?->name ?? 'N/A',
-                    $pipeline->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $pipeline->customer?->name ?? '--',
+                    $pipeline->pipeline_name ?? '--',
+                    $pipeline->stage?->name ?? '--',
+                    $pipeline->status ? ucfirst(str_replace('_', ' ', $pipeline->status)) : '--',
+                    $pipeline->creator?->name ?? '--',
+                    $pipeline->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

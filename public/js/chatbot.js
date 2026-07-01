@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const cardEl = document.getElementById('chatbotCard');
     if (!cardEl) return;
 
@@ -457,7 +457,7 @@
                         ${record.product_name ? `<div class="chatbot-record-field"><span>Product:</span> ${record.product_name}</div>` : ''}
                         ${record.price ? `<div class="chatbot-record-field"><span>Price:</span> $${parseFloat(record.price).toLocaleString()}</div>` : ''}
                         <div class="chatbot-record-status">
-                            Status: <span class="badge ${getStatusBadgeClass(record.status)}">${record.status || 'N/A'}</span>
+                            Status: <span class="badge ${getStatusBadgeClass(record.status)}">${record.status || '--'}</span>
                         </div>
                     </div>
                     <a href="${record.url}" class="chatbot-view-link">View Details</a>

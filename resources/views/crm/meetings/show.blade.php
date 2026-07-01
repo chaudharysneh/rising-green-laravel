@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Meeting Details')
 
@@ -30,7 +30,7 @@
                 <div class="row g-0 detail-view-grid">
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-user"></i>Customer:</span>
-                        <span class="detail-view-value">{{ $meeting->customer?->name ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $meeting->customer?->name ?? '--' }}</span>
                     </div>
                     
                     <div class="col-md-6 detail-view-row">
@@ -40,7 +40,7 @@
                     
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-handshake"></i>Meeting Type:</span>
-                        <span class="detail-view-value text-capitalize">{{ $meeting->meeting_type ?? 'N/A' }}</span>
+                        <span class="detail-view-value text-capitalize">{{ $meeting->meeting_type ?? '--' }}</span>
                     </div>
                     
                     <div class="col-md-6 detail-view-row">
@@ -55,7 +55,7 @@
                                 };
                             @endphp
                             <span class="badge {{ $badge }} opacity-75 rounded-pill px-3 py-2 text-capitalize">
-                                {{ $meeting->status ?? 'N/A' }}
+                                {{ $meeting->status ?? '--' }}
                             </span>
                         </span>
                     </div>
@@ -69,20 +69,20 @@
                     
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-location-dot"></i>Location:</span>
-                        <span class="detail-view-value">{{ $meeting->address ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $meeting->address ?? '--' }}</span>
                     </div>
                     
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-user-plus"></i>Created By:</span>
                         <span class="detail-view-value">
-                            {{ $meeting->creator?->name ?? 'N/A' }} | {{ $meeting->created_at?->format('d M, Y') ?? '-' }}
+                            {{ $meeting->creator?->name ?? '--' }} | {{ $meeting->created_at?->format('d M, Y') ?? '-' }}
                         </span>
                     </div>
                     
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-clock-rotate-left"></i>Last Updated:</span>
                         <span class="detail-view-value">
-                            {{ $meeting->updater?->name ?? 'N/A' }} | {{ $meeting->updated_at?->format('d M, Y') ?? '-' }}
+                            {{ $meeting->updater?->name ?? '--' }} | {{ $meeting->updated_at?->format('d M, Y') ?? '-' }}
                         </span>
                     </div>
                 </div>

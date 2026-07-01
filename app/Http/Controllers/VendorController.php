@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -64,11 +64,11 @@ class VendorController extends Controller
                 fputcsv($file, [
                     $index + 1,
                     $vendor->name,
-                    $vendor->email ?? 'N/A',
-                    $vendor->phone ?? 'N/A',
-                    $vendor->address ?? 'N/A',
+                    $vendor->email ?? '--',
+                    $vendor->phone ?? '--',
+                    $vendor->address ?? '--',
                     optional($vendor->creator)->name ?? '-',
-                    optional($vendor->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    optional($vendor->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

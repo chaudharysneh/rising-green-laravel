@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Proposal: ' . $quotation->reference)
 
@@ -57,7 +57,7 @@
                             <h5 class="mb-1 fw-bold">{{ config('app.name', 'Tour CRM') }}</h5>
                             <p class="text-muted mb-0 small">
                                 Date: {{ $quotation->created_at->format('d M Y') }}<br>
-                                Valid Until: {{ $quotation->valid_until ? date('d M Y', strtotime($quotation->valid_until)) : 'N/A' }}
+                                Valid Until: {{ $quotation->valid_until ? date('d M Y', strtotime($quotation->valid_until)) : '--' }}
                             </p>
                             <span class="badge crm-status-pill bg-{{ $quotation->status == 'confirmed' ? 'success' : ($quotation->status == 'cancelled' ? 'danger' : 'info') }} mt-2 text-uppercase rounded-pill">
                                 {{ $quotation->status }}

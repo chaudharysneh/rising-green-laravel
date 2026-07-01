@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -116,7 +116,7 @@ class TaskController extends ApiBaseController
         try {
             $task->load(['assignedUser', 'customer', 'project.customer', 'estimate']);
 
-            $projectName = $task->project?->name ?: 'N/A';
+            $projectName = $task->project?->name ?: '--';
             $customer = $task->customer ?: $task->project?->customer;
             $customerName = $customer?->name ?: 'Customer';
             $dueDateText = $task->due_date ? \Illuminate\Support\Carbon::parse($task->due_date)->format('d M Y') : '';
@@ -227,7 +227,7 @@ class TaskController extends ApiBaseController
         try {
             $task->load(['assignedUser', 'customer', 'project.customer', 'estimate']);
 
-            $projectName = $task->project?->name ?: 'N/A';
+            $projectName = $task->project?->name ?: '--';
             $customer = $task->customer ?: $task->project?->customer;
             $customerName = $customer?->name ?: 'Customer';
             $customerPhone = $customer?->whatsapp ?: $customer?->phone;

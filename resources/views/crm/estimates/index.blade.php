@@ -157,7 +157,7 @@
             <form id="quickEstimateForm" novalidate>
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-6 col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
@@ -197,7 +197,7 @@
                             <input type="number" min="1" step="1" class="form-control" name="price" id="quick_price" placeholder="Enter price" required>
                             <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
                             <select class="form-select" name="template_id" id="quick_template_id" required>
                                 <option value="">Select Template</option>
@@ -250,7 +250,7 @@
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Amount</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-amount" value="0" readonly>
                                             </div>
-                                            <div class="col-6 col-md-2">
+                                            <div class="col-12 col-md-2">
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="quick_bom_tax_rate[]" class="form-select quick-bom-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
@@ -312,7 +312,7 @@
                                 <hr class="my-2">
 
                                 <div class="totals-row total-row mb-0">
-                                    <span class="h5 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
+                                    <span class="h6 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
                                     <span id="quick_final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>

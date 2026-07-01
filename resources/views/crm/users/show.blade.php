@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Staff Details')
 
@@ -58,7 +58,7 @@
 
                                 <!-- Staff Information -->
                                 <div class="col-md-8 col-lg-9">
-                                    <div class="detail-view-title mb-3">{{ $user->name ?? 'N/A' }}</div>
+                                    <div class="detail-view-title mb-3">{{ $user->name ?? '--' }}</div>
 
                                     <div class="row g-0 detail-view-grid">
 
@@ -70,7 +70,7 @@
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label pe-2"><i class="fas fa-calendar-plus text-muted me-2"></i>Created At:</span>
                                             <span class="detail-view-value">
-                                                {{ $user->created_at?->format('d M, Y h:i A') ?? 'N/A' }}
+                                                {{ $user->created_at?->format('d M, Y h:i A') ?? '--' }}
                                             </span>
                                         </div>
 
@@ -83,7 +83,7 @@
                                                         {{ $user->email }}
                                                     </a>
                                                 @else
-                                                    N/A
+                                                    --
                                                 @endif
                                             </span>
                                         </div>
@@ -97,7 +97,7 @@
                                                         {{ $user->phone }}
                                                     </a>
                                                 @else
-                                                    N/A
+                                                    --
                                                 @endif
                                             </span>
                                         </div>
@@ -113,7 +113,7 @@
                                                         {{ $user->whatsapp }}
                                                     </a>
                                                 @else
-                                                    N/A
+                                                    --
                                                 @endif
                                             </span>
                                         </div>
@@ -129,7 +129,7 @@
                                         <!-- Address -->
                                         <div class="col-md-12 detail-view-row">
                                             <span class="detail-view-label pe-2"><i class="fas fa-map-marker-alt text-muted me-2"></i>Address:</span>
-                                            <span class="detail-view-value">{{ $user->address ?: 'N/A' }}</span>
+                                            <span class="detail-view-value">{{ $user->address ?: '--' }}</span>
                                         </div>
 
                                         <!-- Status -->
