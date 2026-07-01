@@ -824,7 +824,7 @@
 [data-theme="dark"] .settings-shell .form-control,
 [data-theme="dark"] .settings-shell .form-select,
 [data-theme="dark"] .settings-shell textarea.form-control {
-    background: var(--crm-bg-input);
+    background-color: var(--crm-bg-input);
     color: #e2e8f0;
     border-color: rgba(255, 255, 255, 0.08);
 }
