@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -24,7 +25,35 @@ class SettingController extends Controller
         $taxes = Tax::orderBy('name')->orderBy('rate')->get();
         $subsidies = Subsidy::orderBy('category')->get();
 
-        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions', 'taxes', 'subsidies'));
+        // Fetch tables for truncate utility
+        $tables = DB::select('SHOW TABLES');
+        $allTables = array_map('current', $tables);
+        $whitelist = \App\Http\Controllers\TableTruncateController::$allowedModulesTables;
+        $allowedTables = array_intersect($allTables, $whitelist);
+        $truncateTables = [];
+        foreach ($allowedTables as $table) {
+            try {
+                $count = DB::table($table)->count();
+                if ($table === 'users') {
+                    // Get only non-admin count for display? Actually total records is fine, but let's show total for non-admins if we want, or just total. The UI says "users (Excludes Admins)"
+                    $count = \App\Models\User::nonAdmin()->count();
+                }
+                $truncateTables[] = [
+                    'name' => $table,
+                    'count' => $count
+                ];
+            } catch (\Exception $e) {
+                // Ignore tables that can't be queried
+            }
+        }
+        // Sort tables by their defined order in the whitelist
+        usort($truncateTables, function($a, $b) use ($whitelist) {
+            $posA = array_search($a['name'], $whitelist);
+            $posB = array_search($b['name'], $whitelist);
+            return $posA <=> $posB;
+        });
+
+        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions', 'taxes', 'subsidies', 'truncateTables'));
     }
 
     public function update(Request $request)

@@ -42,6 +42,8 @@
                 </li>
                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
                         data-bs-target="#integrations" type="button" role="tab">Integrations</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                        data-bs-target="#table-truncate" type="button" role="tab">Table Truncate</button></li>
             </ul>
         </div>
 
@@ -658,6 +660,56 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class="tab-pane fade" id="table-truncate" role="tabpanel">
+                <div class="settings-panel">
+                    <div class="settings-panel-head d-flex justify-content-between align-items-center">
+                        <span>Table Truncate Utility</span>
+                        <button type="button" class="btn btn-danger rounded-pill shadow-sm fw-semibold" style="padding: 8px 20px;" id="truncateAllBtn">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i> Truncate All Allowed
+                        </button>
+                    </div>
+                    <div class="settings-panel-body">
+                        <div class="alert alert-warning mb-4" role="alert" style="background-color: #fdf6e3; border: 1px solid #ffe8a1; color: #856404; border-radius: 6px; padding: 12px 16px; font-size: 0.9rem;">
+                            <i class="bi bi-exclamation-triangle-fill" style="color: #f5b041; margin-right: 6px;"></i>
+                            <strong>Warning:</strong> Truncating a table permanently deletes all its records (except Admin users in the users table). This action cannot be undone. System configuration tables are marked as 'Not Allowed'.
+                        </div>
+
+                        <div class="table-responsive">
+                            <table id="truncateTable" class="table table-bordered table-hover align-middle">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr>
+                                        <th class="text-uppercase" style="color: #6c757d; font-size: 0.85rem;">Table Name</th>
+                                        <th class="text-uppercase" style="color: #6c757d; font-size: 0.85rem;">Total Records</th>
+                                        <th class="text-uppercase text-center" style="color: #6c757d; font-size: 0.85rem; width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @isset($truncateTables)
+                                        @forelse($truncateTables as $tableInfo)
+                                            <tr>
+                                                <td class="fw-semibold">{{ $tableInfo['name'] == 'users' ? 'users (Excludes Admins)' : $tableInfo['name'] }}</td>
+                                                <td>{{ $tableInfo['count'] }}</td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn crm-action-btn btn-sm text-danger truncate-btn shadow-sm" style="border-radius: 8px; background-color: #fff2f2; border: 1px solid #ffcccc;" data-table="{{ $tableInfo['name'] }}" title="Truncate Table">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="3" class="text-center">No allowed tables found.</td>
+                                            </tr>
+                                        @endforelse
+                                    @endisset
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="card-footer border-top-0 py-4 px-4 bg-white" id="truncatePagination"></div>
                     </div>
                 </div>
             </div>
@@ -1364,6 +1416,163 @@
                     });
                 }
             }
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Client-side pagination logic
+                const tableBody = document.querySelector('#truncateTable tbody');
+                const paginationContainer = document.getElementById('truncatePagination');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                let currentPage = 1;
+                const rowsPerPage = 10;
+
+                function renderTable(page) {
+                    currentPage = page;
+                    const start = (page - 1) * rowsPerPage;
+                    const end = start + rowsPerPage;
+                    const paginatedRows = rows.slice(start, end);
+
+                    tableBody.innerHTML = '';
+                    paginatedRows.forEach(row => tableBody.appendChild(row));
+
+                    renderPagination(rows.length, page);
+                }
+
+                function renderPagination(totalRows, page) {
+                    if (totalRows <= rowsPerPage) {
+                        paginationContainer.innerHTML = '';
+                        return;
+                    }
+
+                    const totalPages = Math.ceil(totalRows / rowsPerPage);
+                    const startCount = (page - 1) * rowsPerPage + 1;
+                    const endCount = Math.min(page * rowsPerPage, totalRows);
+
+                    let html = `<div class="crm-pagination-container d-flex justify-content-between align-items-center"><div class="text-muted small">Showing ${startCount} to ${endCount} of ${totalRows} results</div><ul class="pagination crm-pagination mb-0">`;
+                    
+                    html += page > 1 
+                        ? `<li class="page-item"><a class="page-link" href="#" data-page="${page - 1}">Previous</a></li>` 
+                        : `<li class="page-item disabled"><span class="page-link">Previous</span></li>`;
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                            html += i === page 
+                                ? `<li class="page-item active"><span class="page-link">${i}</span></li>` 
+                                : `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                        } else if (i === page - 3 || i === page + 3) {
+                            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                        }
+                    }
+
+                    html += page < totalPages 
+                        ? `<li class="page-item"><a class="page-link" href="#" data-page="${page + 1}">Next</a></li>` 
+                        : `<li class="page-item disabled"><span class="page-link">Next</span></li>`;
+                    html += `</ul></div>`;
+                    
+                    paginationContainer.innerHTML = html;
+
+                    paginationContainer.querySelectorAll('.page-link[data-page]').forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            renderTable(parseInt(e.target.getAttribute('data-page')));
+                        });
+                    });
+                }
+
+                if (rows.length > 0 && !rows[0].querySelector('td[colspan]')) {
+                    renderTable(1);
+                }
+
+                // Individual Table Truncate
+                // Use event delegation for dynamically paginated rows
+                $(document).on('click', '.truncate-btn', function() {
+                    const tableName = $(this).attr('data-table');
+                    
+                    Swal.fire({
+                            title: 'Are you sure?',
+                            text: `Are you absolutely sure you want to truncate the table "${tableName}"? This cannot be undone.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // AJAX call
+                                fetch(`/settings/table-truncate/${tableName}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                        'Accept': 'application/json',
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        Swal.fire('Deleted!', data.message, 'success')
+                                        .then(() => location.reload());
+                                    } else {
+                                        Swal.fire('Error!', data.message, 'error');
+                                    }
+                                })
+                                .catch(error => {
+                                    Swal.fire('Error!', 'Something went wrong.', 'error');
+                                });
+                            }
+                        });
+                });
+
+                // Truncate All
+                const truncateAllBtn = document.getElementById('truncateAllBtn');
+                if (truncateAllBtn) {
+                    truncateAllBtn.addEventListener('click', function() {
+                        Swal.fire({
+                            title: 'Are you completely sure?',
+                            text: "You are about to permanently delete all data from all allowed tables. This cannot be undone!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, proceed to next step'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Second confirmation
+                                Swal.fire({
+                                    title: 'Final Warning!',
+                                    text: "This is a highly sensitive action. All system records will be wiped out. Do you still want to truncate ALL allowed tables?",
+                                    icon: 'error',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Yes, delete EVERYTHING!'
+                                }).then((secondResult) => {
+                                    if (secondResult.isConfirmed) {
+                                        fetch(`/settings/table-truncate-all`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                                'Accept': 'application/json',
+                                            }
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                Swal.fire('Deleted!', data.message, 'success')
+                                                .then(() => location.reload());
+                                            } else {
+                                                Swal.fire('Error!', data.message, 'error');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            Swal.fire('Error!', 'Something went wrong.', 'error');
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    });
+                }
+            });
         </script>
         <script
             src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/js/setting.js') }}?v={{ filemtime(public_path('assets/js/setting.js')) }}"></script>

@@ -69,7 +69,7 @@ class SalesController extends ApiBaseController
 
         // Check if sufficient stock available
         $quantity = $data['quantity'] ?? 0;
-        $latestInventory = \App\Models\ProductInventory::where('product_id', $data['product_id'])->latest()->first();
+        $latestInventory = \App\Models\ProductInventory::where('product_id', $data['product_id'])->latest('id')->first();
         $currentStock = $latestInventory?->current_stock ?? 0;
 
         if ($currentStock < $quantity) {
@@ -151,7 +151,7 @@ class SalesController extends ApiBaseController
         }
 
         foreach ($data['products'] as $index => $productData) {
-            $latestInventory = \App\Models\ProductInventory::where('product_id', $productData['product_id'])->latest()->first();
+            $latestInventory = \App\Models\ProductInventory::where('product_id', $productData['product_id'])->latest('id')->first();
             $currentStock = $latestInventory?->current_stock ?? 0;
             $requestedQuantity = $productData['quantity'];
             $totalRequestedQuantity = $requestedByProduct[$productData['product_id']] ?? $requestedQuantity;
@@ -199,7 +199,7 @@ class SalesController extends ApiBaseController
 
             // Create inventory record for Material OUT (decrease stock)
             $quantity = $productData['quantity'];
-            $latestInventory = \App\Models\ProductInventory::where('product_id', $productData['product_id'])->latest()->first();
+            $latestInventory = \App\Models\ProductInventory::where('product_id', $productData['product_id'])->latest('id')->first();
             $currentStock = $latestInventory?->current_stock ?? 0;
             $newStock = $currentStock - $quantity;
 
@@ -248,6 +248,39 @@ class SalesController extends ApiBaseController
         $data = $validator->validated();
         $data['updated_by'] = auth()->id();
 
+        $oldProductId = $sale->product_id;
+        $oldQuantity = $sale->quantity;
+        $newProductId = $data['product_id'] ?? $oldProductId;
+        $newQuantity = $data['quantity'] ?? $oldQuantity;
+
+        if ($oldProductId != $newProductId || $oldQuantity != $newQuantity) {
+            $latestInventoryNew = \App\Models\ProductInventory::where('product_id', $newProductId)->latest('id')->first();
+            $currentStockNew = $latestInventoryNew?->current_stock ?? 0;
+            
+            // If the product is the same, we need additional stock equal to (new - old)
+            if ($oldProductId == $newProductId) {
+                $additionalNeeded = $newQuantity - $oldQuantity;
+                if ($additionalNeeded > 0 && $currentStockNew < $additionalNeeded) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => [
+                            'quantity' => ["Insufficient stock! Available: {$currentStockNew}, Additional Requested: {$additionalNeeded}"]
+                        ],
+                    ], 422);
+                }
+            } else {
+                // If the product changed, we need the full new quantity
+                if ($currentStockNew < $newQuantity) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => [
+                            'quantity' => ["Insufficient stock! Available: {$currentStockNew}, Requested: {$newQuantity}"]
+                        ],
+                    ], 422);
+                }
+            }
+        }
+
         // Calculate total if not provided
         if (!isset($data['total']) || $data['total'] == 0) {
             $subtotal = ($data['price'] ?? $sale->price) * ($data['quantity'] ?? $sale->quantity);
@@ -257,6 +290,36 @@ class SalesController extends ApiBaseController
         }
 
         $sale->update($data);
+
+        // Adjust inventory if product or quantity changed
+        if ($oldProductId != $newProductId || $oldQuantity != $newQuantity) {
+            // Reverse old inventory
+            $latestInventoryOld = \App\Models\ProductInventory::where('product_id', $oldProductId)->latest('id')->first();
+            $currentStockOld = ($latestInventoryOld?->current_stock ?? 0) + $oldQuantity; // Restoring what was OUT'd
+            
+            \App\Models\ProductInventory::create([
+                'product_id' => $oldProductId,
+                'initial_stock' => $oldQuantity,
+                'current_stock' => $currentStockOld,
+                'type' => 'increase',
+                'date' => now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+
+            // Re-fetch new inventory (in case old and new product are the same)
+            $latestInventoryNew = \App\Models\ProductInventory::where('product_id', $newProductId)->latest('id')->first();
+            $currentStockNew = ($latestInventoryNew?->current_stock ?? 0) - $newQuantity;
+
+            \App\Models\ProductInventory::create([
+                'product_id' => $newProductId,
+                'initial_stock' => $newQuantity,
+                'current_stock' => $currentStockNew,
+                'type' => 'decrease',
+                'date' => now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+        }
+
         $sale->load(['customer', 'product', 'handoverPerson', 'creator']);
 
         return response()->json([
@@ -268,7 +331,23 @@ class SalesController extends ApiBaseController
 
     public function destroy(Sales $sale)
     {
+        $productId = $sale->product_id;
+        $quantity = $sale->quantity;
+
         $sale->delete();
+
+        // Revert inventory
+        $latestInventory = \App\Models\ProductInventory::where('product_id', $productId)->latest('id')->first();
+        $currentStock = ($latestInventory?->current_stock ?? 0) + $quantity;
+
+        \App\Models\ProductInventory::create([
+            'product_id' => $productId,
+            'initial_stock' => $quantity,
+            'current_stock' => $currentStock,
+            'type' => 'increase',
+            'date' => now()->toDateString(),
+            'created_by' => auth()->id(),
+        ]);
 
         return response()->json([
             'success' => true,

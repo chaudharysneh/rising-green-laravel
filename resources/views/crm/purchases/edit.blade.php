@@ -496,7 +496,7 @@
 
             $.ajax({
                 url: '/api/v1/purchases/{{ $purchase->invoice_id }}',
-                type: 'PUT',
+                type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,

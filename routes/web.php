@@ -170,6 +170,10 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     // Settings web routes
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    
+    // Table Truncate routes
+    Route::post('/settings/table-truncate-all', [\App\Http\Controllers\TableTruncateController::class, 'truncateAll'])->name('settings.table-truncate-all');
+    Route::post('/settings/table-truncate/{table}', [\App\Http\Controllers\TableTruncateController::class, 'truncate'])->name('settings.table-truncate');
 
     // Tax management routes
     Route::post('/settings/taxes', [SettingController::class, 'storeTax'])->name('settings.taxes.store');

@@ -22,7 +22,7 @@ class ProductInventoryController extends ApiBaseController
             ->appends($request->query());
 
         $products->getCollection()->transform(function (Product $product) {
-            $inventory = ProductInventory::where('product_id', $product->id)->latest()->first();
+            $inventory = ProductInventory::where('product_id', $product->id)->latest('id')->first();
             
             // Use inventory data if exists, otherwise use product data
             return [
@@ -131,7 +131,7 @@ class ProductInventoryController extends ApiBaseController
 
         $histories = ProductInventory::where('product_id', $product->id)
             ->with(['creator'])
-            ->latest()
+            ->latest('id')
             ->paginate($perPage)
             ->appends($request->query());
 

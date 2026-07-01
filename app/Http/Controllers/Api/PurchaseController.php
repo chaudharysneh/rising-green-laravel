@@ -75,7 +75,7 @@ class PurchaseController extends ApiBaseController
 
         // Create inventory record for Material IN (increase stock)
         $quantity = $data['quantity'] ?? 0;
-        $latestInventory = ProductInventory::where('product_id', $data['product_id'])->latest()->first();
+        $latestInventory = ProductInventory::where('product_id', $data['product_id'])->latest('id')->first();
         $currentStock = ($latestInventory?->current_stock ?? 0) + $quantity;
 
         ProductInventory::create([
@@ -152,7 +152,7 @@ class PurchaseController extends ApiBaseController
 
             // Create inventory record for Material IN (increase stock)
             $quantity = $productData['quantity'];
-            $latestInventory = ProductInventory::where('product_id', $productData['product_id'])->latest()->first();
+            $latestInventory = ProductInventory::where('product_id', $productData['product_id'])->latest('id')->first();
             $currentStock = ($latestInventory?->current_stock ?? 0) + $quantity;
 
             ProductInventory::create([
@@ -200,6 +200,9 @@ class PurchaseController extends ApiBaseController
         $data = $validator->validated();
         $data['updated_by'] = auth()->id();
 
+        $oldProductId = $purchase->product_id;
+        $oldQuantity = $purchase->quantity;
+
         // Calculate total if not provided
         if (!isset($data['total']) || $data['total'] == 0) {
             $subtotal = ($data['price'] ?? $purchase->price) * ($data['quantity'] ?? $purchase->quantity);
@@ -209,6 +212,39 @@ class PurchaseController extends ApiBaseController
         }
 
         $purchase->update($data);
+
+        // Adjust inventory if product or quantity changed
+        $newProductId = $purchase->product_id;
+        $newQuantity = $purchase->quantity;
+
+        if ($oldProductId != $newProductId || $oldQuantity != $newQuantity) {
+            // Reverse old inventory
+            $latestInventoryOld = ProductInventory::where('product_id', $oldProductId)->latest('id')->first();
+            $currentStockOld = ($latestInventoryOld?->current_stock ?? 0) - $oldQuantity;
+            
+            ProductInventory::create([
+                'product_id' => $oldProductId,
+                'initial_stock' => $oldQuantity,
+                'current_stock' => $currentStockOld,
+                'type' => 'decrease',
+                'date' => now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+
+            // If product changed, add to new product, otherwise adjust same product
+            $latestInventoryNew = ProductInventory::where('product_id', $newProductId)->latest('id')->first();
+            $currentStockNew = ($latestInventoryNew?->current_stock ?? 0) + $newQuantity;
+
+            ProductInventory::create([
+                'product_id' => $newProductId,
+                'initial_stock' => $newQuantity,
+                'current_stock' => $currentStockNew,
+                'type' => 'increase',
+                'date' => now()->toDateString(),
+                'created_by' => auth()->id(),
+            ]);
+        }
+
         $purchase->load(['vendor', 'product', 'creator']);
 
         return response()->json([
@@ -220,7 +256,23 @@ class PurchaseController extends ApiBaseController
 
     public function destroy(Purchase $purchase)
     {
+        $productId = $purchase->product_id;
+        $quantity = $purchase->quantity;
+
         $purchase->delete();
+
+        // Revert inventory
+        $latestInventory = ProductInventory::where('product_id', $productId)->latest('id')->first();
+        $currentStock = ($latestInventory?->current_stock ?? 0) - $quantity;
+
+        ProductInventory::create([
+            'product_id' => $productId,
+            'initial_stock' => $quantity,
+            'current_stock' => $currentStock,
+            'type' => 'decrease',
+            'date' => now()->toDateString(),
+            'created_by' => auth()->id(),
+        ]);
 
         return response()->json([
             'success' => true,
