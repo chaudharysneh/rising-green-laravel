@@ -35,7 +35,7 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="customer_id" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-user"></i> Customer
+                                <i class="fa-solid fa-user"></i> Customer <span class="text-danger">*</span>
                             </label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
@@ -59,7 +59,7 @@
 
                         <div class="col-md-6">
                             <label for="ticket_name" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-ticket"></i> Ticket Name
+                                <i class="fa-solid fa-ticket"></i> Ticket Name <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="ticket_name" id="ticket_name" class="control form-control"
                                 value="{{ old('ticket_name', $ticket->ticket_name) }}" required>
@@ -68,7 +68,7 @@
 
                         <div class="col-md-6">
                             <label for="description" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-align-left"></i> Ticket Description
+                                <i class="fa-solid fa-align-left"></i> Ticket Description <span class="text-danger">*</span>
                             </label>
                             <textarea name="description" id="description" rows="1" class="form-control" required>{{ old('description', $ticket->description) }}</textarea>
                             <div class="invalid-feedback" id="description-error"></div>
@@ -76,7 +76,7 @@
 
                         <div class="col-md-6">
                             <label for="priority" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-circle-exclamation"></i> Priority
+                                <i class="fa-solid fa-circle-exclamation"></i> Priority <span class="text-danger">*</span>
                             </label>
                             <select name="priority" id="priority" class="form-select" required>
                                 @foreach (['Low', 'Medium', 'High'] as $priority)
@@ -90,7 +90,7 @@
 
                         <div class="col-md-6">
                             <label for="status" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-circle-info"></i> Status
+                                <i class="fa-solid fa-circle-info"></i> Status <span class="text-danger">*</span>
                             </label>
                             <select name="status" id="status" class="form-select js-status-comment-trigger" required>
                                 @foreach (['Open', 'In Progress', 'Resolved', 'Closed'] as $status)

@@ -23,7 +23,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="fa-solid fa-diagram-project me-2 text-muted"></i>Estimates</label>
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-diagram-project me-2 text-muted"></i>Estimates <span class="text-danger">*</span></label>
                             <select name="estimate_id" id="estimate_id"
                                 class="form-select @error('estimate_id') is-invalid @enderror" required>
                                 <option value="">Select Estimates</option>
@@ -37,7 +37,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="fa-solid fa-user me-2 text-muted"></i>Assigned To</label>
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-user me-2 text-muted"></i>Assigned To <span class="text-danger">*</span></label>
                             @if(auth()->user()->isAdmin())
                                 <select name="assigned_user_id" id="assigned_user_id"
                                     class="form-select @error('assigned_user_id') is-invalid @enderror">
@@ -58,7 +58,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="fa-solid fa-list-check me-2 text-muted"></i>Task Title</label>
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-list-check me-2 text-muted"></i>Task Title <span class="text-danger">*</span></label>
                             <input name="title" id="title" value="{{ old('title') }}"
                                 class="form-control @error('title') is-invalid @enderror" placeholder="Enter task title" required>
                             <div class="invalid-feedback d-block" id="title-error">{{ $errors->first('title') }}</div>
@@ -73,7 +73,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="fa-solid fa-calendar-days me-2 text-muted"></i>Due Date</label>
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-calendar-days me-2 text-muted"></i>Due Date <span class="text-danger">*</span></label>
                             <input type="date" name="due_date" id="due_date" value="{{ old('due_date') }}"
                                 min="{{ date('Y-m-d') }}"
                                 class="form-control @error('due_date') is-invalid @enderror" required>

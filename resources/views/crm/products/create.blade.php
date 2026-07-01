@@ -30,7 +30,7 @@
                     <div class="row g-3">
                         <!-- Left Column -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="bi bi-box"></i> Name </label>
+                            <label class="form-label fw-semibold"><i class="bi bi-box"></i> Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="name" value="{{ old('name') }}"
                                 class="form-control @error('name') is-invalid @enderror" placeholder="Product Name" required>
                             <div class="invalid-feedback" id="name-error">@error('name') {{ $message }} @enderror</div>
@@ -38,7 +38,7 @@
 
                         <!-- Right Column -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="bi bi-tag"></i> Category </label>
+                            <label class="form-label fw-semibold"><i class="bi bi-tag"></i> Category <span class="text-danger">*</span></label>
                             <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
                                 <option value="">Select Category</option>
                                 @foreach($categories as $category)
@@ -50,7 +50,7 @@
 
                         <!-- Left Column -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold"><i class="bi bi-bar-chart"></i> Quantity </label>
+                            <label class="form-label fw-semibold"><i class="bi bi-bar-chart"></i> Quantity <span class="text-danger">*</span></label>
                             <input type="number" min="0" name="quantity" id="quantity" value="{{ old('quantity') }}"
                                 class="form-control @error('quantity') is-invalid @enderror" placeholder="0" required>
                             <div class="invalid-feedback" id="quantity-error">@error('quantity') {{ $message }} @enderror</div>
