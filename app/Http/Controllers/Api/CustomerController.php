@@ -84,27 +84,37 @@ class CustomerController extends Controller
     {
         $this->authorize('create', Customer::class);
 
-        // Idempotency check for double-submissions
-        if ($request->filled('phone') || $request->filled('email')) {
-            $query = Customer::whereNull('deleted_at');
-            if ($request->filled('phone')) {
-                $query->where('phone', $request->phone);
-            } else {
-                $query->where('email', $request->email);
-            }
-            $existing = $query->first();
-            
-            if ($existing && $existing->created_at && $existing->created_at->diffInSeconds(now()) < 10) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Customer created successfully.',
-                    'redirect' => '/masters/customers',
-                    'data' => $existing
-                ], 201);
-            }
+        $lockName = 'customer_create_' . md5($request->phone ?? $request->email ?? Str::random());
+        $lockAcquired = \Illuminate\Support\Facades\DB::selectOne("SELECT GET_LOCK(?, 5) AS lock_acquired", [$lockName])->lock_acquired;
+
+        if (!$lockAcquired) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait a moment before submitting again.'
+            ], 429);
         }
 
         try {
+            // Idempotency check for double-submissions
+            if ($request->filled('phone') || $request->filled('email')) {
+                $query = Customer::whereNull('deleted_at');
+                if ($request->filled('phone')) {
+                    $query->where('phone', $request->phone);
+                } else {
+                    $query->where('email', $request->email);
+                }
+                $existing = $query->first();
+                
+                if ($existing && $existing->created_at && $existing->created_at->diffInSeconds(now()) < 10) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Customer created successfully.',
+                        'redirect' => '/masters/customers',
+                        'data' => $existing
+                    ], 201);
+                }
+            }
+
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->whereNull('deleted_at')],
@@ -180,8 +190,11 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while creating customer: ' . $e->getMessage()
+                'message' => 'An error occurred',
+                'error' => $e->getMessage()
             ], 500);
+        } finally {
+            \Illuminate\Support\Facades\DB::statement("SELECT RELEASE_LOCK(?)", [$lockName]);
         }
     }
 
