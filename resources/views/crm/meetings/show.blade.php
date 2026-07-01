@@ -90,7 +90,7 @@
                 @if($meeting->agenda)
                     <div class="mt-4 pt-4 border-top">
                         <h6 class="fw-bold mb-3"><i class="bi bi-chat-left-text me-2"></i>Agenda</h6>
-                        <div class="p-3 bg-light rounded-3 text-muted small">
+                        <div class="p-3 bg-light rounded-3 text-muted small text-break">
                             {{ $meeting->agenda }}
                         </div>
                     </div>

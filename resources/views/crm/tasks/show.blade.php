@@ -465,7 +465,7 @@
                                     </div>
 
                                     <div class="task-history-meta"><strong>Time:</strong> {{ $startHistory?->created_at?->timezone('Asia/Kolkata')->format('H:i') ?? 'NA' }}</div>
-                                    <div class="task-history-meta"><strong>Comment:</strong> {{ $startHistory?->comment ?: 'NA' }}</div>
+                                    <div class="task-history-meta"><strong>Comment:</strong> <span class="text-break">{{ $startHistory?->comment ?: 'Not updated' }}</span></div>
 
                                     <div>
                                         <div class="task-history-meta mb-3"><strong>Photos:</strong></div>
@@ -507,7 +507,7 @@
                                     </div>
 
                                     <div class="task-history-meta"><strong>Time:</strong> {{ $endHistory?->created_at?->timezone('Asia/Kolkata')->format('H:i') ?? 'NA' }}</div>
-                                    <div class="task-history-meta"><strong>Comment:</strong> {{ $endHistory?->comment ?: 'NA' }}</div>
+                                    <div class="task-history-meta"><strong>Comment:</strong> <span class="text-break">{{ $endHistory?->comment ?: 'Not updated' }}</span></div>
 
                                     <div>
                                         <div class="task-history-meta mb-2"><strong>Photos:</strong></div>
