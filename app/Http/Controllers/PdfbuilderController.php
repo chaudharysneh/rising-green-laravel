@@ -10,9 +10,18 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PdfbuilderController extends Controller
 {
+    private function pdfDownloadFilename(PdfBuilderForm $template): string
+    {
+        $name = trim((string) $template->template_name);
+        $slug = $name !== '' ? Str::slug($name, '-') : 'template-' . $template->id;
+
+        return $slug . '.pdf';
+    }
+
     private function profileSettings()
     {
         return Setting::query()->whereIn('key', [
@@ -523,7 +532,7 @@ class PdfbuilderController extends Controller
 
         // dd($pdfData);
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
-        return $pdf->stream('template_' . $id . '.pdf');
+        return $pdf->stream($this->pdfDownloadFilename($template));
     }
 
     public function generate(Request $request)

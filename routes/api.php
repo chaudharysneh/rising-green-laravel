@@ -67,6 +67,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::delete('leads/{lead}', [LeadController::class, 'destroy'])->middleware('matrix_permission:delete_leads')->name('api.leads.destroy');
 
     Route::get('deals', [DealController::class, 'index'])->middleware('matrix_permission:view_deals')->name('api.deals.index');
+    Route::get('deals/customer-estimates', [DealController::class, 'customerEstimates'])->name('api.deals.customer-estimates');
     Route::post('deals', [DealController::class, 'store'])->middleware('matrix_permission:create_deals')->name('api.deals.store');
     Route::get('deals/{deal}', [DealController::class, 'show'])->middleware('matrix_permission:view_deals')->name('api.deals.show');
     Route::put('deals/{deal}', [DealController::class, 'update'])->middleware('matrix_permission:edit_deals')->name('api.deals.update');

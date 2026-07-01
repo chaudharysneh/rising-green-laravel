@@ -57,6 +57,48 @@
         };
     }
 
+    function validateQuickEstimateBeforeBom() {
+        const form = document.getElementById('quickEstimateForm');
+        if (!form) {
+            return true;
+        }
+
+        form.querySelectorAll('.is-invalid').forEach(function (field) {
+            field.classList.remove('is-invalid');
+        });
+
+        let isValid = true;
+        const customerSelect = document.getElementById('quick_estimate_customer_id');
+        const quantity = parseFloat(form.quantity?.value || 0);
+        const price = parseFloat(form.price?.value || 0);
+        const templateSelect = document.getElementById('quick_template_id');
+
+        if (!form.customer_id?.value) {
+            customerSelect?.classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!(quantity > 0)) {
+            document.getElementById('quick_quantity')?.classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!(price > 0)) {
+            document.getElementById('quick_price')?.classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!templateSelect?.value) {
+            templateSelect?.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        if (!isValid && typeof window.showAlert === 'function') {
+            window.showAlert('error', 'Please fill required Quick Estimate fields before adding BOM.');
+        }
+
+        return isValid;
+    }
+
+    window.validateQuickEstimateBeforeBom = validateQuickEstimateBeforeBom;
+
     function initEstimatesIndex() {
         const permissions = window.crmUserPermissions?.estimates || {};
         const tableBody = document.querySelector('#estimatesTable tbody');
@@ -70,6 +112,8 @@
         const docsUploadBtn = document.getElementById('estimateDocsUploadBtn');
         const docsFilesError = document.getElementById('estimateDocsFilesError');
         const docsModal = docsModalElement && window.bootstrap ? new bootstrap.Modal(docsModalElement) : null;
+
+        initQuickEstimateModal();
 
         if (!tableBody || !paginationContainer || !searchInput) {
             return;
@@ -110,50 +154,6 @@
                 fetchEstimates(1);
             });
         });
-
-        initQuickEstimateModal();
-
-        function validateQuickEstimateBeforeBom() {
-            const form = document.getElementById('quickEstimateForm');
-            if (!form) {
-                return true;
-            }
-
-            form.querySelectorAll('.is-invalid').forEach(function (field) {
-                field.classList.remove('is-invalid');
-            });
-
-            let isValid = true;
-            const customerSelect = document.getElementById('quick_estimate_customer_id');
-            const quantity = parseFloat(form.quantity?.value || 0);
-            const price = parseFloat(form.price?.value || 0);
-            const templateSelect = document.getElementById('quick_template_id');
-
-            if (!form.customer_id?.value) {
-                customerSelect?.classList.add('is-invalid');
-                isValid = false;
-            }
-            if (!(quantity > 0)) {
-                document.getElementById('quick_quantity')?.classList.add('is-invalid');
-                isValid = false;
-            }
-            if (!(price > 0)) {
-                document.getElementById('quick_price')?.classList.add('is-invalid');
-                isValid = false;
-            }
-            if (!templateSelect?.value) {
-                templateSelect?.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            if (!isValid && typeof window.showAlert === 'function') {
-                window.showAlert('error', 'Please fill required Quick Estimate fields before adding BOM.');
-            }
-
-            return isValid;
-        }
-
-        window.validateQuickEstimateBeforeBom = validateQuickEstimateBeforeBom;
 
         function formatDate(dateValue) {
             if (!dateValue) return '-';
@@ -279,9 +279,64 @@
             const submitBtn = document.getElementById('quickEstimateSubmitBtn');
             const modal = modalEl && window.bootstrap ? new bootstrap.Modal(modalEl) : null;
 
-            if (!form || !customerSelect || !submitBtn) {
+            if (!form || !customerSelect || !submitBtn || form.dataset.quickEstimateInit === '1') {
                 return;
             }
+
+            form.dataset.quickEstimateInit = '1';
+
+            const releaseDealQuickEstimateCustomerLock = function () {
+                const addBtn = document.getElementById('quickEstimateAddCustomerBtn');
+                if (!customerSelect) {
+                    return;
+                }
+
+                customerSelect.disabled = false;
+                if (addBtn) {
+                    addBtn.classList.remove('d-none');
+                }
+                if (window.jQuery && window.jQuery.fn.select2) {
+                    window.jQuery(customerSelect).prop('disabled', false);
+                }
+            };
+
+            window.applyDealQuickEstimatePrefill = function (customerId, customerName, lockCustomer) {
+                if (!customerId) {
+                    return;
+                }
+
+                const label = (customerName || '').trim() || 'Customer';
+                let option = customerSelect.querySelector('option[value="' + customerId + '"]');
+                if (!option) {
+                    option = new Option(label, customerId, true, true);
+                    option.dataset.name = label;
+                    customerSelect.add(option);
+                }
+
+                if (window.jQuery && window.jQuery.fn.select2) {
+                    window.jQuery(customerSelect).val(String(customerId)).trigger('change');
+                } else {
+                    customerSelect.value = String(customerId);
+                    customerSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                if (nameInput) {
+                    nameInput.value = 'EST-' + label;
+                }
+
+                if (lockCustomer) {
+                    customerSelect.disabled = true;
+                    const addBtn = document.getElementById('quickEstimateAddCustomerBtn');
+                    if (addBtn) {
+                        addBtn.classList.add('d-none');
+                    }
+                    if (window.jQuery && window.jQuery.fn.select2) {
+                        window.jQuery(customerSelect).prop('disabled', true);
+                    }
+                }
+            };
+
+            window.releaseDealQuickEstimateCustomerLock = releaseDealQuickEstimateCustomerLock;
 
             setupQuickEstimateNestedModals();
 
@@ -339,6 +394,19 @@
                                 const newOption = new Option(res.data.name, res.data.id, true, true);
                                 newOption.dataset.name = res.data.name;
                                 window.jQuery(customerSelect).append(newOption).trigger('change');
+
+                                const dealCustomerSelect = document.getElementById('customer_id');
+                                if (dealCustomerSelect && document.getElementById('dealForm')) {
+                                    let dealOption = dealCustomerSelect.querySelector('option[value="' + res.data.id + '"]');
+                                    if (!dealOption) {
+                                        dealOption = new Option(res.data.name, res.data.id, true, true);
+                                        dealOption.dataset.email = res.data.email || '';
+                                        dealOption.dataset.phone = res.data.phone || '';
+                                        window.jQuery(dealCustomerSelect).append(dealOption);
+                                    }
+                                    window.jQuery(dealCustomerSelect).val(String(res.data.id)).trigger('change');
+                                }
+
                                 const customerModalEl = document.getElementById('addCustomerModal');
                                 if (customerModalEl && window.bootstrap) {
                                     bootstrap.Modal.getInstance(customerModalEl)?.hide();
@@ -927,12 +995,25 @@
 
             modalEl?.addEventListener('shown.bs.modal', function () {
                 initQuickEstimateSelects();
+                if (window.quickEstimateDealContext?.lockedCustomer) {
+                    const dealCustomerSelect = document.getElementById('customer_id');
+                    const dealCustomerId = dealCustomerSelect?.value || '';
+                    const dealCustomerOption = dealCustomerSelect?.options[dealCustomerSelect.selectedIndex];
+                    let dealCustomerName = dealCustomerOption?.textContent?.trim() || '';
+                    if (!dealCustomerName && window.jQuery && dealCustomerSelect) {
+                        const data = window.jQuery(dealCustomerSelect).select2('data');
+                        dealCustomerName = data?.[0]?.text?.trim() || '';
+                    }
+                    window.applyDealQuickEstimatePrefill(dealCustomerId, dealCustomerName, true);
+                }
             });
 
             modalEl?.addEventListener('hidden.bs.modal', function () {
                 if (quickEstimateNestedModalActive) {
                     return;
                 }
+                releaseDealQuickEstimateCustomerLock();
+                window.quickEstimateDealContext = null;
                 resetQuickEstimateForm();
             });
 
@@ -1071,13 +1152,26 @@
                         });
                     })
                     .then(function (payload) {
+                        const estimateData = {
+                            estimate_id: payload.estimate_id || payload.data?.estimate_id,
+                            estimate_name: payload.data?.estimate_name || (nameInput?.value || '').trim(),
+                            amount: payload.data?.amount ?? document.getElementById('quick_final_total')?.value ?? '',
+                            customer_id: customerId,
+                        };
+
+                        if (window.quickEstimateDealContext?.onCreated) {
+                            window.quickEstimateDealContext.onCreated(estimateData);
+                        }
+
                         if (typeof window.showAlert === 'function') {
                             window.showAlert('success', payload.message || 'Estimate created successfully.');
                         }
                         form.reset();
                         resetQuickEstimateForm();
                         modal?.hide();
-                        fetchEstimates(1);
+                        if (typeof window.refreshEstimatesList === 'function') {
+                            window.refreshEstimatesList(1);
+                        }
                     })
                     .catch(function (error) {
                         const errors = error?.errors || {};
@@ -1460,6 +1554,8 @@
                 },
             });
         }
+
+        window.refreshEstimatesList = fetchEstimates;
 
         let searchTimer;
         searchInput.addEventListener('input', function () {

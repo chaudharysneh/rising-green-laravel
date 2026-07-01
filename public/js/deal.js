@@ -506,53 +506,135 @@ $(document).ready(function () {
             }));
 
         const estimatePlaceholder = estimateSelect.options[0]?.textContent || "Select Estimate";
+        const estimateMetaById = {};
 
-        const rebuildEstimateOptions = (customerId, preferredEstimateId = "") => {
-            let ajaxData = { per_page: 100 };
+        const resolvePayableAmount = (estimate) => {
+            const payable =
+                estimate?.payable_amount ??
+                estimate?.amount ??
+                estimate?.final_total ??
+                null;
 
+            if (payable !== null && payable !== "" && !Number.isNaN(parseFloat(payable))) {
+                return parseFloat(payable);
+            }
 
-            $.ajax({
-                url: `/api/estimates`,
-                type: 'GET',
-                data: ajaxData,
-                success: function(res) {
-                    const data = res.data?.data || res.data || [];
-                    estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
-                    
-                    data.forEach(est => {
-                        const optionEl = document.createElement("option");
-                        optionEl.value = est.estimate_id;
-                        optionEl.textContent = est.estimate_name || ('Estimate #' + est.estimate_id);
-                        optionEl.dataset.customerId = est.customer_id;
-                        optionEl.dataset.amount = est.amount || est.total || '';
-                        optionEl.dataset.title = est.estimate_name || ('Estimate #' + est.estimate_id);
-                        
-                        if (preferredEstimateId && String(preferredEstimateId) === String(est.estimate_id)) {
-                            optionEl.selected = true;
-                        }
-                        estimateSelect.appendChild(optionEl);
-                    });
+            const subtotal = parseFloat(estimate?.total ?? 0) || 0;
+            const gst = parseFloat(estimate?.gst_amount ?? 0) || 0;
+            const discount = parseFloat(estimate?.discount ?? 0) || 0;
+            const subsidy = parseFloat(estimate?.subsidy_amount ?? 0) || 0;
+            const computed = subtotal + gst - discount - subsidy;
 
-                    if (estimateSelect.tomselect) {
-                        estimateSelect.tomselect.sync();
-                    }
+            return computed > 0 ? computed : "";
+        };
 
-                    if (!data.length || !preferredEstimateId) {
-                        setSelectValue(estimateSelect, "");
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Error fetching estimates:', xhr);
-                    estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
-                    if (estimateSelect.tomselect) estimateSelect.tomselect.sync();
-                }
+        const rememberEstimateMeta = (items) => {
+            Object.keys(estimateMetaById).forEach((key) => {
+                delete estimateMetaById[key];
+            });
+
+            (items || []).forEach((est) => {
+                const id = String(est.estimate_id);
+                const payable = resolvePayableAmount(est);
+                estimateMetaById[id] = {
+                    amount: payable,
+                    title:
+                        est.estimate_name || "Estimate #" + est.estimate_id,
+                    customerId: est.customer_id,
+                };
             });
         };
 
-        const syncEstimateDetails = () => {
-            const option = estimateSelect.options[estimateSelect.selectedIndex];
+        const renderEstimateOptions = (items, preferredEstimateId = "") => {
+            rememberEstimateMeta(items);
 
-            if (!option || !option.value) {
+            const $estimate = window.jQuery(estimateSelect);
+            const hadSelect2 = $estimate.hasClass("select2-hidden-accessible");
+
+            if (hadSelect2) {
+                $estimate.select2("destroy");
+            }
+
+            estimateSelect.innerHTML = `<option value="">${estimatePlaceholder}</option>`;
+            (items || []).forEach((est) => {
+                const optionEl = document.createElement("option");
+                optionEl.value = est.estimate_id;
+                optionEl.textContent =
+                    est.estimate_name || "Estimate #" + est.estimate_id;
+                optionEl.dataset.customerId = est.customer_id;
+                const payable = resolvePayableAmount(est);
+                optionEl.dataset.amount =
+                    payable !== "" && payable !== null ? String(payable) : "";
+                optionEl.dataset.title =
+                    est.estimate_name || "Estimate #" + est.estimate_id;
+                estimateSelect.appendChild(optionEl);
+            });
+
+            if (hadSelect2 || window.jQuery.fn.select2) {
+                $estimate.select2({
+                    theme: "bootstrap-5",
+                    width: "100%",
+                });
+                bindEstimateSelectSync();
+            }
+
+            const hasPreferred =
+                preferredEstimateId &&
+                (items || []).some(
+                    (est) =>
+                        String(est.estimate_id) === String(preferredEstimateId),
+                );
+
+            if (hasPreferred) {
+                $estimate.val(String(preferredEstimateId)).trigger("change");
+            } else {
+                $estimate.val("").trigger("change");
+            }
+        };
+
+        const rebuildEstimateOptions = (customerId, preferredEstimateId = "") => {
+            if (!customerId) {
+                renderEstimateOptions([], "");
+                return;
+            }
+
+            $.ajax({
+                url: `/api/deals/customer-estimates`,
+                type: "GET",
+                data: {
+                    customer_id: customerId,
+                },
+                headers: authHeaders({
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                }),
+                success: function (res) {
+                    const data = Array.isArray(res.data) ? res.data : [];
+                    renderEstimateOptions(data, preferredEstimateId);
+                    syncEstimateDetails();
+                },
+                error: function (xhr) {
+                    console.error("Error fetching customer estimates:", xhr);
+                    renderEstimateOptions([], "");
+                },
+            });
+        };
+
+        window.dealReloadEstimatesForCustomer = rebuildEstimateOptions;
+
+        const syncEstimateDetails = () => {
+            const selectedId =
+                window.jQuery(estimateSelect).val() ||
+                estimateSelect.value ||
+                "";
+            const option = selectedId
+                ? estimateSelect.querySelector(
+                      'option[value="' + selectedId.replace(/"/g, '\\"') + '"]',
+                  )
+                : null;
+            const meta = estimateMetaById[String(selectedId)] || {};
+
+            if (!selectedId || !option) {
                 const customerOption =
                     customerSelect.options[customerSelect.selectedIndex];
                 titleInput.value = customerOption?.text?.trim()
@@ -561,16 +643,29 @@ $(document).ready(function () {
                 return;
             }
 
-            const estimateAmount = option.dataset.amount || "";
-            const estimateTitle = option.dataset.title || "";
-            const customerId = option.dataset.customerId || "";
+            const estimateAmount =
+                meta.amount ??
+                option.dataset.amount ??
+                option.getAttribute("data-amount") ??
+                "";
+            const estimateTitle =
+                meta.title ??
+                option.dataset.title ??
+                option.textContent?.trim() ??
+                "";
+            const customerId =
+                meta.customerId ?? option.dataset.customerId ?? "";
 
             if (customerId) {
                 setSelectValue(customerSelect, customerId);
             }
 
-            if (estimateAmount) {
-                amountInput.value = estimateAmount;
+            if (
+                estimateAmount !== "" &&
+                estimateAmount !== null &&
+                !Number.isNaN(parseFloat(estimateAmount))
+            ) {
+                amountInput.value = parseFloat(estimateAmount);
             }
 
             if (estimateTitle) {
@@ -578,16 +673,43 @@ $(document).ready(function () {
             }
         };
 
+        const bindEstimateSelectSync = () => {
+            const $estimate = window.jQuery(estimateSelect);
+            $estimate.off("change.dealEstimate select2:select.dealEstimate");
+            $estimate.on(
+                "change.dealEstimate select2:select.dealEstimate",
+                syncEstimateDetails,
+            );
+        };
+
         estimateSelect.addEventListener("change", syncEstimateDetails);
-        customerSelect.addEventListener("change", () => {
-            rebuildEstimateOptions(customerSelect.value);
-            amountInput.value = "";
-            const customerOption =
-                customerSelect.options[customerSelect.selectedIndex];
-            titleInput.value = customerOption?.text?.trim()
-                ? `Deal - ${customerOption.text.trim()}`
-                : "";
-        });
+
+        window.initDealEstimateDropdowns = function () {
+            const $customer = window.jQuery(customerSelect);
+            if (customerSelect.dataset.dealEstimateBound === "1") {
+                return;
+            }
+            customerSelect.dataset.dealEstimateBound = "1";
+
+            $customer.on("change select2:select", function () {
+                const customerId = window.jQuery(this).val();
+                rebuildEstimateOptions(customerId);
+                amountInput.value = "";
+                const customerName = $customer.find("option:selected").text().trim();
+                titleInput.value = customerName
+                    ? `Deal - ${customerName}`
+                    : "";
+            });
+
+            const initialCustomerId = $customer.val();
+            const initialEstimateId = window.jQuery(estimateSelect).val();
+            bindEstimateSelectSync();
+            if (initialCustomerId) {
+                rebuildEstimateOptions(initialCustomerId, initialEstimateId || "");
+            } else {
+                renderEstimateOptions([], "");
+            }
+        };
 
         const selectedEstimateId = estimateSelect.value;
         const selectedEstimateOption = estimateOptions.find(
@@ -598,10 +720,6 @@ $(document).ready(function () {
             setSelectValue(customerSelect, selectedEstimateOption.customerId);
         }
 
-        rebuildEstimateOptions(
-            customerSelect.value,
-            selectedEstimateId || selectedEstimateOption?.value || "",
-        );
         syncEstimateDetails();
     }
 
@@ -654,6 +772,131 @@ $(document).ready(function () {
 
     initDealEstimateSync();
     initDefaultDealStatus();
+    initDealQuickEstimate();
+
+    function initDealQuickEstimate() {
+        const quickBtn = document.getElementById("dealQuickEstimateBtn");
+        const customerSelect = document.getElementById("customer_id");
+        const estimateSelect = document.getElementById("estimate_id");
+        const amountInput = document.getElementById("amount");
+        const titleInput = document.getElementById("title");
+        const modalEl = document.getElementById("quickEstimateModal");
+
+        if (!quickBtn || !customerSelect || !estimateSelect || !amountInput || !modalEl) {
+            return;
+        }
+
+        const getCustomerLabel = function () {
+            const selected = customerSelect.options[customerSelect.selectedIndex];
+            if (selected && selected.value) {
+                return selected.textContent.trim();
+            }
+
+            if (window.jQuery && window.jQuery(customerSelect).data("select2")) {
+                const data = window.jQuery(customerSelect).select2("data");
+                if (data && data[0]) {
+                    return (data[0].text || "").trim();
+                }
+            }
+
+            return "";
+        };
+
+        const appendEstimateOption = function (estimateData) {
+            const estimateId = estimateData.estimate_id;
+            const estimateName =
+                estimateData.estimate_name ||
+                ("Estimate #" + estimateId);
+            const amount = estimateData.amount ?? "";
+            const customerId = estimateData.customer_id || customerSelect.value;
+
+            let option = estimateSelect.querySelector(
+                'option[value="' + estimateId + '"]',
+            );
+            if (!option) {
+                option = document.createElement("option");
+                option.value = String(estimateId);
+                option.textContent = estimateName;
+                estimateSelect.appendChild(option);
+            }
+
+            option.dataset.customerId = String(customerId || "");
+            option.dataset.amount = String(amount);
+            option.dataset.title = estimateName;
+            option.selected = true;
+
+            if (window.jQuery && window.jQuery.fn.select2) {
+                window.jQuery(estimateSelect).val(String(estimateId)).trigger("change");
+            } else {
+                estimateSelect.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        };
+
+        quickBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            const customerId = customerSelect.value;
+            if (!customerId) {
+                showToast(
+                    "Please select or create a customer first.",
+                    "warning",
+                );
+                return;
+            }
+
+            const customerName = getCustomerLabel();
+            window.quickEstimateDealContext = {
+                lockedCustomer: true,
+                onCreated: function (estimateData) {
+                    const customerId = String(
+                        estimateData.customer_id || customerSelect.value || "",
+                    );
+                    const estimateId = String(estimateData.estimate_id || "");
+
+                    if (
+                        customerId &&
+                        typeof window.dealReloadEstimatesForCustomer === "function"
+                    ) {
+                        window.dealReloadEstimatesForCustomer(
+                            customerId,
+                            estimateId,
+                        );
+                    } else {
+                        appendEstimateOption(estimateData);
+                    }
+
+                    if (
+                        estimateData.amount !== undefined &&
+                        estimateData.amount !== null &&
+                        estimateData.amount !== ""
+                    ) {
+                        amountInput.value = estimateData.amount;
+                    }
+
+                    const estimateTitle =
+                        estimateData.estimate_name ||
+                        estimateSelect.options[estimateSelect.selectedIndex]
+                            ?.dataset?.title ||
+                        "";
+                    if (titleInput && estimateTitle) {
+                        titleInput.value = estimateTitle;
+                    }
+                },
+            };
+
+            if (typeof window.applyDealQuickEstimatePrefill === "function") {
+                window.applyDealQuickEstimatePrefill(
+                    customerId,
+                    customerName,
+                    true,
+                );
+            }
+
+            if (window.bootstrap) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+        });
+    }
 
     $("body").on("submit", ".ajax-deal-form", function (e) {
         e.preventDefault();

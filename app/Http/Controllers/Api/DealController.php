@@ -61,6 +61,88 @@ class DealController extends ApiBaseController
         ], 200);
     }
 
+    public function customerEstimates(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $canUseDealEstimates = $user->isAdmin()
+            || (method_exists($user, 'hasMatrixPermission') && (
+                $user->hasMatrixPermission('create_deals')
+                || $user->hasMatrixPermission('edit_deals')
+                || $user->hasMatrixPermission('view_deals')
+            ));
+
+        if (!$canUseDealEstimates) {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+        ]);
+
+        $customer = Customer::visibleTo($user)->find($validated['customer_id']);
+        if (!$customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer not found',
+            ], 404);
+        }
+
+        $query = Estimate::query()
+            ->where('customer_id', $customer->id)
+            ->orderByDesc('estimate_date')
+            ->orderBy('estimate_name');
+
+        if (!$user->isAdmin()) {
+            $userId = (int) $user->id;
+            $query->where(function ($q) use ($userId) {
+                $q->where('user_id', $userId)
+                    ->orWhere('created_by', $userId);
+            });
+        }
+
+        $estimates = $query->get([
+            'estimate_id',
+            'estimate_name',
+            'customer_id',
+            'amount',
+            'total',
+            'gst_amount',
+            'discount',
+            'subsidy_amount',
+        ]);
+
+        $estimates = $estimates->map(function (Estimate $estimate) {
+            $payable = (float) ($estimate->amount ?? 0);
+            if ($payable <= 0) {
+                $payable = (float) ($estimate->total ?? 0)
+                    + (float) ($estimate->gst_amount ?? 0)
+                    - (float) ($estimate->discount ?? 0)
+                    - (float) ($estimate->subsidy_amount ?? 0);
+            }
+
+            return [
+                'estimate_id' => $estimate->estimate_id,
+                'estimate_name' => $estimate->estimate_name,
+                'customer_id' => $estimate->customer_id,
+                'amount' => $estimate->amount,
+                'total' => $estimate->total,
+                'gst_amount' => $estimate->gst_amount,
+                'discount' => $estimate->discount,
+                'subsidy_amount' => $estimate->subsidy_amount,
+                'payable_amount' => max(0, round($payable, 2)),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $estimates,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->authorize('create', Deal::class);
