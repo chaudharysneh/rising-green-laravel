@@ -180,8 +180,9 @@
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label fw-semibold">Type</label>
-                            <select class="form-select" name="type">
-                                <option value="residential" selected>Residential</option>
+                            <select class="form-select" name="type" id="quick_estimate_type">
+                                <option value="" selected>Select Type</option>
+                                <option value="residential">Residential</option>
                                 <option value="commercial">Commercial</option>
                                 <option value="industrial">Industrial</option>
                                 <option value="common meter">Common Meter</option>
