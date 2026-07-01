@@ -135,6 +135,11 @@ if (!function_exists('normalize_pdf_image')) {
             $candidates[] = public_path('storage/products/' . $filename);
             $candidates[] = base_path('public_html/storage/bom-products/' . $filename);
             $candidates[] = base_path('public_html/storage/products/' . $filename);
+            $candidates[] = public_path('assets/img/' . $filename);
+            $candidates[] = base_path('public/assets/img/' . $filename);
+            $candidates[] = base_path('public_html/assets/img/' . $filename);
+            $candidates[] = public_path('uploads/pdf_sections/environment_impact/' . $filename);
+            $candidates[] = public_path('uploads/pdf_sections/payment_terms/' . $filename);
         }
 
         foreach (array_unique($candidates) as $candidate) {
@@ -166,6 +171,27 @@ if (!function_exists('normalize_pdf_image')) {
 
         // Last resort: return the URL directly (may not render in Dompdf)
         return $urlToTry;
+    }
+}
+
+if (!function_exists('resolve_pdf_image_with_fallback')) {
+    function resolve_pdf_image_with_fallback(?string $primaryPath, string $fallbackPath): string
+    {
+        $isValidDataUri = static function (?string $src): bool {
+            return is_string($src) && strpos($src, 'data:image') === 0;
+        };
+
+        $primaryPath = trim((string) $primaryPath);
+        if ($primaryPath !== '') {
+            $resolved = normalize_pdf_image($primaryPath);
+            if ($isValidDataUri($resolved)) {
+                return $resolved;
+            }
+        }
+
+        $fallback = normalize_pdf_image($fallbackPath);
+
+        return $isValidDataUri($fallback) ? $fallback : '';
     }
 }
 
@@ -3083,9 +3109,10 @@ $__componentsActive = $_isActive($__components);
     $paymentTermsTitle = trim((string) ($paymentTerms['title'] ?? ''));
     $paymentTermsScope = trim((string) ($paymentTerms['scope'] ?? ''));
     $paymentTermsNote = trim((string) ($paymentTerms['note'] ?? ''));
-    $paymentTermsImg = !empty($paymentTerms['image'])
-        ? normalize_pdf_image($paymentTerms['image'])
-        : normalize_pdf_image('public/assets/img/page_7.png');
+    $paymentTermsImg = resolve_pdf_image_with_fallback(
+        $paymentTerms['image'] ?? '',
+        'public/assets/img/page_7.png'
+    );
     $services = $paymentTerms['services'] ?? [];
     if (!is_array($services)) {
         $services = [];
@@ -3268,9 +3295,10 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
         $envContentBottom = '';
     }
 
-    $envImg = !empty($environmentImpact['image'])
-        ? normalize_pdf_image($environmentImpact['image'])
-        : normalize_pdf_image('public/assets/img/page_8.png');
+    $envImg = resolve_pdf_image_with_fallback(
+        $environmentImpact['image'] ?? '',
+        'public/assets/img/page_8.png'
+    );
 
     $envMetrics = [
         ['label' => 'CARBON DIOXIDE OFFSET', 'value' => $co2OffsetDisplay . ' Metric Tons'],
@@ -3296,6 +3324,7 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                 </div>
                 <?php endif; ?>
 
+                <?php if ($envImg !== ''): ?>
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 12px;border-collapse:collapse;">
                     <tr>
                         <td align="center" valign="middle" style="padding:15px 0;">
@@ -3304,6 +3333,7 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                         </td>
                     </tr>
                 </table>
+                <?php endif; ?>
 
                 <?php if ($envContentBottom !== ''): ?>
                 <div class="pdf-env-impact-content" style="margin-bottom:8px;">
