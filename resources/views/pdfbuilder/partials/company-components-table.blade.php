@@ -15,7 +15,7 @@
     </tr>
 
     <?php $componentRowIndex = 0; ?>
-    <?php foreach ($componentsData as $componentKey => $component):
+    <?php foreach ($componentsTableRows ?? $componentsData as $componentKey => $component):
         $specs = $component['specifications'] ?? [];
         $make = trim((string) ($component['category'] ?? ''));
         $qty = trim((string) ($component['quantity'] ?? ''));

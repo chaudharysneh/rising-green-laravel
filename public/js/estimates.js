@@ -704,17 +704,140 @@
             });
 
             const quickSubsidyOptions = {
-                typeSelector: '#quickEstimateForm [name="type"]',
+                typeId: 'quick_estimate_type',
                 quantityId: 'quick_quantity',
                 subsidyId: 'quick_subsidy_amount',
                 onUpdated: calculateQuickEstimateTotals,
+            };
+
+            const resetQuickBomRows = function () {
+                const container = document.getElementById('quickBomRows');
+                if (!container) {
+                    return;
+                }
+
+                const rows = container.querySelectorAll('.quick-bom-row');
+                rows.forEach(function (row, index) {
+                    if (index > 0) {
+                        const select = row.querySelector('.quick-bom-select');
+                        if (window.jQuery && select && window.jQuery(select).hasClass('select2-hidden-accessible')) {
+                            window.jQuery(select).select2('destroy');
+                        }
+                        row.remove();
+                        return;
+                    }
+
+                    const select = row.querySelector('.quick-bom-select');
+                    const makeSelect = row.querySelector('.quick-bom-make-select');
+                    const taxSelect = row.querySelector('.quick-bom-tax-rate');
+
+                    if (window.jQuery && select && window.jQuery(select).hasClass('select2-hidden-accessible')) {
+                        window.jQuery(select).val('').trigger('change.select2');
+                    } else if (select) {
+                        select.value = '';
+                    }
+
+                    if (makeSelect) {
+                        makeSelect.innerHTML = '<option value="">Select Make</option>';
+                        makeSelect.disabled = true;
+                        makeSelect.value = '';
+                    }
+
+                    const qtyInput = row.querySelector('.quick-bom-qty');
+                    const priceInput = row.querySelector('.quick-bom-price');
+                    const amountInput = row.querySelector('.quick-bom-amount');
+                    if (qtyInput) {
+                        qtyInput.value = '1';
+                    }
+                    if (priceInput) {
+                        priceInput.value = '0';
+                    }
+                    if (amountInput) {
+                        amountInput.value = '0';
+                    }
+                    if (taxSelect) {
+                        taxSelect.value = '0';
+                    }
+                });
+
+                updateQuickBomDeleteButtons();
+            };
+
+            const resetQuickEstimateForm = function () {
+                form.reset();
+                form.classList.remove('was-validated');
+                form.querySelectorAll('.is-invalid').forEach(function (field) {
+                    field.classList.remove('is-invalid');
+                });
+
+                const bomError = document.getElementById('quick_bom_id-error');
+                if (bomError) {
+                    bomError.style.display = 'none';
+                }
+
+                const typeField = document.getElementById('quick_estimate_type');
+                if (typeField) {
+                    typeField.value = '';
+                }
+
+                if (nameInput) {
+                    nameInput.value = '';
+                }
+
+                const commentField = document.getElementById('quick_estimate_comment');
+                if (commentField) {
+                    commentField.value = '';
+                }
+
+                if (window.jQuery && window.jQuery.fn.select2) {
+                    window.jQuery('#quick_estimate_customer_id').val('').trigger('change.select2');
+                    const $template = window.jQuery('#quick_template_id');
+                    $template.val('').trigger('change.select2');
+                    if ($template.length) {
+                        $template[0].dataset.userSelected = '';
+                    }
+                } else {
+                    customerSelect.value = '';
+                    const templateSelect = document.getElementById('quick_template_id');
+                    if (templateSelect) {
+                        templateSelect.value = '';
+                        templateSelect.dataset.userSelected = '';
+                    }
+                }
+
+                resetQuickBomRows();
+
+                const discountField = document.getElementById('quick_discount');
+                const subsidyField = document.getElementById('quick_subsidy_amount');
+                const gstCheckbox = document.getElementById('quick_apply_gst');
+                if (discountField) {
+                    discountField.value = '0';
+                }
+                if (subsidyField) {
+                    subsidyField.value = '0';
+                }
+                if (gstCheckbox) {
+                    gstCheckbox.checked = true;
+                }
+
+                const gstBox = document.getElementById('quick_gst_fields_box');
+                if (gstBox) {
+                    gstBox.style.display = 'block';
+                    gstBox.innerHTML = '<div class="totals-row"><span class="small text-muted">Select BOM tax to apply GST.</span><span class="small">0.00</span></div>';
+                }
+
+                document.getElementById('quick_subtotal_display').textContent = '0.00';
+                document.getElementById('quick_final_total_display').textContent = '0.00';
+                document.getElementById('quick_subtotal').value = '0';
+                document.getElementById('quick_final_total').value = '0';
+                document.getElementById('quick_gst').value = '0';
             };
 
             const runQuickSubsidyCalculation = function () {
                 autoCalculateSubsidy(quickSubsidyOptions);
             };
 
-            const quickTypeField = form.querySelector('[name="type"]');
+            const quickTypeField = document.getElementById('quick_estimate_type');
             if (quickTypeField) {
                 quickTypeField.addEventListener('change', runQuickSubsidyCalculation);
             }
@@ -804,18 +927,13 @@
 
             modalEl?.addEventListener('shown.bs.modal', function () {
                 initQuickEstimateSelects();
-                const templateSelect = document.getElementById('quick_template_id');
-                if (templateSelect) {
-                    templateSelect.value = '';
-                    templateSelect.dataset.userSelected = '';
-                    if (window.jQuery && window.jQuery.fn.select2) {
-                        window.jQuery(templateSelect).val('').trigger('change.select2');
-                    }
+            });
+
+            modalEl?.addEventListener('hidden.bs.modal', function () {
+                if (quickEstimateNestedModalActive) {
+                    return;
                 }
-                fillQuickEstimateName();
-                fillQuickCommentFromTemplate(false);
-                runQuickSubsidyCalculation();
-                calculateQuickEstimateTotals();
+                resetQuickEstimateForm();
             });
 
             quickTemplateSelect?.addEventListener('change', function () {
@@ -853,6 +971,11 @@
                 }
                 if (!templateId) {
                     document.getElementById('quick_template_id')?.classList.add('is-invalid');
+                    hasError = true;
+                }
+                const estimateType = document.getElementById('quick_estimate_type')?.value || '';
+                if (!estimateType) {
+                    document.getElementById('quick_estimate_type')?.classList.add('is-invalid');
                     hasError = true;
                 }
                 bomRows.forEach(function (row) {
@@ -909,7 +1032,7 @@
                 const formData = new FormData();
                 formData.set('customer_id', customerId);
                 formData.set('estimate_name', (nameInput?.value || '').trim() || ('EST-' + customerName));
-                formData.set('type', form.type.value || 'residential');
+                formData.set('type', estimateType);
                 formData.set('quantity', String(quantity));
                 formData.set('price', String(price));
                 formData.set('template_id', templateId);
@@ -952,6 +1075,7 @@
                             window.showAlert('success', payload.message || 'Estimate created successfully.');
                         }
                         form.reset();
+                        resetQuickEstimateForm();
                         modal?.hide();
                         fetchEstimates(1);
                     })
