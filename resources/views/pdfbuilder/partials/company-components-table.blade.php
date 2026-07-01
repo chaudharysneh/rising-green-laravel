@@ -1,4 +1,5 @@
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:10px 0 18px; border:1px solid #cfe0cf; font-family:'Montserrat', sans-serif;">
+<div style="page-break-inside: avoid;">
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:10px 0 18px; border:1px solid #cfe0cf; font-family:'Montserrat', sans-serif; page-break-inside: avoid;">
     <tr>
         <td colspan="2" style="background-color:#4b9349; padding:0; border-bottom:2px solid #3d7a3b;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
@@ -105,3 +106,4 @@
     </tr>
     <?php endforeach; ?>
 </table>
+</div>

@@ -2871,27 +2871,33 @@ $__componentsActive = $_isActive($__components);
             : 'High-quality components from trusted Tier-1 OEMs, selected for performance, safety, and long-term ROI.'
     );
     $componentsRowCount = count($componentsData);
-    $componentsSplitTablePage = $componentsIntroLength > 420 || $componentsRowCount > 4;
     $componentsPageClass = $_pageClass('p6');
     $componentsList = array_values($componentsData);
-    $componentsRowsPerTablePage = 2;
-    $componentsRowsFirstWithIntro = 1;
+    $componentsContinuationRowsPerPage = 4;
     $componentsPages = [];
 
-    if ($componentsSplitTablePage) {
-        $componentsPages[] = ['layout' => 'intro'];
-        foreach (array_chunk($componentsList, $componentsRowsPerTablePage) ?: [[]] as $componentsChunkRows) {
-            $componentsPages[] = ['layout' => 'table', 'rows' => $componentsChunkRows];
+    if ($componentsRowCount === 0) {
+        $componentsPages[] = ['layout' => 'combined', 'rows' => []];
+    } elseif ($componentsRowCount <= 4) {
+        if ($componentsIntroLength > 420) {
+            $componentsPages[] = ['layout' => 'intro_block'];
+            $componentsPages[] = ['layout' => 'table', 'rows' => $componentsList];
+        } else {
+            $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
         }
-    } elseif ($componentsRowCount <= $componentsRowsFirstWithIntro) {
-        $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
     } else {
-        $componentsPages[] = [
-            'layout' => 'combined',
-            'rows' => array_slice($componentsList, 0, $componentsRowsFirstWithIntro),
-        ];
-        foreach (array_chunk(array_slice($componentsList, $componentsRowsFirstWithIntro), $componentsRowsPerTablePage) ?: [] as $componentsChunkRows) {
-            $componentsPages[] = ['layout' => 'table', 'rows' => $componentsChunkRows];
+        $firstPageRowCount = ($componentsIntroLength > 420) ? 3 : 4;
+
+        if ($firstPageRowCount >= $componentsRowCount) {
+            $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
+        } else {
+            $componentsPages[] = [
+                'layout' => 'combined',
+                'rows' => array_slice($componentsList, 0, $firstPageRowCount),
+            ];
+            foreach (array_chunk(array_slice($componentsList, $firstPageRowCount), $componentsContinuationRowsPerPage) ?: [] as $componentsChunkRows) {
+                $componentsPages[] = ['layout' => 'table', 'rows' => $componentsChunkRows];
+            }
         }
     }
 
@@ -2925,11 +2931,11 @@ $__componentsActive = $_isActive($__components);
         $componentsChunkPageClass = $isLastComponentsPage ? $componentsPageClass : 'page page-break';
         $componentsPageLayout = $componentsPage['layout'];
     ?>
-    <div class="<?= $componentsChunkPageClass ?>" style="position: relative; min-height: 842px; background: white;">
+    <div class="<?= $componentsChunkPageClass ?>" style="position: relative; background: white;">
         <div style="padding: 40px; padding-bottom: 56px;">
             @include('pdfbuilder.partials.pdf-page-header')
-            <?php if ($componentsPageLayout === 'intro'): ?>
-                @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => true])
+            <?php if ($componentsPageLayout === 'intro_block'): ?>
+                @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
             <?php elseif ($componentsPageLayout === 'combined'): ?>
                 @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
                 @include('pdfbuilder.partials.company-components-table', ['componentsTableRows' => $componentsPage['rows'] ?? []])
