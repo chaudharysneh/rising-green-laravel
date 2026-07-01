@@ -21,8 +21,6 @@ class TableTruncateController extends Controller
         'follow_ups',
         // Meetings
         'meetings',
-        // Deals
-        'deals',
         // BOM
         'product',
         'makes',
@@ -30,7 +28,10 @@ class TableTruncateController extends Controller
         'warranty',
         // Estimates
         'estimates',
+        // Deals
+        'deals',
         // Inventory / Sales / Purchases / Invoices
+        'products',
         'sales',
         'purchases',
         'product_inventory',

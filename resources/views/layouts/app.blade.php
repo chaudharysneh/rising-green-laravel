@@ -334,16 +334,6 @@
                         </li>
                     @endif
 
-                    @if(auth()->user()?->hasMatrixPermission('view_deals'))
-                        <!-- Manage Deals -->
-                        <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('deals.*')) active @endif"
-                                href="{{ route('deals.index') }}">
-                                <i class="fa-solid fa-medal me-2 text-warning"></i>
-                                <span>Manage Deals</span>
-                            </a>
-                        </li>
-                    @endif
 
                     <!-- Manage BOM -->
                     @if(
@@ -428,6 +418,17 @@
                                     @endif
                                 </ul>
                             </div>
+                        </li>
+                    @endif
+
+                    @if(auth()->user()?->hasMatrixPermission('view_deals'))
+                        <!-- Manage Deals -->
+                        <li class="nav-item mt-2">
+                            <a class="nav-link ccc ddd @if(request()->routeIs('deals.*')) active @endif"
+                                href="{{ route('deals.index') }}">
+                                <i class="fa-solid fa-medal me-2 text-warning"></i>
+                                <span>Manage Deals</span>
+                            </a>
                         </li>
                     @endif
 
