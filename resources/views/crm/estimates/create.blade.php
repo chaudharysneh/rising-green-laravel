@@ -560,7 +560,8 @@
                 }
                 
                 let btn = $(this);
-                let originalText = btn.html();
+                let originalText = btn.data('original-text') || btn.html();
+                btn.data('original-text', originalText);
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
                 
                 $.ajax({
