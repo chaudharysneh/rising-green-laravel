@@ -80,12 +80,12 @@
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-user-plus"></i>Created By:</span>
                         <span class="detail-view-value">
-                            {{ $followUp->creator?->name ?? 'N/A' }} | {{ $followUp->created_at?->format('d M, Y') ?? '-' }}
+                            {{ $followUp->creator?->name ?? 'N/A' }} | {{ $followUp->created_at?->format('d M, Y h:i A') ?? '-' }}
                         </span>
                     </div>
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-clock-rotate-left"></i>Last Update:</span>
-                        <span class="detail-view-value">{{ $followUp->updated_at?->format('d M, Y') ?? '-' }}</span>
+                        <span class="detail-view-value">{{ $followUp->updated_at?->format('d M, Y h:i A') ?? '-' }}</span>
                     </div>
                 </div>
 

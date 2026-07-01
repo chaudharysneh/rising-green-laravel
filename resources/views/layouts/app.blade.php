@@ -202,7 +202,9 @@
     @stack('styles')
 
     <!-- Theme Management -->
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/theme.js') }}?v={{ filemtime(public_path('js/theme.js')) }}"></script>
+    @unless (request()->routeIs('login'))
+        <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/theme.js') }}?v={{ filemtime(public_path('js/theme.js')) }}"></script>
+    @endunless
 </head>
 
 <body class="{{ request()->routeIs('*.create', '*.edit') ? 'crm-form-page' : '' }}">
