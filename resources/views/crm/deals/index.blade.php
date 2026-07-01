@@ -99,6 +99,6 @@
             }
         };
     </script>
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}?v={{ file_exists(public_path('js/deal.js')) ? filemtime(public_path('js/deal.js')) : time() }}"></script>
 
 @endpush

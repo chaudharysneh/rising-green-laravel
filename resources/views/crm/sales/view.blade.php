@@ -109,10 +109,19 @@
                         $companyAddress = $settings['company_address'] ?? '215 MAHER NAGAR OPP BAPS HOSPITAL ADAJAN SURAT (395009)';
                         $companyPhone = $settings['phone'] ?? '';
                         $companyEmail = $settings['email'] ?? '';
+                        $publicPrefix = env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '';
                         $companyLogo = $settings['company_logo_path'] ?? null;
-                        $companyLogoUrl = $companyLogo && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogo)
-                            ? asset('storage/' . $companyLogo)
-                            : asset('assets/img/logo.jpg');
+                        $companyLogoUrl = null;
+                        if ($companyLogo) {
+                            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogo)) {
+                                $companyLogoUrl = url($publicPrefix . 'storage/' . ltrim($companyLogo, '/'));
+                            } else {
+                                $companyLogoUrl = url($publicPrefix . ltrim($companyLogo, '/'));
+                            }
+                        }
+                        if (!$companyLogoUrl) {
+                            $companyLogoUrl = url($publicPrefix . 'images/template/company-logo-image (1).png');
+                        }
                     @endphp
                     <div class="quotation-box">
                         <!-- Header -->
@@ -120,7 +129,7 @@
                             <table>
                                 <tr>
                                     <td class="company-logo">
-                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.jpg') }}';">
+                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" onerror="this.onerror=null;this.src='{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'images/template/company-logo-image (1).png') }}';">
                                     </td>
                                     <td class="quotation-title">
                                         <div style="line-height:22px;">

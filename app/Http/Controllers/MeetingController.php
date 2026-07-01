@@ -113,10 +113,11 @@ class MeetingController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    private function selectableUsers(array $roles)
+    private function selectableUsers(array $roles = [])
     {
         if (auth()->user()?->isAdmin()) {
-            return User::role($roles)->orderBy('name')->get();
+            // Fetch all users for admins, as done in other modules
+            return User::orderBy('name')->get();
         }
 
         return User::where('id', auth()->id())->orderBy('name')->get();
