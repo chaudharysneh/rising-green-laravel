@@ -1,4 +1,4 @@
-﻿@extends('layouts.masters')
+@extends('layouts.masters')
 
 @section('page_title', 'Masters - Suppliers')
 
