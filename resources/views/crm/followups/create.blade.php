@@ -23,7 +23,7 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Lead Name </label>
+                            <label class="form-label">Lead Name <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
                                     <select name="lead_id" id="lead_id" class="form-select select2" required>
@@ -41,7 +41,7 @@
                             <div class="invalid-feedback d-block" id="lead_id-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Assigned To</label>
+                            <label class="form-label">Assigned To <span class="text-danger">*</span></label>
                             @if(auth()->user()->isAdmin())
                                 <select name="assigned_user_id" id="assigned_user_id"
                                     class="form-select @error('assigned_user_id') is-invalid @enderror" required>
@@ -59,17 +59,18 @@
                             <div class="invalid-feedback d-block" id="assigned_user_id-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Purpose </label>
+                            <label class="form-label">Purpose <span class="text-danger">*</span></label>
                             <input name="purpose" id="purpose" value="{{ old('purpose') }}" class="form-control" placeholder="Enter purpose of follow up" required>
                             <div class="invalid-feedback d-block" id="purpose-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Comment</label>
-                            <textarea name="comment" id="comment" rows="1"
-                                class="form-control" placeholder="Enter any comments or notes">{{ old('comment') }}</textarea>
+                            <label class="form-label">Follow Up Date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="follow_up_at" id="follow_up_at"
+                                value="{{ old('follow_up_at') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="form-control" required>
+                            <div class="invalid-feedback d-block" id="follow_up_at-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Priority </label>
+                            <label class="form-label">Priority <span class="text-danger">*</span></label>
                             <select name="priority" id="priority" class="form-select" required>
                                 <option value="" @selected(old('priority') === null)>Select Priority</option>
                                 <option value="low" @selected(old('priority') == 'low')>Low</option>
@@ -79,7 +80,7 @@
                             <div class="invalid-feedback d-block" id="priority-error"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Status </label>
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select" required>
                                 {{-- <option value="" disabled>Select Status</option> --}}
                                 <option value="pending" @selected(old('status', 'pending') == 'pending')>Pending</option>
@@ -89,11 +90,9 @@
                             </select>
                             <div class="invalid-feedback d-block" id="status-error"></div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Follow Up Date </label>
-                            <input type="datetime-local" name="follow_up_at" id="follow_up_at"
-                                value="{{ old('follow_up_at') }}" min="{{ now()->format('Y-m-d\TH:i') }}" class="form-control" required>
-                            <div class="invalid-feedback d-block" id="follow_up_at-error"></div>
+                        <div class="col-12">
+                            <label class="form-label">Comment</label>
+                            <textarea name="comment" id="comment" rows="3" class="form-control" placeholder="Enter any comments or notes">{{ old('comment') }}</textarea>
                         </div>
                     </div>
 

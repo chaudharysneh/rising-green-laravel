@@ -61,7 +61,7 @@
                             <!-- Name -->
                             <div class="col-12">
                                 <label class="form-label d-flex align-items-center gap-2" for="name">
-                                    <i class="bi bi-person-fill"></i> Name 
+                                    <i class="bi bi-person-fill"></i> Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}">
                                 @error('name')
@@ -72,7 +72,7 @@
                             <!-- Email (Readonly) -->
                             <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="email">
-                                    <i class="bi bi-envelope-fill"></i> Email 
+                                    <i class="bi bi-envelope-fill"></i> Email <span class="text-danger">*</span>
                                 </label>
                                 <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" readonly>
                                 @error('email')
@@ -84,7 +84,7 @@
                             <div class="col-md-6">
                                 <label class="form-label d-flex flex-wrap align-items-center gap-2" for="password">
                                     <span class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-key-fill"></i> New Password 
+                                        <i class="bi bi-key-fill"></i> New Password <span class="text-danger">*</span>
                                     </span>
                                     <small class="text-muted">(leave blank to keep current)</small>
                                 </label>
@@ -102,7 +102,7 @@
                             <!-- Phone -->
                             <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="phone">
-                                    <i class="bi bi-telephone-fill"></i> Phone no. 
+                                    <i class="bi bi-telephone-fill"></i> Phone no. <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" id="phone" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}" maxlength="10">
                                 @error('phone')
@@ -214,7 +214,6 @@
 
             switch (field.name) {
                 case 'name':
-                case 'address':
                     isValid = value.length > 0;
                     break;
                 case 'password':

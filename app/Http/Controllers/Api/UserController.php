@@ -152,7 +152,7 @@ class UserController extends ApiBaseController
             'password' => 'required|string|min:8',
             'phone' => ['required', 'regex:/^[0-9]{10}$/'],
             'whatsapp' => 'nullable|string|max:50',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'image' => 'nullable|file|mimes:avif,webp,jpg,jpeg,png,gif,bmp,svg|max:2048',
             'permissions' => 'nullable|array',
             'permissions.*' => ['string', Rule::in($allowedPermissions)],
@@ -216,7 +216,7 @@ class UserController extends ApiBaseController
                     $user->id
                 );
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Staff create WhatsApp block failed', [
                 'user_id' => $user->id ?? null,
                 'error' => $e->getMessage(),
@@ -250,7 +250,7 @@ class UserController extends ApiBaseController
             'password' => 'nullable|string|min:8',
             'phone' => ['required', 'regex:/^[0-9]{10}$/'],
             'whatsapp' => 'nullable|string|max:50',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'image' => 'nullable|file|mimes:avif,webp,jpg,jpeg,png,gif,bmp,svg|max:2048',
             'permissions' => 'nullable|array',
             'permissions.*' => ['string', Rule::in($allowedPermissions)],
@@ -300,7 +300,7 @@ class UserController extends ApiBaseController
                     $user->id
                 );
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Staff update WhatsApp block failed', [
                 'user_id' => $user->id ?? null,
                 'error' => $e->getMessage(),

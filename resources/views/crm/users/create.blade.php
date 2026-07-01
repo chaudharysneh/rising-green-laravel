@@ -49,7 +49,7 @@
                             <!-- Name -->
                             <div class="col-12">
                                 <label class="form-label d-flex align-items-center gap-2" for="name">
-                                    <i class="bi bi-person-fill"></i> Name 
+                                    <i class="bi bi-person-fill"></i> Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="Enter staff name">
                                 @error('name')
@@ -60,7 +60,7 @@
                             <!-- Email -->
                             <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="email">
-                                    <i class="bi bi-envelope-fill"></i> Email 
+                                    <i class="bi bi-envelope-fill"></i> Email <span class="text-danger">*</span>
                                 </label>
                                 <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="Enter email address">
                                 @error('email')
@@ -71,7 +71,7 @@
                             <!-- Password -->
                             <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="password">
-                                    <i class="bi bi-key-fill"></i> Password 
+                                    <i class="bi bi-key-fill"></i> Password <span class="text-danger">*</span>
                                 </label>
                                 <div class="password-field-wrap position-relative">
                                     <input type="password" id="password" name="password" class="form-control pe-5 @error('password') is-invalid @enderror" placeholder="Enter password" autocomplete="new-password">
@@ -87,7 +87,7 @@
                             <!-- Phone -->
                             <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="phone">
-                                    <i class="bi bi-telephone-fill"></i> Phone no. 
+                                    <i class="bi bi-telephone-fill"></i> Phone no. <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" id="phone" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" maxlength="10" placeholder="Enter 10-digit phone number">
                                 @error('phone')
@@ -185,7 +185,6 @@
             switch (field.name) {
                 case 'name':
                 case 'email':
-                case 'address':
                     isValid = value.length > 0;
                     break;
                 case 'password':
