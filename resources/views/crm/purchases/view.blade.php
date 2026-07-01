@@ -103,6 +103,39 @@
                             border-top: 1px solid #333;
                             margin: 10px 0;
                         }
+                        @media (max-width: 768px) {
+                            .quotation-header table, .quotation-header tbody, .quotation-header tr, .quotation-header td {
+                                display: block;
+                                width: 100% !important;
+                            }
+                            .quotation-header td.company-logo {
+                                text-align: center;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo img {
+                                margin: 0 auto;
+                                max-width: 100% !important;
+                                width: 250px !important;
+                                height: auto !important;
+                            }
+                            .quotation-header td.quotation-title {
+                                text-align: center;
+                            }
+                            .quotation-title > div {
+                                text-align: center !important;
+                            }
+                            .flex-between {
+                                flex-direction: column;
+                                gap: 10px;
+                                text-align: center;
+                            }
+                            .table-responsive-wrapper {
+                                width: 100%;
+                                overflow-x: auto;
+                                -webkit-overflow-scrolling: touch;
+                                margin-bottom: 1rem;
+                            }
+                        }
                     </style>
 
                     @php
@@ -140,7 +173,6 @@
                                             @if(!empty($companyPhone) || !empty($companyEmail))
                                                 {{ implode(' | ', array_filter([$companyEmail, $companyPhone])) }}<br>
                                             @endif
-                                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -156,64 +188,70 @@
                         </div>
 
                         <!-- Vendor Info -->
-                        <table class="info-table">
-                            <thead>
-                                <tr>
-                                    <th colspan="2">Vendor Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="width:30%;"><strong>Vendor Name</strong></td>
-                                    <td>{{ $purchase->customer?->name ?? '--' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Address</strong></td>
-                                    <td>{{ $purchase->customer?->address ?? '--' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Contact</strong></td>
-                                    <td>{{ $purchase->customer?->phone ?? '--' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive-wrapper">
+                            <table class="info-table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Vendor Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="width:30%;"><strong>Vendor Name</strong></td>
+                                        <td>{{ $purchase->customer?->name ?? '--' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Address</strong></td>
+                                        <td>{{ $purchase->customer?->address ?? '--' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Contact</strong></td>
+                                        <td>{{ $purchase->customer?->phone ?? '--' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <!-- Products Table -->
-                        <table class="quotation-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if($purchase->product)
-                                <tr>
-                                    <td>{{ $purchase->product?->name ?? 'Unknown' }}</td>
-                                    <td>{{ $purchase->quantity ?? '-' }}</td>
-                                </tr>
-                                @else
-                                <tr>
-                                    <td colspan="2" style="text-align:center;">No Products</td>
-                                </tr>
-                                @endif
-                            </tbody>
-                        </table>
+                        <div class="table-responsive-wrapper">
+                            <table class="quotation-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if($purchase->product)
+                                    <tr>
+                                        <td>{{ $purchase->product?->name ?? 'Unknown' }}</td>
+                                        <td>{{ $purchase->quantity ?? '-' }}</td>
+                                    </tr>
+                                    @else
+                                    <tr>
+                                        <td colspan="2" style="text-align:center;">No Products</td>
+                                    </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
 
                         <!-- Comments Section -->
                         @if($purchase->comment)
-                        <table class="extra-info">
-                            <thead>
-                                <tr>
-                                    <th>Additional Comments</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ $purchase->comment }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive-wrapper">
+                            <table class="extra-info">
+                                <thead>
+                                    <tr>
+                                        <th>Additional Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ $purchase->comment }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         @endif
 
                         <!-- Footer -->

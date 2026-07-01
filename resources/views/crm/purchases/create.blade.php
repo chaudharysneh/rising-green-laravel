@@ -31,20 +31,22 @@
                         <!-- Left Column -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Vendor <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <select name="customer_id" id="customer_id"
-                                    class="form-select searchable-select @error('customer_id') is-invalid @enderror" required>
-                                    <option value="">Select Vendor</option>
-                                    @foreach($vendors as $vendor)
-                                        <option value="{{ $vendor->id }}" @selected(old('customer_id') == $vendor->id)>
-                                            {{ $vendor->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex gap-2 align-items-start">
+                                <div class="flex-grow-1">
+                                    <select name="customer_id" id="customer_id"
+                                        class="form-select searchable-select @error('customer_id') is-invalid @enderror" required>
+                                        <option value="">Select Vendor</option>
+                                        @foreach($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}" @selected(old('customer_id') == $vendor->id)>
+                                                {{ $vendor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback">Please select a vendor!</div>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue" id="addVendorBtn" data-bs-toggle="modal" data-bs-target="#addVendorModal" title="Add New Vendor">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">Please select a vendor!</div>
                         </div>
 
                         <!-- Right Column -->
@@ -58,9 +60,9 @@
 
                         <!-- Product Items Section -->
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
                                 <h5 class="fw-semibold mb-0"><i class="bi bi-box me-2"></i>Product Items <span class="badge bg-primary ms-2" id="productCount">1</span></h5>
-                                <button type="button" class="btn btn-success btn-sm" id="addProductBtn">
+                                <button type="button" class="btn btn-success btn-sm mt-2 mt-sm-0" id="addProductBtn">
                                     <i class="bi bi-plus-lg me-1"></i>Add Product
                                 </button>
                             </div>
@@ -72,18 +74,20 @@
                                     <div class="row g-3">
                                         <div class="col-md-5">
                                             <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <select name="products[0][product_id]" class="form-select product-select" required>
-                                                    <option value="">Select Product</option>
-                                                    @foreach($products as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <select name="products[0][product_id]" class="form-select product-select" required>
+                                                        <option value="">Select Product</option>
+                                                        @foreach($products as $product)
+                                                            <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="invalid-feedback">Please select a product.</div>
+                                                </div>
                                                 <button type="button" class="btn btn-dark-blue" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal" title="Add New Product">
                                                     <i class="bi bi-plus-lg"></i>
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback">Please select a product.</div>
                                         </div>
                                         <div class="col-md-5">
                                             <label class="form-label fw-semibold">Qty <span class="text-danger">*</span></label>
