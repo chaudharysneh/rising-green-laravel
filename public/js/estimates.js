@@ -376,7 +376,8 @@
                     }
 
                     const btn = window.jQuery(this);
-                    const originalText = btn.html();
+                    const originalText = btn.data('original-text') || btn.html();
+                    btn.data('original-text', originalText);
                     btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
                     window.jQuery.ajax({
@@ -1612,7 +1613,8 @@
             e.preventDefault();
             const $form = $(this);
             const btn = $form.find('button[type="submit"]');
-            const originalText = btn.html();
+            const originalText = btn.data('original-text') || btn.html();
+                    btn.data('original-text', originalText);
 
             clearErrors($form);
 
