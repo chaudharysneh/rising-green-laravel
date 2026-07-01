@@ -235,7 +235,11 @@
                             
                             $('#addCustomerModal').modal('hide');
                             $('#addCustomerQuickForm')[0].reset();
-                            if (window.showAlert) window.showAlert('success', 'Customer added successfully');
+                            if (!window.customerSuccessToastShown) {
+                                window.customerSuccessToastShown = true;
+                                if (window.showAlert) window.showAlert('success', 'Customer added successfully');
+                                setTimeout(() => window.customerSuccessToastShown = false, 1000);
+                            }
                         }
                     },
                     error: function(xhr) {
