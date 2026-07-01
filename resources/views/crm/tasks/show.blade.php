@@ -366,18 +366,24 @@
                     $historyDate = $endHistory?->created_at ?: $startHistory?->created_at;
                     $formatHistoryLocation = function ($history) {
                         if (!$history) {
-                            return 'NA';
+                            return 'Not updated';
                         }
 
-                        if (filled($history->location_address)) {
-                            return $history->location_address;
+                        $lat = $history->location_latitude;
+                        $lng = $history->location_longitude;
+                        $address = $history->location_address;
+
+                        if ($lat && $lng) {
+                            $text = filled($address) ? htmlspecialchars($address) : ('Lat: ' . htmlspecialchars($lat) . ', Lng: ' . htmlspecialchars($lng));
+                            $url = 'https://maps.google.com/?q=' . urlencode($lat) . ',' . urlencode($lng);
+                            return '<a href="' . $url . '" target="_blank" class="text-decoration-none"><i class="fa-solid fa-map-location-dot me-1"></i>' . $text . '</a>';
                         }
 
-                        if ($history->location_latitude && $history->location_longitude) {
-                            return 'Lat: ' . $history->location_latitude . ', Lng: ' . $history->location_longitude;
+                        if (filled($address)) {
+                            return htmlspecialchars($address);
                         }
 
-                        return 'NA';
+                        return 'Not updated';
                     };
                     $isImageDocument = function ($document) {
                         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'jfif', 'avif'];
@@ -487,7 +493,7 @@
                                         @endif
 
                                         <div class="task-history-location">
-                                            <strong>Location:</strong> {{ $formatHistoryLocation($startHistory) }}
+                                            <strong>Location:</strong> {!! $formatHistoryLocation($startHistory) !!}
                                         </div>
                                     </div>
                                 </div>
@@ -558,7 +564,7 @@
                                         @endif
 
                                         <div class="task-history-location">
-                                            <strong>Location:</strong> {{ $formatHistoryLocation($endHistory) }}
+                                            <strong>Location:</strong> {!! $formatHistoryLocation($endHistory) !!}
                                         </div>
                                     </div>
                                 </div>
