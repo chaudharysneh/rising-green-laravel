@@ -380,7 +380,7 @@
 
         </div>
         <footer class="dashboard-footer text-center py-2 mt-4">
-            © {{ date('Y') }} Copyright - Rising Green Energy
+            © {{ date('Y') }} Copyright - Fablead Developers Technolab
         </footer>
 
         <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"

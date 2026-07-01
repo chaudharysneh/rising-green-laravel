@@ -40,10 +40,7 @@ class TableTruncateController extends Controller
         // Tasks
         'tasks',
         // Tickets
-        'support_tickets',
-        // Templates / Settings
-        'pdf_types',
-        'pdf_builder_forms'
+        'support_tickets'
     ];
 
     public function truncate(Request $request, $table)
