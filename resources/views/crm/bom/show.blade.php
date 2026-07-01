@@ -87,12 +87,12 @@
                                     <div class="row g-0 detail-view-grid">
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-briefcase text-muted me-2"></i>BOM Name:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->product_name ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->product_name ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-calendar-check text-muted me-2"></i>Created At:</span>
-                                            <span class="detail-view-value">{{ optional($bomProduct->created_at)?->timezone('Asia/Kolkata')->format('d M Y h:i A') ?? '-' }}</span>
+                                            <span class="detail-view-value">{{ optional($bomProduct->created_at)?->timezone('Asia/Kolkata')->format('d M Y h:i A') ?? '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
@@ -102,47 +102,47 @@
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-shield-check text-muted me-2"></i>Warranty:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->warranty?->title ?? '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->warranty?->title ?? '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-cpu text-muted me-2"></i>Technology:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->technology?->title ?? '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->technology?->title ?? '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-rulers text-muted me-2"></i>Size of Pipe:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->size_of_pipe ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->size_of_pipe ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-speedometer2 text-muted me-2"></i>Capacity:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->capacity ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->capacity ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-arrows-expand text-muted me-2"></i>Height:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->height ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->height ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-border-width text-muted me-2"></i>Thickness:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->thickness ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->thickness ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-box-seam text-muted me-2"></i>Fitting Material:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->fitting_material ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->fitting_material ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-gear-wide text-muted me-2"></i>Fitting Type:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->fitting_type ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->fitting_type ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-12 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-text-paragraph text-muted me-2"></i>Description:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->description ?: '-' }}</span>
+                                            <span class="detail-view-value">{{ $bomProduct->description ?: '--' }}</span>
                                         </div>
 
                                         <div class="col-md-6 detail-view-row">

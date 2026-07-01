@@ -179,6 +179,30 @@
                 margin: 0 auto;
                 display: block;
             }
+            .quotation-header table, .quotation-header tbody, .quotation-header tr, .quotation-header td {
+                display: block;
+                width: 100% !important;
+            }
+            .quotation-header td.company-logo {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+            .company-logo img {
+                margin: 0 auto;
+                max-width: 100% !important;
+                width: 250px !important;
+            }
+            .quotation-header td.quotation-title {
+                text-align: center;
+            }
+            .quotation-title > div, .quotation-title > div > div {
+                text-align: center !important;
+            }
+            .table-responsive-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+            }
         }
 
         .info-table th,
@@ -303,7 +327,7 @@
                                                     ? asset('storage/' . $user->company_logo)
                                                     : asset('assets/img/logo.jpg'));
                                         @endphp
-                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="width: 300px" onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.jpg') }}';">
+                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="max-width: 100%; width: 300px; height: auto;" onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.jpg') }}';">
                                     </td>
                                     <td class="quotation-title" style="width: 50%;">
                                         <div style="line-height:22px;color:#000">
@@ -356,6 +380,7 @@
                         </table>
 
                         <!-- Estimate Details Table -->
+                        <div class="table-responsive-wrapper">
                         <table class="quotation-table">
                             <thead>
                                 <tr>
@@ -525,6 +550,7 @@
                                 @endif
                             </tfoot>
                         </table>
+                        </div>
 
                         @if ($subsidy > 0)
                             <p style="font-size: 15px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount
@@ -604,6 +630,7 @@
                                 style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
                                 BILL OF MATERIALS (BOM)
                             </h2>
+                            <div class="table-responsive-wrapper">
                             <table class="quotation-table table table-bordered"
                                 style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
                                 <thead style="background-color: #52866A; color: #fff;">

@@ -219,6 +219,30 @@
                 margin: 0 auto;
                 display: block;
             }
+            .quotation-header table, .quotation-header tbody, .quotation-header tr, .quotation-header td {
+                display: block;
+                width: 100% !important;
+            }
+            .quotation-header td.company-logo {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+            .company-logo img {
+                margin: 0 auto;
+                max-width: 100% !important;
+                width: 250px !important;
+            }
+            .quotation-header td.quotation-title {
+                text-align: center;
+            }
+            .quotation-title > div, .quotation-title > div > div {
+                text-align: center !important;
+            }
+            .table-responsive-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+            }
         }
 
         @media print {
@@ -281,7 +305,7 @@
                                                     ? asset('storage/' . $user->company_logo)
                                                     : asset('assets/images/logo.png'));
                                         @endphp
-                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="width: 300px" onerror="this.onerror=null;this.src='{{ asset('assets/images/logo.png') }}';">
+                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="max-width: 100%; width: 300px; height: auto;" onerror="this.onerror=null;this.src='{{ asset('assets/images/logo.png') }}';">
                                     </td>
                                     <td class="quotation-title" style="width: 50%;">
                                         <div style="line-height:22px;color:#000">
@@ -328,6 +352,7 @@
                         </table>
 
                         <!-- Invoice Details Table -->
+                        <div class="table-responsive-wrapper">
                         <table class="quotation-table" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif; margin-bottom: 20px;">
                             <thead style="background-color: #52866A; color: #fff;">
                                 <tr>
@@ -387,6 +412,7 @@
                                 </tr>
                             </tfoot>
                         </table>
+                        </div>
 
                         <!-- Extra Info -->
                         <div class="extra-info">
@@ -458,6 +484,7 @@
                             <h2 style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
                                 BILL OF MATERIALS (BOM)
                             </h2>
+                            <div class="table-responsive-wrapper">
                             <table class="quotation-table table table-bordered" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
                                 <thead style="background-color: #52866A; color: #fff;">
                                     <tr>
@@ -610,6 +637,7 @@
                                     </tfoot>
                                 @endif
                             </table>
+                            </div>
                         </div>
 
                         <!-- Footer -->
