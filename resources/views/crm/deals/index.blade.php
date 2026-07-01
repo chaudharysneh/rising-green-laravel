@@ -37,22 +37,7 @@
                 </div>
             </div>
             <div class="card-body p-0">
-                @if(!auth()->user()->isAdmin())
-                <div class="px-4 pt-3">
-                    <ul class="nav nav-tabs crm-filter-tabs" id="dealFilterTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="created-by-me-tab" data-bs-toggle="tab" data-filter="created_by_me" type="button" role="tab">
-                                Created By Me
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="assigned-to-me-tab" data-bs-toggle="tab" data-filter="assigned_to_me" type="button" role="tab">
-                                Assigned To Me
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                @endif
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 responsive-table" id="dealsTable">
                         <thead class="bg-light">
@@ -60,6 +45,7 @@
                                 <th class="text-center">Sr.No</th>
                                 <th class="text-center">Customer Name</th>
                                 <th class="d-none d-md-table-cell text-center">Estimate Name</th>
+                                <th class="d-none d-md-table-cell text-center">Created By</th>
                                 <th class="d-none d-md-table-cell text-center">Estimate Amount</th>
                                 <th class="d-none d-md-table-cell text-center">Status</th>
                                 <th class="d-none d-md-table-cell text-center" style="width: 160px;">Action</th>

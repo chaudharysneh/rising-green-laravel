@@ -214,7 +214,7 @@
             if (!items || !items.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
                             <div class="text-muted mb-3">
                                 <i class="bi bi-file-earmark-text display-1 opacity-25"></i>
                             </div>
@@ -278,6 +278,7 @@
                         deal.estimate?.estimate_name ||
                         deal.title ||
                         "-";
+                    const creatorName = deal.creator?.name || "-";
                     const rowNumber =
                         deal.row_number ||
                         deal.sr_no ||
@@ -292,6 +293,7 @@
                         <td class="text-center" data-label="Sr.No">${rowNumber}</td>
                         <td class="text-center" data-label="Customer Name">${customerName}</td>
                         <td class="d-none d-md-table-cell text-center" data-label="Estimate Name">${estimateName}</td>
+                        <td class="d-none d-md-table-cell text-center" data-label="Created By">${creatorName}</td>
                         <td class="d-none d-md-table-cell text-center" data-label="Estimate Amount">${currencySymbol}${amount}</td>
                         <td class="d-none d-md-table-cell text-center" data-label="Status">
                             ${statusHtml}
@@ -324,6 +326,10 @@
                                     <div class="col-12 d-flex justify-content-between align-items-center">
                                         <div class="expand-label"><i class="fa-solid fa-file-lines"></i> Estimate Name :</div>
                                         <div class="expand-value">${estimateName}</div>
+                                    </div>
+                                    <div class="col-12 d-flex justify-content-between align-items-center">
+                                        <div class="expand-label"><i class="fa-solid fa-user-pen"></i> Created By :</div>
+                                        <div class="expand-value">${creatorName}</div>
                                     </div>
                                     <div class="col-12 d-flex justify-content-between align-items-center">
                                         <div class="expand-label"><i class="fa-solid fa-sack-dollar"></i> Estimate Amount :</div>
@@ -410,7 +416,7 @@
                 error: function () {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <div class="text-muted mb-3"><i class="bi bi-exclamation-triangle display-1 opacity-25"></i></div>
                                 <p class="text-muted">Error loading deals. Please try again.</p>
                             </td>
