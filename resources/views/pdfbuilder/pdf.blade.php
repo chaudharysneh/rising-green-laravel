@@ -442,6 +442,8 @@ $discountForCost = ($estdata && isset($estdata->discount)) ? (float) $estdata->d
 $subsidyForCost = ($estdata && isset($estdata->subsidy_amount)) ? (float) $estdata->subsidy_amount : 0.0;
 $gstRateForCost = ($estdata && isset($estdata->gst)) ? (float) $estdata->gst : 0.0;
 
+
+
 $gstAmountForCost = null;
 if ($estdata && isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '') {
     $gstAmountForCost = (float) $estdata->gst_amount;
