@@ -2,10 +2,10 @@
     <tr>
         <td align="left">
             <div
-                style="font-size: 42px; font-weight: bold; margin-bottom: 16px; line-height:1.12; font-family: 'Montserrat', sans-serif; color:#000; border-left:8px solid #4b9349; padding-left:18px;">
+                style="font-size: 32px; font-weight: bold; margin-bottom: 14px; line-height:1.15; font-family: 'Montserrat', sans-serif; color:#000; border-left:8px solid #4b9349; padding-left:18px;">
                 <?= esc($componentsTitle !== '' ? $componentsTitle : 'SOLAR COMPONENTS') ?>
             </div>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;<?= !empty($componentsIntroExpanded) ? ' min-height:580px;' : '' ?>">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                 <tr>
                     <td width="6" style="background-color: #4b9349; font-size: 0; line-height: 0;">&nbsp;</td>
                     <td style="padding: <?= !empty($componentsIntroExpanded) ? '26px 28px 24px 24px' : '20px 24px 18px 22px' ?>; background-color: #f8fbf8;">
