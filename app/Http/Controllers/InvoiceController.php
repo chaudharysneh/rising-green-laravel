@@ -220,6 +220,7 @@ class InvoiceController extends Controller
                 'components' => $template->components ?? ($form_data['components'] ?? []),
                 'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
                 'environment_impact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
+                'environmentImpact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
                 'footer' => $template->footer ?? ($form_data['footer'] ?? []),
                 'generationSection' => $form_data['generation'] ?? [],
                 'ongridRoiSection' => $form_data['ongrid_roi'] ?? [],

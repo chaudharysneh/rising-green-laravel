@@ -192,6 +192,57 @@ if (!function_exists('pdf_rich_html_plain_length')) {
     }
 }
 
+if (!function_exists('split_pdf_rich_html_half')) {
+    function split_pdf_rich_html_half(string $html): array
+    {
+        $html = trim($html);
+        if ($html === '') {
+            return ['', ''];
+        }
+
+        $chunks = preg_split('/(?<=<\/p>)/i', $html, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($chunks) <= 1) {
+            $chunks = preg_split('/(?<=<\/li>)/i', $html, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        if (count($chunks) <= 1) {
+            $chunks = preg_split('/(?<=<\/h2>)/i', $html, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        if (count($chunks) <= 1) {
+            $chunks = preg_split('/(?<=<\/h3>)/i', $html, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        if (count($chunks) <= 1) {
+            return [$html, ''];
+        }
+
+        $mid = (int) ceil(count($chunks) / 2);
+
+        return [
+            implode('', array_slice($chunks, 0, $mid)),
+            implode('', array_slice($chunks, $mid)),
+        ];
+    }
+}
+
+if (!function_exists('split_env_content_for_image')) {
+    function split_env_content_for_image(string $html): array
+    {
+        $html = trim($html);
+        if ($html === '') {
+            return ['', ''];
+        }
+
+        if (preg_match('/^(.*?)(<(?:ul|ol|h3)\b.*)$/is', $html, $match)) {
+            $top = trim($match[1]);
+            $bottom = trim($match[2]);
+            if ($top !== '' && $bottom !== '') {
+                return [$top, $bottom];
+            }
+        }
+
+        return split_pdf_rich_html_half($html);
+    }
+}
+
 // Compatibility helper: CodeIgniter-style `base_url()` used in this PDF template.
 if (!function_exists('base_url')) {
     function base_url($path = '')
@@ -255,6 +306,9 @@ $_isActive = static function ($section): bool {
 // the `page-break` class to pages BEFORE the last active page.
 if (!isset($paymentTerms) || !is_array($paymentTerms)) {
     $paymentTerms = (isset($payment_terms) && is_array($payment_terms)) ? $payment_terms : [];
+}
+if (!isset($environmentImpact) || !is_array($environmentImpact)) {
+    $environmentImpact = (isset($environment_impact) && is_array($environment_impact)) ? $environment_impact : [];
 }
 
 $__companyInfoSection = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
@@ -1059,6 +1113,49 @@ if (isset($after_blocks) && is_array($after_blocks)) {
             font-size: 18px;
             color: #2f5f2f;
             margin: 20px 0 14px 0;
+        }
+
+        .pdf-env-impact-content h2,
+        .pdf-env-impact-content h3 {
+            font-weight: bold;
+            border-left: 6px solid #4b9349;
+            padding-left: 14px;
+            line-height: 1.25;
+        }
+
+        .pdf-env-impact-content h2 {
+            font-size: 22px;
+            color: #111;
+            margin: 0 0 12px 0;
+        }
+
+        .pdf-env-impact-content h3 {
+            font-size: 18px;
+            color: #111;
+            margin: 0 0 10px 0;
+        }
+
+        .pdf-env-impact-content p {
+            font-size: 15px;
+            margin: 0 0 12px 0;
+            line-height: 1.52;
+        }
+
+        .pdf-env-impact-content ul,
+        .pdf-env-impact-content ol {
+            margin: 8px 0 12px 0;
+            padding-left: 24px;
+        }
+
+        .pdf-env-impact-content li {
+            font-size: 15px;
+            margin: 0 0 8px 0;
+            line-height: 1.48;
+        }
+
+        .pdf-env-impact-content strong,
+        .pdf-env-impact-content em {
+            font-size: 15px;
         }
 
         .pdf-company-page-about p {
@@ -3118,78 +3215,112 @@ $__environmentImpact = (isset($environmentImpact) && is_array($environmentImpact
 $__environmentImpactActive = $_isActive($__environmentImpact);
     ?>
     <?php if ($__environmentImpactActive): ?>
-    <div class="<?= $_pageClass('p8') ?>" style="position: relative; min-height: 842px; background: white;">
-        <!-- Header -->
-        <div style="padding: 50px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 50px;">
+    <div class="<?= $_pageClass('p8') ?>" style="position:relative;min-height:842px;background:#fff;">
+        <div style="padding:38px 42px 34px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
                     <td width="50%" align="left" valign="top">
-                        <div style="font-size: 20px; color: #000; font-family: 'Montserrat', sans-serif;">
+                        <div style="font-size:14px;color:#000;font-family:'Montserrat',sans-serif;">
                             <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
                     <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block; text-align: right;">
+                        <?php if (!empty($logoBase64)): ?>
+                        <div style="display:inline-block;text-align:right;">
                             <img src="<?= $logoBase64 ?>" alt="Company Logo"
-                                style="max-width: 160px; height: auto; margin-bottom: 5px;">
+                                style="max-width:160px;height:auto;margin-bottom:5px;">
                         </div>
-                        <?php    endif; ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
 
             <?php
-    // Calculate environment impact metrics based on system capacity
-    $systemCapacity = (float) $quantity;
-    $lifetimeYears = 25; // Typical solar system lifetime
-
-    // CO2 offset: ~1.01 metric tons per kW per year (average for India)
+    $systemCapacity = max(0.0, (float) $quantity);
+    $envLifetimeYears = 25;
     $co2PerKwPerYear = 1.01;
-    $totalCo2Offset = $systemCapacity * $co2PerKwPerYear * $lifetimeYears;
-
-    // Equivalent acres of forest: ~1.187 acres per kW per year
     $acresPerKwPerYear = 1.187;
-    $equivalentAcres = $systemCapacity * $acresPerKwPerYear;
-
-    // Coal burn avoided: ~1.259 metric tons per kW per year
     $coalPerKwPerYear = 1.259;
+
+    $totalCo2Offset = $systemCapacity * $co2PerKwPerYear * $envLifetimeYears;
+    $equivalentAcres = $systemCapacity * $acresPerKwPerYear;
     $coalAvoided = $systemCapacity * $coalPerKwPerYear;
-        ?>
-            <?php
-    // Template-specific environment impact (saved in DB as JSON)
+
+    $co2OffsetDisplay = number_format($totalCo2Offset, 1);
+    $equivalentAcresDisplay = number_format($equivalentAcres, 2);
+    $coalAvoidedDisplay = number_format($coalAvoided, 2);
+
     $environmentImpact = isset($environmentImpact) && is_array($environmentImpact) ? $environmentImpact : [];
     $envTitle = trim((string) ($environmentImpact['title'] ?? ''));
-    $envContent = trim((string) ($environmentImpact['content'] ?? ''));
+    $envContentRaw = trim((string) ($environmentImpact['content'] ?? ''));
+    $envContent = $envContentRaw !== ''
+        ? sanitize_pdf_rich_html($envContentRaw)
+        : "You are contributing to solve earth's biggest problem- <strong>Climate Change.</strong>";
+
+    [$envContentTop, $envContentBottom] = split_env_content_for_image($envContent);
+    if (pdf_rich_html_plain_length($envContent) < 120) {
+        $envContentTop = $envContent;
+        $envContentBottom = '';
+    }
+
     $envImg = !empty($environmentImpact['image'])
         ? normalize_pdf_image($environmentImpact['image'])
         : normalize_pdf_image('public/assets/img/page_8.png');
-        ?>
 
-            <!-- Main Title -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                <tr>
-                    <td align="left">
-                        <div
-                            style="font-size: 30px; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
-                            <?= $envTitle !== '' ? esc($envTitle) : 'ENVIRONMENT IMPACT' ?>
-                        </div>
-                        <div style="font-size: 25px; color: #000; font-family: 'Montserrat', sans-serif;">
-                            <?= $envContent !== '' ? $envContent : "You are contributing to solve earth's biggest problem- <b>Climate Change.</b>" ?>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    $envMetrics = [
+        ['label' => 'CARBON DIOXIDE OFFSET', 'value' => $co2OffsetDisplay . ' Metric Tons'],
+        ['label' => 'EQUIVALENT ACRES OF FOREST', 'value' => $equivalentAcresDisplay . ' Acres/Year'],
+        ['label' => 'COAL BURN AVOIDED', 'value' => $coalAvoidedDisplay . ' Metric Tons'],
+    ];
+            ?>
 
-            <!-- Environment Impact Image -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 60px;">
-                <tr>
-                    <td align="left" valign="middle">
-                        <img src="<?= $envImg ?>" alt="Environment Impact"
-                            style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
-                    </td>
-                </tr>
-            </table>
+            <div style="page-break-inside:avoid;">
+                <?php if ($envTitle !== ''): ?>
+                <div style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
+                    <?= esc($envTitle) ?>
+                </div>
+                <?php elseif ($envContentRaw === ''): ?>
+                <div style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
+                    ENVIRONMENT IMPACT
+                </div>
+                <?php endif; ?>
+
+                <?php if ($envContentTop !== ''): ?>
+                <div class="pdf-env-impact-content" style="margin-bottom:10px;">
+                    <?= $envContentTop ?>
+                </div>
+                <?php endif; ?>
+
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 12px;border-collapse:collapse;">
+                    <tr>
+                        <td align="center" valign="middle" style="padding:15px 0;">
+                            <img src="<?= $envImg ?>" alt="Environment Impact"
+                                style="max-width:90%;max-height:320px;width:auto;height:auto;display:block;margin:0 auto;">
+                        </td>
+                    </tr>
+                </table>
+
+                <?php if ($envContentBottom !== ''): ?>
+                <div class="pdf-env-impact-content" style="margin-bottom:8px;">
+                    <?= $envContentBottom ?>
+                </div>
+                <?php endif; ?>
+
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;table-layout:fixed;">
+                    <tr>
+                        <?php foreach ($envMetrics as $metric): ?>
+                        <td width="33.33%" valign="middle" style="padding:15px 12px 15px 0;min-height:70px;font-family:'Montserrat',sans-serif;">
+                            <div style="font-size:11px;font-weight:bold;letter-spacing:0.2px;color:#111;border-left:4px solid #4b9349;padding-left:10px;line-height:1.35;min-height:28px;">
+                                <?= esc($metric['label']) ?>
+                            </div>
+                            <div style="font-size:15px;font-weight:bold;color:#4b9349;margin-top:8px;padding-left:14px;line-height:1.3;min-height:22px;">
+                                <?= esc($metric['value']) ?>
+                            </div>
+                        </td>
+                        <?php endforeach; ?>
+                    </tr>
+                </table>
+            </div>
         </div>
         <!-- Footer -->
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
