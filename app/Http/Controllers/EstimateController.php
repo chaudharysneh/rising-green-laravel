@@ -8,12 +8,12 @@ use App\Models\Customer;
 use App\Models\Estimate;
 use App\Models\PdfBuilderForm;
 use App\Models\Setting;
+use App\Models\Tax;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
 use App\Models\Subsidy;
-use App\Models\Tax;
 use Illuminate\Support\Facades\Storage;
 
 class EstimateController extends Controller
@@ -24,8 +24,11 @@ class EstimateController extends Controller
         $templates = PdfBuilderForm::orderBy('template_name')->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
         $categories = Category::orderBy('name')->get();
+        $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
+        $gstRate = (float) $gstTaxes->sum('rate');
+        $subsidies = Subsidy::active()->get();
 
-        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts', 'categories'));
+        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts', 'categories', 'gstTaxes', 'gstRate', 'subsidies'));
     }
 
     public function create()
