@@ -192,7 +192,7 @@
             </div>
 
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price', $estimate->price) }}"
                                 class="form-control @error('price') is-invalid @enderror" placeholder="Enter price"
@@ -318,7 +318,7 @@
                                                         class="form-control" placeholder="Add Quantity">
                                                 </div>
                                                 <div>
-                                                    <label class="form-label small fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
                                                     <input type="number" min="0" step="1" name="product_price[]"
                                                         value="{{ round((float) $selectedUnitPrice) }}"
                                                         class="form-control product-price" placeholder="0">
@@ -335,7 +335,7 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label class="form-label small fw-semibold">Total Amount</label>
+                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Amount</label>
                                                     <input type="number" min="0" step="1"
                                                         value="{{ round((float) $selectedQuantity * (float) $selectedUnitPrice) }}"
                                                         class="form-control product-total" placeholder="0" readonly>
@@ -395,7 +395,7 @@
                         <div class="col-lg-6">
                             <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
                                 <div class="totals-row">
-                                    <span class="fw-semibold">Subtotal:</span>
+                                    <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
                                     <span id="subtotal_display" class="fw-bold text-dark">0.00</span>
                                 </div>
 
@@ -417,13 +417,13 @@
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold" style="font-size: 15px;">Discount:</span>
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
                                     <input type="number" name="discount" id="discount"
                                         value="{{ old('discount', $estimate->discount) }}" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold" style="font-size: 15px;">Subsidy:</span>
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subsidy:</span>
                                     <input type="number" name="subsidy_amount" id="subsidy_amount"
                                         value="{{ old('subsidy_amount', $estimate->subsidy_amount) }}"
                                         step="1" class="input-small">
@@ -432,7 +432,7 @@
                                 <hr class="my-2">
 
                                 <div class="totals-row total-row mb-0">
-                                    <span class="h5 mb-0 fw-bold">Total Payable:</span>
+                                    <span class="h5 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
                                     <span id="final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>
@@ -486,7 +486,7 @@
                             <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
                         </div>
                         <div class="mb-0">
-                            <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
                             <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
                         </div>
