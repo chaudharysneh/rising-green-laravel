@@ -51,7 +51,7 @@
                 @csrf
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Vendor Name </label>
+                        <label class="form-label fw-semibold">Vendor Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" class="form-control" placeholder="Enter vendor name" required>
                         <div class="invalid-feedback" id="name-error"></div>
                     </div>
@@ -61,7 +61,7 @@
                         <div class="invalid-feedback" id="email-error"></div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Phone </label>
+                        <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
                         <input type="text" name="phone" id="phone" class="form-control" placeholder="Enter phone number" required>
                         <div class="invalid-feedback" id="phone-error"></div>
                     </div>
