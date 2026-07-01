@@ -415,8 +415,12 @@
                                 document.getElementById('addCustomerQuickForm')?.reset();
                                 document.getElementById('quick_address_container')?.classList.add('d-none');
                                 fillQuickEstimateName();
-                                if (typeof window.showAlert === 'function') {
-                                    window.showAlert('success', 'Customer added successfully');
+                                if (!window.customerSuccessToastShown) {
+                                    window.customerSuccessToastShown = true;
+                                    if (typeof window.showAlert === 'function') {
+                                        window.showAlert('success', 'Customer added successfully');
+                                    }
+                                    setTimeout(() => window.customerSuccessToastShown = false, 1000);
                                 }
                             }
                         },
