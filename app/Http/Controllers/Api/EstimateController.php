@@ -41,7 +41,15 @@ class EstimateController extends Controller
 
             // Filter by user visibility
             if (!$user->isAdmin()) {
-                $query->where('user_id', $user->id);
+                if ($request->filled('customer_id')) {
+                    $userId = (int) $user->id;
+                    $query->where(function ($q) use ($userId) {
+                        $q->where('user_id', $userId)
+                            ->orWhere('created_by', $userId);
+                    });
+                } else {
+                    $query->where('user_id', $user->id);
+                }
             }
 
             // Filter by customer_id
@@ -235,6 +243,12 @@ class EstimateController extends Controller
                 'success' => true,
                 'message' => 'Estimate created successfully',
                 'estimate_id' => $estimate->estimate_id,
+                'data' => [
+                    'estimate_id' => $estimate->estimate_id,
+                    'estimate_name' => $estimate->estimate_name,
+                    'amount' => $estimate->amount,
+                    'customer_id' => $estimate->customer_id,
+                ],
                 'redirect' => route('estimates.index')
             ], 201);
 

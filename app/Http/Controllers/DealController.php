@@ -11,6 +11,11 @@ use App\Models\Project;
 use App\Models\Stage;
 use App\Models\Status;
 use App\Models\User;
+use App\Models\BomProduct;
+use App\Models\Category;
+use App\Models\PdfBuilderForm;
+use App\Models\Subsidy;
+use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -67,7 +72,10 @@ class DealController extends Controller
             ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
 
-        return view('crm.deals.create', compact('customers', 'estimates', 'statuses', 'stages', 'users'));
+        return view('crm.deals.create', array_merge(
+            compact('customers', 'estimates', 'statuses', 'stages', 'users'),
+            $this->quickEstimateFormData()
+        ));
     }
 
     public function edit(string $id)
@@ -88,7 +96,10 @@ class DealController extends Controller
         $users = auth()->user()->isAdmin()
             ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
-        return view('crm.deals.edit', compact('deal', 'customers', 'estimates', 'statuses', 'stages', 'users'));
+        return view('crm.deals.edit', array_merge(
+            compact('deal', 'customers', 'estimates', 'statuses', 'stages', 'users'),
+            $this->quickEstimateFormData()
+        ));
     }
 
     public function show(string $id)
@@ -186,6 +197,17 @@ class DealController extends Controller
                 ['color' => $color, 'is_active' => true]
             );
         }
+    }
+
+    private function quickEstimateFormData(): array
+    {
+        return [
+            'templates' => PdfBuilderForm::orderBy('template_name')->get(),
+            'bomProducts' => BomProduct::with('categories')->orderBy('product_name')->get(),
+            'categories' => Category::orderBy('name')->get(),
+            'gstTaxes' => Tax::active()->orderBy('name')->orderBy('rate')->get(),
+            'subsidies' => Subsidy::active()->get(),
+        ];
     }
 }
 

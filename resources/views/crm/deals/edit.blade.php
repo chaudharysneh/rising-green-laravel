@@ -38,6 +38,10 @@
                             return $index === false ? 999 : $index;
                         })->values();
                         $defaultStageId = old('stage_id', $deal->stage_id ?: optional($stages->first())->id);
+                        $selectedCustomerId = old('customer_id', $deal->customer_id);
+                        $customerEstimates = $selectedCustomerId
+                            ? $estimates->where('customer_id', $selectedCustomerId)
+                            : collect();
                     @endphp
 
                     <div class="row g-3">
@@ -63,18 +67,27 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Estimate Template </label>
-                            <select name="estimate_id" id="estimate_id" class="form-select">
-                                <option value="">Select Estimate</option>
-                                @foreach ($estimates as $estimate)
-                                    <option value="{{ $estimate->estimate_id }}"
-                                        data-customer-id="{{ $estimate->customer_id }}"
-                                        data-amount="{{ $estimate->amount ?? $estimate->total ?? '' }}"
-                                        data-title="{{ $estimate->estimate_name ?: ('Estimate #' . $estimate->estimate_id) }}"
-                                        @selected(old('estimate_id', $deal->estimate_id) == $estimate->estimate_id)>
-                                        {{ $estimate->estimate_name ?: ('Estimate #' . $estimate->estimate_id) }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="flex-grow-1 w-100">
+                                    <select name="estimate_id" id="estimate_id" class="form-select">
+                                        <option value="">Select Estimate</option>
+                                        @foreach ($customerEstimates as $estimate)
+                                            <option value="{{ $estimate->estimate_id }}"
+                                                data-customer-id="{{ $estimate->customer_id }}"
+                                                data-amount="{{ $estimate->amount ?? $estimate->total ?? '' }}"
+                                                data-title="{{ $estimate->estimate_name ?: ('Estimate #' . $estimate->estimate_id) }}"
+                                                @selected(old('estimate_id', $deal->estimate_id) == $estimate->estimate_id)>
+                                                {{ $estimate->estimate_name ?: ('Estimate #' . $estimate->estimate_id) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @can('estimates.create')
+                                    <button type="button" class="btn btn-dark-blue flex-shrink-0" id="dealQuickEstimateBtn" title="Quick Estimate">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                @endcan
+                            </div>
                             <div class="invalid-feedback" id="estimate_id-error"></div>
                         </div>
 
@@ -168,15 +181,30 @@
     </div>
 
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050" id="toastContainer"></div>
+
+    @can('estimates.create')
+        @include('crm.estimates.partials.quick-estimate-modals')
+    @endcan
 @endsection
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/estimates.css') }}?v={{ filemtime(public_path('css/estimates.css')) }}">
+    <style>
+        #quickEstimateModal .modal-dialog { z-index: 1055; }
+        #addCustomerModal, #quickAddBomModal { z-index: 1065 !important; }
+        body.modal-open .modal-backdrop.show ~ .modal-backdrop.show { z-index: 1060; }
+        #quickEstimateModal .quick-bom-row .quick-bom-select-col { min-width: 0; }
+    </style>
 @endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @can('estimates.create')
+        @include('crm.estimates.partials.quick-estimate-scripts')
+        <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
+    @endcan
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
     <script>
         $(document).ready(function() {
@@ -184,7 +212,12 @@
                 theme: 'bootstrap-5',
                 width: '100%'
             });
-            $('#saveQuickCustomerBtn').click(function() {
+
+            if (typeof window.initDealEstimateDropdowns === 'function') {
+                window.initDealEstimateDropdowns();
+            }
+
+            $('#saveQuickCustomerBtn').off('click.dealCustomer').on('click.dealCustomer', function() {
                 let name = $('#quick_customer_name').val().trim();
                 let number = $('#quick_customer_number').val().trim();
                 let address = $('#quick_customer_address').val().trim();
@@ -223,6 +256,9 @@
                             $(newOption).attr('data-email', res.data.email || '');
                             $(newOption).attr('data-phone', res.data.phone || '');
                             $('#customer_id').append(newOption).trigger('change');
+                            if (typeof window.dealReloadEstimatesForCustomer === 'function') {
+                                window.dealReloadEstimatesForCustomer(String(res.data.id));
+                            }
                             
                             $('#addCustomerModal').modal('hide');
                             $('#addCustomerQuickForm')[0].reset();
