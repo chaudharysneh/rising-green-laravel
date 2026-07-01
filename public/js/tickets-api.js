@@ -217,7 +217,7 @@
                             <td class="text-nowrap d-none d-md-table-cell text-center" data-label="Customer Name">${ticket.customer?.name || "-"}</td>
                             <td data-label="Ticket Name" class="text-center">${ticket.ticket_name || "-"}</td>
                             <td class="d-none d-md-table-cell text-center">
-                                <span class="badge rounded-pill px-3 ${priorityBadge(ticket.priority)}">${priorityText}</span>
+                                <span class="badge crm-status-pill rounded-pill ${priorityBadge(ticket.priority)}">${priorityText}</span>
                             </td>
                             <td class="d-none d-md-table-cell text-center">
                                 <span class="badge crm-status-pill rounded-pill ${statusBadge(ticket.status)}">${statusText}</span>
@@ -253,7 +253,7 @@
                                         <div class="col-12 d-flex justify-content-between align-items-center gap-3">
                                             <div class="expand-label"><i class="fa-solid fa-flag"></i> Priority :</div>
                                             <div class="expand-value text-end">
-                                                <span class="badge rounded-pill px-3 ${priorityBadge(ticket.priority)}">${priorityText}</span>
+                                                <span class="badge crm-status-pill rounded-pill ${priorityBadge(ticket.priority)}">${priorityText}</span>
                                             </div>
                                         </div>
                                         <div class="col-12 d-flex justify-content-between align-items-center gap-3">
