@@ -82,8 +82,10 @@
 
                             <!-- Password -->
                             <div class="col-md-6">
-                                <label class="form-label d-flex align-items-center gap-2" for="password">
-                                    <i class="bi bi-key-fill"></i> New Password 
+                                <label class="form-label d-flex flex-wrap align-items-center gap-2" for="password">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-key-fill"></i> New Password 
+                                    </span>
                                     <small class="text-muted">(leave blank to keep current)</small>
                                 </label>
                                 <div class="password-field-wrap position-relative">
@@ -175,15 +177,12 @@
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-between gap-2 form-actions">
-                        <a href="{{ route('users.index') }}" class="btn btn-outline-dark-blue cancel-step">Cancel</a>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-dark-blue prev-step d-none">Previous</button>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-dark-blue next-step">Next</button>
-                                <button type="submit" class="btn btn-dark-blue d-none">Update</button>
-                            </div>
-                        </div>
+                    <div class="mt-4 pt-4 border-top d-flex gap-2 form-actions">
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-dark-blue cancel-step flex-grow-1 flex-sm-grow-0">Cancel</a>
+                        <div class="me-sm-auto d-none d-sm-block"></div>
+                        <button type="button" class="btn btn-outline-dark-blue prev-step d-none flex-grow-1 flex-sm-grow-0">Previous</button>
+                        <button type="button" class="btn btn-dark-blue next-step flex-grow-1 flex-sm-grow-0">Next</button>
+                        <button type="submit" class="btn btn-dark-blue d-none flex-grow-1 flex-sm-grow-0">Update</button>
                     </div>
                 </form>
             </div>

@@ -523,7 +523,6 @@ $(document).ready(function () {
                 phone: { required: true, digits: true, minlength: 10, maxlength: 10 },
                 whatsapp: { maxlength: 50 },
                 image: { validImage: true, imageSize: true },
-                address: { required: true },
                 company_name: { maxlength: 255 },
                 website: { maxlength: 255 },
                 tax_number: { maxlength: 100 },
@@ -540,8 +539,7 @@ $(document).ready(function () {
                     minlength: 'Phone number must be at least 10 digits.',
                     maxlength: 'Phone number must not be greater than 10 digits.'
                 },
-                email: { strictEmail: 'Please enter a valid email address.' },
-                address: { required: 'Please enter address.' }
+                email: { strictEmail: 'Please enter a valid email address.' }
             },
             errorPlacement: function(error, element) {
                 error.addClass('invalid-feedback d-block');

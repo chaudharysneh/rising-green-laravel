@@ -175,7 +175,7 @@ class CustomerController extends Controller
                 'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($customer->id)->whereNull('deleted_at')],
                 'phone' => ['required', 'string', 'min:10', 'max:10', Rule::unique('customers', 'phone')->ignore($customer->id)->whereNull('deleted_at')],
                 'whatsapp' => ['nullable', 'string', 'max:50'],
-                'address' => ['required', 'string'],
+                'address' => ['nullable', 'string'],
                 'dob' => ['nullable', 'date'],
                 'anniversary_date' => ['nullable', 'date'],
                 'company_name' => ['nullable', 'string', 'max:255'],

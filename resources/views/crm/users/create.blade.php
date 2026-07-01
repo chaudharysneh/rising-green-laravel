@@ -150,15 +150,12 @@
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-between gap-2 form-actions">
-                        <a href="{{ route('users.index') }}" class="btn btn-outline-dark-blue cancel-step">Cancel</a>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-dark-blue prev-step d-none">Previous</button>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-dark-blue next-step">Next</button>
-                                <button type="submit" class="btn btn-dark-blue d-none">Submit</button>
-                            </div>
-                        </div>
+                    <div class="mt-4 pt-4 border-top d-flex gap-2 form-actions">
+                        <a href="{{ route('users.index') }}" class="btn btn-outline-dark-blue cancel-step flex-grow-1 flex-sm-grow-0">Cancel</a>
+                        <div class="me-sm-auto d-none d-sm-block"></div>
+                        <button type="button" class="btn btn-outline-dark-blue prev-step d-none flex-grow-1 flex-sm-grow-0">Previous</button>
+                        <button type="button" class="btn btn-dark-blue next-step flex-grow-1 flex-sm-grow-0">Next</button>
+                        <button type="submit" class="btn btn-dark-blue d-none flex-grow-1 flex-sm-grow-0">Submit</button>
                     </div>
                 </form>
             </div>

@@ -79,7 +79,7 @@
                                             <span class="detail-view-label pe-2"><i class="fas fa-envelope text-muted me-2"></i>Email:</span>
                                             <span class="detail-view-value">
                                                 @if($user->email)
-                                                    <a href="mailto:{{ $user->email }}" class="text-decoration-none link-hover">
+                                                    <a href="mailto:{{ $user->email }}" class="text-decoration-none link-hover text-break">
                                                         {{ $user->email }}
                                                     </a>
                                                 @else

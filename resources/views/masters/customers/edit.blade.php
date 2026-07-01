@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container-fluid p-0">
-        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4">
             <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
@@ -62,7 +62,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Image</label>
-                                <input type="file" name="image" class="form-control" accept="image/*" style="height: calc(1.5em + 0.75rem + 2px); padding: 0.375rem 0.75rem; line-height: 1.5;">
+                                <input type="file" name="image" class="form-control" accept="image/*">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Company Name</label>
@@ -87,7 +87,7 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Country</label>
                                 <select name="country_id" id="country_id" class="form-select">
-                                    <option value="">-- Search Country --</option>
+                                    <option value=""></option>
                                     @foreach($countries as $country)
                                         <option value="{{ $country->id }}" @selected(old('country_id', $customer->country_id) == $country->id)>{{ $country->name }}</option>
                                     @endforeach
@@ -96,7 +96,7 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">City</label>
                                 <select name="city_id" id="city_id" class="form-select">
-                                    <option value="">-- Search City --</option>
+                                    <option value=""></option>
                                     @foreach($cities as $city)
                                         <option value="{{ $city->id }}" @selected(old('city_id', $customer->city_id) == $city->id)>{{ $city->name }}</option>
                                     @endforeach
@@ -128,12 +128,12 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Date of Birth</label>
-                                <input type="date" name="dob" class="form-control" value="{{ old('dob', $customer->dob) }}">
+                                <input type="date" name="dob" class="form-control" value="{{ old('dob', $customer->dob) }}" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Anniversary Date</label>
                                 <input type="date" name="anniversary_date" class="form-control"
-                                    value="{{ old('anniversary_date', $customer->anniversary_date) }}">
+                                    value="{{ old('anniversary_date', $customer->anniversary_date) }}" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Tax Number</label>
@@ -145,13 +145,12 @@
                         @include('partials.custom_fields', ['model' => $customer])
                     </div>
 
-                    <div class="mt-4 pt-4 border-top d-flex justify-content-between align-items-center gap-2 customer-form-actions">
-                        <a href="{{ route('masters.customers.index') }}" class="btn btn-outline-dark-blue cancel-step">Cancel</a>
-                        <button type="button" class="btn btn-outline-dark-blue prev-step d-none">Previous</button>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-dark-blue next-step">Next</button>
-                            <button type="submit" class="btn btn-dark-blue d-none">Update</button>
-                        </div>
+                    <div class="mt-4 pt-4 border-top d-flex gap-2 customer-form-actions">
+                        <a href="{{ route('masters.customers.index') }}" class="btn btn-outline-dark-blue cancel-step flex-grow-1 flex-sm-grow-0">Cancel</a>
+                        <div class="me-sm-auto d-none d-sm-block"></div>
+                        <button type="button" class="btn btn-outline-dark-blue prev-step d-none flex-grow-1 flex-sm-grow-0">Previous</button>
+                        <button type="button" class="btn btn-dark-blue next-step flex-grow-1 flex-sm-grow-0">Next</button>
+                        <button type="submit" class="btn btn-dark-blue d-none flex-grow-1 flex-sm-grow-0">Update</button>
                     </div>
                 </form>
             </div>
@@ -171,19 +170,19 @@
             document.addEventListener('DOMContentLoaded', function () {
                 // Initialize TomSelect with proper configuration to prevent flickering
                 const countrySelect = new TomSelect('#country_id', {
-                    placeholder: '-- Search Country --',
-                    allowEmptyOption: true,
+                    placeholder: 'Search Country',
                     maxOptions: null,
                     closeOnSelect: true,
-                    hideSelected: false
+                    hideSelected: false,
+                    dropdownParent: 'body'
                 });
                 
                 const citySelect = new TomSelect('#city_id', {
-                    placeholder: '-- Search City --',
-                    allowEmptyOption: true,
+                    placeholder: 'Search City',
                     maxOptions: null,
                     closeOnSelect: true,
-                    hideSelected: false
+                    hideSelected: false,
+                    dropdownParent: 'body'
                 });
 
                 // Handle country change - load cities
@@ -193,12 +192,8 @@
                     // Clear city selection
                     citySelect.clear();
                     citySelect.clearOptions();
-                    citySelect.addOption({ value: '', text: 'Loading...' });
-                    citySelect.setValue('');
 
                     if (!countryId) {
-                        citySelect.clearOptions();
-                        citySelect.addOption({ value: '', text: '-- Search City --' });
                         return;
                     }
 
@@ -206,8 +201,9 @@
                     fetch(`/masters/cities-by-country/${countryId}`)
                         .then(response => response.json())
                         .then(data => {
+                            citySelect.clear();
                             citySelect.clearOptions();
-                            citySelect.addOption({ value: '', text: '-- Search City --' });
+                            
                             if (Array.isArray(data) && data.length > 0) {
                                 data.forEach(city => {
                                     citySelect.addOption({ value: city.id, text: city.name });
@@ -216,8 +212,8 @@
                         })
                         .catch(error => {
                             console.error('Error fetching cities:', error);
+                            citySelect.clear();
                             citySelect.clearOptions();
-                            citySelect.addOption({ value: '', text: 'Error loading cities' });
                         });
                 });
             });
