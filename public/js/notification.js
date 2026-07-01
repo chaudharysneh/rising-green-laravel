@@ -80,11 +80,11 @@
             const lastPage = data.last_page || 1;
 
             let html = `
-                <div class="crm-pagination-container">
-                    <div class="text-muted small fw-medium">
+                <div class="crm-pagination-container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small fw-medium text-center text-md-start">
                         Showing ${from} to ${to} of ${total} results
                     </div>
-                    <ul class="pagination crm-pagination mb-0">`;
+                    <ul class="pagination crm-pagination mb-0 flex-wrap justify-content-center gap-2">`;
 
             if (data.prev_page_url) {
                 html += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a></li>`;

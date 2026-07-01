@@ -254,6 +254,29 @@ main.p-4.p-lg-4 {
     box-shadow: 0 0 0 0.22rem rgba(79, 99, 199, 0.14);
 }
 
+.profile-shell input[type="file"].form-control {
+    padding: 0;
+    line-height: 40px;
+}
+
+.profile-shell input[type="file"].form-control::file-selector-button {
+    padding: 0 1rem;
+    margin: 0;
+    margin-inline-end: 1rem;
+    color: #173364;
+    background-color: #f8fafc;
+    border: none;
+    border-right: 1px solid #ccd5e6;
+    border-radius: 9px 0 0 9px;
+    height: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.profile-shell input[type="file"].form-control::file-selector-button:hover {
+    background-color: #e2e8f0;
+}
+
 .profile-shell .input-group .form-control {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
@@ -430,6 +453,16 @@ main.p-4.p-lg-4 {
     background: #0F172A;
     color: #E2E8F0;
     border-color: rgba(255,255,255,.08);
+}
+
+[data-theme="dark"] .profile-shell input[type="file"].form-control::file-selector-button {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #F1F5F9;
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .profile-shell input[type="file"].form-control::file-selector-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .profile-password-modal .modal-header {
