@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Tour Packages')
 
@@ -43,7 +43,7 @@
                     @forelse ($packages as $package)
                         <tr>
                             <td class="ps-4">
-                                <span class="badge bg-light text-dark border fw-medium">{{ $package->code ?? 'N/A' }}</span>
+                                <span class="badge bg-light text-dark border fw-medium">{{ $package->code ?? '--' }}</span>
                             </td>
                             <td class="fw-semibold text-dark">{{ $package->name }}</td>
                             <td><span class="text-muted">{{ $package->destination }}</span></td>

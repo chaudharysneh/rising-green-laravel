@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -121,7 +121,7 @@ class TaskController extends Controller
                     $task->assignedUser ? $task->assignedUser->name : '',
                     $task->project?->customer?->name ?? '',
                     $task->project ? $task->project->name : '',
-                    $task->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $task->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

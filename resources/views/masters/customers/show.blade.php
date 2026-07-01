@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Customer Details')
 
@@ -50,7 +50,7 @@
                         </div>
                     </div>
                     <div class="col-md-8 col-lg-9">
-                                <div class="detail-view-title mb-3">{{ $customer->name ?? 'N/A' }}</div>
+                                <div class="detail-view-title mb-3">{{ $customer->name ?? '--' }}</div>
                                 <div class="row g-0 detail-view-grid">
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-user-tie"></i>Created By:</span>
@@ -58,7 +58,7 @@
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-calendar-alt"></i>Created At:</span>
-                                        <span class="detail-view-value">{{ $customer->created_at?->format('d M, Y h:i A') ?? 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->created_at?->format('d M, Y h:i A') ?? '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-envelope"></i>Email:</span>
@@ -66,7 +66,7 @@
                                             @if($customer->email)
                                                 <a href="mailto:{{ $customer->email }}" class="text-decoration-none link-hover">{{ $customer->email }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </span>
                                     </div>
@@ -76,7 +76,7 @@
                                             @if($customer->phone)
                                                 <a href="tel:{{ $customer->phone }}" class="text-decoration-none link-hover">{{ $customer->phone }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </span>
                                     </div>
@@ -86,17 +86,17 @@
                                             @if($customer->whatsapp)
                                                 <a href="https://wa.me/{{ $customer->whatsapp }}" target="_blank" class="text-decoration-none link-hover">{{ $customer->whatsapp }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-birthday-cake"></i>Date of Birth:</span>
-                                        <span class="detail-view-value">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d M, Y') : 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d M, Y') : '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-calendar-check"></i>Anniversary:</span>
-                                        <span class="detail-view-value">{{ $customer->anniversary_date ? \Carbon\Carbon::parse($customer->anniversary_date)->format('d M, Y') : 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->anniversary_date ? \Carbon\Carbon::parse($customer->anniversary_date)->format('d M, Y') : '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-globe"></i>Website:</span>
@@ -104,29 +104,29 @@
                                             @if($customer->website)
                                                 <a href="{{ $customer->website }}" target="_blank" class="text-decoration-none link-hover">{{ $customer->website }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-file-invoice"></i>Tax Number:</span>
-                                        <span class="detail-view-value">{{ $customer->tax_number ?? 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->tax_number ?? '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-map-marker-alt"></i>Location:</span>
-                                        <span class="detail-view-value">{{ $customer->city ? $customer->city->name . ', ' : '' }}{{ $customer->country ? $customer->country->name : 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->city ? $customer->city->name . ', ' : '' }}{{ $customer->country ? $customer->country->name : '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-building"></i>Company:</span>
-                                        <span class="detail-view-value">{{ $customer->company_name ?? 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->company_name ?? '--' }}</span>
                                     </div>
                                     <div class="col-md-6 detail-view-row">
                                         <span class="detail-view-label pe-2"><i class="fas fa-tags"></i>Type:</span>
-                                        <span class="detail-view-value">{{ $customer->type ?? 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->type ?? '--' }}</span>
                                     </div>
                                     <div class="col-12 detail-view-row border-bottom-0">
                                         <span class="detail-view-label pe-2"><i class="fas fa-home"></i>Address:</span>
-                                        <span class="detail-view-value">{{ $customer->address ?? 'N/A' }}</span>
+                                        <span class="detail-view-value">{{ $customer->address ?? '--' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -204,25 +204,25 @@
                                             @if($customer->website)
                                                 <a href="{{ $customer->website }}" target="_blank" class="text-decoration-none link-hover">{{ $customer->website }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">Address</td>
-                                        <td class="pe-4">{{ $customer->address ?? 'N/A' }}</td>
+                                        <td class="pe-4">{{ $customer->address ?? '--' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">Country</td>
-                                        <td class="pe-4">{{ $customer->country->name ?? 'N/A' }}</td>
+                                        <td class="pe-4">{{ $customer->country->name ?? '--' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">State/City</td>
-                                        <td class="pe-4">{{ $customer->city->name ?? 'N/A' }}</td>
+                                        <td class="pe-4">{{ $customer->city->name ?? '--' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">Tax Number</td>
-                                        <td class="pe-4">{{ $customer->tax_number ?? 'N/A' }}</td>
+                                        <td class="pe-4">{{ $customer->tax_number ?? '--' }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -240,7 +240,7 @@
                                             @if($customer->phone)
                                                 <a href="tel:{{ $customer->phone }}" class="text-decoration-none link-hover">{{ $customer->phone }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </td>
                                     </tr>
@@ -250,7 +250,7 @@
                                             @if($customer->whatsapp)
                                                 <a href="https://wa.me/{{ $customer->whatsapp }}" target="_blank" class="text-decoration-none link-hover">{{ $customer->whatsapp }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </td>
                                     </tr>
@@ -260,13 +260,13 @@
                                             @if($customer->email)
                                                 <a href="mailto:{{ $customer->email }}" class="text-decoration-none link-hover">{{ $customer->email }}</a>
                                             @else
-                                                N/A
+                                                --
                                             @endif
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">Date of Birth</td>
-                                        <td class="pe-4">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d M Y') : 'N/A' }}</td>
+                                        <td class="pe-4">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d M Y') : '--' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="text-muted fw-semibold ps-4">Status</td>
@@ -300,9 +300,9 @@
                                     <tbody>
                                         @foreach($customer->meetings->sortByDesc('scheduled_at') as $meeting)
                                             <tr>
-                                                <td class="ps-4 fw-bold">{{ $meeting->title ?: 'N/A' }}</td>
+                                                <td class="ps-4 fw-bold">{{ $meeting->title ?: '--' }}</td>
                                                 <td><span class="text-muted small">{{ $meeting->meeting_type_label }}</span></td>
-                                                <td><span class="text-muted small">{{ $meeting->scheduled_at?->format('d M Y h:i A') ?? 'N/A' }}</span></td>
+                                                <td><span class="text-muted small">{{ $meeting->scheduled_at?->format('d M Y h:i A') ?? '--' }}</span></td>
                                                 <td>
                                                     @php
                                                         $meetingStatusClass = match ($meeting->status) {
@@ -350,17 +350,17 @@
                                     <tbody>
                                         @foreach($customer->deals->sortByDesc('created_at') as $deal)
                                             <tr>
-                                                <td class="ps-4 fw-bold">{{ $deal->title ?: 'N/A' }}</td>
-                                                <td><span class="badge border border-info text-info small">{{ $deal->stage->name ?? 'N/A' }}</span></td>
+                                                <td class="ps-4 fw-bold">{{ $deal->title ?: '--' }}</td>
+                                                <td><span class="badge border border-info text-info small">{{ $deal->stage->name ?? '--' }}</span></td>
                                                 <td>
                                                     @php
                                                         $dealStatusColor = $deal->status->color ?? null;
                                                     @endphp
                                                     @if($dealStatusColor)
                                                         <span class="badge text-white"
-                                                            style="background-color: {{ $dealStatusColor }};">{{ $deal->status->name ?? 'N/A' }}</span>
+                                                            style="background-color: {{ $dealStatusColor }};">{{ $deal->status->name ?? '--' }}</span>
                                                     @else
-                                                        <span class="badge bg-secondary opacity-75">{{ $deal->status->name ?? 'N/A' }}</span>
+                                                        <span class="badge bg-secondary opacity-75">{{ $deal->status->name ?? '--' }}</span>
                                                     @endif
                                                 </td>
                                                 <td class="fw-bold text-dark">{{ ($deal->currency->symbol ?? $deal->currency->code ?? '') . ($deal->amount ? number_format((float) $deal->amount, 2) : '0.00') }}</td>
@@ -399,7 +399,7 @@
                                     <tbody>
                                         @foreach($customer->followUps as $followup)
                                             <tr>
-                                                <td class="ps-4 fw-bold">{{ $followup->purpose ?: 'N/A' }}</td>
+                                                <td class="ps-4 fw-bold">{{ $followup->purpose ?: '--' }}</td>
                                                 <td>
                                                     @php
                                                         $fuStatusClass = match ($followup->status) {
@@ -411,8 +411,8 @@
                                                     @endphp
                                                     <span class="badge {{ $fuStatusClass }} opacity-75">{{ ucfirst($followup->status) }}</span>
                                                 </td>
-                                                <td><span class="text-muted small">{{ $followup->follow_up_at?->format('d M Y h:i A') ?? 'N/A' }}</span></td>
-                                                <td>{{ $followup->assignedUser->name ?? 'N/A' }}</td>
+                                                <td><span class="text-muted small">{{ $followup->follow_up_at?->format('d M Y h:i A') ?? '--' }}</span></td>
+                                                <td>{{ $followup->assignedUser->name ?? '--' }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Follow Ups - Edit')
 
@@ -340,7 +340,7 @@
                         data: {
                             name: name,
                             phone: phone,
-                            address: address || 'N/A'
+                            address: address || '--'
                         },
                         success: function(response) {
                             if (response.success && response.data) {

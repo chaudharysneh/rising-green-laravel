@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -130,9 +130,9 @@ class CustomerController extends Controller
                         $phone,
                         [
                             $customer->name ?? 'Customer',
-                            $customer->company_name ?: 'N/A',
-                            $customer->phone ?: 'N/A',
-                            $customer->address ?: 'N/A',
+                            $customer->company_name ?: '--',
+                            $customer->phone ?: '--',
+                            $customer->address ?: '--',
                         ],
                         $customer->id
                     );
@@ -215,9 +215,9 @@ class CustomerController extends Controller
                         $phone,
                         [
                             $customer->name ?? 'Customer',
-                            $customer->company_name ?: 'N/A',
-                            $customer->phone ?: 'N/A',
-                            $customer->address ?: 'N/A',
+                            $customer->company_name ?: '--',
+                            $customer->phone ?: '--',
+                            $customer->address ?: '--',
                         ],
                         $customer->id
                     );

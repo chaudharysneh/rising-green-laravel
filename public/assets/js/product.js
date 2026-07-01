@@ -1,4 +1,4 @@
-$(document).ready(function () {
+﻿$(document).ready(function () {
     loadProducts();
 
     $('#add-product-btn').on('click', function () {
@@ -49,7 +49,7 @@ function loadProducts() {
             }
 
             products.forEach(function (product) {
-                var categoryName = product.category ? product.category.name : 'N/A';
+                var categoryName = product.category ? product.category.name : '--';
                 var createdByName = product.creator ? (product.creator.name || '—') : '—';
                 var createdAt = product.created_at ? new Date(product.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 

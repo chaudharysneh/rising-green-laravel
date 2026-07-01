@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Bookings - Show')
 
@@ -203,7 +203,7 @@
                                             @foreach($amendment->new_data as $field => $newValue)
                                                 <div class="d-flex gap-2 mb-1">
                                                     <span class="text-muted">{{ str_replace('_', ' ', ucfirst($field)) }}:</span>
-                                                    <span class="text-danger text-decoration-line-through">{{ $amendment->old_data[$field] ?? 'N/A' }}</span>
+                                                    <span class="text-danger text-decoration-line-through">{{ $amendment->old_data[$field] ?? '--' }}</span>
                                                     <i class="bi bi-arrow-right mx-1"></i>
                                                     <span class="text-success fw-bold">{{ $newValue }}</span>
                                                 </div>

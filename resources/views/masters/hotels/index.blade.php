@@ -1,4 +1,4 @@
-@extends('layouts.masters')
+﻿@extends('layouts.masters')
 
 @section('page_title', 'Masters - Hotels')
 
@@ -29,7 +29,7 @@
                         @forelse ($hotels as $hotel)
                             <tr>
                                 <td>{{ $hotel->name }}</td>
-                                <td>{{ $hotel->city?->name ?? 'N/A' }}</td>
+                                <td>{{ $hotel->city?->name ?? '--' }}</td>
                                 <td>{{ $hotel->star_rating }}</td>
                                 <td>{{ $hotel->email }}</td>
                                 <td>{{ $hotel->phone }}</td>

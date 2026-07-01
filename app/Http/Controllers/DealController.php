@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -146,14 +146,14 @@ class DealController extends Controller
                 fputcsv($file, [
                     $i++,
                     $deal->title,
-                    $deal->customer?->name ?? 'N/A',
-                    $deal->creator?->name ?? 'N/A',
-                    $deal->assignedUser?->name ?? 'N/A',
-                    $deal->stage?->name ?? 'N/A',
-                    $deal->status?->name ?? 'N/A',
+                    $deal->customer?->name ?? '--',
+                    $deal->creator?->name ?? '--',
+                    $deal->assignedUser?->name ?? '--',
+                    $deal->stage?->name ?? '--',
+                    $deal->status?->name ?? '--',
                     ($deal->currency?->symbol ?? $deal->currency?->code ?? '') . number_format((float) $deal->amount, 2, '.', ''),
-                    $deal->expected_close_date?->format('Y-m-d') ?? 'N/A',
-                    $deal->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $deal->expected_close_date?->format('Y-m-d') ?? '--',
+                    $deal->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

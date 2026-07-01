@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -93,7 +93,7 @@ class PurchaseController extends Controller
                     $purchase->price ?? 0,
                     $purchase->total ?? 0,
                     optional($purchase->creator)->name ?? '-',
-                    optional($purchase->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    optional($purchase->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

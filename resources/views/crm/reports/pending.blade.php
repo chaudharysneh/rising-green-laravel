@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Pending Accounts')
 
@@ -89,7 +89,7 @@
                                 <tr>
                                     <td class="ps-3">
                                         <div class="fw-bold text-dark">{{ $payable->supplier->name }}</div>
-                                        <div class="text-muted small">{{ $payable->booking ? $payable->booking->booking_no : 'N/A' }}</div>
+                                        <div class="text-muted small">{{ $payable->booking ? $payable->booking->booking_no : '--' }}</div>
                                     </td>
                                     <td>₹{{ number_format($payable->amount, 2) }}</td>
                                     <td>

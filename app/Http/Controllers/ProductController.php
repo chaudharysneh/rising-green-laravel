@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -93,7 +93,7 @@ class ProductController extends Controller
                     $product->description ?? '-',
                     optional($product->category)->name ?? '-',
                     optional($product->creator)->name ?? '-',
-                    optional($product->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    optional($product->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

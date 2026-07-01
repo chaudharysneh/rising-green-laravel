@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -102,7 +102,7 @@ class SalesController extends Controller
                     $sale->total ?? 0,
                     optional($sale->handoverPerson)->name ?? '-',
                     optional($sale->creator)->name ?? '-',
-                    optional($sale->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    optional($sale->created_at)?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

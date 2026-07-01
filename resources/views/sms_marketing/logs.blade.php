@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'SMS Marketing Logs')
 
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         tableBody.innerHTML = items.map((log, index) => {
             const rowNumber = meta && meta.from ? meta.from + index : index + 1;
-            const customerName = log.customer ? log.customer.name : 'N/A';
+            const customerName = log.customer ? log.customer.name : '--';
             const customerPhone = log.customer_phone || '-';
             const statusHtml = renderStatus(log.status);
             const service = log.service ? escapeHtml(log.service) : '--';

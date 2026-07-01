@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Vendor Details')
 
@@ -70,10 +70,10 @@
                             <div class="col-lg-9 col-md-8">
                                 <div class="row g-0 detail-view-grid">
                                     <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-building text-muted me-2"></i>Vendor Name:</span><span class="detail-view-value">{{ $vendor->name ?: '-' }}</span></div>
-                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-envelope text-muted me-2"></i>Email:</span><span class="detail-view-value">{{ $vendor->email ?: 'N/A' }}</span></div>
-                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-telephone text-muted me-2"></i>Phone:</span><span class="detail-view-value">{{ $vendor->phone ?: 'N/A' }}</span></div>
+                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-envelope text-muted me-2"></i>Email:</span><span class="detail-view-value">{{ $vendor->email ?: '--' }}</span></div>
+                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-telephone text-muted me-2"></i>Phone:</span><span class="detail-view-value">{{ $vendor->phone ?: '--' }}</span></div>
                                     <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-toggle-on text-muted me-2"></i>Status:</span><span class="detail-view-value"><span class="badge bg-success rounded-pill px-3">{{ ucfirst($vendor->status ?: 'Active') }}</span></span></div>
-                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-geo-alt text-muted me-2"></i>Address:</span><span class="detail-view-value">{{ $vendor->address ?: 'N/A' }}</span></div>
+                                    <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-geo-alt text-muted me-2"></i>Address:</span><span class="detail-view-value">{{ $vendor->address ?: '--' }}</span></div>
                                     <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-calendar-plus text-muted me-2"></i>Created At:</span><span class="detail-view-value">{{ optional($vendor->created_at)?->format('d M, Y h:i A') ?? '-' }}</span></div>
                                     <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-person-check text-muted me-2"></i>Created By:</span><span class="detail-view-value">{{ optional($vendor->creator)->name ?? '-' }}</span></div>
                                     <div class="col-md-6 detail-view-row"><span class="detail-view-label"><i class="bi bi-pencil-square text-muted me-2"></i>Updated By:</span><span class="detail-view-value">{{ optional($vendor->updater)->name ?? '-' }}</span></div>

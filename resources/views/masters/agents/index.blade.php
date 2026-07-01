@@ -1,4 +1,4 @@
-@extends('layouts.masters')
+﻿@extends('layouts.masters')
 
 @section('page_title', 'Masters - Agents')
 
@@ -31,7 +31,7 @@
                             <tr>
                                 <td>{{ $agent->name }}</td>
                                 <td>{{ $agent->code }}</td>
-                                <td>{{ $agent->city?->name ?? 'N/A' }}, {{ $agent->country?->name ?? 'N/A' }}</td>
+                                <td>{{ $agent->city?->name ?? '--' }}, {{ $agent->country?->name ?? '--' }}</td>
                                 <td>{{ $agent->type }}</td>
                                 <td>{{ $agent->email }}</td>
                                 <td>{{ $agent->phone }}</td>

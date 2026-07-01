@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -195,7 +195,7 @@ class LeadController extends Controller
                     $lead->leadSource?->name ?? $lead->source,
                     $lead->stage?->name,
                     $lead->notes,
-                    $lead->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $lead->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 

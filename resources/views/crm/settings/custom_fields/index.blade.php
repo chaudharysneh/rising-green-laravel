@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Configuration - Custom Fields')
 
@@ -68,7 +68,7 @@
                                     <div class="extra-small text-muted mt-1">ID: <code>{{ $field->name }}</code> | Type: {{ ucfirst($field->type) }}</div>
                                 </td>
                                 <td class="text-muted small">
-                                    {{ $field->created_at ? $field->created_at->format('d M Y h:i A') : 'N/A' }}
+                                    {{ $field->created_at ? $field->created_at->format('d M Y h:i A') : '--' }}
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">

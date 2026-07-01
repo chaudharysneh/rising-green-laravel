@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('page_title', 'Deal Details')
 
@@ -42,7 +42,7 @@
                         ? $timelineValue . ' ' . ($timelineValue === 1
                             ? rtrim($timelineUnit, 's')
                             : $timelineUnit)
-                        : 'N/A';
+                        : '--';
                 @endphp
                 <div class="row g-0 detail-view-grid">
                     <div class="col-md-6 detail-view-row">
@@ -52,7 +52,7 @@
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-calendar-days"></i>Created At:</span>
-                        <span class="detail-view-value">{{ $deal->created_at?->format('j M Y h:i A') ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->created_at?->format('j M Y h:i A') ?? '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
@@ -61,7 +61,7 @@
                             @if ($deal->customer?->email)
                                 <a href="mailto:{{ $deal->customer->email }}" class="text-decoration-none link-hover">{{ $deal->customer->email }}</a>
                             @else
-                                N/A
+                                --
                             @endif
                         </span>
                     </div>
@@ -72,24 +72,24 @@
                             @if($deal->customer?->phone)
                                 <a href="tel:{{ $deal->customer->phone }}" class="text-decoration-none link-hover">{{ $deal->customer->phone }}</a>
                             @else
-                                N/A
+                                --
                             @endif
                         </span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-brands fa-whatsapp"></i>WhatsApp:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->whatsapp ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->whatsapp ?? '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-cake-candles"></i>Date of Birth:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->dob ? \Carbon\Carbon::parse($deal->customer->dob)->format('j M Y') : 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->dob ? \Carbon\Carbon::parse($deal->customer->dob)->format('j M Y') : '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-calendar-day"></i>Anniversary:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->anniversary_date ? \Carbon\Carbon::parse($deal->customer->anniversary_date)->format('j M Y') : 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->anniversary_date ? \Carbon\Carbon::parse($deal->customer->anniversary_date)->format('j M Y') : '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
@@ -98,24 +98,24 @@
                             @if ($deal->customer?->website)
                                 <a href="{{ $deal->customer->website }}" target="_blank" class="text-decoration-none link-hover">{{ $deal->customer->website }}</a>
                             @else
-                                N/A
+                                --
                             @endif
                         </span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-file-invoice"></i>Tax Number:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->tax_number ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->tax_number ?? '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-location-dot"></i>Location:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->address ?? 'N/A' }}{{ $deal->customer?->city ? ', ' . $deal->customer->city->name : '' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->address ?? '--' }}{{ $deal->customer?->city ? ', ' . $deal->customer->city->name : '' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-building"></i>Company:</span>
-                        <span class="detail-view-value">{{ $deal->customer?->company_name ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->customer?->company_name ?? '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">
@@ -125,7 +125,7 @@
 
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-file-signature"></i>Estimate Name:</span>
-                        <span class="detail-view-value">{{ $deal->estimate?->estimate_name ?? 'N/A' }}</span>
+                        <span class="detail-view-value">{{ $deal->estimate?->estimate_name ?? '--' }}</span>
                     </div>
 
                     <div class="col-md-6 detail-view-row">

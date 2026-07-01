@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -90,11 +90,11 @@ class ProjectController extends Controller
             foreach ($projects as $project) {
                 fputcsv($file, [
                     $i++,
-                    $project->creator?->name ?? 'N/A',
-                    $project->customer?->name ?? 'N/A',
-                    $project->name ?? 'N/A',
-                    $project->status ? ucfirst($project->status) : 'N/A',
-                    $project->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? 'N/A',
+                    $project->creator?->name ?? '--',
+                    $project->customer?->name ?? '--',
+                    $project->name ?? '--',
+                    $project->status ? ucfirst($project->status) : '--',
+                    $project->created_at?->timezone('Asia/Kolkata')->format('d-m-Y h:i A') ?? '--',
                 ]);
             }
 
