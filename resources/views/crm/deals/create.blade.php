@@ -38,7 +38,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Customer </label>
+                            <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
                                     <select name="customer_id" id="customer_id" class="form-select"
@@ -78,14 +78,14 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Estimate Amount </label>
+                            <label class="form-label fw-semibold">Estimate Amount <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" min="0" name="amount" id="amount" value="{{ old('amount') }}"
                                 class="form-control" placeholder="Enter estimate amount" required>
                             <div class="invalid-feedback" id="amount-error"></div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Time Line </label>
+                            <label class="form-label fw-semibold">Time Line <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <input type="number" min="1" name="timeline_value" id="timeline_value" value="{{ $defaultTimelineValue }}"
                                     class="form-control" placeholder="Enter timeline value (e.g. 5)" required>
@@ -99,7 +99,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Deal Status </label>
+                            <label class="form-label fw-semibold">Deal Status <span class="text-danger">*</span></label>
                             <select name="status_id" id="status_id" class="form-select" required>
                                 <option value="">Select Status</option>
                                 @foreach ($orderedStatuses as $status)

@@ -35,7 +35,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Assigned For </label>
+                            <label class="form-label fw-semibold">Assigned For <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
                                     <select name="customer_id" id="customer_id" class="form-select" required>
@@ -75,14 +75,14 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Meeting Title </label>
+                            <label class="form-label fw-semibold">Meeting Title <span class="text-danger">*</span></label>
                             <input type="text" name="title" id="title" value="{{ old('title', $meeting->title) }}"
                                 class="form-control" required>
                             <div class="invalid-feedback" id="title-error"></div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Status </label>
+                            <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select js-status-comment-trigger" required>
                                 <option value="scheduled" {{ $meeting->status == 'scheduled' ? 'selected' : '' }}>Scheduled
                                 </option>
@@ -95,7 +95,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Scheduled On </label>
+                            <label class="form-label fw-semibold">Scheduled On <span class="text-danger">*</span></label>
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at"
                                 value="{{ old('scheduled_at', \Carbon\Carbon::parse($meeting->scheduled_at)->format('Y-m-d\TH:i')) }}"
                                 min="{{ now()->format('Y-m-d\TH:i') }}"
