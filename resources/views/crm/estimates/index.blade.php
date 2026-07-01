@@ -27,6 +27,23 @@
             border-bottom-color: #0d6efd;
             background-color: transparent;
         }
+
+        #quickEstimateModal .modal-dialog {
+            z-index: 1055;
+        }
+
+        #addCustomerModal,
+        #quickAddBomModal {
+            z-index: 1065 !important;
+        }
+
+        body.modal-open .modal-backdrop.show ~ .modal-backdrop.show {
+            z-index: 1060;
+        }
+
+        #quickEstimateModal .quick-bom-row .quick-bom-select-col {
+            min-width: 0;
+        }
     </style>
 @endpush
 
@@ -123,7 +140,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
+                                <button type="button" class="btn btn-dark-blue flex-shrink-0" id="quickEstimateAddCustomerBtn" title="Add New Customer">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
@@ -168,23 +185,30 @@
                                 <div id="quickBomRows" class="d-flex flex-column gap-2">
                                     <div class="quick-bom-row bg-white border rounded-3 p-2">
                                         <div class="row g-2 align-items-end">
-                                            <div class="col-md-3">
+                                            <div class="col-md-3 quick-bom-select-col">
                                                 <label class="form-label small fw-semibold">BOM</label>
-                                                <select class="form-select quick-bom-select" name="quick_bom_id[]">
-                                                    <option value="">Select BOM</option>
-                                                    @foreach ($bomProducts ?? [] as $bom)
-                                                        <option value="{{ $bom->id }}"
-                                                            data-name="{{ $bom->product_name }}"
-                                                            data-price="{{ $bom->price ?? 0 }}"
-                                                            data-make="{{ optional($bom->categories->first())->name ?? '' }}">
-                                                            {{ $bom->product_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <select class="form-select quick-bom-select" name="quick_bom_id[]">
+                                                        <option value="">Select BOM</option>
+                                                        @foreach ($bomProducts ?? [] as $bom)
+                                                            <option value="{{ $bom->id }}"
+                                                                data-name="{{ $bom->product_name }}"
+                                                                data-price="{{ $bom->price ?? 0 }}"
+                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'>
+                                                                {{ $bom->product_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-estimate-add-bom-btn" title="Add New BOM">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label small fw-semibold">Make</label>
-                                                <input type="text" class="form-control quick-bom-make" name="quick_bom_make[]" placeholder="Make">
+                                                <select class="form-select quick-bom-make-select" name="quick_bom_make[]" disabled>
+                                                    <option value="">Select Make</option>
+                                                </select>
                                             </div>
                                             <div class="col-md-2">
                                                 <label class="form-label small fw-semibold">Qty</label>
@@ -254,7 +278,7 @@
 </div>
 
 <!-- Add Customer Modal -->
-<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom">
@@ -273,11 +297,58 @@
                         <input type="text" class="form-control" id="quick_customer_number" required>
                         <div class="invalid-feedback">Please enter mobile number</div>
                     </div>
+                    <div class="mb-3">
+                        <a href="#" class="small text-decoration-none" id="quickEstimateToggleAddress">+ Add Address (Optional)</a>
+                    </div>
+                    <div class="mb-0 d-none" id="quick_address_container">
+                        <label class="form-label fw-semibold">Address</label>
+                        <textarea class="form-control" id="quick_customer_address" rows="2" placeholder="Address"></textarea>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer border-top bg-light rounded-bottom-4">
                 <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-dark-blue" id="saveQuickCustomerBtn">Save Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add BOM Modal -->
+<div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Add New BOM</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="quickAddBomForm" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="quick_bom_name" required>
+                        <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Make <span class="text-danger">*</span></label>
+                        <select class="form-select quick-bom-make-select" id="quick_bom_category_id" required>
+                            <option value="">Select Make</option>
+                            @foreach ($categories ?? [] as $category)
+                                <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
+                        <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                        <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark-blue" id="saveQuickBomBtn">Save BOM</button>
             </div>
         </div>
     </div>
@@ -300,6 +371,10 @@
             });
         @endphp
         window.estimateTemplateComments = @json($templateComments);
+        window.estimateBomQuickAddConfig = {
+            storeUrl: @json(route('api.bom-products.store')),
+            makeStoreUrl: @json(route('api.make.store'))
+        };
         window.crmUserPermissions = {
             estimates: {
                 view: @json(auth()->user()?->hasMatrixPermission('view_estimates')),
@@ -311,80 +386,4 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
-    <script>
-        $(document).ready(function() {
-            $('#saveQuickCustomerBtn').click(function() {
-                let name = $('#quick_customer_name').val().trim();
-                let number = $('#quick_customer_number').val().trim();
-                
-                $('#quick_customer_name').removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter customer name');
-                $('#quick_customer_number').removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter mobile number');
-                
-                if (!name || !number) {
-                    if(!name) $('#quick_customer_name').addClass('is-invalid');
-                    if(!number) $('#quick_customer_number').addClass('is-invalid');
-                    return;
-                }
-                
-                let btn = $(this);
-                let originalText = btn.html();
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-                
-                $.ajax({
-                    url: '/api/customers',
-                    type: 'POST',
-                    data: {
-                        name: name,
-                        phone: number,
-                        status: 'active',
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(res) {
-                        if (res.success && res.data) {
-                            let selectEl = document.getElementById('quick_estimate_customer_id');
-                            let newOption = new Option(res.data.name, res.data.id, true, true);
-                            $(newOption).attr('data-name', res.data.name);
-                            $(selectEl).append(newOption).trigger('change');
-                            
-                            $('#addCustomerModal').modal('hide');
-                            $('#addCustomerQuickForm')[0].reset();
-                            
-                            // Reopen Quick Estimate modal
-                            $('#quickEstimateModal').modal('show');
-                            
-                            if (window.showAlert) window.showAlert('success', 'Customer added successfully');
-                        }
-                    },
-                    error: function(xhr) {
-                        let errorMessage = xhr.responseJSON?.message || 'Failed to add customer';
-                        if (xhr.responseJSON && xhr.responseJSON.errors) {
-                            let errors = xhr.responseJSON.errors;
-                            if (errors.phone) {
-                                $('#quick_customer_number').addClass('is-invalid');
-                                $('#quick_customer_number').siblings('.invalid-feedback').text(errors.phone[0]);
-                                errorMessage = errors.phone[0];
-                            }
-                            if (errors.name) {
-                                $('#quick_customer_name').addClass('is-invalid');
-                                $('#quick_customer_name').siblings('.invalid-feedback').text(errors.name[0]);
-                                errorMessage = errors.name[0];
-                            }
-                        }
-                        if (window.showAlert) window.showAlert('error', errorMessage);
-                    },
-                    complete: function() {
-                        btn.prop('disabled', false).html(originalText);
-                    }
-                });
-            });
-            
-            $('#addCustomerModal').on('hidden.bs.modal', function () {
-                $('#addCustomerQuickForm')[0].reset();
-                $('.is-invalid').removeClass('is-invalid');
-                
-                // Always reopen the Quick Estimate modal when Customer modal closes (whether saved or cancelled)
-                $('#quickEstimateModal').modal('show');
-            });
-        });
-    </script>
 @endpush

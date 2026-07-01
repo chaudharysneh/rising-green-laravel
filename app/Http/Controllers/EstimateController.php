@@ -23,8 +23,9 @@ class EstimateController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
         $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $categories = Category::orderBy('name')->get();
 
-        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts'));
+        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts', 'categories'));
     }
 
     public function create()

@@ -113,6 +113,48 @@
 
         initQuickEstimateModal();
 
+        function validateQuickEstimateBeforeBom() {
+            const form = document.getElementById('quickEstimateForm');
+            if (!form) {
+                return true;
+            }
+
+            form.querySelectorAll('.is-invalid').forEach(function (field) {
+                field.classList.remove('is-invalid');
+            });
+
+            let isValid = true;
+            const customerSelect = document.getElementById('quick_estimate_customer_id');
+            const quantity = parseFloat(form.quantity?.value || 0);
+            const price = parseFloat(form.price?.value || 0);
+            const templateSelect = document.getElementById('quick_template_id');
+
+            if (!form.customer_id?.value) {
+                customerSelect?.classList.add('is-invalid');
+                isValid = false;
+            }
+            if (!(quantity > 0)) {
+                document.getElementById('quick_quantity')?.classList.add('is-invalid');
+                isValid = false;
+            }
+            if (!(price > 0)) {
+                document.getElementById('quick_price')?.classList.add('is-invalid');
+                isValid = false;
+            }
+            if (!templateSelect?.value) {
+                templateSelect?.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid && typeof window.showAlert === 'function') {
+                window.showAlert('error', 'Please fill required Quick Estimate fields before adding BOM.');
+            }
+
+            return isValid;
+        }
+
+        window.validateQuickEstimateBeforeBom = validateQuickEstimateBeforeBom;
+
         function formatDate(dateValue) {
             if (!dateValue) return '-';
             const date = new Date(dateValue);
@@ -241,6 +283,110 @@
                 return;
             }
 
+            setupQuickEstimateNestedModals();
+
+            document.getElementById('quickEstimateAddCustomerBtn')?.addEventListener('click', function (event) {
+                event.preventDefault();
+                openQuickEstimateChildModal('addCustomerModal');
+            });
+
+            document.getElementById('quickEstimateToggleAddress')?.addEventListener('click', function (event) {
+                event.preventDefault();
+                document.getElementById('quick_address_container')?.classList.toggle('d-none');
+            });
+
+            if (window.jQuery) {
+                window.jQuery('#saveQuickCustomerBtn').off('click.quickEstimate').on('click.quickEstimate', function () {
+                    const $name = window.jQuery('#quick_customer_name');
+                    const $number = window.jQuery('#quick_customer_number');
+                    const name = ($name.val() || '').trim();
+                    const number = ($number.val() || '').trim();
+                    let address = (window.jQuery('#quick_customer_address').val() || '').trim();
+
+                    $name.removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter customer name');
+                    $number.removeClass('is-invalid').siblings('.invalid-feedback').text('Please enter mobile number');
+
+                    if (!name || !number) {
+                        if (!name) {
+                            $name.addClass('is-invalid');
+                        }
+                        if (!number) {
+                            $number.addClass('is-invalid');
+                        }
+                        return;
+                    }
+
+                    if (!address) {
+                        address = 'Address';
+                    }
+
+                    const btn = window.jQuery(this);
+                    const originalText = btn.html();
+                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                    window.jQuery.ajax({
+                        url: '/api/customers',
+                        type: 'POST',
+                        data: {
+                            name: name,
+                            phone: number,
+                            address: address,
+                            status: 'active',
+                            _token: csrfToken,
+                        },
+                        success: function (res) {
+                            if (res.success && res.data) {
+                                const newOption = new Option(res.data.name, res.data.id, true, true);
+                                newOption.dataset.name = res.data.name;
+                                window.jQuery(customerSelect).append(newOption).trigger('change');
+                                const customerModalEl = document.getElementById('addCustomerModal');
+                                if (customerModalEl && window.bootstrap) {
+                                    bootstrap.Modal.getInstance(customerModalEl)?.hide();
+                                }
+                                document.getElementById('addCustomerQuickForm')?.reset();
+                                document.getElementById('quick_address_container')?.classList.add('d-none');
+                                fillQuickEstimateName();
+                                if (typeof window.showAlert === 'function') {
+                                    window.showAlert('success', 'Customer added successfully');
+                                }
+                            }
+                        },
+                        error: function (xhr) {
+                            let errorMessage = xhr.responseJSON?.message || 'Failed to add customer';
+                            if (xhr.responseJSON?.errors) {
+                                const errors = xhr.responseJSON.errors;
+                                if (errors.phone) {
+                                    $number.addClass('is-invalid');
+                                    $number.siblings('.invalid-feedback').text(errors.phone[0]);
+                                    errorMessage = errors.phone[0];
+                                }
+                                if (errors.name) {
+                                    $name.addClass('is-invalid');
+                                    $name.siblings('.invalid-feedback').text(errors.name[0]);
+                                    errorMessage = errors.name[0];
+                                }
+                            }
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('error', errorMessage);
+                            }
+                        },
+                        complete: function () {
+                            btn.prop('disabled', false).html(originalText);
+                        },
+                    });
+                });
+
+                window.jQuery('#addCustomerModal').off('hidden.bs.modal.quickEstimate').on('hidden.bs.modal.quickEstimate', function () {
+                    document.getElementById('addCustomerQuickForm')?.reset();
+                    document.querySelectorAll('#addCustomerModal .is-invalid').forEach(function (field) {
+                        field.classList.remove('is-invalid');
+                    });
+                    document.getElementById('quick_address_container')?.classList.add('d-none');
+                });
+            }
+
+            initQuickAddBom();
+
             const initQuickEstimateSelects = function () {
                 if (!window.jQuery || !window.jQuery.fn.select2) {
                     return;
@@ -289,16 +435,42 @@
                 }
             };
 
-            const syncQuickBomRowFromSelection = function (row) {
+            const populateQuickBomMakeOptions = function (makeSelect, categories, selectedValue) {
+                if (!makeSelect) {
+                    return;
+                }
+
+                makeSelect.innerHTML = '<option value="">Select Make</option>';
+                (categories || []).forEach(function (categoryName) {
+                    const option = document.createElement('option');
+                    option.value = categoryName;
+                    option.textContent = categoryName;
+                    if (selectedValue && selectedValue === categoryName) {
+                        option.selected = true;
+                    }
+                    makeSelect.appendChild(option);
+                });
+                makeSelect.disabled = !(categories || []).length;
+            };
+
+            const syncQuickBomRowFromSelection = function (row, preferredMake) {
                 const select = row.querySelector('.quick-bom-select');
                 const option = select?.options[select.selectedIndex];
-                const makeInput = row.querySelector('.quick-bom-make');
+                const makeSelect = row.querySelector('.quick-bom-make-select');
                 const priceInput = row.querySelector('.quick-bom-price');
                 const qtyInput = row.querySelector('.quick-bom-qty');
+                let categories = [];
 
-                if (makeInput) {
-                    makeInput.value = option?.dataset?.make || '';
+                try {
+                    categories = JSON.parse(option?.dataset?.categories || '[]');
+                } catch (error) {
+                    categories = [];
                 }
+                if (!Array.isArray(categories)) {
+                    categories = [];
+                }
+
+                populateQuickBomMakeOptions(makeSelect, categories, preferredMake || makeSelect?.value || '');
                 if (priceInput) {
                     priceInput.value = formatStepOneInputValue(option?.dataset?.price || 0);
                 }
@@ -368,7 +540,12 @@
                     option.removeAttribute('data-select2-id');
                     option.selected = option.value === '';
                 });
-                clone.querySelector('.quick-bom-make').value = '';
+                const makeSelect = clone.querySelector('.quick-bom-make-select');
+                if (makeSelect) {
+                    makeSelect.innerHTML = '<option value="">Select Make</option>';
+                    makeSelect.disabled = true;
+                    makeSelect.value = '';
+                }
                 clone.querySelector('.quick-bom-qty').value = '1';
                 clone.querySelector('.quick-bom-price').value = '0';
                 clone.querySelector('.quick-bom-amount').value = '0';
@@ -445,6 +622,8 @@
                 this.dataset.userSelected = this.value ? '1' : '';
             });
 
+            window.syncQuickEstimateBomRow = syncQuickBomRowFromSelection;
+
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
@@ -500,7 +679,7 @@
                         product_id: String(bomId),
                         name: option?.dataset?.name || option?.textContent?.trim() || '',
                         description: '',
-                        category_name: row.querySelector('.quick-bom-make')?.value || option?.dataset?.make || '',
+                        category_name: row.querySelector('.quick-bom-make-select')?.value || option?.dataset?.make || '',
                         quantity: rowQty,
                         price: rowPrice,
                     });
@@ -1104,8 +1283,59 @@
     }
 
     let quickBomTargetRow = null;
+    let quickEstimateBomTargetRow = null;
+    let quickEstimateNestedModalActive = false;
+    let quickAddBomInitialized = false;
+
+    function setupQuickEstimateNestedModals() {
+        const parentEl = document.getElementById('quickEstimateModal');
+        if (!parentEl || parentEl.dataset.nestedModalsInit === '1') {
+            return;
+        }
+
+        parentEl.dataset.nestedModalsInit = '1';
+        parentEl.addEventListener('hide.bs.modal', function (event) {
+            if (quickEstimateNestedModalActive) {
+                event.preventDefault();
+            }
+        });
+
+        ['addCustomerModal', 'quickAddBomModal'].forEach(function (childId) {
+            const childEl = document.getElementById(childId);
+            if (!childEl) {
+                return;
+            }
+
+            childEl.addEventListener('show.bs.modal', function () {
+                quickEstimateNestedModalActive = true;
+            });
+            childEl.addEventListener('hidden.bs.modal', function () {
+                quickEstimateNestedModalActive = false;
+                if (parentEl.classList.contains('show')) {
+                    document.body.classList.add('modal-open');
+                }
+            });
+        });
+    }
+
+    function openQuickEstimateChildModal(childId) {
+        const childEl = document.getElementById(childId);
+        if (!childEl || !window.bootstrap) {
+            return;
+        }
+
+        setupQuickEstimateNestedModals();
+        bootstrap.Modal.getOrCreateInstance(childEl, {
+            backdrop: 'static',
+            focus: true,
+        }).show();
+    }
 
     function initQuickAddBom() {
+        if (quickAddBomInitialized) {
+            return;
+        }
+
         const form = document.getElementById('quickAddBomForm');
         const saveBtn = document.getElementById('saveQuickBomBtn');
         const formConfig = getActiveDocumentFormConfig();
@@ -1115,6 +1345,8 @@
             return;
         }
 
+        quickAddBomInitialized = true;
+
         const nameInput = document.getElementById('quick_bom_name');
         const makeSelect = document.getElementById('quick_bom_category_id');
         const priceInput = document.getElementById('quick_bom_price');
@@ -1122,8 +1354,27 @@
         initQuickBomMakeSelect(makeSelect);
 
         document.addEventListener('click', function (event) {
-            const button = event.target.closest('.quick-add-bom-row');
-            if (!button) {
+            const quickEstimateBtn = event.target.closest('.quick-estimate-add-bom-btn');
+            const estimateBtn = event.target.closest('.quick-add-bom-row');
+
+            if (quickEstimateBtn) {
+                if (typeof window.validateQuickEstimateBeforeBom === 'function' && !window.validateQuickEstimateBeforeBom()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return;
+                }
+
+                quickBomTargetRow = null;
+                quickEstimateBomTargetRow = quickEstimateBtn.closest('.quick-bom-row');
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                openQuickEstimateChildModal('quickAddBomModal');
+                return;
+            }
+
+            if (!estimateBtn) {
                 return;
             }
 
@@ -1134,7 +1385,8 @@
                 return;
             }
 
-            quickBomTargetRow = button.closest('.bom-row');
+            quickEstimateBomTargetRow = null;
+            quickBomTargetRow = estimateBtn.closest('.bom-row');
         }, true);
 
         [nameInput, makeSelect, priceInput].forEach(function (field) {
@@ -1396,6 +1648,37 @@
             option.dataset.nos = product.nos || '';
         });
 
+        document.querySelectorAll('.quick-bom-select').forEach(function (select) {
+            let option = select.querySelector('option[value="' + product.id + '"]');
+            if (!option) {
+                option = new Option(product.product_name || 'New BOM', product.id, false, false);
+                select.appendChild(option);
+            }
+
+            option.dataset.name = product.product_name || '';
+            option.dataset.price = price;
+            option.dataset.categories = JSON.stringify(categoryNames);
+        });
+
+        const quickRow = getQuickEstimateBomTargetRow();
+        if (quickRow) {
+            const productSelect = quickRow.querySelector('.quick-bom-select');
+
+            if (productSelect) {
+                productSelect.value = String(product.id);
+                if (typeof window.syncQuickEstimateBomRow === 'function') {
+                    window.syncQuickEstimateBomRow(quickRow, selectedMakeName);
+                } else if (window.jQuery) {
+                    window.jQuery(productSelect).trigger('change');
+                } else {
+                    productSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            quickEstimateBomTargetRow = null;
+            return;
+        }
+
         const row = getQuickBomTargetRow();
         const productSelect = row?.querySelector('.product-select');
         const makeSelect = row?.querySelector('.product-make');
@@ -1447,6 +1730,34 @@
         }
 
         const rows = container.querySelectorAll('.bom-row');
+        return rows[rows.length - 1] || null;
+    }
+
+    function getQuickEstimateBomTargetRow() {
+        const container = document.getElementById('quickBomRows');
+        if (!container) {
+            return null;
+        }
+
+        if (quickEstimateBomTargetRow && container.contains(quickEstimateBomTargetRow)) {
+            return quickEstimateBomTargetRow;
+        }
+
+        const emptyRow = Array.from(container.querySelectorAll('.quick-bom-row')).find(function (row) {
+            const select = row.querySelector('.quick-bom-select');
+            return select && !select.value;
+        });
+
+        if (emptyRow) {
+            return emptyRow;
+        }
+
+        const addBtn = document.getElementById('quickAddBomRow');
+        if (addBtn) {
+            addBtn.click();
+        }
+
+        const rows = container.querySelectorAll('.quick-bom-row');
         return rows[rows.length - 1] || null;
     }
 
