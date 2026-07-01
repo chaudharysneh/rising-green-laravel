@@ -32,6 +32,7 @@ class TableTruncateController extends Controller
         'deals',
         // Inventory / Sales / Purchases / Invoices
         'products',
+        'product_categories',
         'sales',
         'purchases',
         'product_inventory',
