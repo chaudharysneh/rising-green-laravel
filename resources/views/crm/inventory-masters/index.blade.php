@@ -28,12 +28,12 @@
                     <thead>
                         <tr>
                             <th class="ps-4" style="width: 80px;">Sr.No</th>
+                            @if($hasImage)
+                                <th class="d-none d-md-table-cell" style="width: 100px;">Image</th>
+                            @endif
                             <th>{{ $resourceTitle }} Name</th>
                             @if($hasDescription)
                                 <th class="d-none d-md-table-cell">Description</th>
-                            @endif
-                            @if($hasImage)
-                                <th class="d-none d-md-table-cell" style="width: 140px;">Image</th>
                             @endif
                             <th class="d-none d-md-table-cell" style="width: 180px;">Created At</th>
                             <th class="text-end pe-4 d-none d-md-table-cell" style="width: 140px;">Actions</th>

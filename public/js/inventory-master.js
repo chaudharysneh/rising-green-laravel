@@ -94,8 +94,12 @@
 
         function imageCell(item) {
             if (!config.hasImage) return "";
-            if (!item.image_url) return '<span class="text-muted">-</span>';
-            return `<img src="${item.image_url}" alt="${escapeHtml(item[config.fieldName] || config.resourceTitle)}" class="img-thumbnail" style="height:48px;width:48px;object-fit:cover;">`;
+            if (!item.image_url) {
+                return `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="height:48px;width:48px;">
+                            <i class="bi bi-image text-muted"></i>
+                        </div>`;
+            }
+            return `<img src="${item.image_url}" alt="${escapeHtml(item[config.fieldName] || config.resourceTitle)}" class="img-thumbnail" style="height:48px;width:48px;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">`;
         }
 
         function columnCount() {
@@ -126,9 +130,9 @@
                 return `
                     <tr>
                         <td class="ps-4"><span class="text-muted small fw-medium">${srNo}</span></td>
+                        ${config.hasImage ? `<td class="d-none d-md-table-cell">${imageCell(item)}</td>` : ""}
                         <td><div class="fw-bold small">${name}</div></td>
                         ${config.hasDescription ? `<td class="d-none d-md-table-cell">${description}</td>` : ""}
-                        ${config.hasImage ? `<td class="d-none d-md-table-cell">${imageCell(item)}</td>` : ""}
                         <td class="d-none d-md-table-cell">${createdAt}</td>
                         <td class="text-end pe-4 d-none d-md-table-cell">
                             <div class="d-inline-flex align-items-center justify-content-end gap-2">

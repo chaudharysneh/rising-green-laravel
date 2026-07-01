@@ -26,7 +26,7 @@
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Assigned For </label>
+                            <label class="form-label fw-semibold">Assigned For <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <div class="flex-grow-1 w-100">
                                     <select name="customer_id" id="customer_id" class="form-select" required>
@@ -67,13 +67,13 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Meeting Title </label>
+                            <label class="form-label fw-semibold">Meeting Title <span class="text-danger">*</span></label>
                             <input type="text" name="title" id="title" class="form-control" placeholder="Enter meeting title" required>
                             <div class="invalid-feedback" id="title-error"></div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Status </label>
+                            <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select" required>
                                 <option value="scheduled" selected>Scheduled</option>
                                 <option value="completed">Completed</option>
@@ -83,7 +83,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Scheduled On </label>
+                            <label class="form-label fw-semibold">Scheduled On <span class="text-danger">*</span></label>
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at" class="form-control"
                                 value="{{ old('scheduled_at') }}" min="{{ now()->format('Y-m-d\TH:i') }}" required>
                             <div class="invalid-feedback" id="scheduled_at-error"></div>

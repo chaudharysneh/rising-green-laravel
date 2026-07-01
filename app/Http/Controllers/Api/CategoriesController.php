@@ -175,7 +175,7 @@ class CategoriesController extends ApiBaseController
             'name' => $category->name,
             'image' => $category->image,
             'image_url' => $category->image && Storage::disk('public')->exists($category->image) 
-                ? asset('storage/' . $category->image) 
+                ? route('categories.image', $category->id) . '?v=' . ($category->updated_at ? $category->updated_at->timestamp : time())
                 : null,
             'branch_id' => $category->branch_id,
             'created_at' => optional($category->created_at)?->toIso8601String(),

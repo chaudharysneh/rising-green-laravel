@@ -75,14 +75,14 @@
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-user-plus"></i>Created By:</span>
                         <span class="detail-view-value">
-                            {{ $meeting->creator?->name ?? '--' }} | {{ $meeting->created_at?->format('d M, Y') ?? '-' }}
+                            {{ $meeting->creator?->name ?? '--' }} | {{ $meeting->created_at?->format('d M, Y') ?? '--' }}
                         </span>
                     </div>
                     
                     <div class="col-md-6 detail-view-row">
                         <span class="detail-view-label"><i class="fa-solid fa-clock-rotate-left"></i>Last Updated:</span>
                         <span class="detail-view-value">
-                            {{ $meeting->updater?->name ?? '--' }} | {{ $meeting->updated_at?->format('d M, Y') ?? '-' }}
+                            {{ $meeting->updater?->name ?? '--' }} | {{ $meeting->updated_at?->format('d M, Y') ?? '--' }}
                         </span>
                     </div>
                 </div>
