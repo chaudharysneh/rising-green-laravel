@@ -147,8 +147,8 @@
                     <input type="number" name="nos" id="nos" value="{{ old('nos', $product?->nos) }}" class="form-control" placeholder="Enter pieces count" step="1" min="0">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-image me-2"></i>Image <span class="text-danger">*</span></label>
-                    <input type="file" name="image" id="image" class="form-control" accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml" @required(!$product)>
+                    <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-image me-2"></i>Image</label>
+                    <input type="file" name="image" id="image" class="form-control" accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml">
                     <div class="invalid-feedback d-block" id="image-error"></div>
                     <div class="mt-2 @if(!$product?->image) d-none @endif" id="bom-image-preview-wrap">
                         <img src="{{ $product?->image ? route('bom-products.image', $product) . '?v=' . (optional($product?->updated_at)->timestamp ?? time()) : '' }}" alt="{{ $product?->product_name }}" class="img-thumbnail" style="max-height: 120px;" id="bom-image-preview">
@@ -221,7 +221,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updateTaxRateOptions();
 
     // Update when Tax Type changes
-    taxTypeSelect.addEventListener('change', updateTaxRateOptions);
+    if (window.jQuery) {
+        $(taxTypeSelect).on('change', updateTaxRateOptions);
+    } else {
+        taxTypeSelect.addEventListener('change', updateTaxRateOptions);
+    }
 
     // ===== CLEAR VALIDATION ERRORS ON INPUT =====
     function clearFieldError(fieldId, inputElement) {
@@ -637,13 +641,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnSpinner = document.getElementById('btnSpinner');
     const btnText = document.getElementById('btnText');
 
+    bomForm.addEventListener('change', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+            const fieldId = e.target.id || e.target.name.replace('[]', '');
+            const errorElement = document.getElementById(`${fieldId}-error`);
+            if (errorElement) errorElement.textContent = '';
+            
+            if (e.target.classList.contains('select2-hidden-accessible')) {
+                const select2Container = e.target.nextElementSibling;
+                if (select2Container && select2Container.classList.contains('select2-container')) {
+                    const selection = select2Container.querySelector('.select2-selection');
+                    if (selection) selection.classList.remove('is-invalid');
+                }
+            }
+        }
+    });
+    bomForm.addEventListener('input', function(e) {
+        if (e.target.classList.contains('is-invalid')) {
+            e.target.classList.remove('is-invalid');
+            const fieldId = e.target.id || e.target.name;
+            const errorElement = document.getElementById(`${fieldId}-error`);
+            if (errorElement) errorElement.textContent = '';
+        }
+    });
+
     bomForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         // Clear previous errors
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
         document.querySelectorAll('.invalid-feedback').forEach(el => {
             el.textContent = '';
-            el.previousElementSibling?.classList.remove('is-invalid');
         });
 
         // Show loading state
@@ -682,16 +713,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         const errorElement = document.getElementById(`${field}-error`);
                         let inputElement = document.getElementById(field) || document.querySelector(`[name="${field}"]`) || document.querySelector(`[name="${field}[]"]`);
                         
-                        // Special handling for Make field (category_id)
-                        if (field === 'category_id') {
-                            inputElement = document.getElementById('make-display-wrapper');
-                        }
-                        
                         if (errorElement) {
                             errorElement.textContent = data.errors[field][0];
                         }
                         if (inputElement) {
                             inputElement.classList.add('is-invalid');
+                            // Add is-invalid to select2 container if applicable
+                            if (inputElement.classList.contains('select2-hidden-accessible')) {
+                                const select2Container = inputElement.nextElementSibling;
+                                if (select2Container && select2Container.classList.contains('select2-container')) {
+                                    const selection = select2Container.querySelector('.select2-selection');
+                                    if (selection) selection.classList.add('is-invalid');
+                                }
+                            }
                         }
                     });
                 }

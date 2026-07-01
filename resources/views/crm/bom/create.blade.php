@@ -133,6 +133,22 @@
             width: '100%',
             allowClear: true
         });
+
+        // Clear validation errors on select2 change
+        $('.select2-searchable').on('change', function() {
+            if ($(this).hasClass('is-invalid')) {
+                $(this).removeClass('is-invalid');
+                const $container = $(this).next('.select2-container');
+                if ($container.length) {
+                    $container.find('.select2-selection').removeClass('is-invalid');
+                }
+                const fieldId = $(this).attr('id') || $(this).attr('name').replace('[]', '');
+                const $errorDiv = $(`#${fieldId}-error`);
+                if ($errorDiv.length) {
+                    $errorDiv.text('');
+                }
+            }
+        });
     });
 </script>
 <script>
