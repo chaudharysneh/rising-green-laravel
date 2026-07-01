@@ -72,7 +72,7 @@
                         <div class="col-md-6 detail-view-row">
                             <span class="detail-view-label"><i class="fa-solid fa-triangle-exclamation"></i>Priority:</span>
                             <span class="detail-view-value">
-                                <span class="badge rounded-pill px-3 {{ $priorityBadge }}">{{ $ticket->priority }}</span>
+                                <span class="badge crm-status-pill rounded-pill {{ $priorityBadge }}">{{ $ticket->priority }}</span>
                             </span>
                         </div>
 

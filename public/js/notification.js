@@ -47,19 +47,17 @@
                     <span class="notification-avatar">
                         <i class="bi bi-bell"></i>
                     </span>
-                    <div class="d-flex flex-grow-1 justify-content-between align-items-center">
-                        <div class="notification-message">
+                    <div class="d-flex flex-column flex-md-row flex-grow-1 justify-content-between align-items-md-center">
+                        <div class="notification-message pe-md-3">
                             ${notification.notification_text}
                         </div>
-                        <div class="d-flex flex-wrap align-items-center">
-                            <div class="notification-time">
-                                ${formatDate(notification.created_at)}
-                            </div>
+                        <div class="notification-time mt-1 mt-md-0 text-nowrap">
+                            ${formatDate(notification.created_at)}
                         </div>
                     </div>
                     <div class="ms-3">
-                        <button class="btn btn-sm bg-white mark-as-read-ajax d-flex align-items-center gap-1 border-0 shadow-none" type="button" data-id="${notification.id}" style="color: #3b82f6; font-weight: 500; font-size: 0.85rem;">
-                            <i class="fa-solid fa-check" style="font-size: 0.75rem;"></i> Read
+                        <button class="btn btn-sm btn-read-notification mark-as-read-ajax d-flex align-items-center gap-1 border-0 shadow-none" type="button" data-id="${notification.id}">
+                            <i class="fa-solid fa-check"></i> Read
                         </button>
                     </div>
                 </div>

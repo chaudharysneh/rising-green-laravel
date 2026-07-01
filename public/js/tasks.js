@@ -260,7 +260,7 @@
                 return {
                     label: "START",
                     nextStatus: "in_progress",
-                    buttonClass: "btn btn-success btn-sm rounded-pill px-4 quick-task-status-btn",
+                    buttonClass: "btn btn-success btn-sm rounded-pill crm-status-pill quick-task-status-btn",
                 };
             }
 
@@ -268,7 +268,7 @@
                 return {
                     label: "END",
                     nextStatus: "completed",
-                    buttonClass: "btn btn-danger btn-sm rounded-pill px-4 quick-task-status-btn",
+                    buttonClass: "btn btn-danger btn-sm rounded-pill crm-status-pill quick-task-status-btn",
                 };
             }
 
