@@ -2472,14 +2472,13 @@ $__timeLineActive = $_isActive($__timeLine);
     <div class="<?= $_pageClass('p5') ?>" style="position: relative;
             min-height: 842px;
             background: #ffffff;
-           
             font-family: 'Montserrat', sans-serif;">
-        <div style="padding: 50px;">
+        <div style="padding: 38px 42px 30px;">
             <!-- ================= HEADER ================= -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 14px;">
                 <tr>
                     <td width="50%" align="left" valign="top">
-                        <div style="font-size:20px;font-family: 'Montserrat', sans-serif;">
+                        <div style="font-size:14px;font-family: 'Montserrat', sans-serif;">
                             <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
                     </td>
@@ -2514,19 +2513,20 @@ $__timeLineActive = $_isActive($__timeLine);
         ? $timelineImg2
         : normalize_pdf_image('public/assets/img/page-5-2.png');
     ?>
-            <!-- ================= TIMELINE ================= -->
+            <!-- ================= OFFER & TERMS (timeline) ================= -->
+            <div style="page-break-inside:avoid;">
             <div
-                style="font-size:35px; font-weight:bold; color:#000; margin-bottom:8px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
+                style="font-size:30px; font-weight:bold; color:#000; margin-bottom:6px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
                 <?= $timelineMainTitle !== '' ? esc($timelineMainTitle) : 'TIMELINE' ?>
             </div>
-            <div style="font-size:20px; font-weight:bold; margin-bottom:28px; font-family: 'Montserrat', sans-serif;">
+            <div style="font-size:17px; font-weight:bold; margin-bottom:12px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.2;">
                 <?= $timelineTitle !== '' ? esc($timelineTitle) : 'TIMELINE AND MILESTONES' ?>
             </div>
 
             <?php if (!empty($timelineImg1)): ?>
-            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:650px; display:block; margin:0 auto 40px;">
+            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:px; max-height:400px; display:block; margin:0 auto 12px;">
             <?php else: ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 40px; border-collapse:collapse;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 12px; border-collapse:collapse;">
                 <tr>
                     <td width="25%" align="center" style="padding:10px;">
                         <div style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">1</div>
@@ -2553,14 +2553,14 @@ $__timeLineActive = $_isActive($__timeLine);
             <?php endif; ?>
 
             <!-- ================= SYSTEM SPECIFICATION ================= -->
-            <div style="font-size:20px; font-weight:bold; margin-bottom:18px; font-family: 'Montserrat', sans-serif; border-left:5px solid #4b9349; padding-left:12px; line-height:1.2;">
+            <div style="font-size:17px; font-weight:bold; margin-bottom:10px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.2;">
                 <?= $timelineTitle2 !== '' ? esc($timelineTitle2) : 'SYSTEM SPECIFICATION' ?>
             </div>
 
             <?php if (!empty($timelineImg2)): ?>
-            <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:650px; display:block; margin:0 auto 20px;">
+            <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:590px; max-height:400px; display:block; margin:0 auto 10px;">
             <?php else: ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:0 auto 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:0 auto 10px;">
                 <tr>
                     <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">System Specification</td>
                     <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">Details</td>
@@ -2581,8 +2581,9 @@ $__timeLineActive = $_isActive($__timeLine);
             <?php endif; ?>
 
             <!-- ================= NOTE ================= -->
-            <div style="text-align:center; font-size:16px; font-family: 'Montserrat', sans-serif;">
+            <div style="text-align:center; font-size:13px; line-height:1.45; font-family: 'Montserrat', sans-serif; margin-top:6px;">
                 <?= $timelineNote !== '' ? esc($timelineNote) : "Net metering is entirely dependent on DISCOM, we don't control that process" ?>
+            </div>
             </div>
 
         </div>
