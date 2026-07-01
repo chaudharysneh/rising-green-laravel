@@ -34,20 +34,22 @@
                         <!-- Left Column -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Vendor </label>
-                            <div class="input-group">
-                                <select name="customer_id" id="customer_id"
-                                    class="form-select @error('customer_id') is-invalid @enderror" required>
-                                    <option value="">Select Vendor</option>
-                                    @foreach($vendors as $vendor)
-                                        <option value="{{ $vendor->id }}" @selected($purchase->customer_id == $vendor->id)>
-                                            {{ $vendor->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex gap-2 align-items-start">
+                                <div class="flex-grow-1">
+                                    <select name="customer_id" id="customer_id"
+                                        class="form-select @error('customer_id') is-invalid @enderror" required>
+                                        <option value="">Select Vendor</option>
+                                        @foreach($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}" @selected($purchase->customer_id == $vendor->id)>
+                                                {{ $vendor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback">Please select a vendor!</div>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue" id="addVendorBtn" data-bs-toggle="modal" data-bs-target="#addVendorModal" title="Add New Vendor">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">Please select a vendor!</div>
                         </div>
 
                         <!-- Right Column -->
@@ -62,20 +64,22 @@
                         <!-- Left Column -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-box"></i> Product Name </label>
-                            <div class="input-group">
-                                <select name="product_id" id="product_id"
-                                    class="form-select @error('product_id') is-invalid @enderror" required>
-                                    <option value="">Select Product</option>
-                                    @foreach($products as $product)
-                                        <option value="{{ $product->id }}" @selected($purchase->product_id == $product->id)>
-                                            {{ $product->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex gap-2 align-items-start">
+                                <div class="flex-grow-1">
+                                    <select name="product_id" id="product_id"
+                                        class="form-select @error('product_id') is-invalid @enderror" required>
+                                        <option value="">Select Product</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" @selected($purchase->product_id == $product->id)>
+                                                {{ $product->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback">Please select a product.</div>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue" id="addProductBtn" data-bs-toggle="modal" data-bs-target="#addProductModal" title="Add New Product">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">Please select a product.</div>
                         </div>
 
                         <!-- Right Column -->

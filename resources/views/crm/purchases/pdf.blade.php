@@ -118,7 +118,6 @@
                             @if(!empty($companyPhone) || !empty($companyEmail))
                                 {{ implode(' | ', array_filter([$companyEmail, $companyPhone])) }}<br>
                             @endif
-                            <a href="https://maps.app.goo.gl/LWH9hkQT9BQZRjcm6" target="_blank" style="color: #52866A; text-decoration: none; font-weight: bold;">Google Location Map</a>
                         </div>
                     </td>
                 </tr>

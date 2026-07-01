@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categories;
 use App\Models\Sales;
 use App\Models\Customer;
 use App\Models\Product;
@@ -21,10 +22,7 @@ class SalesController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $products = Product::with('inventories')->orderBy('name')->get();
-        $categories = DB::table('categories')
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $categories = Categories::whereNull('deleted_at')->orderBy('name')->get(['id', 'name']);
         $handoverPersons = HandoverPerson::orderBy('name')->get();
 
         return view('crm.sales.create', compact('customers', 'products', 'categories', 'handoverPersons'));
@@ -41,10 +39,7 @@ class SalesController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $products = Product::with('inventories')->orderBy('name')->get();
-        $categories = DB::table('categories')
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $categories = Categories::whereNull('deleted_at')->orderBy('name')->get(['id', 'name']);
         $handoverPersons = HandoverPerson::orderBy('name')->get();
         $sale->load(['customer', 'product', 'handoverPerson']);
 

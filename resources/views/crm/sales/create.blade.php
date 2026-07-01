@@ -29,34 +29,38 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-person"></i> Select Customer <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <select name="customer_id" id="customer_id" class="form-select searchable-select js-select2 @error('customer_id') is-invalid @enderror" data-placeholder="Select Customer" required>
-                                    <option value="">Select Customer</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex gap-2 align-items-start">
+                                <div class="flex-grow-1">
+                                    <select name="customer_id" id="customer_id" class="form-select searchable-select js-select2 @error('customer_id') is-invalid @enderror" data-placeholder="Select Customer" required>
+                                        <option value="">Select Customer</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback">Please select a customer!</div>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal" data-bs-target="#quickCustomerModal" title="Add Customer">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">Please select a customer!</div>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold"><i class="bi bi-person-check"></i> Select Handover Person</label>
-                            <div class="input-group">
-                                <select name="handover_id" id="handover_id" class="form-select searchable-select js-select2 @error('handover_id') is-invalid @enderror" data-placeholder="Select Handover Person">
-                                    <option value="">Select Handover Person</option>
-                                    @foreach($handoverPersons as $person)
-                                        <option value="{{ $person->id }}" @selected(old('handover_id') == $person->id)>{{ $person->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex gap-2 align-items-start">
+                                <div class="flex-grow-1">
+                                    <select name="handover_id" id="handover_id" class="form-select searchable-select js-select2 @error('handover_id') is-invalid @enderror" data-placeholder="Select Handover Person">
+                                        <option value="">Select Handover Person</option>
+                                        @foreach($handoverPersons as $person)
+                                            <option value="{{ $person->id }}" @selected(old('handover_id') == $person->id)>{{ $person->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback">@error('handover_id') {{ $message }} @enderror</div>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal" data-bs-target="#quickHandoverModal" title="Add Handover Person">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">@error('handover_id') {{ $message }} @enderror</div>
                         </div>
 
                         <div class="col-md-4">
@@ -65,11 +69,10 @@
                             <div class="invalid-feedback">Please enter OUT date!</div>
                         </div>
 
-                        <!-- Product Items Section -->
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
                                 <h5 class="fw-semibold mb-0"><i class="bi bi-box me-2"></i>Product Items <span class="badge bg-primary ms-2" id="productCount">1</span></h5>
-                                <button type="button" class="btn btn-success btn-sm" id="addProductBtn">
+                                <button type="button" class="btn btn-success btn-sm mt-2 mt-sm-0" id="addProductBtn">
                                     <i class="bi bi-plus-lg me-1"></i>Add Product
                                 </button>
                             </div>
@@ -81,21 +84,23 @@
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <select name="products[0][product_id]" class="form-select product-select js-select2" data-placeholder="Select Product" required>
-                                                    <option value="">Select Product</option>
-                                                    @foreach($products as $product)
-                                                        @php
-                                                            $currentStock = optional($product->inventories->sortByDesc('id')->first())->current_stock ?? $product->quantity ?? 0;
-                                                        @endphp
-                                                        <option value="{{ $product->id }}" data-stock="{{ $currentStock }}">{{ $product->name }}</option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <select name="products[0][product_id]" class="form-select product-select js-select2" data-placeholder="Select Product" required>
+                                                        <option value="">Select Product</option>
+                                                        @foreach($products as $product)
+                                                            @php
+                                                                $currentStock = optional($product->inventories->sortByDesc('id')->first())->current_stock ?? $product->quantity ?? 0;
+                                                            @endphp
+                                                            <option value="{{ $product->id }}" data-stock="{{ $currentStock }}">{{ $product->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <div class="invalid-feedback">Please select a product.</div>
+                                                </div>
                                                 <button type="button" class="btn btn-dark-blue quick-add-product-btn" data-bs-toggle="modal" data-bs-target="#quickProductModal" title="Add Product">
                                                     <i class="bi bi-plus-lg"></i>
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback">Please select a product.</div>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-semibold">Qty <span class="text-danger">*</span></label>
