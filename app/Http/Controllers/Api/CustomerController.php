@@ -84,6 +84,26 @@ class CustomerController extends Controller
     {
         $this->authorize('create', Customer::class);
 
+        // Idempotency check for double-submissions
+        if ($request->filled('phone') || $request->filled('email')) {
+            $query = Customer::whereNull('deleted_at');
+            if ($request->filled('phone')) {
+                $query->where('phone', $request->phone);
+            } else {
+                $query->where('email', $request->email);
+            }
+            $existing = $query->first();
+            
+            if ($existing && $existing->created_at && $existing->created_at->diffInSeconds(now()) < 10) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Customer created successfully.',
+                    'redirect' => '/masters/customers',
+                    'data' => $existing
+                ], 201);
+            }
+        }
+
         try {
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
