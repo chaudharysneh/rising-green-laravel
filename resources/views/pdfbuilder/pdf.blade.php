@@ -253,6 +253,10 @@ $_isActive = static function ($section): bool {
 // Dompdf will add an extra blank page if the LAST rendered page has `page-break-after: always`.
 // Since pages are conditionally rendered, compute which pages are active and only apply
 // the `page-break` class to pages BEFORE the last active page.
+if (!isset($paymentTerms) || !is_array($paymentTerms)) {
+    $paymentTerms = (isset($payment_terms) && is_array($payment_terms)) ? $payment_terms : [];
+}
+
 $__companyInfoSection = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
 $__generationSection0 = (isset($generationSection) && is_array($generationSection)) ? $generationSection : [];
 $__ongridRoiSection0 = (isset($ongridRoiSection) && is_array($ongridRoiSection)) ? $ongridRoiSection : [];
@@ -265,12 +269,13 @@ $__companyInfoActive0 = $_isActive($__companyInfoSection);
 $__generationActive0 = false;
 $__ongridRoiActive0 = $_isActive($__ongridRoiSection0);
 $__timeLineActive0 = $_isActive($__timeLineSection);
+$__paymentTermsSection0 = (isset($paymentTerms) && is_array($paymentTerms)) ? $paymentTerms : [];
+$__paymentTermsActive0 = $_isActive($__paymentTermsSection0);
 $__componentsActive0 = $_isActive($__componentsSection);
 $__environmentImpactActive0 = $_isActive($__environmentImpactSection);
 $__footerActive0 = $_isActive($__footerSection);
 
-// Page 7 (Offer & Terms) is controlled by the same "timeline_active" toggle in form.php
-$__offerTermsActive0 = $__timeLineActive0;
+// Page 5 (Offer & Terms content) uses timeline_active; Page 7 (Payment Terms) uses payment_terms active toggle.
 
 $__activePages = ['p1']; // first page always renders
 if ($__companyInfoActive0)
@@ -283,7 +288,7 @@ if ($__timeLineActive0)
     $__activePages[] = 'p5';
 if ($__componentsActive0)
     $__activePages[] = 'p6';
-if ($__offerTermsActive0)
+if ($__paymentTermsActive0)
     $__activePages[] = 'p7';
 if ($__environmentImpactActive0)
     $__activePages[] = 'p8';
@@ -2491,6 +2496,11 @@ $__timeLineActive = $_isActive($__timeLine);
                 </tr>
             </table>
 
+            <!-- Page main heading -->
+            <div style="font-size:32px; font-weight:bold; font-family:'Montserrat',sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1; margin-bottom:14px;">
+                OFFER &amp; TERMS
+            </div>
+
             <?php
     // Template-specific timeline (saved in pdfbuilder_forms.time_line JSON)
     $timeLine = isset($timeLine) && is_array($timeLine) ? $timeLine : [];
@@ -2524,7 +2534,7 @@ $__timeLineActive = $_isActive($__timeLine);
             </div>
 
             <?php if (!empty($timelineImg1)): ?>
-            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:px; max-height:400px; display:block; margin:0 auto 12px;">
+            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:590px; max-height:400px; display:block; margin:0 auto 12px;">
             <?php else: ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 12px; border-collapse:collapse;">
                 <tr>
@@ -2964,502 +2974,117 @@ $__componentsActive = $_isActive($__components);
     <!-- ================= END PAGE 6 ================= -->
     <?php endif; ?>
 
-    <?php if ($__offerTermsActive0): ?>
-    <!-- ================= PAGE 7 : OFFER & TERMS ================= -->
-    <div class="<?= $_pageClass('p7') ?>" style="position: relative; min-height: 842px; background: white;">
-        <!-- Header -->
-        <div style="padding: 50px;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;">
-                <tr>
-                    <td width="50%" align="left" valign="top">
-                        <div style="font-size: 18px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </div>
-                    </td>
-                    <td width="50%" align="right" valign="top">
-                        <?php    if (!empty($logoBase64)): ?>
-                        <div style="display: inline-block; text-align: right;">
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo"
-                                style="max-width: 160px; height: auto; margin-bottom: 5px;">
-                        </div>
-                        <?php    endif; ?>
-                    </td>
-                </tr>
-            </table>
-
-            <!-- Main Title -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="">
-                <tr>
-                    <td align="left">
-                        <div style="font-size: 35px; font-weight: bold; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">OFFER &
-                            TERMS</div>
-                    </td>
-                </tr>
-            </table>
-
-            <?php
-    // Calculate cost breakdown from estimate data
-    // Use main estimate price plus saved custom BOM line totals.
-    $summaryProductsForInvoice = ($estdata && !empty($estdata->product_name))
-        ? (is_array($estdata->product_name) ? $estdata->product_name : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []))
-        : [];
-    $summaryProductsTotalForInvoice = 0.0;
-    if (is_array($summaryProductsForInvoice)) {
-        foreach ($summaryProductsForInvoice as $summaryProductForInvoice) {
-            $summaryProductsTotalForInvoice += (float) ($summaryProductForInvoice['quantity'] ?? 0) * (float) ($summaryProductForInvoice['price'] ?? 0);
-        }
-    }
-    $subtotal = (($estdata && isset($estdata->price)) ? (float) $estdata->price : 0) + $summaryProductsTotalForInvoice;
-    $gstRate = ($estdata && isset($estdata->gst)) ? (float) $estdata->gst : 0;
-    $discount = ($estdata && isset($estdata->discount)) ? (float) $estdata->discount : 0;
-    $subsidy = ($estdata && isset($estdata->subsidy_amount)) ? (float) $estdata->subsidy_amount : 0;
-    $solarStructureCharges = ($estdata && isset($estdata->solar_structure_charges)) ? (float) $estdata->solar_structure_charges : 0;
-    $isQuotation = ($estdata && isset($estdata->is_quotation)) ? (int) $estdata->is_quotation : 0;
-
-    // GST Amount (prefer stored gst_amount / gst_breakdown, fallback to per-line JSON, then fallback to % calc)
-    $gstAmount = null;
-    $gstBreakdown = [];
-
-    if ($estdata && isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '') {
-        $gstAmount = (float) $estdata->gst_amount;
-    }
-
-    if ($estdata && !empty($estdata->gst_breakdown)) {
-        $decoded = is_array($estdata->gst_breakdown)
-            ? $estdata->gst_breakdown
-            : json_decode($estdata->gst_breakdown, true);
-        if (is_array($decoded)) {
-            $gstBreakdown = $decoded;
-            if ($gstAmount === null && isset($decoded['gst_amount'])) {
-                $gstAmount = (float) $decoded['gst_amount'];
-            }
-        }
-    }
-
-    if ($gstAmount === null && $estdata && !empty($estdata->product_name)) {
-        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
-        if (is_array($items)) {
-            $sum = 0.0;
-            foreach ($items as $it) {
-                if (isset($it['tax_amount']) && is_numeric($it['tax_amount'])) {
-                    $sum += (float) $it['tax_amount'];
-                }
-            }
-            if ($sum > 0) {
-                $gstAmount = $sum;
-            }
-        }
-    }
-
-    if ($gstAmount === null) {
-        $gstAmount = ($subtotal + $solarStructureCharges) * ($gstRate / 100);
-    }
-    $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount; // Base Price + Solar Structure Charges + GST - Discount
-    $lendingCost = $totalPayable - $subsidy; // Customer Payable Amount minus Subsidy
-        ?>
-
-            <?php
-    $headerCellStyle = "background-color:#52866A;color:#fff;border:1px solid #333;padding:6px 8px;font-size:11px;font-family:'Montserrat',sans-serif;font-weight:bold;";
-    $cellStyle = "border:1px solid #333;padding:6px 8px;font-size:11px;font-family:'Montserrat',sans-serif;color:#000;";
-    $rightCellStyle = $cellStyle . 'text-align:right;';
-    $highlightCellStyle = $rightCellStyle . 'background-color:#52866A;color:#fff;font-weight:bold;';
-    $invoiceHeaderTextStyle = "font-size:12px;font-family:'Montserrat',sans-serif;color:#000;";
-    $invoiceEstimateNo = $estdata->estimate_no ?? ($estimate_no ?? '--');
-    $invoiceDate = ($estdata && !empty($estdata->estimate_date)) ? date('Y-m-d', strtotime($estdata->estimate_date)) : date('Y-m-d');
-    $invoiceCompanyName = $companySettings['company_name'] ?? $globalCompanyName ?? '--';
-    $invoiceCompanyAddress = $companySettings['company_address'] ?? $user['address'] ?? '';
-    $invoiceCompanyPhone = $companySettings['phone'] ?? $user['phone'] ?? $user['contact'] ?? '';
-    $estimateTypeLabel = $estdata && isset($estdata->type) ? ucfirst((string) $estdata->type) : '--';
-    $solarMeterLabel = ($estdata && !empty($estdata->solar_meter_charges)) ? ucwords(str_replace('_', ' ', (string) $estdata->solar_meter_charges)) : '--';
-    $estimateComment = $estdata && isset($estdata->estimate_comment) ? $estdata->estimate_comment : ($estdata->comment ?? '--');
-    $bankLines = array_filter([
-        !empty($companySettings['bank_name']) ? '<strong>Bank:</strong> ' . esc($companySettings['bank_name']) : '',
-        !empty($companySettings['account_name']) ? '<strong>Account Name:</strong> ' . esc($companySettings['account_name']) : '',
-        !empty($companySettings['account_number']) ? '<strong>Account No.:</strong> ' . esc($companySettings['account_number']) : '',
-        !empty($companySettings['ifsc_code']) ? '<strong>IFSC:</strong> ' . esc($companySettings['ifsc_code']) : '',
-        !empty($companySettings['branch_name']) ? '<strong>Branch:</strong> ' . esc($companySettings['branch_name']) : '',
-    ]);
-    $qrImage = !empty($companyQrCodePath) ? normalize_pdf_image($companyQrCodePath) : '';
-    $gstRateTxt = is_numeric($gstRate) ? rtrim(rtrim(number_format((float) $gstRate, 2, '.', ''), '0'), '.') : '';
-    $showGst = ((float) $gstAmount > 0) || ((float) $gstRate > 0);
-    $breakupLines = [];
-
-    if (!empty($gstBreakdown['groups']) && is_array($gstBreakdown['groups'])) {
-        foreach ($gstBreakdown['groups'] as $g) {
-            if ((string) ($g['tax_type'] ?? '') === 'gst_percent') {
-                continue;
-            }
-            $lines = $g['lines'] ?? [];
-            if (!is_array($lines)) {
-                continue;
-            }
-            foreach ($lines as $ln) {
-                $lnLabel = trim((string) ($ln['label'] ?? ''));
-                if ($lnLabel === '' || strtoupper($lnLabel) === 'GST') {
-                    continue;
-                }
-                $breakupLines[] = [
-                    'label' => $lnLabel,
-                    'rate' => $ln['rate'] ?? null,
-                    'amount' => (float) ($ln['amount'] ?? 0),
-                ];
-            }
-        }
-    }
-
-    if (empty($breakupLines) && $estdata && !empty($estdata->product_name)) {
-        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
-        if (is_array($items)) {
-            $taxBuckets = [
-                'CGST' => ['amount' => 0.0, 'rate' => null],
-                'SGST' => ['amount' => 0.0, 'rate' => null],
-                'IGST' => ['amount' => 0.0, 'rate' => null],
-            ];
-            foreach ($items as $it) {
-                foreach (['cgst' => 'CGST', 'sgst' => 'SGST', 'igst' => 'IGST'] as $key => $label) {
-                    if (isset($it[$key . '_amount']) && is_numeric($it[$key . '_amount'])) {
-                        $taxBuckets[$label]['amount'] += (float) $it[$key . '_amount'];
-                        if ($taxBuckets[$label]['rate'] === null && isset($it[$key . '_rate']) && is_numeric($it[$key . '_rate'])) {
-                            $taxBuckets[$label]['rate'] = (float) $it[$key . '_rate'];
-                        }
-                    }
-                }
-            }
-            foreach ($taxBuckets as $label => $bucket) {
-                if ($bucket['amount'] > 0) {
-                    $breakupLines[] = ['label' => $label, 'rate' => $bucket['rate'], 'amount' => $bucket['amount']];
-                }
-            }
-        }
-    }
-    if ($estdata && !empty($estdata->product_name)) {
-        $items = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
-        if (is_array($items)) {
-            $productTaxBreakupLines = [];
-            foreach ($items as $item) {
-                $itemRate = (float) ($item['tax_rate'] ?? 0);
-                $itemLabel = strtoupper(trim((string) ($item['tax_label'] ?? '')));
-                $itemTaxable = (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
-                if ($itemRate <= 0 || $itemTaxable <= 0) {
-                    continue;
-                }
-                if (str_contains($itemLabel, 'CGST') && str_contains($itemLabel, 'SGST')) {
-                    $halfRate = $itemRate / 2;
-                    foreach (['CGST', 'SGST'] as $splitLabel) {
-                        $productTaxBreakupLines[] = [
-                            'label' => $splitLabel,
-                            'rate' => $halfRate,
-                            'amount' => ($itemTaxable * $halfRate) / 100,
-                        ];
-                    }
-                } else {
-                    $productTaxBreakupLines[] = [
-                        'label' => str_contains($itemLabel, 'IGST') ? 'IGST' : 'GST',
-                        'rate' => $itemRate,
-                        'amount' => ($itemTaxable * $itemRate) / 100,
-                    ];
-                }
-            }
-            if (!empty($productTaxBreakupLines)) {
-                $aggregatedTaxLines = [];
-                foreach ($productTaxBreakupLines as $taxLine) {
-                    $taxKey = ($taxLine['label'] ?? '') . '|' . number_format((float) ($taxLine['rate'] ?? 0), 4, '.', '');
-                    if (!isset($aggregatedTaxLines[$taxKey])) {
-                        $aggregatedTaxLines[$taxKey] = [
-                            'label' => $taxLine['label'] ?? '',
-                            'rate' => $taxLine['rate'] ?? null,
-                            'amount' => 0,
-                        ];
-                    }
-                    $aggregatedTaxLines[$taxKey]['amount'] += (float) ($taxLine['amount'] ?? 0);
-                }
-                $breakupLines = array_values($aggregatedTaxLines);
-            }
-        }
-    }
-    if (!empty($breakupLines)) {
-        $gstAmount = array_sum(array_map(fn ($line) => (float) ($line['amount'] ?? 0), $breakupLines));
-        $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
-        $lendingCost = $totalPayable - $subsidy;
-    }
-    if (empty($breakupLines) && $gstRate > 0 && $gstAmount > 0) {
-        $breakupLines = [
-            ['label' => 'CGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
-            ['label' => 'SGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
-        ];
-    }
-            ?>
-
-            <?php if (false): ?>
-            <!-- Invoice-style estimate header -->
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;margin-bottom:10px;border-collapse:collapse;">
-                <tr>
-                    <td width="45%" valign="top" align="left" style="<?= $invoiceHeaderTextStyle ?>padding-bottom:12px;">
-                        <?php if (!empty($logoBase64)): ?>
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
-                        <?php else: ?>
-                            <span style="color:#666;">Company Logo</span>
-                        <?php endif; ?>
-                    </td>
-                    <td width="55%" valign="top" align="right" style="<?= $invoiceHeaderTextStyle ?>line-height:1.45;padding-bottom:12px;">
-                        <strong style="font-size:14px;"><?= esc($invoiceCompanyName) ?></strong><br>
-                        <?= esc($invoiceCompanyAddress ?: '--') ?><br>
-                        <?= esc($invoiceCompanyPhone ?: '--') ?><br>
-                        <span style="color:#52866A;font-weight:bold;">Google Location Map</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="border-top:1px solid #e5e5e5;padding-top:16px;"></td>
-                </tr>
-            </table>
-
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border-collapse:collapse;">
-                <tr>
-                    <td width="33%" align="left" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($invoiceEstimateNo) ?></td>
-                    <td width="34%" align="center" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
-                    <td width="33%" align="right" style="<?= $invoiceHeaderTextStyle ?>font-weight:bold;">Date: <?= esc($invoiceDate) ?></td>
-                </tr>
-            </table>
-
-            <!-- Invoice-style estimate table -->
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
-                <tr>
-                    <td colspan="4" style="<?= $headerCellStyle ?>">Customer Details</td>
-                </tr>
-                <tr>
-                    <td style="<?= $cellStyle ?>"><strong>Customer Name</strong></td>
-                    <td style="<?= $cellStyle ?>"><?= esc($estdata->name ?? '--') ?></td>
-                    <td style="<?= $cellStyle ?>"><strong>Email</strong></td>
-                    <td style="<?= $cellStyle ?>"><?= esc($estdata->email ?? '--') ?></td>
-                </tr>
-                <tr>
-                    <td style="<?= $cellStyle ?>"><strong>Address</strong></td>
-                    <td style="<?= $cellStyle ?>"><?= esc($estdata->address ?? '--') ?></td>
-                    <td style="<?= $cellStyle ?>"><strong>Contact</strong></td>
-                    <td style="<?= $cellStyle ?>"><?= esc($estdata->phone ?? '--') ?></td>
-                </tr>
-            </table>
-
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse;">
-                <tr>
-                    <td style="<?= $headerCellStyle ?>">Estimate Name</td>
-                    <td style="<?= $headerCellStyle ?>">Quantity (kW)</td>
-                    <td style="<?= $headerCellStyle ?>">Price</td>
-                </tr>
-                <tr>
-                    <td style="<?= $cellStyle ?>"><?= esc($estdata->estimate_name ?? '--') ?></td>
-                    <td style="<?= $cellStyle ?>"><?= esc($quantity) ?></td>
-                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) ($estdata->price ?? 0), 2) ?></td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Base System Supply, Engineering, Liaisoning & Installation Cost' : 'Base Price' ?></strong></td>
-                    <td style="<?= $rightCellStyle ?>"><strong><?= number_format($subtotal, 2) ?></strong></td>
-                </tr>
-                <?php if ($solarStructureCharges > 0): ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>">Solar Structure Charges</td>
-                    <td style="<?= $rightCellStyle ?>"><?= number_format($solarStructureCharges, 2) ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($showGst && !empty($breakupLines)): ?>
-                    <?php foreach ($breakupLines as $ln): ?>
-                        <?php
-            $lnLabel = trim((string) ($ln['label'] ?? ''));
-            $lnRate = $ln['rate'] ?? null;
-            $lnAmt = (float) ($ln['amount'] ?? 0);
-            if ($lnLabel === '' || $lnAmt <= 0) {
-                continue;
-            }
-            $rateTxt = is_numeric($lnRate) ? rtrim(rtrim(number_format((float) $lnRate, 2, '.', ''), '0'), '.') : '';
-                        ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><?= esc($lnLabel) ?><?= $rateTxt !== '' ? ' (' . esc($rateTxt) . '%)' : '' ?></td>
-                    <td style="<?= $rightCellStyle ?>"><?= number_format($lnAmt, 2) ?></td>
-                </tr>
-                    <?php endforeach; ?>
-                <?php elseif ($showGst): ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>">GST<?= $gstRateTxt !== '' ? ' (' . esc($gstRateTxt) . '%)' : '' ?></td>
-                    <td style="<?= $rightCellStyle ?>"><?= number_format((float) $gstAmount, 2) ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($discount > 0): ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>">Discount</td>
-                    <td style="<?= $rightCellStyle ?>">-<?= number_format($discount, 2) ?></td>
-                </tr>
-                <?php endif; ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Gross Capital Project Value (A)' : 'Customer Payable Amount' ?></strong></td>
-                    <td style="<?= $highlightCellStyle ?>"><?= number_format($totalPayable, 2) ?></td>
-                </tr>
-                <?php if ($subsidy > 0): ?>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><?= ($estdata->type ?? '') === 'residential' ? 'Less: Eligible PM-Surya Ghar Portal Subsidy Allocation (B)' : 'Subsidy' ?></td>
-                    <td style="<?= $rightCellStyle ?>">-<?= number_format($subsidy, 2) ?></td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="<?= $rightCellStyle ?>"><strong><?= ($estdata->type ?? '') === 'residential' ? 'Net Out-of-Pocket Customer Investment (A - B)' : 'Lending Cost Of Customer' ?></strong></td>
-                    <td style="<?= $highlightCellStyle ?>"><?= number_format($lendingCost, 2) ?></td>
-                </tr>
-                <?php endif; ?>
-            </table>
-
-            <?php if ($subsidy > 0): ?>
-            <div style="width:96%;margin:8px auto 0;font-size:10px;font-family:'Montserrat',sans-serif;color:#000;">
-                <strong>Note:</strong> Subsidy Amount to be credited in clients account.
-            </div>
-            <?php endif; ?>
-
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;border-collapse:collapse;">
-                <tr>
-                    <td style="<?= $headerCellStyle ?>width:38%;">System Capacity</td>
-                    <td style="<?= $cellStyle ?>"><?= esc($quantity) ?> kW</td>
-                </tr>
-                <tr>
-                    <td style="<?= $headerCellStyle ?>">Estimate Type</td>
-                    <td style="<?= $cellStyle ?>"><?= esc($estimateTypeLabel) ?></td>
-                </tr>
-                <tr>
-                    <td style="<?= $headerCellStyle ?>">Solar Meter Charges</td>
-                    <td style="<?= $cellStyle ?>"><?= esc($solarMeterLabel) ?></td>
-                </tr>
-            </table>
-
-            <table width="96%" align="center" cellpadding="0" cellspacing="0" style="margin-top:12px;margin-bottom:12px;border-collapse:collapse;">
-                <tr>
-                    <td style="<?= $headerCellStyle ?>width:35%;">Comment</td>
-                    <td style="<?= $headerCellStyle ?>width:40%;">Bank Details</td>
-                    <td style="<?= $headerCellStyle ?>width:25%;">QR Code</td>
-                </tr>
-                <tr>
-                    <td style="<?= $cellStyle ?>vertical-align:top;"><?= nl2br(esc($estimateComment ?: '--')) ?></td>
-                    <td style="<?= $cellStyle ?>vertical-align:top;">
-                        <?= !empty($bankLines) ? implode('<br>', $bankLines) : 'No bank details available.' ?>
-                    </td>
-                    <td style="<?= $cellStyle ?>vertical-align:top;text-align:center;">
-                        <?php if (!empty($qrImage)): ?>
-                            <img src="<?= $qrImage ?>" alt="QR Code" style="max-width:90px;max-height:90px;">
-                        <?php else: ?>
-                            No QR code available.
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            </table>
-            <?php endif; ?>
-
-            <!-- SCOPE Section (Template-driven) -->
-            <?php
+    <?php if ($__paymentTermsActive0): ?>
+    <!-- ================= PAGE 7 : PAYMENT TERMS ================= -->
+    <?php
+    $paymentTerms = isset($paymentTerms) && is_array($paymentTerms) ? $paymentTerms : [];
+    $paymentTermsTitle = trim((string) ($paymentTerms['title'] ?? ''));
     $paymentTermsScope = trim((string) ($paymentTerms['scope'] ?? ''));
     $paymentTermsNote = trim((string) ($paymentTerms['note'] ?? ''));
+    $paymentTermsImg = !empty($paymentTerms['image'])
+        ? normalize_pdf_image($paymentTerms['image'])
+        : normalize_pdf_image('public/assets/img/page_7.png');
     $services = $paymentTerms['services'] ?? [];
-    if (!is_array($services))
+    if (!is_array($services)) {
         $services = [];
-
-    // Normalize services into rows and remove empty rows
-    $rows = [];
+    }
+    $paymentRows = [];
     foreach ($services as $s) {
         if (is_array($s)) {
-            $rows[] = [
+            $paymentRows[] = [
                 'left' => trim((string) ($s['left'] ?? '')),
                 'right' => trim((string) ($s['right'] ?? '')),
             ];
         } else {
-            $rows[] = ['left' => trim((string) $s), 'right' => ''];
+            $paymentRows[] = ['left' => trim((string) $s), 'right' => ''];
         }
     }
-    $rows = array_values(array_filter($rows, static fn($r) => ($r['left'] ?? '') !== '' || ($r['right'] ?? '') !== ''));
-
-    // Show SCOPE block only if something is actually saved
-    $showScopeBlock = ($paymentTermsScope !== '') || ($paymentTermsNote !== '') || !empty($rows);
-        ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="">
+    $paymentRows = array_values(array_filter($paymentRows, static fn($r) => ($r['left'] ?? '') !== '' || ($r['right'] ?? '') !== ''));
+    $paymentTermsHeading = ($estdata->type ?? '') === 'residential'
+        ? '12. Payment Terms'
+        : ($paymentTermsTitle !== '' ? $paymentTermsTitle : 'PAYMENT TERMS');
+    ?>
+    <div class="<?= $_pageClass('p7') ?>" style="position: relative; min-height: 842px; background: white;">
+        <div style="padding: 38px 42px 30px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
-                    <td>
-                        <?php    if ($paymentTermsScope !== ''): ?>
-                        <div
-                            style="font-size: 20px; font-weight: bold; margin-bottom: 12px; font-family: 'Montserrat', sans-serif;">
-                            <?= $paymentTermsScope !== '' ? esc($paymentTermsScope) : 'SCOPE' ?>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size:18px; font-family:'Montserrat',sans-serif;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                         </div>
-                        <?php    endif; ?>
-                        <!-- Scope Table -->
-                        <?php    if (!empty($rows)): ?>
-                        <table width="100%" cellpadding="0" cellspacing="0"
-                            style="border-collapse: collapse; margin-bottom: 15px;">
-                            <tr>
-                                <td
-                                    style="padding: 5px; border: 1px solid #ddd; font-weight: bold; background-color: #f5f5f5; width: 50%; font-family: 'Montserrat', sans-serif;">
-                                    What we cover under our services
-                                </td>
-                                <td
-                                    style="padding: 5px; border: 1px solid #ddd; font-weight: bold; background-color: #f5f5f5; width: 50%; font-family: 'Montserrat', sans-serif;">
-                                    &nbsp;
-                                </td>
-                            </tr>
-
-                            <?php        foreach ($rows as $r): ?>
-                            <tr>
-                                <td
-                                    style="padding: 5px; border: 1px solid #ddd; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    <?= esc($r['left'] ?? '') ?>
-                                </td>
-                                <td
-                                    style="padding: 5px; border: 1px solid #ddd; color: #333; font-family: 'Montserrat', sans-serif;">
-                                    <?= esc($r['right'] ?? '') ?>
-                                </td>
-                            </tr>
-                            <?php        endforeach; ?>
-                        </table>
-                        <?php    endif; ?>
-                        <?php    if ($paymentTermsNote !== ''): ?>
-                        <div
-                            style="font-size: 14px; font-style: italic; margin-top: 10px; font-family: 'Montserrat', sans-serif;">
-                            <?= esc($paymentTermsNote) ?>
-                        </div>
-                        <?php    endif; ?>
                     </td>
-                </tr>
-            </table>
-
-
-            <!-- PAYMENT TERMS Section -->
-            <?php
-    // Template-specific payment terms (saved in form_data.payment_terms)
-    $paymentTerms = isset($paymentTerms) && is_array($paymentTerms) ? $paymentTerms : [];
-    $paymentTermsActive = $_isActive($paymentTerms);
-    $paymentTermsTitle = trim((string) ($paymentTerms['title'] ?? ''));
-    $paymentTermsImg = !empty($paymentTerms['image'])
-        ? normalize_pdf_image($paymentTerms['image'])
-        : normalize_pdf_image('public/assets/img/page_7.png');
-        ?>
-            <?php    if ($paymentTermsActive): ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;">
-                <tr>
-                    <td>
-                        <div style="font-size: 20px; font-weight: bold; font-family: 'Montserrat', sans-serif; border-left:5px solid #4b9349; padding-left:12px; line-height:1.2;">
-                            <?= ($estdata->type ?? '') === 'residential' ? '12. Payment Terms' : ($paymentTermsTitle !== '' ? esc($paymentTermsTitle) : 'PAYMENT TERMS') ?>
+                    <td width="50%" align="right" valign="top">
+                        <?php if (!empty($logoBase64)): ?>
+                        <div style="display:inline-block;text-align:right;">
+                            <img src="<?= $logoBase64 ?>" alt="Company Logo"
+                                style="max-width:160px;height:auto;margin-bottom:5px;">
                         </div>
-
-                        <!-- Payment Timeline Image -->
-                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
-                            <tr>
-                                <td align="center" valign="middle">
-                                    <img src="<?= $paymentTermsImg ?>" alt="Payment Terms Timeline"
-                                        style="max-width: 91%; height: auto; display: block; margin: 0 auto;">
-                                </td>
-                            </tr>
-                        </table>
-                        <?php if (($estdata->type ?? '') === 'residential'): ?>
-                        <ul style="padding-left: 20px; font-size: 13px; line-height: 1.5; margin-top: 15px; margin-bottom: 10px;">
-                            <li style="margin-bottom: 6px;"><strong>30% Mobilization Advance:</strong> Booked to initiate legal DISCOM file log, architectural layouts, and factory component ordering.</li>
-                            <li style="margin-bottom: 6px;"><strong>60% Component Delivery Milestone:</strong> Payable immediately upon the safe arrival of primary inventory (PV Modules & Inverter) at the installation site.</li>
-                            <li style="margin-bottom: 6px;"><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
-                        </ul>
                         <?php endif; ?>
                     </td>
                 </tr>
             </table>
-            <?php    endif; ?>
+
+            <div style="font-size:32px;font-weight:bold;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;margin-bottom:18px;">
+                <?= esc($paymentTermsHeading) ?>
+            </div>
+
+            <div style="page-break-inside:avoid;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:14px;">
+                    <tr>
+                        <td align="center" valign="middle">
+                            <img src="<?= $paymentTermsImg ?>" alt="Payment Terms Timeline"
+                                style="max-width:78%;max-height:220px;height:auto;display:block;margin:0 auto;">
+                        </td>
+                    </tr>
+                </table>
+
+                <?php if (($estdata->type ?? '') === 'residential'): ?>
+                <ul style="padding-left:20px;font-size:13px;line-height:1.5;margin-top:8px;margin-bottom:12px;font-family:'Montserrat',sans-serif;">
+                    <li style="margin-bottom:6px;"><strong>30% Mobilization Advance:</strong> Booked to initiate legal DISCOM file log, architectural layouts, and factory component ordering.</li>
+                    <li style="margin-bottom:6px;"><strong>60% Component Delivery Milestone:</strong> Payable immediately upon the safe arrival of primary inventory (PV Modules &amp; Inverter) at the installation site.</li>
+                    <li style="margin-bottom:6px;"><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
+                </ul>
+                <?php endif; ?>
+
+                <?php if ($paymentTermsScope !== ''): ?>
+                <div style="font-size:17px;font-weight:bold;margin:12px 0 10px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.2;">
+                    <?= esc($paymentTermsScope) ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($paymentRows)): ?>
+                <?php
+                $ptHeaderStyle = 'background-color:#4b9349;color:#fff;padding:11px 14px;font-size:14px;font-weight:bold;font-family:Montserrat,sans-serif;border:1px solid #3d7a3b;';
+                $ptLeftStyle = 'padding:11px 14px;font-size:13px;font-weight:bold;color:#1e3f20;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;border-left:4px solid #4b9349;vertical-align:top;width:30%;line-height:1.4;background-color:#eef6ee;';
+                $ptRightStyle = 'padding:11px 14px;font-size:13px;color:#333;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;vertical-align:top;width:70%;line-height:1.55;';
+                $ptRowEvenStyle = 'background-color:#fafcfa;';
+                ?>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:14px 0 16px;border:1px solid #4b9349;">
+                    <tr>
+                        <td colspan="2" style="<?= $ptHeaderStyle ?>letter-spacing:0.4px;">
+                            What we cover under our services
+                        </td>
+                    </tr>
+                    <?php foreach ($paymentRows as $ptIdx => $r): ?>
+                    <?php $ptRowBg = ($ptIdx % 2 === 1) ? $ptRowEvenStyle : ''; ?>
+                    <tr style="<?= $ptRowBg ?>">
+                        <td style="<?= $ptLeftStyle ?>">
+                            <?= esc($r['left'] ?? '') ?>
+                        </td>
+                        <td style="<?= $ptRightStyle ?>">
+                            <?= esc($r['right'] ?? '') ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+                <?php endif; ?>
+
+                <?php if ($paymentTermsNote !== ''): ?>
+                <div style="font-size:13px;font-style:italic;margin-top:8px;font-family:'Montserrat',sans-serif;line-height:1.45;">
+                    <?= esc($paymentTermsNote) ?>
+                </div>
+                <?php endif; ?>
+            </div>
         </div>
         <!-- Footer -->
         <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
