@@ -28,7 +28,7 @@
                                 @endphp
                                 {{ $statusLabel }}
                             </td>
-                            <td class="d-none d-md-table-cell">{{ $history->comment ?: '-' }}</td>
+                            <td class="d-none d-md-table-cell text-break">{{ $history->comment ?: '-' }}</td>
                             <td class="d-none d-md-table-cell">{{ $history->updater?->name ?? 'System' }}</td>
                             <td class="d-none d-md-table-cell">{{ $history->created_at?->timezone('Asia/Kolkata')->format('d M Y h:i A') ?? '-' }}</td>
                             <td class="text-center d-md-none">
@@ -43,7 +43,7 @@
                                     <div class="row g-3">
                                         <div class="col-12 d-flex justify-content-between align-items-center">
                                             <div class="expand-label"><i class="fa-solid fa-comment-dots"></i> Comment :</div>
-                                            <div class="expand-value">{{ $history->comment ?: '-' }}</div>
+                                            <div class="expand-value text-break">{{ $history->comment ?: '-' }}</div>
                                         </div>
                                         <div class="col-12 d-flex justify-content-between align-items-center">
                                             <div class="expand-label"><i class="fa-solid fa-user-pen"></i> Updated By :</div>
