@@ -277,7 +277,7 @@
                                             </td>
                                             <td class="d-none d-md-table-cell">
                                                 {{ $followUp->assignedUser?->name ?? 'Unassigned' }}</td>
-                                            <td class="d-none d-md-table-cell">{{ $followUp->lead?->phone ?? '-' }}</td>
+                                            <td class="d-none d-md-table-cell">@if($followUp->lead?->phone)<a href="tel:{{ $followUp->lead->phone }}">{{ $followUp->lead->phone }}</a>@else - @endif</td>
                                             <td class="text-center">
                                                 <span
                                                     class="badge-status {{ strtolower((string) $followUp->status) }}">{{ strtoupper((string) ($followUp->status ?: 'pending')) }}</span>

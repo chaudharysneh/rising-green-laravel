@@ -12,14 +12,14 @@
                         <p class="text-muted small mb-0">Your recent alerts and system messages.</p>
                     </div>
                     <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto justify-content-lg-end justify-content-md-end">
-                        <button type="button" class="btn btn-mark-read d-flex flex-grow-1 flex-md-grow-0 justify-content-center align-items-center gap-2 rounded-pill px-3 py-1 border-0"
+                        <button type="button" class="btn btn-mark-read d-flex flex-grow-1 flex-md-grow-0 justify-content-center align-items-center gap-2 rounded-pill px-5 py-2 border-0"
                                 id="btnMarkAllRead">
                             <span class="d-flex align-items-center justify-content-center rounded-circle" style="background-color: #4f46e5; width: 26px; height: 26px;">
                                 <i class="fa-solid fa-check-double text-white" style="font-size: 12px;"></i>
                             </span>
                             Mark All Read
                         </button>
-                        <button type="button" class="btn btn-delete-all d-flex flex-grow-1 flex-md-grow-0 justify-content-center align-items-center gap-2 rounded-pill px-3 py-1 border-0"
+                        <button type="button" class="btn btn-delete-all d-flex flex-grow-1 flex-md-grow-0 justify-content-center align-items-center gap-2 rounded-pill px-5 py-2 border-0"
                                 id="btnDeleteAll">
                             <span class="d-flex align-items-center justify-content-center rounded-circle" style="background-color: #ef4444; width: 26px; height: 26px;">
                                 <i class="fa-solid fa-trash text-white" style="font-size: 12px;"></i>

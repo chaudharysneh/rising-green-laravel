@@ -138,10 +138,10 @@
                         <div class="fw-bold small">${customer.name}</div>
                     </td>
                     <td class="d-none d-md-table-cell" data-label="Email">
-                        <div class="small">${customer.email || '-'}</div>
+                        <div class="small">${customer.email ? `<a href="mailto:${customer.email}">${customer.email}</a>` : '-'}</div>
                     </td>
                     <td class="d-none d-md-table-cell" data-label="Phone">
-                        <div class="small">${customer.phone || '-'}</div>
+                        <div class="small">${customer.phone ? `<a href="tel:${customer.phone}">${customer.phone}</a>` : '-'}</div>
                     </td>
                     <td class="d-none d-md-table-cell" data-label="Created At">
                         <div class="small fw-semibold">${date}</div>
@@ -161,11 +161,11 @@
                             <div class="row g-3">
                                 <div class="col-12 d-flex justify-content-between align-items-center">
                                     <div class="expand-label"><i class="fa-solid fa-envelope"></i> Email :</div>
-                                    <div class="expand-value">${customer.email || '-'}</div>
+                                    <div class="expand-value">${customer.email ? `<a href="mailto:${customer.email}">${customer.email}</a>` : '-'}</div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-between align-items-center">
                                     <div class="expand-label"><i class="fa-solid fa-phone"></i> Phone :</div>
-                                    <div class="expand-value">${customer.phone || '-'}</div>
+                                    <div class="expand-value">${customer.phone ? `<a href="tel:${customer.phone}">${customer.phone}</a>` : '-'}</div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-between align-items-center">
                                     <div class="expand-label"><i class="fa-solid fa-calendar-day"></i> Created At :</div>

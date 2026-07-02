@@ -78,7 +78,7 @@
                                 <div class="d-flex align-items-center gap-2 text-muted small mt-1">
                                     <i class="bi bi-people-fill text-primary"></i> {{ $booking->adults + $booking->children }} Pax
                                     <span class="mx-1 text-opacity-25 opacity-50">|</span>
-                                    <i class="bi bi-telephone text-success"></i> {{ $booking->customer->phone ?? '--' }}
+                                    <i class="bi bi-telephone text-success"></i> @if($booking->customer && $booking->customer->phone)<a href="tel:{{ $booking->customer->phone }}">{{ $booking->customer->phone }}</a>@else -- @endif
                                 </div>
                             </td>
                             <td>
