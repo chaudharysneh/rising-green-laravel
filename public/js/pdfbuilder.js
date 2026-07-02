@@ -302,11 +302,89 @@
         showCompanyFileName(fileInput, type);
     }
 
+    function attachRemoveButton(wrapper, fileInput, oldInputName) {
+        let previewContainer = wrapper.querySelector('.mb-2');
+        if (!previewContainer) return;
+        if (previewContainer.querySelector('.remove-img-btn')) return;
+
+        let img = previewContainer.querySelector('img');
+        if (!img) return;
+
+        let imgWrapper = img.parentElement;
+        if (!imgWrapper.classList.contains('img-preview-wrapper')) {
+            imgWrapper = document.createElement('div');
+            imgWrapper.className = 'img-preview-wrapper position-relative d-inline-block mt-2';
+            img.parentNode.insertBefore(imgWrapper, img);
+            imgWrapper.appendChild(img);
+        }
+
+        let deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn btn-danger rounded-circle position-absolute remove-img-btn shadow-sm';
+        deleteBtn.style.cssText = 'top: -8px; right: -8px; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 12px;';
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteBtn.title = 'Remove Image';
+        
+        deleteBtn.onclick = function() {
+            fileInput.value = '';
+            
+            const fileNameContainer = wrapper.querySelector(`.company-file-name-${fileInput.name}`);
+            if (fileNameContainer) fileNameContainer.textContent = '';
+            
+            let oldInput = previewContainer.querySelector(`input[type="hidden"]`);
+            if (oldInput) {
+                oldInput.value = '';
+                wrapper.appendChild(oldInput);
+            } else {
+                oldInput = wrapper.querySelector(`input[name="${oldInputName}"]`);
+                if (oldInput) oldInput.value = '';
+            }
+            
+            if (fileInput.name === 'first_img') {
+                let delFlag = wrapper.querySelector('input[name="delete_first_img"]');
+                if (!delFlag) {
+                    wrapper.insertAdjacentHTML('beforeend', '<input type="hidden" name="delete_first_img" value="1">');
+                } else {
+                    delFlag.value = '1';
+                }
+            }
+            
+            previewContainer.remove();
+        };
+        imgWrapper.appendChild(deleteBtn);
+    }
+
     function showCompanyFileName(input, type) {
-        const fileNameContainer = input.closest('.mb-3').querySelector(`.company-file-name-${type}`);
-        fileNameContainer.textContent = input.files.length > 0 ?
-            "Selected file: " + input.files[0].name :
-            (input.previousElementSibling && input.previousElementSibling.tagName === 'DIV' ? 'Current file uploaded' : '');
+        const wrapper = input.closest('.mb-3') || input.parentElement;
+        const fileNameContainer = wrapper.querySelector(`.company-file-name-${type}`);
+        if (fileNameContainer) {
+            fileNameContainer.textContent = input.files.length > 0 ?
+                "Selected file: " + input.files[0].name :
+                (input.previousElementSibling && input.previousElementSibling.tagName === 'DIV' ? 'Current file uploaded' : '');
+        }
+        
+        if (input.files && input.files[0] && input.files[0].type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let img = wrapper.querySelector('img');
+                if (img) {
+                    img.src = e.target.result;
+                } else {
+                    const label = wrapper.querySelector('label');
+                    if (label) {
+                        const previewHtml = `
+                            <div class="mb-2">
+                                <span class="small text-muted d-block">Preview:</span>
+                                <img src="${e.target.result}" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                            </div>
+                        `;
+                        label.insertAdjacentHTML('afterend', previewHtml);
+                    }
+                }
+                attachRemoveButton(wrapper, input, input.name + '_old');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function addServiceRow() {
@@ -476,6 +554,39 @@
             const fileInput = document.querySelector('input[name="first_img"]');
             if (fileInput) fileInput.addEventListener('change', clearStep1Errors);
         }
+        
+        const firstImgInput = document.querySelector('input[name="first_img"]');
+        if (firstImgInput) {
+            firstImgInput.addEventListener('change', (e) => {
+                if (firstImgInput.files && firstImgInput.files[0] && firstImgInput.files[0].type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const wrapper = firstImgInput.closest('.mb-3');
+                        if (!wrapper) return;
+                        let img = wrapper.querySelector('img');
+                        if (img) {
+                            img.src = evt.target.result;
+                        } else {
+                            const label = wrapper.querySelector('label');
+                            if (label) {
+                                const previewHtml = `
+                                    <div class="mb-2">
+                                        <span class="small text-muted d-block">Preview:</span>
+                                        <img src="${evt.target.result}" style="width: 300px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                    </div>
+                                `;
+                                label.insertAdjacentHTML('afterend', previewHtml);
+                            }
+                        }
+                        attachRemoveButton(wrapper, firstImgInput, 'first_img_existing');
+                        
+                        let delFlag = wrapper.querySelector('input[name="delete_first_img"]');
+                        if (delFlag) delFlag.value = '0';
+                    };
+                    reader.readAsDataURL(firstImgInput.files[0]);
+                }
+            });
+        }
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -555,19 +666,27 @@
     }
 
     // Expose functions globally for inline HTML event bindings
-    
-    
-    
-    
     window.addServiceRow = addServiceRow;
     window.removeServiceRow = removeServiceRow;
     window.handleCompanyFileDrop = handleCompanyFileDrop;
     window.showCompanyFileName = showCompanyFileName;
 
+    function initImageRemoveButtons() {
+        const form = document.getElementById('pdf-builder-form');
+        if (!form) return;
+        
+        form.querySelectorAll('input[type="file"][accept="image/*"]').forEach(fileInput => {
+            const wrapper = fileInput.closest('.mb-3') || fileInput.parentElement;
+            let oldInputName = fileInput.name === 'first_img' ? 'first_img_existing' : fileInput.name + '_old';
+            attachRemoveButton(wrapper, fileInput, oldInputName);
+        });
+    }
+
     // ==================== GLOBAL INITIALIZATION ====================
     $(document).ready(function () {
         initPdfList();
         initPdfForm();
+        initImageRemoveButtons();
 
         $(document).on("click", ".delete-btn", function () {
             deleteTemplate($(this).data("id"), this);
