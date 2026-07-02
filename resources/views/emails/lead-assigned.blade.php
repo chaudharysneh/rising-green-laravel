@@ -5,7 +5,7 @@
 @section('header_label', 'CRM Activity')
 
 @section('header_title')
-    [Lead Assigned] {{ $leadName }}
+    Lead Assigned - {{ $leadName }}
 @endsection
 
 @section('email_body')

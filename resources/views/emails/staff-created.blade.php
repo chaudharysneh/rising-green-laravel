@@ -3,7 +3,7 @@
 @section('email_title', 'Welcome to Rising Green Energy')
 
 @section('header_title')
-    [Account Created] Welcome to the Team!
+    Welcome to the Team!
 @endsection
 
 @section('email_body')
