@@ -135,6 +135,17 @@ class LeadController extends Controller
             return $existing;
         });
 
+        // ── Email: Customer Welcome (after lead conversion) ──────────────
+        send_customer_welcome_notification($customer);
+
+        // ── Email: Admin Notification ─────────────────────────────
+        send_admin_notification('Customer', 'Created (Lead Converted)', [
+            'Customer Name' => $customer->name,
+            'Phone'         => $customer->phone ?? '—',
+            'Email'         => $customer->email ?? '—',
+            'Converted From' => 'Lead #' . $lead->id,
+        ], url('/masters/customers/' . $customer->id . '/edit'));
+
         return redirect()
             ->route('masters.customers.edit', $customer->id)
             ->with('success', 'Customer created from lead.');

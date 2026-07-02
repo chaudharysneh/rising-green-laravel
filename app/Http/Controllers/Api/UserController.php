@@ -196,6 +196,9 @@ class UserController extends ApiBaseController
         $this->syncMatrixPermissions($user, $data['permissions'] ?? []);
         app(\App\Services\UserLogService::class)->created($user, 'Created a Staff ' . $user->name);
 
+        // ── Email: Staff Account Created ──────────────────────────────────────
+        send_staff_created_notification($user, $data['password']);
+
         try {
             $phone = $user->whatsapp ?: $user->phone;
             if ($phone) {

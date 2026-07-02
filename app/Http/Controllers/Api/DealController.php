@@ -217,6 +217,8 @@ class DealController extends ApiBaseController
             $this->createAutoTaskForDeal($deal);
             $this->createOrUpdateProjectFromDeal($deal);
 
+            send_admin_notification('Deal', 'Created', $deal->title, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Deal created successfully!',
@@ -324,6 +326,8 @@ class DealController extends ApiBaseController
             $this->ensureCustomerForWonDeal($deal);
             $this->createOrUpdateProjectFromDeal($deal);
 
+            send_admin_notification('Deal', 'Updated', $deal->title, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Deal updated successfully!',
@@ -344,8 +348,11 @@ class DealController extends ApiBaseController
     {
         $deal = Deal::findOrFail($id);
         $this->authorize('delete', $deal);
+        $dealName = $deal->title;
         app(\App\Services\UserLogService::class)->deleted($deal);
         $deal->delete();
+
+        send_admin_notification('Deal', 'Deleted', $dealName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

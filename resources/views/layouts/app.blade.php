@@ -1221,6 +1221,17 @@
             });
         });
     </script>
+    
+    {{-- Asynchronously process any pending queued emails without blocking page load --}}
+    @if(\Illuminate\Support\Facades\DB::table('jobs')->count() > 0)
+        <script>
+            // Call the route asynchronously in the background
+            setTimeout(function() {
+                fetch('{{ route('process.queued.emails') }}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).catch(e => console.log('Email processing error:', e));
+            }, 1000);
+        </script>
+    @endif
 </body>
-
 </html>

@@ -33,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
         // Create storage symlink if it doesn't exist
         $this->createStorageSymlink();
 
+        // Load dynamic mail configuration for all requests and queued jobs
+        if (function_exists('setMailConfig')) {
+            setMailConfig();
+        }
+
         \App\Models\Deal::observe(\App\Observers\DealObserver::class);
         Customer::observe(CustomerObserver::class);
         Lead::observe(LeadObserver::class);

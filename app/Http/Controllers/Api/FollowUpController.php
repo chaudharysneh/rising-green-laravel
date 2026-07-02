@@ -116,6 +116,10 @@ class FollowUpController extends ApiBaseController
         $historyEntry = $this->recordStatusHistory($followUp, $data['status'] ?? null, $data['status_comment'] ?? null);
         app(\App\Services\UserLogService::class)->created($followUp, 'Created a Follow Up ' . ($followUp->purpose ?: ('ID ' . $followUp->id)));
 
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        $followUp->loadMissing(['lead']);
+        send_admin_notification('Follow-Up', 'Created', $followUp->lead?->name ?? 'Unknown', []);
+
         return response()->json([
             'success' => true,
             'data' => $followUp,
@@ -200,6 +204,10 @@ class FollowUpController extends ApiBaseController
         }
         app(\App\Services\UserLogService::class)->updated($followUp, 'Updated a Follow Up ' . ($followUp->purpose ?: ('ID ' . $followUp->id)));
 
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        $followUp->loadMissing(['lead']);
+        send_admin_notification('Follow-Up', 'Updated', $followUp->lead?->name ?? 'Unknown', []);
+
         return response()->json([
             'success' => true,
             'data' => $followUp,
@@ -222,6 +230,8 @@ class FollowUpController extends ApiBaseController
         $followUp->update(['deleted_by' => auth()->id()]);
         app(\App\Services\UserLogService::class)->deleted($followUp, 'Deleted a Follow Up ' . ($followUp->purpose ?: ('ID ' . $followUp->id)));
         $followUp->delete();
+
+        send_admin_notification('Follow-Up', 'Deleted', $followUpName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

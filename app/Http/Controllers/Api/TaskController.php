@@ -164,6 +164,14 @@ class TaskController extends ApiBaseController
             ]);
         }
 
+        // ── Email: Task Assigned (if assigned to a staff) ──────────────────
+        if (!empty($data['assigned_user_id'])) {
+            send_task_assigned_notification($task);
+        }
+
+        // ── Email: Admin Notification (staff activity) ──────────────────
+        send_admin_notification('Task', 'Created', $task->title, []);
+
         return response()->json([
             'success' => true,
             'message' => 'Task created successfully.',
@@ -278,6 +286,14 @@ class TaskController extends ApiBaseController
                 'error' => $e->getMessage(),
             ]);
         }
+
+        // ── Email: Task Assigned (if newly assigned to a staff) ───────────
+        if (!empty($data['assigned_user_id']) && $data['assigned_user_id'] != $task->getOriginal('assigned_user_id')) {
+            send_task_assigned_notification($task);
+        }
+
+        // ── Email: Admin Notification ────────────────────────────────
+        send_admin_notification('Task', 'Updated', $task->title, []);
 
         return response()->json([
             'success' => true,
@@ -426,8 +442,11 @@ class TaskController extends ApiBaseController
     {
         $task = Task::findOrFail($id);
         $this->authorize('delete', $task);
+        $taskTitle = $task->title;
         app(\App\Services\UserLogService::class)->deleted($task);
         $task->delete();
+
+        send_admin_notification('Task', 'Deleted', $taskTitle ?? 'Unknown', []);
 
         return response()->json([
             'success' => true,

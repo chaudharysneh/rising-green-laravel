@@ -19,6 +19,7 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class StatusHistoryController extends ApiBaseController
 {
@@ -44,6 +45,28 @@ class StatusHistoryController extends ApiBaseController
 
         $record = $handler['model']::findOrFail($data['record_id']);
         $history = $handler['save']($record, $data['status'] ?? null, $data['comment']);
+
+        // Send Admin Notification with the comment
+        // Send Admin Notification with the comment
+        $recordName = 'Unknown';
+        if ($data['module'] === 'Follow-Up' && isset($record->lead_id)) {
+            $record->loadMissing('lead');
+            $recordName = $record->lead?->name ?? 'Unknown';
+        } elseif (isset($record->name)) $recordName = $record->name;
+        elseif (isset($record->title)) $recordName = $record->title;
+        elseif (isset($record->project_name)) $recordName = $record->project_name;
+        elseif (isset($record->estimate_no)) $recordName = $record->estimate_no;
+        elseif (isset($record->invoice_no)) $recordName = $record->invoice_no;
+        elseif (isset($record->ticket_name)) $recordName = $record->ticket_name;
+        elseif (isset($record->purpose)) $recordName = $record->purpose;
+        
+        send_admin_notification(
+            Str::title($data['module']), 
+            'Updated (Status)', 
+            $recordName,
+            ['Comment' => $data['comment']], 
+            url('/crm/' . Str::plural($data['module']) . '/' . $record->id)
+        );
 
         return $this->success($handler['serialize']($history), 'Status updated successfully.');
     }
