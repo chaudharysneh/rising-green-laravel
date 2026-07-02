@@ -102,8 +102,10 @@
                 overflow-x: clip;
             }
 
-            #quickEstimateModal .quick-totals-card .input-small {
-                max-width: 110px;
+            #quickEstimateModal .quick-totals-card .totals-row > .input-small {
+                width: 120px;
+                min-width: 120px;
+                max-width: 160px;
             }
 
             /* Responsive Multi-Step Logic */

@@ -459,22 +459,30 @@
 }
 
 .totals-card .totals-row > .input-small {
-    flex: 0 0 72px;
-    width: 72px;
-    min-width: 72px;
-    max-width: 72px;
+    flex: 0 0 auto;
+    width: 120px;
+    min-width: 120px;
+    max-width: 160px;
 }
 
 .input-small {
-    width: 72px;
-    min-width: 72px;
+    width: 120px;
+    min-width: 120px;
+    max-width: 160px;
     flex-shrink: 0;
-    padding: 6px 8px;
+    padding: 6px 10px;
     font-size: 14px;
     border-radius: 4px;
     border: 1px solid #ddd;
     text-align: right;
     background-color: #f8f9fa;
+    box-sizing: border-box;
+}
+
+#quickEstimateModal .quick-totals-card .totals-row > .input-small {
+    width: 120px;
+    min-width: 120px;
+    max-width: 160px;
 }
 
 .total-row {
