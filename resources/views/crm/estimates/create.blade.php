@@ -270,21 +270,6 @@
                             </div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step" id="create_template_wrapper">
-                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
-                            <select name="template_id" id="template_id"
-                                class="form-select @error('template_id') is-invalid @enderror" required>
-                                <option value="">Select Template</option>
-                                @if (isset($templates))
-                                    @foreach ($templates as $template)
-                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
-                                            {{ $template->template_name }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
-                        </div>
-
                         <div class="col-12 create-step-1 active-step">
                             <label class="form-label fw-semibold">Charges</label>
                             <div class="form-control d-flex align-items-center bg-light"
@@ -311,7 +296,27 @@
                             </div>
                         </div>
 
-                        <div class="d-none">
+                        <div class="col-6 col-md-4 create-step-1 active-step">
+                            <label class="form-label fw-semibold w-100 d-flex justify-content-between align-items-center mb-1 crm-label-with-icon">
+                                <span><i class="fa-solid fa-tag text-secondary me-1"></i> Quotation Template <span class="text-danger">*</span></span>
+                                <a href="#" id="edit_template_link" class="text-primary small text-decoration-none d-none" target="_blank" title="Edit selected template">
+                                    Edit
+                                </a>
+                            </label>
+                            <select name="template_id" id="template_id"
+                                class="form-select @error('template_id') is-invalid @enderror" required>
+                                <option value="">Select Template</option>
+                                @if (isset($templates))
+                                    @foreach ($templates as $template)
+                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
+                                            {{ $template->template_name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
+                        </div>
+
+                        <div class="col-md-4 d-none d-md-block">
                             <label class="form-label fw-semibold">Created Date</label>
                             <input type="date" name="estimate_date" id="estimate_date"
                                 value="{{ old('estimate_date', date('Y-m-d')) }}"
@@ -796,6 +801,23 @@
             // Initial setup
             updateCreateWizardUI();
             $(window).resize(updateCreateWizardUI);
+            // Quotation template edit link logic
+            const templateSelect = $('#template_id');
+            const editTemplateLink = $('#edit_template_link');
+            
+            function updateTemplateEditLink() {
+                const val = templateSelect.val();
+                if (val) {
+                    editTemplateLink.attr('href', '/pdfbuilder/edit/' + val);
+                    editTemplateLink.removeClass('d-none');
+                } else {
+                    editTemplateLink.attr('href', '#');
+                    editTemplateLink.addClass('d-none');
+                }
+            }
+            
+            templateSelect.on('change', updateTemplateEditLink);
+            updateTemplateEditLink();
         });
     </script>
 @endpush
