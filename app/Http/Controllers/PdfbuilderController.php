@@ -293,6 +293,8 @@ class PdfbuilderController extends Controller
         $firstImgPath = $template->first_img;
         if ($request->hasFile('first_img')) {
             $firstImgPath = $this->storeUploadedImage($request, 'first_img', 'uploads/pdf_headers');
+        } elseif ($request->input('delete_first_img') == '1') {
+            $firstImgPath = null;
         }
 
         // Company Info
