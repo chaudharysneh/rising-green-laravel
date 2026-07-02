@@ -3053,7 +3053,7 @@ $__componentsActive = $_isActive($__components);
 
     <!-- PAGE 6A: ESTIMATION / INVOICE -->
     <div class="page page-break" style="position: relative; background: white;">
-        <div style="padding: 40px;">
+        <div style="padding: 32px 40px 36px;">
             @include('pdfbuilder.partials.pdf-page-header')
             @include('pdfbuilder.partials.estimate-invoice-summary')
         </div>
