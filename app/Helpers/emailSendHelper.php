@@ -3,6 +3,7 @@
 use App\Mail\AdminNotificationMail;
 use App\Mail\CustomerWelcomeMail;
 use App\Mail\EstimateViewMail;
+use App\Mail\FollowUpAssignedMail;
 use App\Mail\LeadAssignedMail;
 use App\Mail\MeetingCustomerMail;
 use App\Mail\MeetingStaffMail;
@@ -12,6 +13,7 @@ use App\Mail\TaskAssignedMail;
 use App\Mail\TicketCreatedMail;
 use App\Models\Customer;
 use App\Models\Estimate;
+use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\Meeting;
 use App\Models\Project;
@@ -252,6 +254,35 @@ if (! function_exists('send_task_assigned_notification')) {
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2.6. Follow-Up Assigned Notification
+// ─────────────────────────────────────────────────────────────────────────────
+
+if (! function_exists('send_followup_assigned_notification')) {
+    /**
+     * Send email to the assigned staff when a follow-up is assigned.
+     *
+     * @param FollowUp $followUp
+     */
+    function send_followup_assigned_notification(FollowUp $followUp): void
+    {
+        try {
+            $followUp->loadMissing(['assignedUser', 'lead']);
+
+            $staffEmail = $followUp->assignedUser?->email;
+            if (empty($staffEmail)) {
+                return;
+            }
+
+            safe_dispatch_mail($staffEmail, new FollowUpAssignedMail($followUp));
+
+        } catch (\Throwable $e) {
+            Log::error('send_followup_assigned_notification failed: ' . $e->getMessage());
+        }
+    }
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Customer Welcome Notification

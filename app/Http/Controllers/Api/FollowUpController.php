@@ -122,6 +122,11 @@ class FollowUpController extends ApiBaseController
         $followUp->loadMissing(['lead']);
         send_admin_notification('Follow-Up', 'Created', $followUp->lead?->name ?? 'Unknown', []);
 
+        // ── Email: Follow-Up Assigned (if assigned to a staff) ───────────
+        if (!empty($data['assigned_user_id'])) {
+            send_followup_assigned_notification($followUp);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $followUp,
@@ -209,6 +214,11 @@ class FollowUpController extends ApiBaseController
         // ── Email: Admin Notification (staff activity) ─────────────────
         $followUp->loadMissing(['lead']);
         send_admin_notification('Follow-Up', 'Updated', $followUp->lead?->name ?? 'Unknown', []);
+
+        // ── Email: Follow-Up Assigned (if newly assigned to a staff) ─────
+        if (!empty($data['assigned_user_id']) && $data['assigned_user_id'] != $followUp->getOriginal('assigned_user_id')) {
+            send_followup_assigned_notification($followUp);
+        }
 
         return response()->json([
             'success' => true,
