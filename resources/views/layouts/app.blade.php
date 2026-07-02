@@ -200,6 +200,7 @@
         }
     </style>
     @stack('styles')
+    @include('crm.estimates.partials.header-quick-estimate-assets')
 
     <!-- Theme Management -->
     @unless (request()->routeIs('login'))
@@ -715,11 +716,20 @@
                             @endif
 
                             @if ($showTopEstimatesButton)
-                                <a href="{{ route('estimates.index') }}"
-                                    class="btn top-action-btn old-crm-nav-btn d-none d-lg-inline-flex {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}">
-                                    <i class="fa-solid fa-file-lines"></i>
-                                    <span>Estimates</span>
-                                </a>
+                                @if (auth()->user()?->hasMatrixPermission('create_estimates'))
+                                    <button type="button"
+                                        class="btn top-action-btn old-crm-nav-btn d-none d-lg-inline-flex"
+                                        data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
+                                        <i class="bi bi-lightning-charge"></i>
+                                        <span>Quick Estimate</span>
+                                    </button>
+                                @else
+                                    <a href="{{ route('estimates.index') }}"
+                                        class="btn top-action-btn old-crm-nav-btn d-none d-lg-inline-flex {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                        <span>Estimates</span>
+                                    </a>
+                                @endif
                             @endif
 
                             <div class="dropdown">
@@ -989,6 +999,8 @@
                 </div>
             </div>
         @endif
+
+        @include('crm.estimates.partials.header-quick-estimate-modals')
     @endauth
 
     <div class="modal fade status-comment-modal" id="statusCommentModal" tabindex="-1" aria-hidden="true">
@@ -1065,6 +1077,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     @stack('scripts')
+    @include('crm.estimates.partials.header-quick-estimate-scripts')
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/crm-layout.js') }}?v={{ filemtime(PUBLIC_PATH('js/crm-layout.js')) }}"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/status-comment-box.js') }}?v={{ filemtime(PUBLIC_PATH('js/status-comment-box.js')) }}"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/global-search.js') }}?v={{ filemtime(PUBLIC_PATH('js/global-search.js')) }}"></script>

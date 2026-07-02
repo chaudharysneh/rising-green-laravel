@@ -104,81 +104,113 @@
 }
 
 #estimateCreateForm .estimate-form-field-col,
-#estimateEditForm .estimate-form-field-col {
+#estimateEditForm .estimate-form-field-col,
+#invoiceCreateForm .estimate-form-field-col,
+#invoiceEditForm .estimate-form-field-col {
     min-width: 0;
 }
 
 #estimateCreateForm label.form-label,
-#estimateEditForm label.form-label {
+#estimateEditForm label.form-label,
+#invoiceCreateForm label.form-label,
+#invoiceEditForm label.form-label {
     flex-wrap: nowrap;
 }
 
 #estimateCreateForm .crm-label-with-icon,
-#estimateEditForm .crm-label-with-icon {
+#estimateEditForm .crm-label-with-icon,
+#invoiceCreateForm .crm-label-with-icon,
+#invoiceEditForm .crm-label-with-icon {
     flex-wrap: nowrap;
 }
 
 #estimateCreateForm .crm-label-icon,
 #estimateEditForm .crm-label-icon,
 #estimateCreateForm label.form-label .text-danger,
-#estimateEditForm label.form-label .text-danger {
+#estimateEditForm label.form-label .text-danger,
+#invoiceCreateForm .crm-label-icon,
+#invoiceEditForm .crm-label-icon,
+#invoiceCreateForm label.form-label .text-danger,
+#invoiceEditForm label.form-label .text-danger {
     flex-shrink: 0;
 }
 
 #estimateCreateForm .select2-container .select2-selection.is-invalid,
-#estimateEditForm .select2-container .select2-selection.is-invalid {
+#estimateEditForm .select2-container .select2-selection.is-invalid,
+#invoiceCreateForm .select2-container .select2-selection.is-invalid,
+#invoiceEditForm .select2-container .select2-selection.is-invalid {
     border-color: var(--bs-form-invalid-border-color, #dc3545) !important;
 }
 
 #estimateCreateForm .bom-make-error,
-#estimateEditForm .bom-make-error {
+#estimateEditForm .bom-make-error,
+#invoiceCreateForm .bom-make-error,
+#invoiceEditForm .bom-make-error {
     display: none;
 }
 
 #estimateCreateForm .bom-make-error.d-block,
-#estimateEditForm .bom-make-error.d-block {
+#estimateEditForm .bom-make-error.d-block,
+#invoiceCreateForm .bom-make-error.d-block,
+#invoiceEditForm .bom-make-error.d-block {
     display: block;
 }
 
 @media (max-width: 767.98px) {
     #estimateCreateForm .estimate-charges-date-group > .row.g-3,
-    #estimateEditForm .estimate-charges-date-group > .row.g-3 {
+    #estimateEditForm .estimate-charges-date-group > .row.g-3,
+    #invoiceCreateForm .estimate-charges-date-group > .row.g-3,
+    #invoiceEditForm .estimate-charges-date-group > .row.g-3 {
         min-height: 0 !important;
         --bs-gutter-y: 0.75rem;
     }
 
     #estimateCreateForm .estimate-charges-date-group,
-    #estimateEditForm .estimate-charges-date-group {
+    #estimateEditForm .estimate-charges-date-group,
+    #invoiceCreateForm .estimate-charges-date-group,
+    #invoiceEditForm .estimate-charges-date-group {
         margin-bottom: 0.75rem;
     }
 
     #estimateCreateForm .estimate-charges-date-group .estimate-structure-charges-col,
-    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col {
+    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col,
+    #invoiceCreateForm .estimate-charges-date-group .estimate-structure-charges-col,
+    #invoiceEditForm .estimate-charges-date-group .estimate-structure-charges-col {
         margin-top: 0.5rem;
         padding-top: 0.25rem;
     }
 
     #estimateCreateForm .estimate-charges-date-group .estimate-structure-charges-col .form-label,
-    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col .form-label {
+    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col .form-label,
+    #invoiceCreateForm .estimate-charges-date-group .estimate-structure-charges-col .form-label,
+    #invoiceEditForm .estimate-charges-date-group .estimate-structure-charges-col .form-label {
         margin-bottom: 0.5rem;
     }
 }
 
 @media (min-width: 768px) {
     #estimateCreateForm .estimate-charges-date-group > .row,
-    #estimateEditForm .estimate-charges-date-group > .row {
+    #estimateEditForm .estimate-charges-date-group > .row,
+    #invoiceCreateForm .estimate-charges-date-group > .row,
+    #invoiceEditForm .estimate-charges-date-group > .row {
         align-items: flex-end;
     }
 
     #estimateCreateForm .estimate-charges-col,
     #estimateEditForm .estimate-charges-col,
     #estimateCreateForm .estimate-created-date-col,
-    #estimateEditForm .estimate-created-date-col {
+    #estimateEditForm .estimate-created-date-col,
+    #invoiceCreateForm .estimate-charges-col,
+    #invoiceEditForm .estimate-charges-col,
+    #invoiceCreateForm .estimate-created-date-col,
+    #invoiceEditForm .estimate-created-date-col {
         min-width: 0;
     }
 
     #estimateCreateForm .estimate-structure-charges-col,
-    #estimateEditForm .estimate-structure-charges-col {
+    #estimateEditForm .estimate-structure-charges-col,
+    #invoiceCreateForm .estimate-structure-charges-col,
+    #invoiceEditForm .estimate-structure-charges-col {
         flex: 0 0 100%;
         max-width: 100%;
     }
@@ -323,20 +355,24 @@
     color: #121a33;
 }
 
-.estimate-header-actions {
+.estimate-header-actions,
+.invoice-header-actions {
     min-width: 0;
 }
 
-.estimate-header-actions .btn {
+.estimate-header-actions .btn,
+.invoice-header-actions .btn {
     white-space: nowrap;
 }
 
 @media (max-width: 767.98px) {
-    .estimate-header-actions {
+    .estimate-header-actions,
+    .invoice-header-actions {
         flex-wrap: nowrap;
     }
 
-    .estimate-header-actions .btn {
+    .estimate-header-actions .btn,
+    .invoice-header-actions .btn {
         min-width: 0;
         padding-left: 0.65rem;
         padding-right: 0.65rem;
