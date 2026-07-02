@@ -26,340 +26,177 @@
             </div>
         </div>
 
-        <div class="settings-tabs-wrap">
+                <div class="settings-tabs-wrap">
             <ul class="nav settings-main-tabs flex-wrap" id="settingsTabs" role="tablist">
-                <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab"
-                        data-bs-target="#smtp" type="button" role="tab">Email SMTP</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tax"
-                        type="button" role="tab">Tax</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#subsidy" type="button" role="tab">Subsidy</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#bank-details" type="button" role="tab">Bank Details</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#google-connection" type="button" role="tab">Google Connection</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#whatsapp-configure" type="button" role="tab">WhatsApp Configure
-                        Settings</button>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#integrations-main" type="button" role="tab">Integrations</button>
                 </li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#integrations" type="button" role="tab">Integrations</button></li>
-                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
-                        data-bs-target="#table-truncate" type="button" role="tab">Table Truncate</button></li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#financial-information" type="button" role="tab">Financial Information</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#table-truncate" type="button" role="tab">Table Truncate</button>
+                </li>
             </ul>
         </div>
 
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="smtp" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data"
-                    id="smtpSettingsForm">
-                    @csrf
-                    @method('PUT')
-                    <div class="settings-panel">
-                        <div class="settings-panel-head">Email SMTP Settings</div>
-                        <div class="settings-panel-body">
-                            <div class="row g-3 settings-smtp-grid">
-                                <div class="col-md-6"><label class="form-label">SMTP Host</label><input type="text"
-                                        name="mail_host" class="form-control"
-                                        value="{{ $settings['mail_host']->value ?? '' }}" placeholder="smtp.gmail.com">
-                                </div>
-                                <div class="col-md-6"><label class="form-label">SMTP Port</label><input type="number"
-                                        name="mail_port" class="form-control"
-                                        value="{{ $settings['mail_port']->value ?? '587' }}" placeholder="587"></div>
-                                <div class="col-md-6"><label class="form-label">SMTP Username</label><input type="email"
-                                        name="mail_username" class="form-control"
-                                        value="{{ $settings['mail_username']->value ?? '' }}" placeholder="you@gmail.com">
-                                </div>
-                                <div class="col-md-6"><label class="form-label">SMTP Password</label><input
-                                        type="password" name="mail_password" class="form-control"
-                                        value="{{ $settings['mail_password']->value ?? '' }}"
-                                        placeholder="Enter password">
-                                </div>
-                                <div class="col-md-6"><label class="form-label">Encryption</label><select
-                                        name="mail_encryption" class="form-select">
-                                        <option value="tls"
-                                            {{ ($settings['mail_encryption']->value ?? 'tls') == 'tls' ? 'selected' : '' }}>
-                                            TLS</option>
-                                        <option value="ssl"
-                                            {{ ($settings['mail_encryption']->value ?? '') == 'ssl' ? 'selected' : '' }}>
-                                            SSL</option>
-                                        <option value=""
-                                            {{ ($settings['mail_encryption']->value ?? '') == '' ? 'selected' : '' }}>None
-                                        </option>
-                                    </select></div>
-                                <div class="col-md-6"><label class="form-label">From Name</label><input type="text"
-                                        name="mail_from_name" class="form-control"
-                                        value="{{ $settings['mail_from_name']->value ?? config('app.name', 'CRM') }}"
-                                        placeholder="Company Name"></div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
-                                <span id="smtpSettingsStatus" class="settings-form-status"></span>
-                                <button type="submit" class="btn btn-primary settings-submit-btn">Save SMTP
-                                    Settings</button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                <div class="tab-content">
+            <!-- 1. Integrations Main Tab -->
+            <div class="tab-pane fade show active" id="integrations-main" role="tabpanel">
+                <div class="settings-panel">
+                    <div class="settings-panel-head">Integrations</div>
+                    <div class="settings-panel-body">
+                        <ul class="nav settings-subtabs settings-integration-subtabs mb-4" id="integrationSettingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="social-media-integration-tab" data-bs-toggle="pill" data-bs-target="#integrations" type="button" role="tab">Social Media Integration</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="whatsapp-integration-tab" data-bs-toggle="pill" data-bs-target="#whatsapp-configure" type="button" role="tab">WhatsApp Integration</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="smtp-tab" data-bs-toggle="pill" data-bs-target="#smtp" type="button" role="tab">Email SMTP</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="google-connection-tab" data-bs-toggle="pill" data-bs-target="#google-connection" type="button" role="tab">Google Connection</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="integrationSettingsTabContent">
+                            <div class="tab-pane fade show active" id="integrations" role="tabpanel">
+                <div class="settings-panel">
+                    <div class="settings-panel-head">Integrations</div>
+                    <div class="settings-panel-body">
+                        <div class="integrations-accordion" id="integrationsAccordion">
+                            <div class="integration-card">
+                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#facebookAdsPanel" aria-expanded="false"
+                                    aria-controls="facebookAdsPanel">
+                                    <span class="integration-toggle-left">
+                                        <span class="integration-icon facebook"><i class="bi bi-facebook"></i></span>
+                                        <span>Facebook Ads</span>
+                                    </span>
+                                    <i class="bi bi-chevron-down integration-caret"></i>
+                                </button>
+                                <div id="facebookAdsPanel" class="collapse integration-panel"
+                                    data-bs-parent="#integrationsAccordion">
+                                    <div class="integration-body">
+                                        <div class="integration-copy">This integration lets you connect your Facebook Ads
+                                            account to manage campaigns and track conversions.</div>
 
-            <div class="tab-pane fade" id="tax" role="tabpanel">
-                <div class="card border-0 shadow-sm overflow-hidden">
-                    <div class="card-header border-bottom-0 py-3 px-4">
-                        <div
-                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                            <div>
-                                <h4 class="fw-bold mb-0">Tax Settings</h4>
-                                <p class="text-muted small mb-0">Configure tax types and rates for your products and
-                                    services.</p>
+                                        <div class="integration-inner-card">
+                                            <button class="integration-inner-toggle" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#facebookConnectedPages"
+                                                aria-expanded="false" aria-controls="facebookConnectedPages">
+                                                <span>Connected Pages</span>
+                                                <i class="bi bi-chevron-down integration-inner-caret"></i>
+                                            </button>
+                                            <div id="facebookConnectedPages" class="collapse integration-inner-collapse">
+                                                <div class="table-responsive">
+                                                    <table class="table integration-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width: 48px;">#</th>
+                                                                <th style="width: 80px;">Image</th>
+                                                                <th style="width: 240px;">Page ID</th>
+                                                                <th>Page Name</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>1</td>
+                                                                <td><span class="integration-mini-icon facebook"><i
+                                                                            class="bi bi-facebook"></i></span></td>
+                                                                <td>681579935046274</td>
+                                                                <td>Hello test bhavvik</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>2</td>
+                                                                <td><span class="integration-mini-icon whatsapp"><i
+                                                                            class="bi bi-megaphone-fill"></i></span></td>
+                                                                <td>727332373793917</td>
+                                                                <td>Testing page</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>3</td>
+                                                                <td><span class="integration-mini-icon analytics"><i
+                                                                            class="bi bi-bar-chart-fill"></i></span></td>
+                                                                <td>909114223345667</td>
+                                                                <td>Demo Campaign Hub</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>4</td>
+                                                                <td><span class="integration-mini-icon audience"><i
+                                                                            class="bi bi-people-fill"></i></span></td>
+                                                                <td>555666777888999</td>
+                                                                <td>Demo Lead Gen Page</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="integration-action">
+                                            <a href="https://www.facebook.com/login.php" target="_blank"
+                                                rel="noopener noreferrer" class="btn btn-primary settings-submit-btn"><i
+                                                    class="bi bi-facebook me-1"></i> Connect with Facebook Ads</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal"
-                                data-bs-target="#addTaxModal">
-                                <i class="bi bi-plus-lg me-1"></i>Add Tax
-                            </button>
-                        </div>
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                            <h6 class="fw-bold mb-0">Manage Tax Types and Rates</h6>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="taxTable">
-                                <thead>
-                                    <tr>
-                                        <th class="ps-4 text-center" style="width: 80px;">#</th>
-                                        <th class="text-center">Tax Name</th>
-                                        <th class="text-center">Rate (%)</th>
-                                        <th class="text-center pe-4" style="width: 170px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($taxes as $index => $tax)
-                                        <tr data-tax-id="{{ $tax->id }}">
-                                            <td class="ps-4 text-center">{{ $index + 1 }}</td>
-                                            <td class="text-center">{{ $tax->name }}</td>
-                                            <td class="text-center">{{ $tax->rate }}%</td>
-                                            <td class="text-center pe-4">
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                                    onclick="editTax({{ $tax->id }}, '{{ $tax->name }}', {{ $tax->rate }})"
-                                                    title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                    onclick="deleteTax({{ $tax->id }})" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr id="noTaxRow">
-                                            <td colspan="4" class="text-center text-muted py-4">No tax configurations
-                                                found.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-footer border-top-0 py-4 px-4">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>
-                                These tax configurations will be available when creating products, estimates, and invoices.
-                            </small>
+
+                            <div class="integration-card">
+                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#googleAdsPanel" aria-expanded="false"
+                                    aria-controls="googleAdsPanel">
+                                    <span class="integration-toggle-left">
+                                        <span class="integration-icon google">G</span>
+                                        <span>Google Ads</span>
+                                    </span>
+                                    <i class="bi bi-chevron-down integration-caret"></i>
+                                </button>
+                                <div id="googleAdsPanel" class="collapse integration-panel"
+                                    data-bs-parent="#integrationsAccordion">
+                                    <div class="integration-body">
+                                        <div class="integration-copy mb-3">Connect your Google Ads workspace to sync
+                                            campaigns, account IDs and conversion reporting.</div>
+                                        <div class="d-flex justify-content-end">
+                                            <a href="https://myaccount.google.com/" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="btn btn-outline-primary rounded-pill px-4">Connect Google Ads</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="integration-card">
+                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#instagramAdsPanel" aria-expanded="false"
+                                    aria-controls="instagramAdsPanel">
+                                    <span class="integration-toggle-left">
+                                        <span class="integration-icon instagram"><i class="bi bi-instagram"></i></span>
+                                        <span>Instagram Ads</span>
+                                    </span>
+                                    <i class="bi bi-chevron-down integration-caret"></i>
+                                </button>
+                                <div id="instagramAdsPanel" class="collapse integration-panel"
+                                    data-bs-parent="#integrationsAccordion">
+                                    <div class="integration-body">
+                                        <div class="integration-copy mb-3">Connect Instagram Ads to manage campaign sources
+                                            and social lead capture from a single place.</div>
+                                        <div class="d-flex justify-content-end">
+                                            <a href="https://www.instagram.com/accounts/login/" target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="btn btn-outline-primary rounded-pill px-4">Connect Instagram Ads</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="tab-pane fade" id="subsidy" role="tabpanel">
-                <form id="subsidyForm" novalidate>
-                    <div class="settings-panel">
-                        <div class="settings-panel-head" style="background-color: #5cb85c; color: white;">Subsidy Details
-                        </div>
-                        <div class="settings-panel-body">
-                            <div class="mb-4">
-                                <h6 class="fw-bold mb-3">Residential Subsidy</h6>
-                                <div class="row g-3">
-                                    @foreach ($subsidies as $subsidy)
-                                        @if (str_starts_with($subsidy->category, 'residential'))
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-semibold">
-                                                    @if ($subsidy->category == 'residential_0_2')
-                                                        0 - 2 kW
-                                                    @elseif($subsidy->category == 'residential_2_3')
-                                                        2 - 3 kW
-                                                    @elseif($subsidy->category == 'residential_above_3')
-                                                        Above 3 kW
-                                                    @endif
-                                                </label>
-                                                <input type="number" class="form-control subsidy-input"
-                                                    id="subsidy_{{ $subsidy->id }}"
-                                                    data-subsidy-id="{{ $subsidy->id }}" value="{{ $subsidy->amount }}"
-                                                    step="0.01" min="0" placeholder="Enter amount">
-                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error">
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <h6 class="fw-bold mb-3">Common Meter</h6>
-                                <div class="row g-3">
-                                    @foreach ($subsidies as $subsidy)
-                                        @if ($subsidy->category == 'common_meter')
-                                            <div class="col-md-4">
-                                                <input type="number" class="form-control subsidy-input"
-                                                    id="subsidy_{{ $subsidy->id }}"
-                                                    data-subsidy-id="{{ $subsidy->id }}" value="{{ $subsidy->amount }}"
-                                                    step="0.01" min="0" placeholder="Enter amount">
-                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error">
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
-                                <span id="subsidyStatus" class="settings-form-status"></span>
-                                <button type="submit" class="btn btn-success settings-submit-btn">
-                                    <span class="spinner-border spinner-border-sm d-none" role="status"
-                                        aria-hidden="true"></span>
-                                    <span class="btn-text">Save Subsidy</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="tab-pane fade" id="bank-details" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" id="bankDetailsForm" novalidate>
-                    @csrf
-                    @method('PUT')
-                    <div class="settings-panel">
-                        <div class="settings-panel-head">Bank Details</div>
-                        <div class="settings-panel-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Bank Name</label>
-                                    <input type="text" name="bank_name" id="bank_name" class="form-control"
-                                        value="{{ old('bank_name', $settings['bank_name']->value ?? '') }}"
-                                        placeholder="Enter bank name">
-                                    <div class="invalid-feedback" id="bank_name-error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Account Name</label>
-                                    <input type="text" name="account_name" id="account_name" class="form-control"
-                                        value="{{ old('account_name', $settings['account_name']->value ?? '') }}"
-                                        placeholder="Enter account holder name">
-                                    <div class="invalid-feedback" id="account_name-error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Account Number</label>
-                                    <input type="text" name="account_number" id="account_number" class="form-control"
-                                        value="{{ old('account_number', $settings['account_number']->value ?? '') }}"
-                                        placeholder="Enter account number">
-                                    <div class="invalid-feedback" id="account_number-error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">IFSC Code</label>
-                                    <input type="text" name="ifsc_code" id="ifsc_code" class="form-control"
-                                        value="{{ old('ifsc_code', $settings['ifsc_code']->value ?? '') }}"
-                                        placeholder="Enter IFSC code">
-                                    <div class="invalid-feedback" id="ifsc_code-error"></div>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-semibold">Branch Name</label>
-                                    <input type="text" name="branch_name" id="branch_name" class="form-control"
-                                        value="{{ old('branch_name', $settings['branch_name']->value ?? '') }}"
-                                        placeholder="Enter branch name">
-                                    <div class="invalid-feedback" id="branch_name-error"></div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
-                                <span id="bankDetailsStatus" class="settings-form-status"></span>
-                                <button type="submit" class="btn btn-primary settings-submit-btn">
-                                    <span class="spinner-border spinner-border-sm d-none" role="status"
-                                        aria-hidden="true"></span>
-                                    <span class="btn-text">Save Bank Details</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="tab-pane fade" id="google-connection" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" id="googleConnectionForm" novalidate>
-                    @csrf
-                    @method('PUT')
-                    <div class="settings-panel">
-                        <div class="settings-panel-head">Google Connection Settings</div>
-                        <div class="settings-panel-body">
-                            <!-- Connect to Google Section -->
-                            <div class="mb-4 p-3 border rounded">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-light rounded-circle p-2"
-                                            style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                            <i class="bi bi-google" style="font-size: 24px; color: #4285f4;"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-semibold">Connect To Google</h6>
-                                            <small class="text-muted">
-                                                @if (!empty($settings['google_client_id']->value ?? ''))
-                                                    <span class="text-success">Connected</span>
-                                                @else
-                                                    <span class="text-danger">Not connected</span>
-                                                @endif
-                                            </small>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-success" id="connectToGoogleBtn">
-                                        <i class="bi bi-link-45deg me-1"></i>Connect to Google
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Google OAuth Credentials Section -->
-                            <h6 class="fw-semibold mb-3">Google OAuth Credentials</h6>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Google Client ID</label>
-                                    <input type="text" name="google_client_id" id="google_client_id"
-                                        class="form-control"
-                                        value="{{ old('google_client_id', $settings['google_client_id']->value ?? '') }}"
-                                        placeholder="Enter Google Client ID">
-                                    <div class="invalid-feedback" id="google_client_id-error"></div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Google Client Secret</label>
-                                    <input type="password" name="google_client_secret" id="google_client_secret"
-                                        class="form-control"
-                                        value="{{ old('google_client_secret', $settings['google_client_secret']->value ?? '') }}"
-                                        placeholder="Enter Google Client Secret">
-                                    <div class="invalid-feedback" id="google_client_secret-error"></div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
-                                <span id="googleConnectionStatus" class="settings-form-status"></span>
-                                <button type="submit" class="btn btn-success settings-submit-btn">
-                                    <span class="spinner-border spinner-border-sm d-none" role="status"
-                                        aria-hidden="true"></span>
-                                    <span class="btn-text">Save Google Credentials</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="tab-pane fade" id="whatsapp-configure" role="tabpanel">
-                <div class="settings-panel">
-                    <div class="settings-panel-head">WhatsApp Configure Settings</div>
-                    <div class="settings-panel-body">
+                            <div class="tab-pane fade" id="whatsapp-configure" role="tabpanel">
+                
                         <div class="mb-4">
                             <div>
                                 <h4 class="fw-bold mb-1">Configure your WhatsApp API settings <span
@@ -570,155 +407,323 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3"
                                     id="wa_templates_pagination"></div>
+                            
+                        
+                    </div>
+                </div>
+            </div>
+                            <div class="tab-pane fade" id="smtp" role="tabpanel">
+                <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data"
+                    id="smtpSettingsForm">
+                    @csrf
+                    @method('PUT')
+                    
+                            <div class="row g-3 settings-smtp-grid">
+                                <div class="col-md-6"><label class="form-label">SMTP Host</label><input type="text"
+                                        name="mail_host" class="form-control"
+                                        value="{{ $settings['mail_host']->value ?? '' }}" placeholder="smtp.gmail.com">
+                                </div>
+                                <div class="col-md-6"><label class="form-label">SMTP Port</label><input type="number"
+                                        name="mail_port" class="form-control"
+                                        value="{{ $settings['mail_port']->value ?? '587' }}" placeholder="587"></div>
+                                <div class="col-md-6"><label class="form-label">SMTP Username</label><input type="email"
+                                        name="mail_username" class="form-control"
+                                        value="{{ $settings['mail_username']->value ?? '' }}" placeholder="you@gmail.com">
+                                </div>
+                                <div class="col-md-6"><label class="form-label">SMTP Password</label><input
+                                        type="password" name="mail_password" class="form-control"
+                                        value="{{ $settings['mail_password']->value ?? '' }}"
+                                        placeholder="Enter password">
+                                </div>
+                                <div class="col-md-6"><label class="form-label">Encryption</label><select
+                                        name="mail_encryption" class="form-select">
+                                        <option value="tls"
+                                            {{ ($settings['mail_encryption']->value ?? 'tls') == 'tls' ? 'selected' : '' }}>
+                                            TLS</option>
+                                        <option value="ssl"
+                                            {{ ($settings['mail_encryption']->value ?? '') == 'ssl' ? 'selected' : '' }}>
+                                            SSL</option>
+                                        <option value=""
+                                            {{ ($settings['mail_encryption']->value ?? '') == '' ? 'selected' : '' }}>None
+                                        </option>
+                                    </select></div>
+                                <div class="col-md-6"><label class="form-label">From Name</label><input type="text"
+                                        name="mail_from_name" class="form-control"
+                                        value="{{ $settings['mail_from_name']->value ?? config('app.name', 'CRM') }}"
+                                        placeholder="Company Name"></div>
+                            
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="smtpSettingsStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-primary settings-submit-btn">Save SMTP
+                                    Settings</button>
+                            
+                        </div>
+                    </div>
+                </form>
+            </div>
+                            <div class="tab-pane fade" id="google-connection" role="tabpanel">
+                <form action="{{ route('settings.update') }}" method="POST" id="googleConnectionForm" novalidate>
+                    @csrf
+                    @method('PUT')
+                    
+                            <!-- Connect to Google Section -->
+                            <div class="mb-4 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-light rounded-circle p-2"
+                                            style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-google" style="font-size: 24px; color: #4285f4;"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold">Connect To Google</h6>
+                                            <small class="text-muted">
+                                                @if (!empty($settings['google_client_id']->value ?? ''))
+                                                    <span class="text-success">Connected</span>
+                                                @else
+                                                    <span class="text-danger">Not connected</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-success" id="connectToGoogleBtn">
+                                        <i class="bi bi-link-45deg me-1"></i>Connect to Google
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- Google OAuth Credentials Section -->
+                            <h6 class="fw-semibold mb-3">Google OAuth Credentials</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Google Client ID</label>
+                                    <input type="text" name="google_client_id" id="google_client_id"
+                                        class="form-control"
+                                        value="{{ old('google_client_id', $settings['google_client_id']->value ?? '') }}"
+                                        placeholder="Enter Google Client ID">
+                                    <div class="invalid-feedback" id="google_client_id-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Google Client Secret</label>
+                                    <input type="password" name="google_client_secret" id="google_client_secret"
+                                        class="form-control"
+                                        value="{{ old('google_client_secret', $settings['google_client_secret']->value ?? '') }}"
+                                        placeholder="Enter Google Client Secret">
+                                    <div class="invalid-feedback" id="google_client_secret-error"></div>
+                                </div>
+                            
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="googleConnectionStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-success settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"
+                                        aria-hidden="true"></span>
+                                    <span class="btn-text">Save Google Credentials</span>
+                                </button>
+                            
+                        </div>
+                    </div>
+                </form>
+            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="integrations" role="tabpanel">
-                <div class="settings-panel">
-                    <div class="settings-panel-head">Integrations</div>
-                    <div class="settings-panel-body">
-                        <div class="integrations-accordion" id="integrationsAccordion">
-                            <div class="integration-card">
-                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#facebookAdsPanel" aria-expanded="false"
-                                    aria-controls="facebookAdsPanel">
-                                    <span class="integration-toggle-left">
-                                        <span class="integration-icon facebook"><i class="bi bi-facebook"></i></span>
-                                        <span>Facebook Ads</span>
-                                    </span>
-                                    <i class="bi bi-chevron-down integration-caret"></i>
-                                </button>
-                                <div id="facebookAdsPanel" class="collapse integration-panel"
-                                    data-bs-parent="#integrationsAccordion">
-                                    <div class="integration-body">
-                                        <div class="integration-copy">This integration lets you connect your Facebook Ads
-                                            account to manage campaigns and track conversions.</div>
 
-                                        <div class="integration-inner-card">
-                                            <button class="integration-inner-toggle" type="button"
-                                                data-bs-toggle="collapse" data-bs-target="#facebookConnectedPages"
-                                                aria-expanded="false" aria-controls="facebookConnectedPages">
-                                                <span>Connected Pages</span>
-                                                <i class="bi bi-chevron-down integration-inner-caret"></i>
-                                            </button>
-                                            <div id="facebookConnectedPages" class="collapse integration-inner-collapse">
-                                                <div class="table-responsive">
-                                                    <table class="table integration-table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th style="width: 48px;">#</th>
-                                                                <th style="width: 80px;">Image</th>
-                                                                <th style="width: 240px;">Page ID</th>
-                                                                <th>Page Name</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td>1</td>
-                                                                <td><span class="integration-mini-icon facebook"><i
-                                                                            class="bi bi-facebook"></i></span></td>
-                                                                <td>681579935046274</td>
-                                                                <td>Hello test bhavvik</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>2</td>
-                                                                <td><span class="integration-mini-icon whatsapp"><i
-                                                                            class="bi bi-megaphone-fill"></i></span></td>
-                                                                <td>727332373793917</td>
-                                                                <td>Testing page</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>3</td>
-                                                                <td><span class="integration-mini-icon analytics"><i
-                                                                            class="bi bi-bar-chart-fill"></i></span></td>
-                                                                <td>909114223345667</td>
-                                                                <td>Demo Campaign Hub</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>4</td>
-                                                                <td><span class="integration-mini-icon audience"><i
-                                                                            class="bi bi-people-fill"></i></span></td>
-                                                                <td>555666777888999</td>
-                                                                <td>Demo Lead Gen Page</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+            <!-- 2. Financial Information Main Tab -->
+            <div class="tab-pane fade" id="financial-information" role="tabpanel">
+                <div class="settings-panel">
+                    <div class="settings-panel-head">Financial Information</div>
+                    <div class="settings-panel-body">
+                        <ul class="nav settings-subtabs settings-integration-subtabs mb-4" id="financialInnerTabs" role="tablist">
+                            <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tax" type="button" role="tab">Tax</button></li>
+                            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#subsidy" type="button" role="tab">Subsidy</button></li>
+                            <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#bank-details" type="button" role="tab">Bank Details</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="tax" role="tabpanel">
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <div class="card-header border-bottom-0 py-3 px-4">
+                        <div
+                            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                            <div>
+                                <h4 class="fw-bold mb-0">Tax Settings</h4>
+                                <p class="text-muted small mb-0">Configure tax types and rates for your products and
+                                    services.</p>
+                            </div>
+                            <button type="button" class="btn btn-dark-blue" data-bs-toggle="modal"
+                                data-bs-target="#addTaxModal">
+                                <i class="bi bi-plus-lg me-1"></i>Add Tax
+                            </button>
+                        </div>
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <h6 class="fw-bold mb-0">Manage Tax Types and Rates</h6>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="taxTable">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4 text-center" style="width: 80px;">#</th>
+                                        <th class="text-center">Tax Name</th>
+                                        <th class="text-center">Rate (%)</th>
+                                        <th class="text-center pe-4" style="width: 170px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($taxes as $index => $tax)
+                                        <tr data-tax-id="{{ $tax->id }}">
+                                            <td class="ps-4 text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center">{{ $tax->name }}</td>
+                                            <td class="text-center">{{ $tax->rate }}%</td>
+                                            <td class="text-center pe-4">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    onclick="editTax({{ $tax->id }}, '{{ $tax->name }}', {{ $tax->rate }})"
+                                                    title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="deleteTax({{ $tax->id }})" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr id="noTaxRow">
+                                            <td colspan="4" class="text-center text-muted py-4">No tax configurations
+                                                found.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer border-top-0 py-4 px-4">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                These tax configurations will be available when creating products, estimates, and invoices.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                            <div class="tab-pane fade" id="subsidy" role="tabpanel">
+                <form id="subsidyForm" novalidate>
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-3">Residential Subsidy</h6>
+                                <div class="row g-3">
+                                    @foreach ($subsidies as $subsidy)
+                                        @if (str_starts_with($subsidy->category, 'residential'))
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">
+                                                    @if ($subsidy->category == 'residential_0_2')
+                                                        0 - 2 kW
+                                                    @elseif($subsidy->category == 'residential_2_3')
+                                                        2 - 3 kW
+                                                    @elseif($subsidy->category == 'residential_above_3')
+                                                        Above 3 kW
+                                                    @endif
+                                                </label>
+                                                <input type="number" class="form-control subsidy-input"
+                                                    id="subsidy_{{ $subsidy->id }}"
+                                                    data-subsidy-id="{{ $subsidy->id }}" value="{{ $subsidy->amount }}"
+                                                    step="0.01" min="0" placeholder="Enter amount">
+                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error">
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="integration-action">
-                                            <a href="https://www.facebook.com/login.php" target="_blank"
-                                                rel="noopener noreferrer" class="btn btn-primary settings-submit-btn"><i
-                                                    class="bi bi-facebook me-1"></i> Connect with Facebook Ads</a>
-                                        </div>
-                                    </div>
+                                        @endif
+                                    @endforeach
                                 </div>
                             </div>
 
-                            <div class="integration-card">
-                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#googleAdsPanel" aria-expanded="false"
-                                    aria-controls="googleAdsPanel">
-                                    <span class="integration-toggle-left">
-                                        <span class="integration-icon google">G</span>
-                                        <span>Google Ads</span>
-                                    </span>
-                                    <i class="bi bi-chevron-down integration-caret"></i>
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-3">Common Meter</h6>
+                                <div class="row g-3">
+                                    @foreach ($subsidies as $subsidy)
+                                        @if ($subsidy->category == 'common_meter')
+                                            <div class="col-md-4">
+                                                <input type="number" class="form-control subsidy-input"
+                                                    id="subsidy_{{ $subsidy->id }}"
+                                                    data-subsidy-id="{{ $subsidy->id }}" value="{{ $subsidy->amount }}"
+                                                    step="0.01" min="0" placeholder="Enter amount">
+                                                <div class="invalid-feedback" id="subsidy_{{ $subsidy->id }}-error">
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="subsidyStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-success settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"
+                                        aria-hidden="true"></span>
+                                    <span class="btn-text">Save Subsidy</span>
                                 </button>
-                                <div id="googleAdsPanel" class="collapse integration-panel"
-                                    data-bs-parent="#integrationsAccordion">
-                                    <div class="integration-body">
-                                        <div class="integration-copy mb-3">Connect your Google Ads workspace to sync
-                                            campaigns, account IDs and conversion reporting.</div>
-                                        <div class="d-flex justify-content-end">
-                                            <a href="https://myaccount.google.com/" target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="btn btn-outline-primary rounded-pill px-4">Connect Google Ads</a>
-                                        </div>
-                                    </div>
+                            
+                        </div>
+                    </div>
+                </form>
+            </div>
+                            <div class="tab-pane fade" id="bank-details" role="tabpanel">
+                <form action="{{ route('settings.update') }}" method="POST" id="bankDetailsForm" novalidate>
+                    @csrf
+                    @method('PUT')
+                    
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Bank Name</label>
+                                    <input type="text" name="bank_name" id="bank_name" class="form-control"
+                                        value="{{ old('bank_name', $settings['bank_name']->value ?? '') }}"
+                                        placeholder="Enter bank name">
+                                    <div class="invalid-feedback" id="bank_name-error"></div>
                                 </div>
-                            </div>
-
-                            <div class="integration-card">
-                                <button class="integration-toggle" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#instagramAdsPanel" aria-expanded="false"
-                                    aria-controls="instagramAdsPanel">
-                                    <span class="integration-toggle-left">
-                                        <span class="integration-icon instagram"><i class="bi bi-instagram"></i></span>
-                                        <span>Instagram Ads</span>
-                                    </span>
-                                    <i class="bi bi-chevron-down integration-caret"></i>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Account Name</label>
+                                    <input type="text" name="account_name" id="account_name" class="form-control"
+                                        value="{{ old('account_name', $settings['account_name']->value ?? '') }}"
+                                        placeholder="Enter account holder name">
+                                    <div class="invalid-feedback" id="account_name-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Account Number</label>
+                                    <input type="text" name="account_number" id="account_number" class="form-control"
+                                        value="{{ old('account_number', $settings['account_number']->value ?? '') }}"
+                                        placeholder="Enter account number">
+                                    <div class="invalid-feedback" id="account_number-error"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">IFSC Code</label>
+                                    <input type="text" name="ifsc_code" id="ifsc_code" class="form-control"
+                                        value="{{ old('ifsc_code', $settings['ifsc_code']->value ?? '') }}"
+                                        placeholder="Enter IFSC code">
+                                    <div class="invalid-feedback" id="ifsc_code-error"></div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-semibold">Branch Name</label>
+                                    <input type="text" name="branch_name" id="branch_name" class="form-control"
+                                        value="{{ old('branch_name', $settings['branch_name']->value ?? '') }}"
+                                        placeholder="Enter branch name">
+                                    <div class="invalid-feedback" id="branch_name-error"></div>
+                                </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                                <span id="bankDetailsStatus" class="settings-form-status"></span>
+                                <button type="submit" class="btn btn-primary settings-submit-btn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"
+                                        aria-hidden="true"></span>
+                                    <span class="btn-text">Save Bank Details</span>
                                 </button>
-                                <div id="instagramAdsPanel" class="collapse integration-panel"
-                                    data-bs-parent="#integrationsAccordion">
-                                    <div class="integration-body">
-                                        <div class="integration-copy mb-3">Connect Instagram Ads to manage campaign sources
-                                            and social lead capture from a single place.</div>
-                                        <div class="d-flex justify-content-end">
-                                            <a href="https://www.instagram.com/accounts/login/" target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="btn btn-outline-primary rounded-pill px-4">Connect Instagram Ads</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
+                        </div>
+                    </div>
+                </form>
+            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <style>
-            #table-truncate:not(.active) {
-                display: none !important;
-            }
-            #table-truncate {
-                opacity: 1 !important;
-            }
-        </style>
-        <div class="tab-pane fade" id="table-truncate" role="tabpanel">
+<div class="tab-pane fade" id="table-truncate" role="tabpanel">
             <div class="settings-panel">
                 <div
                     class="settings-panel-head d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
