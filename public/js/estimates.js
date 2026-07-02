@@ -466,7 +466,7 @@
                 }
 
                 const $modal = window.jQuery(modalEl || document.body);
-                window.jQuery('#quick_estimate_customer_id, #quick_template_id, .quick-bom-select').each(function () {
+                window.jQuery('#quick_estimate_customer_id, #quick_estimate_type, .quick-bom-select').each(function () {
                     const $select = window.jQuery(this);
                     if ($select.hasClass('select2-hidden-accessible')) {
                         return;
@@ -475,10 +475,20 @@
                     $select.select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : ($modal.length ? $modal : window.jQuery(document.body)),
+                        dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : $modal,
                         minimumResultsForSearch: 0
                     });
                 });
+
+                const $templateSelect = window.jQuery('#quick_template_id');
+                if (!$templateSelect.hasClass('select2-hidden-accessible')) {
+                    $templateSelect.select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dropdownParent: window.jQuery('#quick_template_wrapper'),
+                        minimumResultsForSearch: 0
+                    });
+                }
             };
 
             const initQuickBomSelect = function (select) {
@@ -487,6 +497,7 @@
                 }
 
                 const $select = window.jQuery(select);
+                const $modal = window.jQuery(modalEl || document.body);
                 if ($select.hasClass('select2-hidden-accessible')) {
                     $select.select2('destroy');
                 }
@@ -494,7 +505,7 @@
                 $select.select2({
                     theme: 'bootstrap-5',
                     width: '100%',
-                    dropdownParent: window.jQuery(modalEl).find('.modal-content').length ? window.jQuery(modalEl).find('.modal-content') : window.jQuery(modalEl || document.body),
+                    dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : $modal,
                     minimumResultsForSearch: 0
                 });
             };
