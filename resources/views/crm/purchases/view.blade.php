@@ -206,7 +206,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Contact</strong></td>
-                                        <td>{{ $purchase->customer?->phone ?? '--' }}</td>
+                                        <td>@if($purchase->customer?->phone)<a href="tel:{{ $purchase->customer->phone }}">{{ $purchase->customer->phone }}</a>@else -- @endif</td>
                                     </tr>
                                 </tbody>
                             </table>

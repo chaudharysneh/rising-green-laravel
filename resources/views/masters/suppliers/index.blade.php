@@ -33,8 +33,8 @@
                                 <td>{{ $supplier->type }}</td>
                                 <td>{{ $supplier->city?->name ?? '--' }}, {{ $supplier->country?->name ?? '--' }}</td>
                                 <td>{{ $supplier->contact_person }}</td>
-                                <td>{{ $supplier->email }}</td>
-                                <td>{{ $supplier->phone }}</td>
+                                <td>@if($supplier->email)<a href="mailto:{{ $supplier->email }}">{{ $supplier->email }}</a>@endif</td>
+                                <td>@if($supplier->phone)<a href="tel:{{ $supplier->phone }}">{{ $supplier->phone }}</a>@endif</td>
                                 <td>
                                     @if($supplier->is_active)
                                         <span class="badge crm-status-pill rounded-pill bg-success">Active</span>

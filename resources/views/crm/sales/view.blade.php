@@ -210,7 +210,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Contact</strong></td>
-                                        <td>{{ $sale->customer?->phone ?? '--' }}</td>
+                                        <td>@if($sale->customer?->phone)<a href="tel:{{ $sale->customer->phone }}">{{ $sale->customer->phone }}</a>@else -- @endif</td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -31,8 +31,8 @@
                                 <td>{{ $hotel->name }}</td>
                                 <td>{{ $hotel->city?->name ?? '--' }}</td>
                                 <td>{{ $hotel->star_rating }}</td>
-                                <td>{{ $hotel->email }}</td>
-                                <td>{{ $hotel->phone }}</td>
+                                <td>@if($hotel->email)<a href="mailto:{{ $hotel->email }}">{{ $hotel->email }}</a>@endif</td>
+                                <td>@if($hotel->phone)<a href="tel:{{ $hotel->phone }}">{{ $hotel->phone }}</a>@endif</td>
                                 <td>
                                     @if($hotel->is_active)
                                         <span class="badge crm-status-pill rounded-pill bg-success">Active</span>

@@ -76,7 +76,7 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark fs-6">{{ $booking->customer->name }}</div>
-                                        <div class="text-muted small">{{ $booking->customer->phone ?? 'No phone' }}</div>
+                                        <div class="text-muted small">@if($booking->customer && $booking->customer->phone)<a href="tel:{{ $booking->customer->phone }}">{{ $booking->customer->phone }}</a>@else No phone @endif</div>
                                     </div>
                                 </div>
                             </td>

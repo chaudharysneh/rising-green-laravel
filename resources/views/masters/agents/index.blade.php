@@ -33,8 +33,8 @@
                                 <td>{{ $agent->code }}</td>
                                 <td>{{ $agent->city?->name ?? '--' }}, {{ $agent->country?->name ?? '--' }}</td>
                                 <td>{{ $agent->type }}</td>
-                                <td>{{ $agent->email }}</td>
-                                <td>{{ $agent->phone }}</td>
+                                <td>@if($agent->email)<a href="mailto:{{ $agent->email }}">{{ $agent->email }}</a>@endif</td>
+                                <td>@if($agent->phone)<a href="tel:{{ $agent->phone }}">{{ $agent->phone }}</a>@endif</td>
                                 <td>
                                     @if($agent->is_active)
                                         <span class="badge crm-status-pill rounded-pill bg-success">Active</span>

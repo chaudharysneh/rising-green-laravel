@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     const VENDOR_API_BASE = '/api/vendors';
 
     if (document.readyState === 'loading') {
@@ -65,8 +65,8 @@
             tableBody.innerHTML = items.map(function (vendor, index) {
                 const srNo = meta && meta.from ? meta.from + index : index + 1;
                 const name = escapeHtml(vendor.name || '-');
-                const email = escapeHtml(vendor.email || '--');
-                const phone = escapeHtml(vendor.phone || '--');
+                const email = vendor.email ? '<a href="mailto:' + escapeHtml(vendor.email) + '" class="text-decoration-none">' + escapeHtml(vendor.email) + '</a>' : '--';
+                const phone = vendor.phone ? '<a href="tel:' + escapeHtml(vendor.phone) + '" class="text-decoration-none">' + escapeHtml(vendor.phone) + '</a>' : '--';
                 const createdAt = escapeHtml(formatDate(vendor.created_at));
 
                 return `
