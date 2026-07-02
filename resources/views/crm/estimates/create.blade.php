@@ -59,12 +59,79 @@
             width: 100% !important;
         }
 
+        .select2-dropdown,
+        .select2-container--open {
+            z-index: 99999 !important;
+        }
+
+        #estimateCreateForm .d-flex:has(.is-invalid) ~ .invalid-feedback {
+            display: block !important;
+        }
+
         @media (max-width: 1199.98px) {
             .bom-row-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             .bom-row-grid .bom-action-cell {
                 grid-column: span 2;
+            }
+        }
+
+        /* Responsive Multi-Step Logic */
+        @media (max-width: 767.98px) {
+            #estimateCreateForm .create-step-1,
+            #estimateCreateForm .create-step-2,
+            #estimateCreateForm .create-step-3 {
+                display: none !important;
+            }
+            #estimateCreateForm .active-step {
+                display: block !important;
+            }
+            #estimateCreateForm label.form-label {
+                min-height: 42px;
+                display: inline-flex;
+                align-items: flex-end;
+                width: 100%;
+            }
+            #create_template_wrapper label.form-label i {
+                display: none !important;
+            }
+            #estimateCreateForm .row.g-3 {
+                min-height: 420px;
+            }
+            #estimateCreateForm .form-actions .mobile-create-wizard-btn {
+                width: auto !important;
+            }
+            .bom-row-grid > div:nth-child(1),
+            .bom-row-grid > div:nth-child(2) {
+                grid-column: span 2;
+            }
+            
+            .create-step-indicator {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                padding: 0 10px;
+            }
+            .create-step-dot {
+                height: 8px;
+                width: 100%;
+                background: #e9ecef;
+                border-radius: 10px;
+                transition: 0.3s;
+            }
+            .create-step-dot.active {
+                background: #121a33;
+            }
+        }
+        @media (min-width: 768px) {
+            .create-step-indicator {
+                display: none !important;
+            }
+            .mobile-create-wizard-btn {
+                display: none !important;
             }
         }
     </style>
@@ -125,18 +192,26 @@
                     id="estimateCreateForm" action="/api/estimates">
                     @csrf
 
+                    <div class="create-step-indicator d-md-none mt-2">
+                        <div class="create-step-dot active" id="cdot-1"></div>
+                        <div class="create-step-dot" id="cdot-2"></div>
+                        <div class="create-step-dot" id="cdot-3"></div>
+                    </div>
+
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-12 create-step-1 active-step">
                             <label class="form-label fw-semibold mb-1">Select Customer <span class="text-danger">*</span></label>
-                            <div class="d-flex align-items-start gap-2">
-                                <select name="customer_id" id="select_customer"
-                                    class="form-select @error('customer_id') is-invalid @enderror" required>
-                                    <option value="">Select Customer</option>
-                                    @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="d-flex align-items-start gap-2" style="min-width: 0;">
+                                <div class="flex-grow-1 w-100" style="min-width: 0;">
+                                    <select name="customer_id" id="select_customer"
+                                        class="form-select @error('customer_id') is-invalid @enderror" required>
+                                        <option value="">Select Customer</option>
+                                        @foreach ($customers as $customer)
+                                            <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
@@ -144,7 +219,7 @@
                             <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step">
                             <label class="form-label fw-semibold">Estimate Name <span class="text-danger">*</span></label>
                             <input type="text" name="estimate_name" id="estimate_name" value="{{ old('estimate_name') }}"
                                 class="form-control @error('estimate_name') is-invalid @enderror"
@@ -152,7 +227,7 @@
                             <div class="invalid-feedback" id="estimate_name-error">Please enter estimate name</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step">
                             <label class="form-label fw-semibold">Estimate Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
@@ -165,7 +240,7 @@
                             <div class="invalid-feedback" id="type-error">Please select estimate type</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
@@ -173,7 +248,7 @@
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
@@ -181,8 +256,8 @@
                             <div class="invalid-feedback" id="price-error">Please enter valid price</div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Solar Meter Charges <span
+                        <div class="col-6 col-md-4 create-step-1 active-step">
+                            <label class="form-label fw-semibold">Solar Meter <span
                                     class="text-danger">*</span></label>
                             <select name="solar_meter_charges" id="solar_meter_select"
                                 class="form-select @error('solar_meter_charges') is-invalid @enderror" required>
@@ -195,7 +270,22 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step" id="create_template_wrapper">
+                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
+                            <select name="template_id" id="template_id"
+                                class="form-select @error('template_id') is-invalid @enderror" required>
+                                <option value="">Select Template</option>
+                                @if (isset($templates))
+                                    @foreach ($templates as $template)
+                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
+                                            {{ $template->template_name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
+                        </div>
+
+                        <div class="col-12 create-step-1 active-step">
                             <label class="form-label fw-semibold">Charges</label>
                             <div class="form-control d-flex align-items-center bg-light"
                                 style="min-height: 38px; padding: 0.375rem 0.75rem;">
@@ -221,22 +311,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
-                            <select name="template_id" id="template_id"
-                                class="form-select @error('template_id') is-invalid @enderror" required>
-                                <option value="">Select Template</option>
-                                @if (isset($templates))
-                                    @foreach ($templates as $template)
-                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
-                                            {{ $template->template_name }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
-                        </div>
-
-                        <div class="col-md-4">
+                        <div class="d-none">
                             <label class="form-label fw-semibold">Created Date</label>
                             <input type="date" name="estimate_date" id="estimate_date"
                                 value="{{ old('estimate_date', date('Y-m-d')) }}"
@@ -248,7 +323,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
@@ -329,7 +404,7 @@
                                 one BOM</div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 create-step-3">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Design File</label>
                                 <input type="file" name="attach_file" id="attach_file"
@@ -344,7 +419,7 @@
 
                             <div>
                                 <label class="form-label fw-semibold">Comment</label>
-                                <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="5"
+                                <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="2"
                                     placeholder="Add any comments...">{{ old('comment') }}</textarea>
                                 <div class="invalid-feedback">
                                     @error('comment')
@@ -354,7 +429,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 create-step-3">
                             <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
@@ -402,12 +477,19 @@
                         <input type="hidden" name="status" id="status" value="pending">
                     </div>
 
-                    <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
-                        <a href="{{ route('estimates.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
-                        <button type="submit" class="btn btn-dark-blue" id="submitBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
-                            <span id="btnText">Submit</span>
-                        </button>
+                    <div class="mt-4 pt-4 border-top d-flex justify-content-between gap-2 form-actions">
+                        <a href="{{ route('estimates.index') }}" class="btn btn-outline-dark-blue d-none d-md-block">Cancel</a>
+                        
+                        <!-- Mobile Wizard Buttons -->
+                        <button type="button" class="btn btn-outline-dark-blue mobile-create-wizard-btn create-prev-btn" style="display: none !important;">Back</button>
+                        
+                        <div class="d-flex ms-auto gap-2">
+                            <button type="button" class="btn btn-dark-blue mobile-create-wizard-btn create-next-btn">Next</button>
+                            <button type="submit" class="btn btn-dark-blue create-submit-btn" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="btnSpinner"></span>
+                                <span id="btnText">Submit</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -520,7 +602,7 @@
     <script>
         $(document).ready(function() {
             function initSelect2(context = document) {
-                $(context).find('#select_customer, #template_id, .product-select, .product-make').select2({
+                $(context).find('#select_customer, #template_id, #type, #solar_meter_select, .product-select, .product-make').select2({
                     theme: 'bootstrap-5',
                     width: '100%'
                 });
@@ -599,6 +681,121 @@
             $(document).on('select2:select', '.product-select', function (e) {
                 $(this).trigger('change');
             });
+            
+            // Multi-step form logic
+            let currentCreateStep = 1;
+            const totalCreateSteps = 3;
+
+            function updateCreateWizardUI() {
+                if (window.innerWidth >= 768) {
+                    $('.create-submit-btn').show();
+                    return;
+                }
+                
+                // Hide all steps, show current
+                $('#estimateCreateForm .active-step').removeClass('active-step');
+                $('#estimateCreateForm .create-step-' + currentCreateStep).addClass('active-step');
+                
+                // Update dots
+                $('.create-step-dot').removeClass('active');
+                $('#cdot-' + currentCreateStep).addClass('active');
+
+                if (currentCreateStep === 1) {
+                    $('.create-prev-btn').attr('style', 'display: none !important');
+                    $('.create-next-btn').show();
+                    $('.create-submit-btn').hide();
+                } else if (currentCreateStep === totalCreateSteps) {
+                    $('.create-prev-btn').attr('style', 'display: inline-block !important');
+                    $('.create-next-btn').hide();
+                    $('.create-submit-btn').show();
+                } else {
+                    $('.create-prev-btn').attr('style', 'display: inline-block !important');
+                    $('.create-next-btn').show();
+                    $('.create-submit-btn').hide();
+                }
+            }
+
+            $('.create-next-btn').click(function() {
+                let isValid = true;
+                
+                if (currentCreateStep === 2) {
+                    // Validate BOM step (Step 2)
+                    const bomRows = $('#estimateCreateForm .bom-row');
+                    let selectedBomCount = 0;
+                    
+                    bomRows.each(function() {
+                        const select = $(this).find('.product-select');
+                        const bomId = select.val();
+                        const qtyInput = $(this).find('input[name="product_qty[]"]');
+                        const priceInput = $(this).find('input[name="product_price[]"]');
+                        
+                        if (bomId) {
+                            selectedBomCount++;
+                            const qty = parseFloat(qtyInput.val() || 0);
+                            const price = parseFloat(priceInput.val() || 0);
+                            
+                            if (!(qty > 0)) {
+                                qtyInput.addClass('is-invalid');
+                                isValid = false;
+                            } else {
+                                qtyInput.removeClass('is-invalid');
+                            }
+                            
+                            if (price < 0) {
+                                priceInput.addClass('is-invalid');
+                                isValid = false;
+                            } else {
+                                priceInput.removeClass('is-invalid');
+                            }
+                        }
+                    });
+                    
+                    if (selectedBomCount === 0) {
+                        $('#products-error').addClass('d-block').show();
+                        $('#estimateCreateForm .product-select').first().addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        $('#products-error').removeClass('d-block').hide();
+                    }
+                } else {
+                    // Standard validation for Step 1
+                    $('#estimateCreateForm .create-step-' + currentCreateStep + ' [required]').each(function() {
+                        if (!$(this).val() && $(this).is(':visible')) {
+                            isValid = false;
+                            $(this).addClass('is-invalid');
+                        } else {
+                            $(this).removeClass('is-invalid');
+                        }
+                    });
+                }
+                
+                if (isValid && currentCreateStep < totalCreateSteps) {
+                    currentCreateStep++;
+                    updateCreateWizardUI();
+                }
+            });
+
+            $('.create-prev-btn').click(function() {
+                if (currentCreateStep > 1) {
+                    currentCreateStep--;
+                    updateCreateWizardUI();
+                }
+            });
+
+            // Dynamically clear validation errors using event delegation
+            $('#estimateCreateForm').on('change input', '[required], .product-select, input[name="product_qty[]"], input[name="product_price[]"]', function() {
+                const val = $(this).val();
+                if (val || $(this).attr('name') === 'product_qty[]' || $(this).attr('name') === 'product_price[]') {
+                    $(this).removeClass('is-invalid');
+                    if ($(this).hasClass('product-select')) {
+                        $('#products-error').removeClass('d-block').hide();
+                    }
+                }
+            });
+
+            // Initial setup
+            updateCreateWizardUI();
+            $(window).resize(updateCreateWizardUI);
         });
     </script>
 @endpush

@@ -47,8 +47,8 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="flex-grow-1 w-100">
+                            <div class="d-flex align-items-start gap-2" style="min-width: 0;">
+                                <div class="flex-grow-1 w-100" style="min-width: 0;">
                                     <select name="customer_id" id="customer_id" class="form-select"
                                         data-search-url="{{ route('customers.search.api') }}" data-search-type="customer"
                                         data-search-placeholder="Select Customer" required>
@@ -67,8 +67,8 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Estimate Template </label>
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="flex-grow-1 w-100">
+                            <div class="d-flex align-items-start gap-2" style="min-width: 0;">
+                                <div class="flex-grow-1 w-100" style="min-width: 0;">
                                     <select name="estimate_id" id="estimate_id" class="form-select">
                                         <option value="">Select Estimate</option>
                                         @foreach ($customerEstimates as $estimate)
@@ -306,3 +306,5 @@
         });
     </script>
 @endpush
+
+
