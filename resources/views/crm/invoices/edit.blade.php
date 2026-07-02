@@ -67,7 +67,11 @@
                 grid-column: span 2;
             }
         }
+        #invoiceEditForm .d-flex:has(.is-invalid) ~ .invalid-feedback {
+            display: block !important;
+        }
     </style>
+    @include('crm.invoices.partials.mobile-wizard', ['formId' => 'invoiceEditForm'])
 @endpush
 
 @section('content')
@@ -141,8 +145,14 @@
                     @csrf
                     @method('PUT')
 
+                    <div class="create-step-indicator d-md-none mt-2">
+                        <div class="create-step-dot active" id="cdot-1"></div>
+                        <div class="create-step-dot" id="cdot-2"></div>
+                        <div class="create-step-dot" id="cdot-3"></div>
+                    </div>
+
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-12 create-step-1 active-step">
                             <label class="form-label fw-semibold mb-1">Select Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2">
                                 <select name="customer_id" id="select_customer"
@@ -160,7 +170,7 @@
                             <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Invoice Name <span class="text-danger">*</span></label>
                             <input type="text" name="invoice_name" id="invoice_name"
                                 value="{{ old('invoice_name', $invoice->invoice_name) }}"
@@ -171,7 +181,7 @@
 
                     <input type="hidden" name="currency_id" id="currency_id" value="{{ old('currency_id', $invoice->currency_id ?? $defaultCurrencyId) }}">
 
-                    <div class="col-md-4">
+                    <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Invoice Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
@@ -184,7 +194,7 @@
                             <div class="invalid-feedback" id="type-error">Please select invoice type</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity', $invoice->quantity) }}"
@@ -193,7 +203,7 @@
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price', $invoice->price) }}"
@@ -202,7 +212,7 @@
                             <div class="invalid-feedback" id="price-error">Please enter valid price</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Solar Meter Charges <span
                                     class="text-danger">*</span></label>
                             <select name="solar_meter_charges" id="solar_meter_select"
@@ -216,34 +226,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Charges</label>
-                            <div class="form-control d-flex align-items-center bg-light"
-                                style="min-height: 38px; padding: 0.375rem 0.75rem;">
-                                <div class="form-check mb-0">
-                                    <input class="form-check-input" type="checkbox" id="solar_structure_charges_check"
-                                        value="1" @checked((float) old('solar_structure_charges', $invoice->solar_structure_charges) > 0)>
-                                    <label class="form-check-label small" for="solar_structure_charges_check">
-                                        Solar Structure Charges
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="structure-charges-input" style="display: none; margin-top: 12px;">
-                                <label class="form-label fw-semibold small">Enter Structure Charges</label>
-                                <input type="number" min="0" step="1" name="solar_structure_charges"
-                                    id="solar_structure_charges"
-                                    value="{{ old('solar_structure_charges', $invoice->solar_structure_charges) }}"
-                                    class="form-control @error('solar_structure_charges') is-invalid @enderror"
-                                    placeholder="0.00">
-                                <div class="invalid-feedback" id="solar_structure_charges-error">
-                                    @error('solar_structure_charges')
-                                        {{ $message }}
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
                             <select name="template_id" id="template_id"
                                 class="form-select @error('template_id') is-invalid @enderror" required>
@@ -256,19 +239,51 @@
                             <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Invoice Date</label>
-                            <input type="date" name="invoice_date" id="invoice_date"
-                                value="{{ old('invoice_date', optional($invoice->invoice_date)->format('Y-m-d')) }}"
-                                class="form-control @error('invoice_date') is-invalid @enderror">
-                            <div class="invalid-feedback" id="invoice_date-error">
-                                @error('invoice_date')
-                                    {{ $message }}
-                                @enderror
+                        <div class="col-12 create-step-1 active-step estimate-charges-date-group">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-8 estimate-charges-col">
+                                    <label class="form-label fw-semibold">Charges</label>
+                                    <div class="form-control d-flex align-items-center bg-light"
+                                        style="min-height: 38px; padding: 0.375rem 0.75rem;">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox" id="solar_structure_charges_check"
+                                                value="1" @checked((float) old('solar_structure_charges', $invoice->solar_structure_charges) > 0)>
+                                            <label class="form-check-label small" for="solar_structure_charges_check">
+                                                Solar Structure Charges
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4 d-none d-md-block estimate-created-date-col">
+                                    <label class="form-label fw-semibold">Invoice Date</label>
+                                    <input type="date" name="invoice_date" id="invoice_date"
+                                        value="{{ old('invoice_date', optional($invoice->invoice_date)->format('Y-m-d')) }}"
+                                        class="form-control @error('invoice_date') is-invalid @enderror">
+                                    <div class="invalid-feedback" id="invoice_date-error">
+                                        @error('invoice_date')
+                                            {{ $message }}
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-12 estimate-structure-charges-col" id="structure-charges-input" style="display: none;">
+                                    <label class="form-label fw-semibold small">Enter Structure Charges</label>
+                                    <input type="number" min="0" step="1" name="solar_structure_charges"
+                                        id="solar_structure_charges"
+                                        value="{{ old('solar_structure_charges', $invoice->solar_structure_charges) }}"
+                                        class="form-control @error('solar_structure_charges') is-invalid @enderror"
+                                        placeholder="0.00">
+                                    <div class="invalid-feedback" id="solar_structure_charges-error">
+                                        @error('solar_structure_charges')
+                                            {{ $message }}
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
@@ -312,6 +327,7 @@
                                                         @disabled(empty($selectedProduct['product_id']))>
                                                         <option value="">Select Make</option>
                                                     </select>
+                                                    <div class="invalid-feedback bom-make-error">Please select make.</div>
                                                 </div>
                                                 <div>
                                                     <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
@@ -356,12 +372,13 @@
                                 <button type="button" class="btn btn-outline-dark-blue btn-sm" id="add_more_bom">
                                     <i class="bi bi-plus-circle me-2"></i>Add More BOM
                                 </button>
+                                <div class="estimate-bom-instruction" id="products-error" style="display:none;" role="status">
+                                    <i class="bi bi-info-circle me-1" aria-hidden="true"></i><span class="products-error-text">Please select at least one BOM.</span>
+                                </div>
                             </div>
-                            <div class="invalid-feedback" id="products-error" style="display:none;">Please select at least
-                                one BOM</div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 create-step-3">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Design File</label>
                                 <input type="file" name="attach_file" id="attach_file"
@@ -394,7 +411,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 create-step-3">
                             <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
@@ -434,7 +451,7 @@
                                 <hr class="my-2">
 
                                 <div class="totals-row total-row mb-0">
-                                    <span class="h5 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
+                                    <span class="h6 mb-0 fw-bold">Total Payable:</span>
                                     <span id="final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>
@@ -449,13 +466,17 @@
                             value="{{ old('status', $invoice->status) }}">
                     </div>
 
-                    <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">
-                        <a href="{{ route('invoices.index') }}" class="btn btn-outline-dark-blue">Cancel</a>
-                        <button type="submit" class="btn btn-dark-blue" id="submitBtn">
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"
-                                id="btnSpinner"></span>
-                            <span id="btnText">Update</span>
-                        </button>
+                    <div class="mt-4 pt-4 border-top d-flex justify-content-between gap-2 form-actions">
+                        <a href="{{ route('invoices.index') }}" class="btn btn-outline-dark-blue d-none d-md-inline-block">Cancel</a>
+                        <button type="button" class="btn btn-outline-dark-blue mobile-create-wizard-btn create-prev-btn" style="display: none !important;">Back</button>
+                        <div class="d-flex ms-auto gap-2">
+                            <button type="button" class="btn btn-dark-blue mobile-create-wizard-btn create-next-btn">Next</button>
+                            <button type="submit" class="btn btn-dark-blue create-submit-btn" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"
+                                    id="btnSpinner"></span>
+                                <span id="btnText">Update</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -665,4 +686,5 @@
             });
         });
     </script>
+    @include('crm.invoices.partials.mobile-wizard-script', ['formId' => '#invoiceEditForm'])
 @endpush

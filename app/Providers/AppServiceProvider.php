@@ -65,7 +65,37 @@ class AppServiceProvider extends ServiceProvider
                 $googleCalendarConnected = false;
             }
 
-            $view->with('googleCalendarConnected', $googleCalendarConnected);
+            $viewData = [
+                'googleCalendarConnected' => $googleCalendarConnected,
+                'showHeaderQuickEstimate' => false,
+                'headerQuickEstimateCustomers' => collect(),
+                'headerQuickEstimateTemplates' => collect(),
+                'headerQuickEstimateBomProducts' => collect(),
+                'headerQuickEstimateCategories' => collect(),
+                'headerQuickEstimateGstTaxes' => collect(),
+                'headerQuickEstimateSubsidies' => collect(),
+            ];
+
+            $user = auth()->user();
+            $skipHeaderQuickEstimateModal = request()->routeIs([
+                'estimates.index',
+                'deals.create',
+                'deals.edit',
+                'tasks.create',
+                'tasks.edit',
+            ]);
+
+            if ($user?->hasMatrixPermission('create_estimates') && !$skipHeaderQuickEstimateModal) {
+                $viewData['showHeaderQuickEstimate'] = true;
+                $viewData['headerQuickEstimateCustomers'] = \App\Models\Customer::visibleTo($user)->orderBy('name')->get();
+                $viewData['headerQuickEstimateTemplates'] = \App\Models\PdfBuilderForm::orderBy('template_name')->get();
+                $viewData['headerQuickEstimateBomProducts'] = \App\Models\BomProduct::with('categories')->orderBy('product_name')->get();
+                $viewData['headerQuickEstimateCategories'] = \App\Models\Category::orderBy('name')->get();
+                $viewData['headerQuickEstimateGstTaxes'] = \App\Models\Tax::active()->orderBy('name')->orderBy('rate')->get();
+                $viewData['headerQuickEstimateSubsidies'] = \App\Models\Subsidy::active()->get();
+            }
+
+            $view->with($viewData);
         });
     }
 

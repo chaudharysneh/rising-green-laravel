@@ -11,15 +11,15 @@
                         <h4 class="fw-bold mb-0">Invoices</h4>
                         <p class="text-muted small mb-0">Manage customer billing and payment records.</p>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        @can('invoices.view')
-                            <a href="{{ route('invoices.export') }}" class="btn btn-outline-dark-blue">
-                                <i class="fa-solid fa-download me-1"></i>Export
+                    <div class="d-flex flex-row gap-2 invoice-header-actions w-100 w-md-auto">
+                        @can('invoices.create')
+                            <a href="{{ route('invoices.create') }}" class="btn btn-dark-blue flex-fill flex-md-grow-0">
+                                <i class="bi bi-plus-lg me-1"></i>Create Invoice
                             </a>
                         @endcan
-                        @can('invoices.create')
-                            <a href="{{ route('invoices.create') }}" class="btn btn-dark-blue">
-                                <i class="bi bi-plus-lg me-1"></i>Create Invoice
+                        @can('invoices.view')
+                            <a href="{{ route('invoices.export') }}" class="btn btn-outline-dark-blue flex-fill flex-md-grow-0">
+                                <i class="fa-solid fa-download me-1"></i>Export
                             </a>
                         @endcan
                     </div>
