@@ -27,6 +27,10 @@
     z-index: 1050;
 }
 
+.main-logo-collapsed {
+    display: none;
+}
+
 @media (min-width: 992px) {
     .crm-sidebar.collapsed {
         width: 84px !important;
@@ -43,10 +47,6 @@
 
     .crm-sidebar.collapsed .main-logo-collapsed {
         display: block !important;
-    }
-
-    .main-logo-collapsed {
-        display: none;
     }
 
     .crm-sidebar.collapsed .profile-card.brand-card {
@@ -71,12 +71,21 @@
         left: 0;
         top: 0;
         height: 100vh;
+        height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
         transform: translateX(-100%);
         transition: transform .25s ease;
+        z-index: 1060;
     }
 
     .crm-sidebar.open {
         transform: translateX(0);
+    }
+
+    .crm-sidebar #sidebarMenu {
+        padding-bottom: 120px !important;
     }
 
     .crm-sidebar-backdrop.show {
