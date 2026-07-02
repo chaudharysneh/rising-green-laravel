@@ -481,9 +481,11 @@ $(document).ready(function () {
             return;
         }
 
-        $(select).val(String(value)).trigger("change");
+        const $select = $(select);
+        if (String($select.val()) !== String(value)) {
+            $select.val(String(value)).trigger("change");
+        }
     }
-
     function initDealEstimateSync() {
         const estimateSelect = document.getElementById("estimate_id");
         const customerSelect = document.getElementById("customer_id");
@@ -696,8 +698,11 @@ $(document).ready(function () {
 
             $customer.on("change select2:select", function () {
                 const customerId = window.jQuery(this).val();
-                rebuildEstimateOptions(customerId);
-                amountInput.value = "";
+                const currentEstimateId = window.jQuery(estimateSelect).val();
+                rebuildEstimateOptions(customerId, currentEstimateId);
+                if (!currentEstimateId) {
+                    amountInput.value = "";
+                }
                 const customerName = $customer.find("option:selected").text().trim();
                 titleInput.value = customerName
                     ? `Deal - ${customerName}`

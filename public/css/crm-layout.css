@@ -471,6 +471,12 @@ a {
     background: var(--crm-bg-card);
 }
 
+@media (max-width: 991.98px) {
+    .notifications-dropdown[style] {
+        transform: translate3d(250px, 40px, 0px) !important;
+    }
+}
+
 [data-theme="dark"] .notifications-dropdown {
     background: #1E293B;
     border-color: rgba(255, 255, 255, .08);
