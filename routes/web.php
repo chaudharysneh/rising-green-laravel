@@ -168,22 +168,22 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/meetings/{meeting}/edit', [MeetingController::class, 'edit'])->middleware('matrix_permission:edit_meetings')->name('meetings.edit');
 
     // Settings web routes
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings', [SettingController::class, 'index'])->middleware('main_admin')->name('settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->middleware('main_admin')->name('settings.update');
     
     // Table Truncate routes
-    Route::post('/settings/table-truncate-all', [\App\Http\Controllers\TableTruncateController::class, 'truncateAll'])->name('settings.table-truncate-all');
-    Route::post('/settings/table-truncate/{table}', [\App\Http\Controllers\TableTruncateController::class, 'truncate'])->name('settings.table-truncate');
+    Route::post('/settings/table-truncate-all', [\App\Http\Controllers\TableTruncateController::class, 'truncateAll'])->middleware('main_admin')->name('settings.table-truncate-all');
+    Route::post('/settings/table-truncate/{table}', [\App\Http\Controllers\TableTruncateController::class, 'truncate'])->middleware('main_admin')->name('settings.table-truncate');
 
     // Tax management routes
-    Route::post('/settings/taxes', [SettingController::class, 'storeTax'])->name('settings.taxes.store');
-    Route::put('/settings/taxes/{tax}', [SettingController::class, 'updateTax'])->name('settings.taxes.update');
-    Route::delete('/settings/taxes/{tax}', [SettingController::class, 'destroyTax'])->name('settings.taxes.destroy');
-    Route::get('/api/taxes', [SettingController::class, 'getTaxes'])->name('api.taxes.index');
+    Route::post('/settings/taxes', [SettingController::class, 'storeTax'])->middleware('main_admin')->name('settings.taxes.store');
+    Route::put('/settings/taxes/{tax}', [SettingController::class, 'updateTax'])->middleware('main_admin')->name('settings.taxes.update');
+    Route::delete('/settings/taxes/{tax}', [SettingController::class, 'destroyTax'])->middleware('main_admin')->name('settings.taxes.destroy');
+    Route::get('/api/taxes', [SettingController::class, 'getTaxes'])->middleware('main_admin')->name('api.taxes.index');
 
     // Subsidy management routes
-    Route::put('/settings/subsidies/{subsidy}', [SettingController::class, 'updateSubsidy'])->name('settings.subsidies.update');
-    Route::get('/api/subsidies', [SettingController::class, 'getSubsidies'])->name('api.subsidies.index');
+    Route::put('/settings/subsidies/{subsidy}', [SettingController::class, 'updateSubsidy'])->middleware('main_admin')->name('settings.subsidies.update');
+    Route::get('/api/subsidies', [SettingController::class, 'getSubsidies'])->middleware('main_admin')->name('api.subsidies.index');
 
 
     Route::resource('tasks', TaskController::class)->only(['index', 'create', 'show', 'edit'])->middleware('matrix_permission:view_tasks');
