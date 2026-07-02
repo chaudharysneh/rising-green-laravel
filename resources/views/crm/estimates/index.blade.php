@@ -393,7 +393,7 @@
                         <div class="col-12 quick-step-3">
                             <div class="totals-card quick-totals-card rounded-3">
                                 <div class="totals-row">
-                                    <span class="fw-semibold">Subtotal:</span>
+                                    <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
                                     <span id="quick_subtotal_display" class="fw-bold text-dark">0.00</span>
                                 </div>
 
@@ -415,12 +415,12 @@
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold" style="font-size: 15px;">Discount:</span>
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
                                     <input type="number" id="quick_discount" value="0" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold" style="font-size: 15px;">Subsidy:</span>
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subsidy:</span>
                                     <input type="number" id="quick_subsidy_amount" value="0" step="1" class="input-small">
                                 </div>
 

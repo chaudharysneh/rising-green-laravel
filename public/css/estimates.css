@@ -90,6 +90,56 @@
     min-width: 0;
 }
 
+#quickEstimateModal .crm-label-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#quickEstimateModal .crm-label-icon {
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+#estimateCreateForm .estimate-form-field-col,
+#estimateEditForm .estimate-form-field-col {
+    min-width: 0;
+}
+
+#estimateCreateForm label.form-label,
+#estimateEditForm label.form-label {
+    flex-wrap: nowrap;
+}
+
+#estimateCreateForm .crm-label-with-icon,
+#estimateEditForm .crm-label-with-icon {
+    flex-wrap: nowrap;
+}
+
+#estimateCreateForm .crm-label-icon,
+#estimateEditForm .crm-label-icon,
+#estimateCreateForm label.form-label .text-danger,
+#estimateEditForm label.form-label .text-danger {
+    flex-shrink: 0;
+}
+
+#estimateCreateForm .select2-container .select2-selection.is-invalid,
+#estimateEditForm .select2-container .select2-selection.is-invalid {
+    border-color: var(--bs-form-invalid-border-color, #dc3545) !important;
+}
+
+#estimateCreateForm .bom-make-error,
+#estimateEditForm .bom-make-error {
+    display: none;
+}
+
+#estimateCreateForm .bom-make-error.d-block,
+#estimateEditForm .bom-make-error.d-block {
+    display: block;
+}
+
 #addCustomerModal .modal-dialog,
 #quickAddBomModal .modal-dialog,
 .quick-estimate-nested-modal {
@@ -104,6 +154,36 @@
 #quickAddBomModal .select2-container,
 #quickAddBomModal .select2-container .select2-selection {
     max-width: 100% !important;
+}
+
+@media (max-width: 767.98px) {
+    #estimateCreateForm label.form-label,
+    #estimateEditForm label.form-label {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        min-height: auto;
+        margin-bottom: 0.35rem;
+        gap: 0.35rem;
+        line-height: 1.2;
+        font-size: 0.8125rem;
+    }
+
+    #estimateCreateForm .estimate-template-label-group,
+    #estimateEditForm .estimate-template-label-group {
+        min-width: 0;
+        flex: 0 1 auto;
+    }
+
+    #create_template_wrapper label.form-label,
+    #edit_template_wrapper label.form-label {
+        justify-content: flex-start !important;
+    }
+
+    #estimateCreateForm .row.g-3 > [class*="col-"],
+    #estimateEditForm .row.g-3 > [class*="col-"] {
+        min-width: 0;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -177,7 +257,8 @@
     border-color: var(--bs-form-invalid-border-color, #dc3545) !important;
 }
 
-#quickEstimateModal .quick-bom-instruction {
+#quickEstimateModal .quick-bom-instruction,
+.estimate-bom-instruction {
     padding: 0.65rem 0.85rem;
     border: 1px dashed #121a33;
     border-radius: 0.5rem;
@@ -186,10 +267,15 @@
     font-size: 0.875rem;
     font-weight: 500;
     line-height: 1.4;
+    margin-top:10px;
+}
+
+#quickEstimateModal .quick-bom-instruction {
     margin-top: 10px;
 }
 
-#quickEstimateModal .quick-bom-instruction .bi {
+#quickEstimateModal .quick-bom-instruction .bi,
+.estimate-bom-instruction .bi {
     color: #121a33;
 }
 
@@ -280,13 +366,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     margin-bottom: 12px;
     font-size: 15px;
     color: #333;
 }
 
+.totals-card .totals-row > .crm-label-with-icon {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.totals-card .totals-row > .input-small {
+    flex: 0 0 72px;
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+}
+
 .input-small {
-    /* width: 70px; */
+    width: 72px;
+    min-width: 72px;
+    flex-shrink: 0;
     padding: 6px 8px;
     font-size: 14px;
     border-radius: 4px;

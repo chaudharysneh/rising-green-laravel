@@ -2472,16 +2472,53 @@
         return rows[rows.length - 1] || null;
     }
 
+    function setProductsErrorMessage(message) {
+        const defaultMessage = 'Please select at least one BOM.';
+        const nextMessage = message || defaultMessage;
+        const textEl = document.querySelector('#products-error .products-error-text');
+        if (textEl) {
+            textEl.textContent = nextMessage;
+            return;
+        }
+        if (window.jQuery) {
+            window.jQuery('#products-error').text(nextMessage);
+        }
+    }
+
+    function hideProductsError() {
+        if (window.jQuery) {
+            window.jQuery('#products-error').removeClass('d-block').hide();
+        } else {
+            const el = document.getElementById('products-error');
+            if (el) {
+                el.style.display = 'none';
+            }
+        }
+    }
+
+    function showProductsError(message) {
+        setProductsErrorMessage(message);
+        if (window.jQuery) {
+            window.jQuery('#products-error').addClass('d-block').show();
+        } else {
+            const el = document.getElementById('products-error');
+            if (el) {
+                el.style.display = 'block';
+            }
+        }
+    }
+
     function clearErrors($form) {
         $form.find('.is-invalid').removeClass('is-invalid');
         $form.find('.invalid-feedback.ajax-error').remove();
-        $('#products-error').text('Please select at least one BOM').removeClass('d-block').hide();
+        setProductsErrorMessage('Please select at least one BOM.');
+        hideProductsError();
     }
 
     function showErrors($form, errors) {
         Object.keys(errors).forEach(function (field) {
             if (field === 'products') {
-                $('#products-error').text(errors[field][0]).addClass('d-block').show();
+                showProductsError(errors[field][0]);
                 return;
             }
 
@@ -2508,6 +2545,91 @@
             $feedback.text(message).show();
         }
     }
+
+    function markEstimateBomFieldInvalid(el, invalid) {
+        if (!el) {
+            return;
+        }
+
+        if (invalid) {
+            el.classList.add('is-invalid');
+            if (window.jQuery && window.jQuery(el).hasClass('select2-hidden-accessible')) {
+                window.jQuery(el).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            }
+        } else {
+            el.classList.remove('is-invalid');
+            if (window.jQuery && window.jQuery(el).hasClass('select2-hidden-accessible')) {
+                window.jQuery(el).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+            }
+        }
+    }
+
+    function clearEstimateBomRowValidation(row) {
+        if (!row) {
+            return;
+        }
+
+        row.querySelectorAll('.is-invalid').forEach(function (el) {
+            el.classList.remove('is-invalid');
+        });
+        row.querySelectorAll('.select2-selection.is-invalid').forEach(function (el) {
+            el.classList.remove('is-invalid');
+        });
+        row.querySelectorAll('.bom-make-error').forEach(function (el) {
+            el.classList.remove('d-block');
+        });
+    }
+
+    function validateEstimateBomRows(options) {
+        options = options || {};
+        let isValid = true;
+        let selectedBomCount = 0;
+        const rows = document.querySelectorAll('#bomContainer .bom-row');
+
+        if (options.clearFirst !== false) {
+            rows.forEach(clearEstimateBomRowValidation);
+            hideProductsError();
+        }
+
+        rows.forEach(function (row) {
+            const productSelect = row.querySelector('.product-select');
+            const makeSelect = row.querySelector('.product-make');
+            const qtyInput = row.querySelector('input[name="product_qty[]"]');
+            const priceInput = row.querySelector('.product-price');
+            const makeError = row.querySelector('.bom-make-error');
+
+            if (!productSelect?.value) {
+                return;
+            }
+
+            selectedBomCount++;
+
+            if (!(parseFloat(qtyInput?.value || 0) > 0)) {
+                markEstimateBomFieldInvalid(qtyInput, true);
+                isValid = false;
+            }
+            if (parseFloat(priceInput?.value || 0) < 0) {
+                markEstimateBomFieldInvalid(priceInput, true);
+                isValid = false;
+            }
+            if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
+                markEstimateBomFieldInvalid(makeSelect, true);
+                makeError?.classList.add('d-block');
+                isValid = false;
+            }
+        });
+
+        if (selectedBomCount === 0) {
+            showProductsError('Please select at least one BOM.');
+            markEstimateBomFieldInvalid(document.querySelector('#bomContainer .product-select'), true);
+            isValid = false;
+        }
+
+        return { isValid: isValid, selectedBomCount: selectedBomCount };
+    }
+
+    window.validateEstimateBomRows = validateEstimateBomRows;
+    window.markEstimateBomFieldInvalid = markEstimateBomFieldInvalid;
 
     function runExactValidation($form) {
         const config = getActiveDocumentFormConfig();
@@ -2563,8 +2685,8 @@
             isValid = false;
         }
 
-        if (!bomProducts.length) {
-            $('#products-error').text('Please select at least one BOM').addClass('d-block').show();
+        const bomValidation = validateEstimateBomRows();
+        if (!bomValidation.isValid) {
             isValid = false;
         }
 
@@ -2659,25 +2781,25 @@
 
         if (!isValid && showErrors) {
             const config = getActiveDocumentFormConfig();
-            $('#products-error').text(config.bomPrereqMessage || 'Please fill required details before adding BOM').addClass('d-block').show();
+            showProductsError(config.bomPrereqMessage || 'Please fill required details before adding BOM');
         }
 
         return isValid;
     }
 
     function toggleBomError(forceShow) {
-        const bomError = $('#products-error');
-        if (!bomError.length) {
+        const bomError = window.jQuery ? window.jQuery('#products-error') : null;
+        if (!bomError?.length && !document.getElementById('products-error')) {
             return;
         }
 
         if (forceShow === true) {
-            bomError.text('Please select at least one BOM').addClass('d-block').show();
+            showProductsError('Please select at least one BOM.');
             return;
         }
 
         if (collectBomData().length > 0) {
-            bomError.removeClass('d-block').hide();
+            hideProductsError();
         }
     }
 
@@ -2704,6 +2826,7 @@
             }
 
             const newRow = firstRow.cloneNode(true);
+            clearEstimateBomRowValidation(newRow);
             newRow.querySelectorAll('input, select').forEach(function (el) {
                 if (el.tagName === 'SELECT') {
                     el.value = el.classList.contains('product-tax-rate') ? '0' : '';
@@ -2805,6 +2928,8 @@
                 }
 
                 populateMakeOptions(this, makeSelect, '');
+                markEstimateBomFieldInvalid(makeSelect, false);
+                row.querySelector('.bom-make-error')?.classList.remove('d-block');
                 
                 const option = this.options[this.selectedIndex];
                 let labelText = 'Qty';
@@ -2885,12 +3010,16 @@
 
         if (makeSelect) {
             makeSelect.addEventListener('change', function () {
+                markEstimateBomFieldInvalid(makeSelect, false);
+                row.querySelector('.bom-make-error')?.classList.remove('d-block');
                 toggleBomError(false);
                 calculateTotals();
             });
             
             // Also bind Select2 change event if it's initialized
             $(makeSelect).on('select2:select', function() {
+                markEstimateBomFieldInvalid(makeSelect, false);
+                row.querySelector('.bom-make-error')?.classList.remove('d-block');
                 toggleBomError(false);
                 calculateTotals();
             });
