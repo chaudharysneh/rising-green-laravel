@@ -317,8 +317,13 @@
                             </div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step" id="edit_template_wrapper">
-                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
+                        <div class="col-6 col-md-4 create-step-1 active-step">
+                            <label class="form-label fw-semibold w-100 d-flex justify-content-between align-items-center mb-1 crm-label-with-icon">
+                                <span><i class="fa-solid fa-tag text-secondary me-1"></i> Quotation Template <span class="text-danger">*</span></span>
+                                <a href="#" id="edit_template_link" class="text-primary small text-decoration-none d-none" target="_blank" title="Edit selected template">
+                                    Edit
+                                </a>
+                            </label>
                             <select name="template_id" id="template_id"
                                 class="form-select @error('template_id') is-invalid @enderror" required>
                                 <option value="">Select Template</option>
@@ -833,6 +838,23 @@
             // Initial setup
             updateEditWizardUI();
             $(window).resize(updateEditWizardUI);
+            // Quotation template edit link logic
+            const templateSelect = $('#template_id');
+            const editTemplateLink = $('#edit_template_link');
+            
+            function updateTemplateEditLink() {
+                const val = templateSelect.val();
+                if (val) {
+                    editTemplateLink.attr('href', '/pdfbuilder/edit/' + val);
+                    editTemplateLink.removeClass('d-none');
+                } else {
+                    editTemplateLink.attr('href', '#');
+                    editTemplateLink.addClass('d-none');
+                }
+            }
+            
+            templateSelect.on('change', updateTemplateEditLink);
+            updateTemplateEditLink();
         });
     </script>
 @endpush
