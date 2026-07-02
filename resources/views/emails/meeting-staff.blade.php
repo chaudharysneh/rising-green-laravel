@@ -5,7 +5,7 @@
 @section('header_label', 'CRM Activity')
 
 @section('header_title')
-    [Meeting] {{ $meetingTitle }}
+    Meeting - {{ $meetingTitle }}
 @endsection
 
 @section('email_body')
