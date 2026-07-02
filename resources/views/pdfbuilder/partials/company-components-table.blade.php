@@ -4,10 +4,10 @@
         <td colspan="2" style="background-color:#4b9349; padding:0; border-bottom:2px solid #3d7a3b;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                 <tr>
-                    <td width="30%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px;">
+                    <td width="30%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px; font-family:'Montserrat',sans-serif;">
                         Product Name
                     </td>
-                    <td width="70%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px;">
+                    <td width="70%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px; font-family:'Montserrat',sans-serif;">
                         Specifications
                     </td>
                 </tr>
@@ -61,16 +61,16 @@
             }
         }
 
-        $specHtml = '<span style="color:#888;font-size:13px;">—</span>';
+        $specHtml = '<span style="color:#888;font-size:14px;font-family:\'DejaVu Sans\',sans-serif;">—</span>';
         if (!empty($specRows)) {
-            $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">';
+            $specHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:\'DejaVu Sans\',sans-serif;">';
             foreach ($specRows as $specIndex => $r) {
                 $k = (string) ($r[0] ?? '');
                 $v = (string) ($r[1] ?? '');
                 $specBorder = ($specIndex < count($specRows) - 1) ? 'border-bottom:1px solid #edf2ed;' : '';
                 $specHtml .= '<tr>'
-                    . '<td style="width:30%; padding:7px 14px 7px 0; vertical-align:top; font-size:12px; font-weight:600; color:#5a6f5a; text-transform:uppercase; letter-spacing:0.35px; ' . $specBorder . '">' . $k . '</td>'
-                    . '<td style="width:70%; padding:7px 0; vertical-align:top; font-size:14px; color:#222; line-height:1.45; ' . $specBorder . '">' . $v . '</td>'
+                    . '<td style="width:30%; padding:7px 14px 7px 0; vertical-align:top; font-size:14px; font-weight:bold; color:#5a6f5a; font-family:\'DejaVu Sans\',sans-serif; ' . $specBorder . '">' . $k . '</td>'
+                    . '<td style="width:70%; padding:7px 0; vertical-align:top; font-size:14px; color:#222; line-height:1.45; font-family:\'DejaVu Sans\',sans-serif; ' . $specBorder . '">' . $v . '</td>'
                     . '</tr>';
             }
             $specHtml .= '</table>';
@@ -93,14 +93,14 @@
                                 style="width:88px; height:88px; object-fit:contain; display:inline-block; border:1px solid #d4e4d4; padding:8px; background:#fff;">
                         </div>
                         <?php endif; ?>
-                        <div style="font-size:15px; font-weight:700; color:#2d5a2d; line-height:1.35;">
+                        <div style="font-size:15px; font-weight:bold; color:#2d5a2d; line-height:1.35; font-family:'DejaVu Sans',sans-serif;">
                             <?= esc($component['name'] ?? '--') ?>
                         </div>
                     </td>
                 </tr>
             </table>
         </td>
-        <td width="70%" style="padding:16px 20px; vertical-align:top; background:<?= $rowBg ?>; border-bottom:1px solid #dfe9df; border-left:1px solid #edf2ed;">
+        <td width="70%" style="padding:16px 20px; vertical-align:top; background:<?= $rowBg ?>; border-bottom:1px solid #dfe9df; border-left:1px solid #edf2ed; font-family:'DejaVu Sans',sans-serif;">
             <?= $specHtml ?>
         </td>
     </tr>

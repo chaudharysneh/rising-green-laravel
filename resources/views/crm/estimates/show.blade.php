@@ -48,7 +48,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .info-table th,
@@ -64,7 +64,7 @@
 
         @media (max-width: 768px) {
             .info-table {
-                font-size: 12px;
+                font-size: 14px;
             }
 
             .info-table thead {
@@ -349,9 +349,9 @@
 
                         <!-- Quotation Info -->
                         <div class="flex-between border-top mt-3 pt-4">
-                            <div style="font-weight:700; font-size:15px;">Estimate no.: #{{ $estimate->estimate_no }}</div>
-                            <div class="center-text" style="font-size:16px;">ESTIMATION</div>
-                            <div style="font-weight:700; font-size:15px;">Date:
+                            <div style="font-weight:700; font-size:16px;">Estimate no.: #{{ $estimate->estimate_no }}</div>
+                            <div class="center-text" style="font-size:18px;">ESTIMATION</div>
+                            <div style="font-weight:700; font-size:16px;">Date:
                                 {{ $estimate->estimate_date->format('Y-m-d') }}
                             </div>
                         </div>
@@ -553,7 +553,7 @@
                         </div>
 
                         @if ($subsidy > 0)
-                            <p style="font-size: 15px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount
+                            <p style="font-size: 16px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount
                                 to be credited in clients account.</p>
                         @endif
 

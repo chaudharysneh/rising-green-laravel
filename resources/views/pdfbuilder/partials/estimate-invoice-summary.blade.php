@@ -54,13 +54,14 @@ if ($summaryGstAmount === null) {
 
 $summaryTotalPayable = $summarySubtotal + $summarySolarStructureCharges + $summaryGstAmount - $summaryDiscount;
 $summaryLendingCost = $summaryTotalPayable - $summarySubsidy;
-$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:7px 9px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.35;";
-$summaryCellStyle = "border:1px solid #333;padding:7px 9px;font-size:12px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.35;";
-$summaryFooterHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:5px 7px;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.25;";
-$summaryFooterCellStyle = "border:1px solid #333;padding:5px 7px;font-size:10px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.25;vertical-align:top;";
+$summaryHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:7px 9px;font-size:15px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.35;";
+$summaryCellStyle = "border:1px solid #333;padding:7px 9px;font-size:15px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.35;";
+$summaryFooterHeaderCellStyle = "background-color:#4b9349;color:#fff;border:1px solid #333;padding:5px 7px;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:bold;line-height:1.25;";
+$summaryFooterCellStyle = "border:1px solid #333;padding:5px 7px;font-size:13px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.25;vertical-align:top;";
 $summaryRightCellStyle = $summaryCellStyle . 'text-align:right;';
 $summaryHighlightCellStyle = $summaryRightCellStyle . 'background-color:#4b9349;color:#fff;font-weight:bold;';
 $summaryHeaderTextStyle = "font-size:13.5px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.45;";
+$summaryEstimationHeaderTextStyle = "font-size:16px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.45;";
 $summaryEstimateNo = $estdata->estimate_no ?? ($estimate_no ?? '--');
 $summaryDate = ($estdata && !empty($estdata->estimate_date)) ? date('Y-m-d', strtotime($estdata->estimate_date)) : date('Y-m-d');
 $summaryCompanyName = $companySettings['company_name'] ?? $globalCompanyName ?? '--';
@@ -209,9 +210,9 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:12px;border-collapse:collapse;">
     <tr>
-        <td width="33%" align="left" style="<?= $summaryHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($summaryEstimateNo) ?></td>
-        <td width="34%" align="center" style="<?= $summaryHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
-        <td width="33%" align="right" style="<?= $summaryHeaderTextStyle ?>font-weight:bold;">Date: <?= esc($summaryDate) ?></td>
+        <td width="33%" align="left" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($summaryEstimateNo) ?></td>
+        <td width="34%" align="center" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
+        <td width="33%" align="right" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;">Date: <?= esc($summaryDate) ?></td>
     </tr>
 </table>
 
@@ -299,7 +300,7 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
 </table>
 
 <?php if ($summarySubsidy > 0): ?>
-<div style="width:98%;margin:8px auto 0;font-size:11.5px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.4;">
+<div style="width:98%;margin:8px auto 0;font-size:14px;font-family:'Montserrat',sans-serif;color:#000;line-height:1.4;">
     <strong>Note:</strong> Subsidy Amount to be credited in clients account.
 </div>
 <?php endif; ?>
@@ -333,7 +334,7 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background-color:#f6fbf6;border:1px solid #cfe5cf;">
                 <?php if ($summaryBankName !== ''): ?>
                 <tr>
-                    <td colspan="2" style="background-color:#4b9349;color:#fff;padding:6px 8px;font-size:10px;font-family:'Montserrat',sans-serif;font-weight:bold;letter-spacing:0.3px;">
+                    <td colspan="2" style="background-color:#4b9349;color:#fff;padding:6px 8px;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:bold;letter-spacing:0.3px;">
                         <?= esc($summaryBankName) ?>
                     </td>
                 </tr>
@@ -341,17 +342,17 @@ if (empty($summaryBreakupLines) && $summaryGstRate > 0 && $summaryGstAmount > 0)
                 <?php foreach ($summaryBankFields as $bankIndex => $bankField): ?>
                 <?php $bankRowBorder = ($bankIndex > 0 || $summaryBankName !== '') ? 'border-top:1px solid #e3efe3;' : ''; ?>
                 <tr>
-                    <td width="38%" style="padding:4px 8px;font-size:8.5px;font-family:'Montserrat',sans-serif;color:#5a6b5a;text-transform:uppercase;letter-spacing:0.4px;vertical-align:top;<?= $bankRowBorder ?>">
+                    <td width="38%" style="padding:4px 8px;font-size:11px;font-family:'Montserrat',sans-serif;color:#5a6b5a;text-transform:uppercase;letter-spacing:0.4px;vertical-align:top;<?= $bankRowBorder ?>">
                         <?= esc($bankField['label']) ?>
                     </td>
-                    <td width="62%" style="padding:4px 8px;font-size:10px;font-family:'Montserrat',sans-serif;color:#1a1a1a;font-weight:600;vertical-align:top;<?= $bankRowBorder ?><?= ($bankField['label'] === 'Account No.') ? 'letter-spacing:0.6px;' : '' ?>">
+                    <td width="62%" style="padding:4px 8px;font-size:13px;font-family:'Montserrat',sans-serif;color:#1a1a1a;font-weight:600;vertical-align:top;<?= $bankRowBorder ?><?= ($bankField['label'] === 'Account No.') ? 'letter-spacing:0.6px;' : '' ?>">
                         <?= esc($bankField['value']) ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </table>
             <?php else: ?>
-            <span style="font-size:10px;color:#888;font-style:italic;">No bank details available.</span>
+            <span style="font-size:13px;color:#888;font-style:italic;">No bank details available.</span>
             <?php endif; ?>
         </td>
         <td style="<?= $summaryFooterCellStyle ?>text-align:center;">

@@ -48,8 +48,8 @@
                     </td>
 
                     <td class="text-muted d-none d-md-table-cell">
-                        <div class="small fw-semibold text-dark">${dateStr}</div>
-                        <div class="small opacity-75" style="font-size: 0.75rem;">${timeStr}</div>
+                        <div class="fw-semibold text-dark">${dateStr}</div>
+                        <div class="template-time opacity-75">${timeStr}</div>
                     </td>
 
                     <td class="text-end pe-4 d-none d-md-table-cell">

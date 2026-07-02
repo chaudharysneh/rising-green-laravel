@@ -30,7 +30,7 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 responsive-table">
+                <table class="table table-hover align-middle mb-0 responsive-table pdfbuilder-templates-table">
                     <thead>
                         <tr>
                             <th class="ps-4" style="width: 80px;">Sr.No</th>
@@ -51,6 +51,20 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'css/users.css') }}?v={{ filemtime(public_path('css/users.css')) }}">
+<style>
+    #templatesTableBody td {
+        font-size: 0.95rem;
+    }
+    #templatesTableBody .template-name span {
+        font-size: 0.95rem;
+    }
+    #templatesTableBody .template-time {
+        font-size: 0.82rem;
+    }
+    .pdfbuilder-templates-table thead th {
+        font-size: 0.8rem;
+    }
+</style>
 @endpush
 
 @push('scripts')

@@ -232,7 +232,7 @@ if (!isset($estdata) && isset($estimate)) {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .info-table th,
@@ -310,11 +310,11 @@ $company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_
 
             <!-- Quotation Info -->
             <div class="flex-between">
-                <div style="font-weight:700; font-size:15px;">
+                <div style="font-weight:700; font-size:16px;">
                     Estimate no.: #<?php echo htmlspecialchars($estdata->estimate_no); ?>
                 </div>
-                <div class="center-text" style="font-size:16px;">ESTIMATION</div>
-                <div style="font-weight:700; font-size:15px;">
+                <div class="center-text" style="font-size:18px;">ESTIMATION</div>
+                <div style="font-weight:700; font-size:16px;">
                     Date: <?php echo htmlspecialchars($estdata->estimate_date); ?>
                 </div>
             </div>
@@ -523,7 +523,7 @@ $lendingCost = $totalPayable - $subsidy;
                 </tfoot>
             </table>
             <?php if ($subsidy > 0): ?>
-            <p style="font-size: 15px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount to be
+            <p style="font-size: 16px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount to be
                 credited in clients account.</p>
             <?php endif; ?>
             <!-- Extra Info and Side-by-side Comment / Bank Details -->
