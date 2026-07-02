@@ -6,6 +6,11 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\Customer;
 use App\Models\Estimate;
+use App\Models\BomProduct;
+use App\Models\Category;
+use App\Models\PdfBuilderForm;
+use App\Models\Subsidy;
+use App\Models\Tax;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -21,8 +26,9 @@ class TaskController extends Controller
             ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
         $estimates = $this->visibleEstimatesQuery()->get();
+        $quickEstimateData = $this->quickEstimateFormData();
 
-        return view('crm.tasks.create', compact('users', 'estimates'));
+        return view('crm.tasks.create', array_merge(compact('users', 'estimates'), $quickEstimateData));
     }
 
     public function edit(string $id)
@@ -33,6 +39,7 @@ class TaskController extends Controller
             ? User::orderBy('name')->get()
             : User::where('id', auth()->id())->orderBy('name')->get();
         $estimates = $this->visibleEstimatesQuery()->get();
+        $quickEstimateData = $this->quickEstimateFormData();
         $selectedEstimateId = null;
 
         if ($task->estimate_id) {
@@ -43,7 +50,7 @@ class TaskController extends Controller
                 ?->estimate_id;
         }
 
-        return view('crm.tasks.edit', compact('task', 'users', 'estimates', 'selectedEstimateId'));
+        return view('crm.tasks.edit', array_merge(compact('task', 'users', 'estimates', 'selectedEstimateId'), $quickEstimateData));
     }
 
     public function show(string $id)
@@ -141,5 +148,16 @@ class TaskController extends Controller
             ->orderByDesc('estimate_date')
             ->orderByDesc('estimate_id');
     }
-}
 
+    private function quickEstimateFormData(): array
+    {
+        return [
+            'customers' => Customer::visibleTo(auth()->user())->orderBy('name')->get(),
+            'templates' => PdfBuilderForm::orderBy('template_name')->get(),
+            'bomProducts' => BomProduct::with('categories')->orderBy('product_name')->get(),
+            'categories' => Category::orderBy('name')->get(),
+            'gstTaxes' => Tax::active()->orderBy('name')->orderBy('rate')->get(),
+            'subsidies' => Subsidy::active()->get(),
+        ];
+    }
+}
