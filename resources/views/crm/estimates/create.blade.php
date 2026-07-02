@@ -88,13 +88,36 @@
                 display: block !important;
             }
             #estimateCreateForm label.form-label {
-                min-height: 42px;
-                display: inline-flex;
-                align-items: flex-end;
+                display: flex;
+                align-items: center;
+                flex-wrap: nowrap;
+                white-space: nowrap;
                 width: 100%;
+                min-height: auto;
+                margin-bottom: 0.35rem;
+                gap: 0.35rem;
+                line-height: 1.2;
             }
-            #create_template_wrapper label.form-label i {
-                display: none !important;
+            #estimateCreateForm .crm-label-with-icon {
+                flex-wrap: nowrap;
+            }
+            #estimateCreateForm .crm-label-icon,
+            #estimateCreateForm label.form-label .text-danger {
+                flex-shrink: 0;
+            }
+            #estimateCreateForm .estimate-template-label-group {
+                min-width: 0;
+                flex: 0 1 auto;
+            }
+            #create_template_wrapper label.form-label {
+                justify-content: flex-start;
+            }
+            #estimateCreateForm .row.g-3 > [class*="col-"] {
+                min-width: 0;
+            }
+            #estimateCreateForm .active-step > .row {
+                display: flex !important;
+                flex-wrap: wrap;
             }
             #estimateCreateForm .row.g-3 {
                 min-height: 420px;
@@ -219,7 +242,7 @@
                             <div class="invalid-feedback" id="customer_id-error">Please select a customer</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Estimate Name <span class="text-danger">*</span></label>
                             <input type="text" name="estimate_name" id="estimate_name" value="{{ old('estimate_name') }}"
                                 class="form-control @error('estimate_name') is-invalid @enderror"
@@ -227,7 +250,7 @@
                             <div class="invalid-feedback" id="estimate_name-error">Please enter estimate name</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Estimate Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
@@ -240,7 +263,7 @@
                             <div class="invalid-feedback" id="type-error">Please select estimate type</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
@@ -248,7 +271,7 @@
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
@@ -256,7 +279,7 @@
                             <div class="invalid-feedback" id="price-error">Please enter valid price</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step">
+                        <div class="col-12 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Solar Meter <span
                                     class="text-danger">*</span></label>
                             <select name="solar_meter_charges" id="solar_meter_select"
@@ -268,6 +291,28 @@
                             </select>
                             <div class="invalid-feedback" id="solar_meter_charges-error">Please select solar meter charges
                             </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 create-step-1 active-step estimate-form-field-col" id="create_template_wrapper">
+                            <label class="form-label fw-semibold w-100 d-flex align-items-center gap-2 mb-1">
+                                <span class="estimate-template-label-group d-inline-flex align-items-center gap-1 min-width-0">
+                                    Quotation Template <span class="text-danger">*</span>
+                                </span>
+                                <a href="#" id="edit_template_link" class="text-primary small text-decoration-none flex-shrink-0 ms-auto d-none" target="_blank" title="Edit selected template">
+                                    Edit
+                                </a>
+                            </label>
+                            <select name="template_id" id="template_id"
+                                class="form-select @error('template_id') is-invalid @enderror" required>
+                                <option value="">Select Template</option>
+                                @if (isset($templates))
+                                    @foreach ($templates as $template)
+                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
+                                            {{ $template->template_name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
                         <div class="col-12 create-step-1 active-step">
@@ -294,26 +339,6 @@
                                     @enderror
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="col-6 col-md-4 create-step-1 active-step">
-                            <label class="form-label fw-semibold w-100 d-flex justify-content-between align-items-center mb-1 crm-label-with-icon">
-                                <span><i class="fa-solid fa-tag text-secondary me-1"></i> Quotation Template <span class="text-danger">*</span></span>
-                                <a href="#" id="edit_template_link" class="text-primary small text-decoration-none d-none" target="_blank" title="Edit selected template">
-                                    Edit
-                                </a>
-                            </label>
-                            <select name="template_id" id="template_id"
-                                class="form-select @error('template_id') is-invalid @enderror" required>
-                                <option value="">Select Template</option>
-                                @if (isset($templates))
-                                    @foreach ($templates as $template)
-                                        <option value="{{ $template->id }}" @selected(old('template_id') == $template->id)>
-                                            {{ $template->template_name }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
                         <div class="col-md-4 d-none d-md-block">
@@ -364,6 +389,7 @@
                                                 <select name="product_make[]" class="form-select product-make" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
+                                                <div class="invalid-feedback bom-make-error">Please select make.</div>
                                             </div>
                                             <div>
                                                 <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
@@ -402,11 +428,12 @@
                                 </div>
 
                                 <button type="button" class="btn btn-outline-dark-blue btn-sm" id="add_more_bom">
-                                    <i class="bi bi-plus-circle me-2"></i>Add More BOM
+                                    <i class="bi bi-plus-circle me-1"></i>Add More BOM
                                 </button>
+                                <div class="estimate-bom-instruction" id="products-error" style="display:none;" role="status">
+                                    <i class="bi bi-info-circle me-1" aria-hidden="true"></i><span class="products-error-text">Please select at least one BOM.</span>
+                                </div>
                             </div>
-                            <div class="invalid-feedback" id="products-error" style="display:none;">Please select at least
-                                one BOM</div>
                         </div>
 
                         <div class="col-lg-6 create-step-3">
@@ -442,11 +469,13 @@
                                 </div>
 
                                 <div class="totals-row align-items-center">
-                                    <label class="switch mb-0">
-                                        <input type="checkbox" id="apply_gst" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                    <span class="small fw-semibold">Apply GST</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="switch mb-0">
+                                            <input type="checkbox" id="apply_gst" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="small fw-semibold">Apply GST</span>
+                                    </div>
                                 </div>
 
                                 <div id="gst_fields_box">
@@ -470,7 +499,7 @@
                                 <hr class="my-2">
 
                                 <div class="totals-row total-row mb-0">
-                                    <span class="h5 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
+                                    <span class="h6 mb-0 fw-bold">Total Payable:</span>
                                     <span id="final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>
@@ -724,44 +753,10 @@
                 let isValid = true;
                 
                 if (currentCreateStep === 2) {
-                    // Validate BOM step (Step 2)
-                    const bomRows = $('#estimateCreateForm .bom-row');
-                    let selectedBomCount = 0;
-                    
-                    bomRows.each(function() {
-                        const select = $(this).find('.product-select');
-                        const bomId = select.val();
-                        const qtyInput = $(this).find('input[name="product_qty[]"]');
-                        const priceInput = $(this).find('input[name="product_price[]"]');
-                        
-                        if (bomId) {
-                            selectedBomCount++;
-                            const qty = parseFloat(qtyInput.val() || 0);
-                            const price = parseFloat(priceInput.val() || 0);
-                            
-                            if (!(qty > 0)) {
-                                qtyInput.addClass('is-invalid');
-                                isValid = false;
-                            } else {
-                                qtyInput.removeClass('is-invalid');
-                            }
-                            
-                            if (price < 0) {
-                                priceInput.addClass('is-invalid');
-                                isValid = false;
-                            } else {
-                                priceInput.removeClass('is-invalid');
-                            }
-                        }
-                    });
-                    
-                    if (selectedBomCount === 0) {
-                        $('#products-error').addClass('d-block').show();
-                        $('#estimateCreateForm .product-select').first().addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $('#products-error').removeClass('d-block').hide();
-                    }
+                    const bomValidation = typeof window.validateEstimateBomRows === 'function'
+                        ? window.validateEstimateBomRows()
+                        : { isValid: true };
+                    isValid = bomValidation.isValid;
                 } else {
                     // Standard validation for Step 1
                     $('#estimateCreateForm .create-step-' + currentCreateStep + ' [required]').each(function() {
@@ -788,10 +783,17 @@
             });
 
             // Dynamically clear validation errors using event delegation
-            $('#estimateCreateForm').on('change input', '[required], .product-select, input[name="product_qty[]"], input[name="product_price[]"]', function() {
+            $('#estimateCreateForm').on('change input', '[required], .product-select, .product-make, input[name="product_qty[]"], input[name="product_price[]"]', function() {
                 const val = $(this).val();
                 if (val || $(this).attr('name') === 'product_qty[]' || $(this).attr('name') === 'product_price[]') {
-                    $(this).removeClass('is-invalid');
+                    if (typeof window.markEstimateBomFieldInvalid === 'function') {
+                        window.markEstimateBomFieldInvalid(this, false);
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                    if ($(this).hasClass('product-make')) {
+                        $(this).closest('.bom-row').find('.bom-make-error').removeClass('d-block');
+                    }
                     if ($(this).hasClass('product-select')) {
                         $('#products-error').removeClass('d-block').hide();
                     }
