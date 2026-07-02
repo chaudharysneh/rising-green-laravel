@@ -1350,6 +1350,7 @@ hr,
     background-color: #1E293B !important;
     color: #E2E8F0;
     border-color: rgba(255, 255, 255, .08) !important;
+    border-radius: 1rem;
 }
 
 [data-theme="dark"] .tab-pane {

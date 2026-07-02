@@ -257,7 +257,8 @@
                 @endphp
                 <div class="sidenav-header">
                     <a class="navbar-brand m-0 d-flex flex-row align-items-center" href="{{ route('dashboard') }}">
-                        <img src="{{ $mainLogoUrl }}" class="navbar-brand-img h-100" alt="main_logo">
+                        <img src="{{ $mainLogoUrl }}" class="navbar-brand-img h-100 main-logo-full" alt="main_logo">
+                        <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'logo/favicon.jpeg') }}" class="navbar-brand-img h-100 main-logo-collapsed" alt="main_logo_collapsed" style="border-radius: 5px; max-height: 40px;">
                     </a>
                 </div>
 
@@ -800,6 +801,20 @@
                                     @if(auth()->user()?->isAdmin())
                                         <li><a class="dropdown-item {{ request()->routeIs('notifications.index') || request()->routeIs('user-logs.*') ? 'active' : '' }}" href="{{ route('user-logs.index') }}">
                                                 <i aria-autocomplete=""class="fa fa-history"></i><span>User Logs</span></a></li>
+                                        <li id="topbarGoogleAction">
+                                            @if($googleCalendarConnected)
+                                                <form method="POST" action="{{ route('api.meetings.google.disconnect') }}" class="m-0 google-disconnect-form">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item w-100 border-0 bg-transparent text-start">
+                                                        <i class="bi bi-google"></i><span>Disconnect Google</span>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <a class="dropdown-item" href="{{ route('google.auth') }}">
+                                                    <i class="bi bi-google"></i><span>Connect Google</span>
+                                                </a>
+                                            @endif
+                                        </li>
                                         <li><a class="dropdown-item {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                                                 <i class="fa fa-gear"></i><span>Settings</span></a></li>
                                         <li>
@@ -1160,6 +1175,49 @@
                         }
                     }
                 });
+            });
+
+            // Google Disconnect Handler
+            document.addEventListener('submit', function(e) {
+                if (e.target && e.target.classList.contains('google-disconnect-form')) {
+                    e.preventDefault();
+                    const form = e.target;
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message || 'Google disconnected successfully.',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            customClass: {
+                                popup: 'rounded-4 shadow'
+                            }
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Something went wrong. Please try again.'
+                        });
+                    });
+                }
             });
         });
     </script>
