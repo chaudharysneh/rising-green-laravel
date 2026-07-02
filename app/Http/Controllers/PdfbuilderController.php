@@ -22,6 +22,55 @@ class PdfbuilderController extends Controller
         return $slug . '.pdf';
     }
 
+    private function applyPdfDocumentTitle($pdf, string $title): void
+    {
+        $title = trim($title);
+        if ($title === '') {
+            return;
+        }
+
+        try {
+            $dompdf = $pdf->getDomPDF();
+            if (method_exists($dompdf, 'add_info')) {
+                $dompdf->add_info('Title', $title);
+            }
+        } catch (\Throwable $e) {
+            // Ignore metadata failures; HTML <title> still applies.
+        }
+    }
+
+    private function buildTemplateViewPdfData(PdfBuilderForm $template, ?string $estimateNo = null): array
+    {
+        $estimateNo = $estimateNo ?: '--';
+        $estdata = $this->getEstimateDetails($estimateNo);
+        $form_data = $template->form_data ?? [];
+
+        return array_merge($this->pdfCompanyData(), [
+            'before_blocks' => $form_data['before_blocks'] ?? [],
+            'after_blocks' => $form_data['after_blocks'] ?? [],
+            'companyInfo' => $template->company_information ?? [],
+            'time_line' => $template->time_line ?? [],
+            'timeLine' => $template->time_line ?? [],
+            'components' => $template->components ?? ($form_data['components'] ?? []),
+            'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
+            'paymentTerms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
+            'environment_impact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
+            'environmentImpact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
+            'footer' => $template->footer ?? ($form_data['footer'] ?? []),
+            'generationSection' => $form_data['generation'] ?? [],
+            'ongridRoiSection' => $form_data['ongrid_roi'] ?? [],
+            'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
+            'header_image' => !empty($template->first_img) ? asset($template->first_img) : 'https://solar-crm.fableadtech.com/public/assets/img/profile/1760436391_b4bc9a00389df8eac539.jpg',
+            'footer_image' => asset('/assets/pdfFooter.png'),
+            'template_id' => $template->id,
+            'template_name' => $template->template_name,
+            'user' => Auth::user(),
+            'generated_at' => now()->format('d M Y h:i A'),
+            'estimate_no' => $estimateNo,
+            'estdata' => $estdata,
+        ]);
+    }
+
     private function profileSettings()
     {
         return Setting::query()->whereIn('key', [
@@ -463,6 +512,7 @@ class PdfbuilderController extends Controller
 
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
         $pdf->setPaper('A4', 'portrait');
+        $this->applyPdfDocumentTitle($pdf, (string) ($updateData['template_name'] ?? $template->template_name));
 
         $pdfDir = public_path('uploads/pdfs/');
         if (!File::isDirectory($pdfDir)) {
@@ -496,44 +546,28 @@ class PdfbuilderController extends Controller
     {
         $template = PdfBuilderForm::findOrFail($id);
 
-        // if (request()->query('regen') != '1' && !empty($template->pdf_file) && File::exists(public_path($template->pdf_file))) {
-        //     return response()->file(public_path($template->pdf_file), [
-        //         'Content-Type' => 'application/pdf',
-        //         'Content-Disposition' => 'inline; filename="template_' . $id . '.pdf"'
-        //     ]);
-        // }
+        $streamUrl = route('pdfbuilder.stream', ['id' => $template->id]);
+        $query = request()->getQueryString();
+        if ($query) {
+            $streamUrl .= '?' . $query;
+        }
+
+        return view('pdfbuilder.preview', [
+            'templateName' => $template->template_name,
+            'streamUrl' => $streamUrl,
+        ]);
+    }
+
+    public function stream($id)
+    {
+        $template = PdfBuilderForm::findOrFail($id);
 
         $estimateNo = request()->query('estimate_no') ?? '--';
-        $estdata = $this->getEstimateDetails($estimateNo);
+        $pdfData = $this->buildTemplateViewPdfData($template, $estimateNo);
 
-        $form_data = $template->form_data ?? [];
-        $pdfData = array_merge($this->pdfCompanyData(), [
-            'before_blocks' => $form_data['before_blocks'] ?? [],
-            'after_blocks' => $form_data['after_blocks'] ?? [],
-            'companyInfo' => $template->company_information ?? [],
-            'time_line' => $template->time_line ?? [],
-            'timeLine' => $template->time_line ?? [],
-            'components' => $template->components ?? ($form_data['components'] ?? []),
-            'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
-            'paymentTerms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
-            'environment_impact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
-            'environmentImpact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
-            'footer' => $template->footer ?? ($form_data['footer'] ?? []),
-            'generationSection' => $form_data['generation'] ?? [],
-            'ongridRoiSection' => $form_data['ongrid_roi'] ?? [],
-            'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
-            'header_image' => !empty($template->first_img) ? asset($template->first_img) : 'https://solar-crm.fableadtech.com/public/assets/img/profile/1760436391_b4bc9a00389df8eac539.jpg',
-            'footer_image' => asset('/assets/pdfFooter.png'),
-            'template_id' => $template->id,
-            'template_name' => $template->template_name,
-            'user' => Auth::user(),
-            'generated_at' => now()->format('d M Y h:i A'),
-            'estimate_no' => $estimateNo,
-            'estdata' => $estdata,
-        ]);
-
-        // dd($pdfData);
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
+        $this->applyPdfDocumentTitle($pdf, (string) $template->template_name);
+
         return $pdf->stream($this->pdfDownloadFilename($template));
     }
 
@@ -745,6 +779,7 @@ class PdfbuilderController extends Controller
         ]);
 
         $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
+        $this->applyPdfDocumentTitle($pdf, (string) ($data['template_name'] ?? $template->template_name));
         $pdfFileName = 'pdf_' . $template->id . '_' . time() . '.pdf';
         $pdfFilePath = 'uploads/pdfs/' . $pdfFileName;
 

@@ -338,6 +338,13 @@ if (!isset($environmentImpact) || !is_array($environmentImpact)) {
 }
 
 $pdfTemplateName = trim((string) ($template_name ?? ''));
+$pdfDocumentTitle = $pdfTemplateName;
+if ($pdfDocumentTitle === '' && !empty($estimate_no) && $estimate_no !== '--') {
+    $pdfDocumentTitle = 'Estimate ' . $estimate_no;
+}
+if ($pdfDocumentTitle === '') {
+    $pdfDocumentTitle = 'Solar Proposal';
+}
 $__isResidentialTemplate = $pdfTemplateName !== '' && stripos($pdfTemplateName, 'resident') !== false;
 
 $__companyInfoSection = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
@@ -989,6 +996,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title><?= esc($pdfDocumentTitle) ?></title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
