@@ -34,7 +34,9 @@ class DealController extends ApiBaseController
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhereHas('customer', function ($cq) use ($search) {
-                        $cq->where('name', 'like', "%{$search}%");
+                        $cq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
                     })
                     ->orWhereHas('estimate', function ($eq) use ($search) {
                         $eq->where('estimate_name', 'like', "%{$search}%");
