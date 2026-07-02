@@ -254,7 +254,7 @@
                         </div>
                         @endif
                         <div class="footer-disclaimer">
-                            © {{ date('Y') }} Rising Green Energy. All rights reserved.
+                            © {{ date('Y') }} Fablead Developers Technolab. All rights reserved.
                         </div>
                         <!-- Prevent Gmail Trimming -->
                         <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">
