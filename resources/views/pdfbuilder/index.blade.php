@@ -66,5 +66,5 @@ window.crmUserPermissions = {
 window.pdfbuilderApiUrl = "{{ route('pdfbuilder.api.templet') }}";
 window.pdfbuilderApiDeletePath = "/api/v1/pdfbuilderApi/delete/"; // Base path for deletion
 </script>
-<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . '/js/pdfbuilder.js') }}"></script>
+<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/pdfbuilder.js') }}?v={{ filemtime(public_path('js/pdfbuilder.js')) }}"></script>
 @endpush
