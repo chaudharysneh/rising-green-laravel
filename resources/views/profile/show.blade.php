@@ -90,6 +90,7 @@
                     </div>
                 </div>
 
+                @if(auth()->user()?->isAdmin())
                 <div class="profile-section">
                     <div class="profile-section-label">COMPANY INFORMATION</div>
                     <div class="row g-4 align-items-start">
@@ -163,6 +164,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <div class="profile-submit-wrap">
                     <button type="submit" class="btn btn-dark-blue profile-submit-btn">Update</button>

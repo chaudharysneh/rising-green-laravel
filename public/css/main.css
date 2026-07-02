@@ -36,8 +36,17 @@
 
     .crm-sidebar.collapsed .brand-logo-text,
     .crm-sidebar.collapsed .nav-link span,
-    .crm-sidebar.collapsed .dropdown-toggle::after {
+    .crm-sidebar.collapsed .dropdown-toggle::after,
+    .crm-sidebar.collapsed .main-logo-full {
         display: none !important;
+    }
+
+    .crm-sidebar.collapsed .main-logo-collapsed {
+        display: block !important;
+    }
+
+    .main-logo-collapsed {
+        display: none;
     }
 
     .crm-sidebar.collapsed .profile-card.brand-card {
@@ -706,9 +715,9 @@
     color: #0f172a !important;
 }
 
-[data-theme="dark"] .btn {
+/* [data-theme="dark"] .btn {
     color: inherit !important;
-}
+} */
 
 [data-theme="dark"] .invalid-feedback {
     color: #f87171 !important;
