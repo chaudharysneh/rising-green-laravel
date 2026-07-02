@@ -38,7 +38,7 @@ class AdminNotificationMail extends Mailable implements ShouldQueue
         $this->recordName   = $recordName;
         $this->details      = $details;
         $this->entityUrl    = $entityUrl;
-        $this->emailSubject = "[Record {$this->actionLabel}] {$this->moduleLabel} - {$this->recordName}";
+        $this->emailSubject = "{$this->moduleLabel} - {$this->recordName}";
     }
 
     public function envelope(): Envelope
