@@ -147,7 +147,7 @@
         @include('crm.estimates.partials.quick-estimate-modals')
 
         <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable quick-estimate-nested-modal">
                 <div class="modal-content rounded-4 border-0 shadow">
                     <div class="modal-header border-bottom">
                         <h5 class="modal-title fw-bold">Add New Customer</h5>

@@ -104,6 +104,10 @@
         };
 
         document.querySelectorAll(".crm-form-page form label.form-label").forEach(function (label) {
+            if (label.closest("#quickEstimateModal")) {
+                return;
+            }
+
             if (label.dataset.iconEnhanced === "true" || label.querySelector(".crm-label-icon, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, .bi")) {
                 return;
             }
