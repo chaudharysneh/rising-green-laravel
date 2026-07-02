@@ -340,6 +340,44 @@ a {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.crm-top-icon-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 991.98px) {
+    .crm-topbar {
+        padding-left: 0;
+        padding-right: 16px;
+    }
+
+    .crm-sidebar-toggle {
+        font-size: 1.65rem !important;
+        width: 70px !important;
+        height: 50px !important;
+    }
+
+    .crm-top-actions {
+        gap: 8px;
+    }
+
+    .crm-top-icon-group {
+        gap: 2px;
+        margin-right: 2px;
+    }
+
+    .crm-top-icon-group .notification-btn,
+    .crm-top-icon-group #darkModeToggle,
+    .crm-top-icon-group .quick-estimate-header-btn {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+    }
 }
 
 .crm-top-actions .top-action-btn {
@@ -453,6 +491,15 @@ a {
 .crm-top-actions .notification-btn:hover {
     background: #F1F5F9;
     color: var(--crm-text-dark);
+}
+
+.crm-top-actions .quick-estimate-header-btn i {
+    color: #163b73;
+    font-size: 1.15rem;
+}
+
+[data-theme="dark"] .crm-top-actions .quick-estimate-header-btn i {
+    color: #93c5fd;
 }
 
 [data-theme="dark"] .crm-top-actions .notification-btn:hover {
