@@ -46,7 +46,9 @@ class TaskController extends ApiBaseController
                         ->orWhereHas('project', function ($projectQuery) use ($search) {
                             $projectQuery->where('name', 'like', "%{$search}%")
                                 ->orWhereHas('customer', function ($customerQuery) use ($search) {
-                                    $customerQuery->where('name', 'like', "%{$search}%");
+                                    $customerQuery->where('name', 'like', "%{$search}%")
+                                        ->orWhere('email', 'like', "%{$search}%")
+                                        ->orWhere('phone', 'like', "%{$search}%");
                                 });
                         });
                 });

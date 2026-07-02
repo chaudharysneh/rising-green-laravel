@@ -34,7 +34,9 @@ class EstimateController extends Controller
                     $q->where('estimate_no', 'like', "%{$search}%")
                         ->orWhere('estimate_name', 'like', "%{$search}%")
                         ->orWhereHas('customer', function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%");
+                            $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
                         });
                 });
             }

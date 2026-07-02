@@ -46,7 +46,9 @@ class MeetingController extends ApiBaseController
                     ->orWhere('agenda', 'like', "%{$search}%")
                     ->orWhere('address', 'like', "%{$search}%")
                     ->orWhereHas('customer', function ($customerQuery) use ($search) {
-                        $customerQuery->where('name', 'like', "%{$search}%");
+                        $customerQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
                     })
                     ->orWhereHas('assignedUser', function ($userQuery) use ($search) {
                         $userQuery->where('name', 'like', "%{$search}%");

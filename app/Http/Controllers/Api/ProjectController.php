@@ -28,7 +28,9 @@ class ProjectController extends ApiBaseController
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhereHas('customer', function ($cq) use ($search) {
-                        $cq->where('name', 'like', "%{$search}%");
+                        $cq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
                     });
             });
         }

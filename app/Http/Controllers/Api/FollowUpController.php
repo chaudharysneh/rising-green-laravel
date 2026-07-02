@@ -45,7 +45,9 @@ class FollowUpController extends ApiBaseController
                 $q->where('purpose', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('priority', 'like', "%{$search}%")
-                    ->orWhereHas('lead', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('lead', fn($q2) => $q2->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%"))
                     ->orWhereHas('assignedUser', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
