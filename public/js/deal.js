@@ -844,17 +844,9 @@ $(document).ready(function () {
             event.preventDefault();
 
             const customerId = customerSelect.value;
-            if (!customerId) {
-                showToast(
-                    "Please select or create a customer first.",
-                    "warning",
-                );
-                return;
-            }
-
             const customerName = getCustomerLabel();
             window.quickEstimateDealContext = {
-                lockedCustomer: true,
+                lockedCustomer: !!customerId,
                 onCreated: function (estimateData) {
                     const customerId = String(
                         estimateData.customer_id || customerSelect.value || "",
@@ -892,7 +884,10 @@ $(document).ready(function () {
                 },
             };
 
-            if (typeof window.applyDealQuickEstimatePrefill === "function") {
+            if (
+                customerId &&
+                typeof window.applyDealQuickEstimatePrefill === "function"
+            ) {
                 window.applyDealQuickEstimatePrefill(
                     customerId,
                     customerName,
@@ -979,3 +974,4 @@ $(document).ready(function () {
         $(`#${$(this).attr("id")}-error`).html("");
     });
 });
+

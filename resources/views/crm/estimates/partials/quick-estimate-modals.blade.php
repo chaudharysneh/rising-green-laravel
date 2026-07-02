@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2" style="min-width: 0;">
                                 <div class="flex-grow-1 w-100" style="min-width: 0;">
@@ -226,11 +226,21 @@
     <style>
         @media (max-width: 767.98px) {
             #quickEstimateModal {
-                padding-bottom: 85px !important;
+                padding-bottom: 220px !important;
             }
             #quickEstimateModal .modal-dialog {
                 margin: 0.5rem;
                 max-width: calc(100% - 1rem);
+                align-items: flex-start;
+                min-height: calc(100% - 1rem);
+            }
+
+            #quickEstimateModal .modal-content {
+                margin-bottom: 3rem;
+            }
+
+            #quickEstimateModal .modal-body {
+                padding-bottom: 3rem !important;
             }
 
             #quickEstimateModal .quick-totals-card .input-small {
@@ -479,3 +489,8 @@
         </div>
     </div>
 </div>
+
+
+
+
+

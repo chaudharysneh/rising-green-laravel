@@ -80,11 +80,21 @@
 
         @media (max-width: 767.98px) {
             #quickEstimateModal {
-                padding-bottom: 85px !important;
+                padding-bottom: 220px !important;
             }
             #quickEstimateModal .modal-dialog {
                 margin: 0.5rem;
                 max-width: calc(100% - 1rem);
+                align-items: flex-start;
+                min-height: calc(100% - 1rem);
+            }
+
+            #quickEstimateModal .modal-content {
+                margin-bottom: 3rem;
+            }
+
+            #quickEstimateModal .modal-body {
+                padding-bottom: 3rem !important;
             }
             #quick_template_wrapper label.form-label i {
                 display: none !important;
@@ -242,7 +252,7 @@
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2" style="min-width: 0;">
                                 <div class="flex-grow-1 w-100" style="min-width: 0;">
@@ -259,11 +269,11 @@
                             </div>
                             <div class="invalid-feedback" id="quick_customer_id-error">Please select a customer.</div>
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Estimate Name</label>
                             <input type="text" class="form-control" name="estimate_name" id="quick_estimate_name" placeholder="Auto from custom">
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
                             <select class="form-select" name="type" id="quick_estimate_type" required>
                                 <option value="" selected>Select Type</option>
@@ -274,7 +284,7 @@
                             </select>
                             <div class="invalid-feedback" id="quick_type-error">Please select type.</div>
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
                             <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
                             <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
@@ -687,3 +697,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush
+
+
+
