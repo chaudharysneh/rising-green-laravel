@@ -57,36 +57,95 @@
         };
     }
 
+    function getQuickSelectValue(el) {
+        if (!el) {
+            return '';
+        }
+        if (window.jQuery && window.jQuery(el).hasClass('select2-hidden-accessible')) {
+            return window.jQuery(el).val() || '';
+        }
+        return el.value || '';
+    }
+
+    function markQuickEstimateFieldInvalid(el, invalid) {
+        if (!el) {
+            return;
+        }
+        const $ = window.jQuery;
+        if (invalid) {
+            el.classList.add('is-invalid');
+            if ($ && $(el).hasClass('select2-hidden-accessible')) {
+                $(el).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+            }
+        } else {
+            el.classList.remove('is-invalid');
+            if ($ && $(el).hasClass('select2-hidden-accessible')) {
+                $(el).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+            }
+        }
+    }
+
+    function clearQuickEstimateValidationState(form) {
+        if (!form) {
+            return;
+        }
+        form.querySelectorAll('.is-invalid').forEach(function (field) {
+            field.classList.remove('is-invalid');
+        });
+        form.querySelectorAll('.select2-selection.is-invalid').forEach(function (el) {
+            el.classList.remove('is-invalid');
+        });
+        form.querySelectorAll('.quick-bom-make-error').forEach(function (el) {
+            el.classList.remove('d-block');
+        });
+    }
+
+    function updateQuickBomErrorVisibility(form) {
+        const bomError = document.getElementById('quick_bom_id-error');
+        if (!bomError || !form) {
+            return;
+        }
+        const anyBom = Array.from(form.querySelectorAll('.quick-bom-select')).some(function (select) {
+            return !!getQuickSelectValue(select);
+        });
+        if (anyBom) {
+            bomError.style.display = 'none';
+        }
+    }
+
     function validateQuickEstimateBeforeBom() {
         const form = document.getElementById('quickEstimateForm');
         if (!form) {
             return true;
         }
 
-        form.querySelectorAll('.is-invalid').forEach(function (field) {
-            field.classList.remove('is-invalid');
-        });
+        clearQuickEstimateValidationState(form);
 
         let isValid = true;
         const customerSelect = document.getElementById('quick_estimate_customer_id');
+        const typeSelect = document.getElementById('quick_estimate_type');
         const quantity = parseFloat(form.quantity?.value || 0);
         const price = parseFloat(form.price?.value || 0);
         const templateSelect = document.getElementById('quick_template_id');
 
-        if (!form.customer_id?.value) {
-            customerSelect?.classList.add('is-invalid');
+        if (!getQuickSelectValue(customerSelect)) {
+            markQuickEstimateFieldInvalid(customerSelect, true);
+            isValid = false;
+        }
+        if (!getQuickSelectValue(typeSelect)) {
+            markQuickEstimateFieldInvalid(typeSelect, true);
             isValid = false;
         }
         if (!(quantity > 0)) {
-            document.getElementById('quick_quantity')?.classList.add('is-invalid');
+            markQuickEstimateFieldInvalid(document.getElementById('quick_quantity'), true);
             isValid = false;
         }
         if (!(price > 0)) {
-            document.getElementById('quick_price')?.classList.add('is-invalid');
+            markQuickEstimateFieldInvalid(document.getElementById('quick_price'), true);
             isValid = false;
         }
-        if (!templateSelect?.value) {
-            templateSelect?.classList.add('is-invalid');
+        if (!getQuickSelectValue(templateSelect)) {
+            markQuickEstimateFieldInvalid(templateSelect, true);
             isValid = false;
         }
 
@@ -97,7 +156,99 @@
         return isValid;
     }
 
+    function validateQuickEstimateWizardStep(step) {
+        const form = document.getElementById('quickEstimateForm');
+        if (!form) {
+            return true;
+        }
+
+        clearQuickEstimateValidationState(form);
+
+        if (step === 1) {
+            let isValid = true;
+            const customerSelect = document.getElementById('quick_estimate_customer_id');
+            const typeSelect = document.getElementById('quick_estimate_type');
+            const quantityEl = document.getElementById('quick_quantity');
+            const priceEl = document.getElementById('quick_price');
+            const templateSelect = document.getElementById('quick_template_id');
+
+            if (!getQuickSelectValue(customerSelect)) {
+                markQuickEstimateFieldInvalid(customerSelect, true);
+                isValid = false;
+            }
+            if (!getQuickSelectValue(typeSelect)) {
+                markQuickEstimateFieldInvalid(typeSelect, true);
+                isValid = false;
+            }
+            if (!(parseFloat(quantityEl?.value || 0) > 0)) {
+                markQuickEstimateFieldInvalid(quantityEl, true);
+                isValid = false;
+            }
+            if (!(parseFloat(priceEl?.value || 0) > 0)) {
+                markQuickEstimateFieldInvalid(priceEl, true);
+                isValid = false;
+            }
+            if (!getQuickSelectValue(templateSelect)) {
+                markQuickEstimateFieldInvalid(templateSelect, true);
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        if (step === 2) {
+            let isValid = true;
+            let selectedBomCount = 0;
+            const bomError = document.getElementById('quick_bom_id-error');
+
+            form.querySelectorAll('.quick-bom-row').forEach(function (row) {
+                const select = row.querySelector('.quick-bom-select');
+                const bomId = getQuickSelectValue(select);
+                const qtyInput = row.querySelector('.quick-bom-qty');
+                const priceInput = row.querySelector('.quick-bom-price');
+                const makeSelect = row.querySelector('.quick-bom-make-select');
+                const makeError = row.querySelector('.quick-bom-make-error');
+
+                if (!bomId) {
+                    return;
+                }
+
+                selectedBomCount++;
+
+                if (!(parseFloat(qtyInput?.value || 0) > 0)) {
+                    markQuickEstimateFieldInvalid(qtyInput, true);
+                    isValid = false;
+                }
+                if (parseFloat(priceInput?.value || 0) < 0) {
+                    markQuickEstimateFieldInvalid(priceInput, true);
+                    isValid = false;
+                }
+                if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
+                    markQuickEstimateFieldInvalid(makeSelect, true);
+                    makeError?.classList.add('d-block');
+                    isValid = false;
+                }
+            });
+
+            if (selectedBomCount === 0) {
+                if (bomError) {
+                    bomError.style.display = 'block';
+                }
+                markQuickEstimateFieldInvalid(form.querySelector('.quick-bom-select'), true);
+                isValid = false;
+            } else if (bomError) {
+                bomError.style.display = 'none';
+            }
+
+            return isValid;
+        }
+
+        return true;
+    }
+
     window.validateQuickEstimateBeforeBom = validateQuickEstimateBeforeBom;
+    window.validateQuickEstimateWizardStep = validateQuickEstimateWizardStep;
+    window.updateQuickBomErrorVisibility = updateQuickBomErrorVisibility;
+    window.markQuickEstimateFieldInvalid = markQuickEstimateFieldInvalid;
 
     function initEstimatesIndex() {
         const permissions = window.crmUserPermissions?.estimates || {};
@@ -460,34 +611,114 @@
 
             initQuickAddBom();
 
+            const getQuickEstimateDropdownParent = function () {
+                return window.jQuery(document.body);
+            };
+
+            const applyQuickEstimateMobileDropdownPosition = function ($select) {
+                if (window.innerWidth >= 768) {
+                    return;
+                }
+
+                const instance = $select.data('select2');
+                const $container = $select.next('.select2-container');
+                const $dropdown = instance?.$dropdown;
+                if (!$container.length || !$dropdown?.length) {
+                    return;
+                }
+
+                const padding = 12;
+                const viewportWidth = document.documentElement.clientWidth;
+                const viewportHeight = window.innerHeight;
+                const rect = $container[0].getBoundingClientRect();
+                const width = Math.min(Math.max(rect.width, 120), viewportWidth - (padding * 2));
+                let left = rect.left;
+
+                if (left + width > viewportWidth - padding) {
+                    left = viewportWidth - padding - width;
+                }
+                if (left < padding) {
+                    left = padding;
+                }
+
+                const maxHeight = Math.min(220, Math.floor(viewportHeight * 0.42));
+                const spaceBelow = viewportHeight - rect.bottom - 8;
+                const spaceAbove = rect.top - 8;
+                let top = rect.bottom + 4;
+
+                if (spaceBelow < Math.min(maxHeight, 120) && spaceAbove > spaceBelow) {
+                    top = Math.max(8, rect.top - Math.min(maxHeight, spaceAbove) - 4);
+                }
+
+                const dropdownEl = $dropdown[0];
+                dropdownEl.style.setProperty('position', 'fixed', 'important');
+                dropdownEl.style.setProperty('top', top + 'px', 'important');
+                dropdownEl.style.setProperty('left', left + 'px', 'important');
+                dropdownEl.style.setProperty('width', width + 'px', 'important');
+                dropdownEl.style.setProperty('min-width', width + 'px', 'important');
+                dropdownEl.style.setProperty('max-width', width + 'px', 'important');
+                dropdownEl.style.setProperty('right', 'auto', 'important');
+                dropdownEl.style.setProperty('z-index', '1075', 'important');
+                $dropdown.addClass('quick-estimate-mobile-dropdown');
+                $dropdown.find('.select2-results__options').css('max-height', maxHeight + 'px');
+            };
+
+            const bindQuickEstimateSelectMobilePosition = function ($select) {
+                const reposition = function () {
+                    applyQuickEstimateMobileDropdownPosition($select);
+                };
+
+                $select.off('select2:open.quickEstimateMobile select2:close.quickEstimateMobile')
+                    .on('select2:open.quickEstimateMobile', function () {
+                        if (window.innerWidth >= 768) {
+                            return;
+                        }
+
+                        reposition();
+                        window.requestAnimationFrame(reposition);
+                        window.setTimeout(reposition, 0);
+                        window.setTimeout(reposition, 50);
+                        window.setTimeout(reposition, 120);
+
+                        window.jQuery(window).off('resize.quickEstimateMobile scroll.quickEstimateMobile')
+                            .on('resize.quickEstimateMobile scroll.quickEstimateMobile', reposition);
+                        window.jQuery('#quickEstimateModal .modal-body').off('scroll.quickEstimateMobile')
+                            .on('scroll.quickEstimateMobile', reposition);
+                    })
+                    .on('select2:close.quickEstimateMobile', function () {
+                        window.jQuery(window).off('resize.quickEstimateMobile scroll.quickEstimateMobile');
+                        window.jQuery('#quickEstimateModal .modal-body').off('scroll.quickEstimateMobile');
+                    });
+            };
+
+            const initQuickEstimateSelect = function ($select) {
+                const $dropdownParent = getQuickEstimateDropdownParent();
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+
+                $select.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: $dropdownParent,
+                    minimumResultsForSearch: 0
+                });
+
+                bindQuickEstimateSelectMobilePosition($select);
+            };
+
             const initQuickEstimateSelects = function () {
                 if (!window.jQuery || !window.jQuery.fn.select2) {
                     return;
                 }
 
-                const $modal = window.jQuery(modalEl || document.body);
                 window.jQuery('#quick_estimate_customer_id, #quick_estimate_type, .quick-bom-select').each(function () {
-                    const $select = window.jQuery(this);
-                    if ($select.hasClass('select2-hidden-accessible')) {
-                        return;
-                    }
-
-                    $select.select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : $modal,
-                        minimumResultsForSearch: 0
-                    });
+                    initQuickEstimateSelect(window.jQuery(this));
                 });
 
                 const $templateSelect = window.jQuery('#quick_template_id');
-                if (!$templateSelect.hasClass('select2-hidden-accessible')) {
-                    $templateSelect.select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dropdownParent: window.jQuery('#quick_template_wrapper'),
-                        minimumResultsForSearch: 0
-                    });
+                if ($templateSelect.length) {
+                    initQuickEstimateSelect($templateSelect);
                 }
             };
 
@@ -496,18 +727,7 @@
                     return;
                 }
 
-                const $select = window.jQuery(select);
-                const $modal = window.jQuery(modalEl || document.body);
-                if ($select.hasClass('select2-hidden-accessible')) {
-                    $select.select2('destroy');
-                }
-
-                $select.select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    dropdownParent: $modal.find('.modal-content').length ? $modal.find('.modal-content') : $modal,
-                    minimumResultsForSearch: 0
-                });
+                initQuickEstimateSelect(window.jQuery(select));
             };
 
             const calculateQuickBomRow = function (row) {
@@ -713,6 +933,7 @@
 
             const attachQuickBomRowHandlers = function (row) {
                 const select = row.querySelector('.quick-bom-select');
+                const makeSelect = row.querySelector('.quick-bom-make-select');
                 const qtyInput = row.querySelector('.quick-bom-qty');
                 const priceInput = row.querySelector('.quick-bom-price');
                 const taxSelect = row.querySelector('.quick-bom-tax-rate');
@@ -720,16 +941,20 @@
 
                 initQuickBomSelect(select);
 
-                select?.addEventListener('change', function () {
+                const onBomSelectionChange = function () {
                     syncQuickBomRowFromSelection(row);
                     calculateQuickEstimateTotals();
-                });
+                    updateQuickBomErrorVisibility(form);
+                };
+
+                select?.addEventListener('change', onBomSelectionChange);
                 if (window.jQuery && select) {
-                    window.jQuery(select).off('change.quickBom select2:select.quickBom').on('change.quickBom select2:select.quickBom', function () {
-                        syncQuickBomRowFromSelection(row);
-                        calculateQuickEstimateTotals();
-                    });
+                    window.jQuery(select).off('change.quickBom select2:select.quickBom').on('change.quickBom select2:select.quickBom', onBomSelectionChange);
                 }
+                makeSelect?.addEventListener('change', function () {
+                    markQuickEstimateFieldInvalid(makeSelect, false);
+                    row.querySelector('.quick-bom-make-error')?.classList.remove('d-block');
+                });
                 qtyInput?.addEventListener('input', function () {
                     calculateQuickBomRow(row);
                 });
@@ -1009,7 +1234,18 @@
                 });
             }
 
+            const stripQuickEstimateLabelIcons = function () {
+                document.querySelectorAll('#quickEstimateModal label.form-label').forEach(function (label) {
+                    label.classList.remove('crm-label-with-icon');
+                    label.querySelectorAll('.crm-label-icon, i.fa-solid, i.fa-regular, i.fa-brands, i.fas, i.far, i.fab, i.bi').forEach(function (icon) {
+                        icon.remove();
+                    });
+                    delete label.dataset.iconEnhanced;
+                });
+            };
+
             modalEl?.addEventListener('shown.bs.modal', function () {
+                stripQuickEstimateLabelIcons();
                 initQuickEstimateSelects();
                 if (window.quickEstimateDealContext?.lockedCustomer) {
                     const dealCustomerSelect = document.getElementById('customer_id');
@@ -1039,59 +1275,81 @@
 
             window.syncQuickEstimateBomRow = syncQuickBomRowFromSelection;
 
+            if (window.jQuery) {
+                window.jQuery(form).on('change', '#quick_estimate_customer_id, #quick_estimate_type, #quick_template_id', function () {
+                    if (getQuickSelectValue(this)) {
+                        markQuickEstimateFieldInvalid(this, false);
+                    }
+                });
+                window.jQuery(form).on('change input', '.quick-bom-select, .quick-bom-make-select, .quick-bom-qty, .quick-bom-price', function () {
+                    markQuickEstimateFieldInvalid(this, false);
+                    if (window.jQuery(this).hasClass('quick-bom-select')) {
+                        updateQuickBomErrorVisibility(form);
+                    }
+                    if (window.jQuery(this).hasClass('quick-bom-make-select')) {
+                        window.jQuery(this).closest('.quick-bom-row').find('.quick-bom-make-error').removeClass('d-block');
+                    }
+                });
+            }
+
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
-                form.querySelectorAll('.is-invalid').forEach(function (field) {
-                    field.classList.remove('is-invalid');
-                });
+                clearQuickEstimateValidationState(form);
 
-                const customerId = form.customer_id.value;
+                const customerId = getQuickSelectValue(customerSelect);
                 const quantity = parseFloat(form.quantity.value || 0);
                 const price = parseFloat(form.price.value || 0);
-                const templateId = form.template_id.value;
+                const templateId = getQuickSelectValue(document.getElementById('quick_template_id'));
                 const bomRows = Array.from(form.querySelectorAll('.quick-bom-row'));
                 const products = [];
 
                 let hasError = false;
                 if (!customerId) {
-                    customerSelect.classList.add('is-invalid');
+                    markQuickEstimateFieldInvalid(customerSelect, true);
                     hasError = true;
                 }
                 if (!(quantity > 0)) {
-                    document.getElementById('quick_quantity')?.classList.add('is-invalid');
+                    markQuickEstimateFieldInvalid(document.getElementById('quick_quantity'), true);
                     hasError = true;
                 }
                 if (!(price > 0)) {
-                    document.getElementById('quick_price')?.classList.add('is-invalid');
+                    markQuickEstimateFieldInvalid(document.getElementById('quick_price'), true);
                     hasError = true;
                 }
                 if (!templateId) {
-                    document.getElementById('quick_template_id')?.classList.add('is-invalid');
+                    markQuickEstimateFieldInvalid(document.getElementById('quick_template_id'), true);
                     hasError = true;
                 }
-                const estimateType = document.getElementById('quick_estimate_type')?.value || '';
+                const estimateType = getQuickSelectValue(document.getElementById('quick_estimate_type'));
                 if (!estimateType) {
-                    document.getElementById('quick_estimate_type')?.classList.add('is-invalid');
+                    markQuickEstimateFieldInvalid(document.getElementById('quick_estimate_type'), true);
                     hasError = true;
                 }
                 bomRows.forEach(function (row) {
                     const select = row.querySelector('.quick-bom-select');
                     const option = select?.options[select.selectedIndex];
-                    const bomId = select?.value || '';
+                    const bomId = getQuickSelectValue(select);
                     const rowQty = parseFloat(row.querySelector('.quick-bom-qty')?.value || 0);
                     const rowPrice = parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
+                    const makeSelect = row.querySelector('.quick-bom-make-select');
+                    const makeError = row.querySelector('.quick-bom-make-error');
 
                     if (!bomId) {
                         return;
                     }
 
                     if (!(rowQty > 0)) {
-                        row.querySelector('.quick-bom-qty')?.classList.add('is-invalid');
+                        markQuickEstimateFieldInvalid(row.querySelector('.quick-bom-qty'), true);
                         hasError = true;
                     }
                     if (rowPrice < 0) {
-                        row.querySelector('.quick-bom-price')?.classList.add('is-invalid');
+                        markQuickEstimateFieldInvalid(row.querySelector('.quick-bom-price'), true);
+                        hasError = true;
+                    }
+                    if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
+                        markQuickEstimateFieldInvalid(makeSelect, true);
+                        makeError?.classList.add('d-block');
                         hasError = true;
                     }
 
@@ -1102,7 +1360,7 @@
                         product_id: String(bomId),
                         name: option?.dataset?.name || option?.textContent?.trim() || '',
                         description: '',
-                        category_name: row.querySelector('.quick-bom-make-select')?.value || option?.dataset?.make || '',
+                        category_name: makeSelect?.value || option?.dataset?.make || '',
                         quantity: rowQty,
                         price: rowPrice,
                         tax_rate: parseFloat(taxSelect?.value || 0),
@@ -1110,11 +1368,17 @@
                     });
                 });
                 if (!products.length) {
-                    document.getElementById('quick_bom_id-error').style.display = 'block';
-                    form.querySelector('.quick-bom-select')?.classList.add('is-invalid');
+                    const bomError = document.getElementById('quick_bom_id-error');
+                    if (bomError) {
+                        bomError.style.display = 'block';
+                    }
+                    markQuickEstimateFieldInvalid(form.querySelector('.quick-bom-select'), true);
                     hasError = true;
                 } else {
-                    document.getElementById('quick_bom_id-error').style.display = 'none';
+                    const bomError = document.getElementById('quick_bom_id-error');
+                    if (bomError) {
+                        bomError.style.display = 'none';
+                    }
                 }
                 if (hasError) {
                     return;

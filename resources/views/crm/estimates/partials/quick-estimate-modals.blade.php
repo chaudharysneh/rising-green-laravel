@@ -37,7 +37,7 @@
                         <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                             <div class="d-flex align-items-start gap-2" style="min-width: 0;">
-                                <div class="flex-grow-1 w-100" style="min-width: 0;">
+                                <div class="flex-grow-1 w-100 quick-customer-select-wrap" style="min-width: 0;">
                                     <select class="form-select" name="customer_id" id="quick_estimate_customer_id" required>
                                         <option value="">Select Customer</option>
                                         @foreach ($customers ?? [] as $customer)
@@ -51,33 +51,41 @@
                             </div>
                             <div class="invalid-feedback" id="quick_customer_id-error">Please select a customer.</div>
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
-                            <label class="form-label fw-semibold">Estimate Name</label>
-                            <input type="text" class="form-control" name="estimate_name" id="quick_estimate_name" placeholder="Auto from customer">
+                        <div class="col-12 col-md-8 quick-step-1 active-step">
+                            <div class="row g-2">
+                                <div class="col-6 quick-step-field-col">
+                                    <label class="form-label fw-semibold">Estimate Name</label>
+                                    <input type="text" class="form-control" name="estimate_name" id="quick_estimate_name" placeholder="Auto from customer">
+                                </div>
+                                <div class="col-6 quick-type-select-wrap quick-step-field-col">
+                                    <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="type" id="quick_estimate_type" required>
+                                        <option value="" selected>Select Type</option>
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="common meter">Common Meter</option>
+                                    </select>
+                                    <div class="invalid-feedback" id="quick_type-error">Please select type.</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
-                            <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
-                            <select class="form-select" name="type" id="quick_estimate_type" required>
-                                <option value="" selected>Select Type</option>
-                                <option value="residential">Residential</option>
-                                <option value="commercial">Commercial</option>
-                                <option value="industrial">Industrial</option>
-                                <option value="common meter">Common Meter</option>
-                            </select>
-                            <div class="invalid-feedback" id="quick_type-error">Please select type.</div>
+                        <div class="col-12 col-md-8 quick-step-1 active-step">
+                            <div class="row g-2">
+                                <div class="col-6 quick-step-field-col">
+                                    <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
+                                    <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
+                                    <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
+                                </div>
+                                <div class="col-6 quick-step-field-col">
+                                    <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
+                                    <input type="number" min="1" step="1" class="form-control" name="price" id="quick_price" placeholder="Enter price" required>
+                                    <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6 col-md-4 quick-step-1 active-step">
-                            <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
-                            <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
-                            <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
-                        </div>
-                        <div class="col-12 col-md-4 quick-step-1 active-step">
-                            <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
-                            <input type="number" min="1" step="1" class="form-control" name="price" id="quick_price" placeholder="Enter price" required>
-                            <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
-                        </div>
-                        <div class="col-12 col-md-4 quick-step-1 active-step" id="quick_template_wrapper">
-                            <label class="form-label fw-semibold" data-icon-enhanced="true">Quotation Template <span class="text-danger">*</span></label>
+                        <div class="col-12 col-md-4 quick-step-1 active-step quick-template-select-wrap" id="quick_template_wrapper">
+                            <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
                             <select class="form-select" name="template_id" id="quick_template_id" required>
                                 <option value="">Select Template</option>
                                 @foreach ($templates ?? [] as $template)
@@ -93,7 +101,7 @@
                                     <div class="quick-bom-row bg-white border rounded-3 p-2">
                                         <div class="row g-2 align-items-end">
                                             <div class="col-12 col-md-3 quick-bom-select-col">
-                                                <label class="form-label small fw-semibold">BOM</label>
+                                                <label class="form-label small fw-semibold">BOM <span class="text-danger">*</span></label>
                                                 <div class="d-flex align-items-start gap-2">
                                                     <select class="form-select quick-bom-select" name="quick_bom_id[]">
                                                         <option value="">Select BOM</option>
@@ -112,21 +120,22 @@
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-2 quick-bom-make-col">
-                                                <label class="form-label small fw-semibold">Make</label>
+                                                <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
                                                 <select class="form-select quick-bom-make-select" name="quick_bom_make[]" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
+                                                <div class="invalid-feedback quick-bom-make-error">Please select make.</div>
                                             </div>
                                             <div class="col-6 col-md-1 quick-bom-qty-col">
-                                                <label class="form-label small fw-semibold">Qty</label>
+                                                <label class="form-label small fw-semibold">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="1" step="1" class="form-control quick-bom-qty" name="quick_bom_qty[]" value="1">
                                             </div>
                                             <div class="col-6 col-md-2 quick-bom-money-col">
-                                                <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price</label>
+                                                <label class="form-label small fw-semibold">Unit Price</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-price" name="quick_bom_price[]" value="0">
                                             </div>
-                                            <div class="col-6 col-md-1 quick-bom-money-col">
-                                                <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Amount</label>
+                                            <div class="col-12 col-md-1 quick-bom-money-col quick-bom-amount-col">
+                                                <label class="form-label small fw-semibold">Amount</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-amount" value="0" readonly>
                                             </div>
                                             <div class="col-12 col-md-2 quick-bom-tax-col">
@@ -151,13 +160,15 @@
                                 <button type="button" class="btn btn-outline-dark-blue btn-sm mt-3" id="quickAddBomRow">
                                     <i class="bi bi-plus-circle me-1"></i>Add More BOM
                                 </button>
-                                <div class="invalid-feedback d-block" id="quick_bom_id-error" style="display:none;">Please select at least one BOM.</div>
+                                <div class="quick-bom-instruction" id="quick_bom_id-error" style="display:none;" role="status">
+                                    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Please select at least one BOM.
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 quick-step-3">
                             <div class="totals-card quick-totals-card rounded-3">
                                 <div class="totals-row">
-                                    <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
+                                    <span class="fw-semibold">Subtotal:</span>
                                     <span id="quick_subtotal_display" class="fw-bold text-dark">0.00</span>
                                 </div>
 
@@ -179,19 +190,19 @@
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
+                                    <span class="fw-semibold" style="font-size: 15px;">Discount:</span>
                                     <input type="number" id="quick_discount" value="0" step="1" class="input-small">
                                 </div>
 
                                 <div class="totals-row">
-                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subsidy:</span>
+                                    <span class="fw-semibold" style="font-size: 15px;">Subsidy:</span>
                                     <input type="number" id="quick_subsidy_amount" value="0" step="1" class="input-small">
                                 </div>
 
                                 <hr class="my-2">
 
                                 <div class="totals-row total-row mb-0">
-                                    <span class="h6 mb-0 fw-bold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Payable:</span>
+                                    <span class="h6 mb-0 fw-bold">Total Payable:</span>
                                     <span id="quick_final_total_display" class="h5 mb-0 fw-bold">0.00</span>
                                 </div>
                             </div>
@@ -241,6 +252,13 @@
 
             #quickEstimateModal .modal-body {
                 padding-bottom: 3rem !important;
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                overflow-x: clip;
+            }
+
+            #quickEstimateModal .modal-content {
+                overflow-x: clip;
             }
 
             #quickEstimateModal .quick-totals-card .input-small {
@@ -255,6 +273,11 @@
             }
             #quickEstimateModal .active-step {
                 display: block !important;
+            }
+
+            #quickEstimateModal .active-step > .row {
+                display: flex !important;
+                flex-wrap: wrap;
             }
             
             .quick-bom-row-grid .quick-bom-select-col,
@@ -290,6 +313,27 @@
             z-index: 1065 !important;
         }
 
+        @media (max-width: 767.98px) {
+            #addCustomerModal.modal,
+            #quickAddBomModal.modal {
+                padding-left: 1.25rem !important;
+                padding-right: 1.25rem !important;
+            }
+
+            #addCustomerModal .modal-dialog,
+            #quickAddBomModal .modal-dialog,
+            .quick-estimate-nested-modal {
+                margin: 1.5rem auto !important;
+                max-width: min(340px, calc(100vw - 2.5rem)) !important;
+                width: 100% !important;
+            }
+
+            #addCustomerModal .modal-body,
+            #quickAddBomModal .modal-body {
+                padding: 1rem;
+            }
+        }
+
         body.modal-open .modal-backdrop.show ~ .modal-backdrop.show {
             z-index: 1060;
         }
@@ -300,29 +344,6 @@
 
         #quickEstimateModal .d-flex:has(.is-invalid) ~ .invalid-feedback {
             display: block !important;
-        }
-
-        /* Force Quotation Template dropdown to open upwards */
-        #quick_template_wrapper {
-            position: relative;
-        }
-        #quick_template_wrapper .select2-container--open:not(.select2) {
-            top: auto !important;
-            bottom: 40px !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 0 !important;
-        }
-        #quick_template_wrapper .select2-dropdown {
-            top: auto !important;
-            bottom: 0 !important;
-            border-bottom-left-radius: 0 !important;
-            border-bottom-right-radius: 0 !important;
-            border-top-left-radius: 0.375rem !important;
-            border-top-right-radius: 0.375rem !important;
-            border-bottom: none !important;
-            border-top: 1px solid #ced4da !important;
-            box-shadow: 0 -0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
         }
     </style>
 @endpush
@@ -367,54 +388,10 @@
             }
 
             $('.quick-next-btn').click(function() {
-                let isValid = true;
-                
-                if (currentStep === 1) {
-                    $('#quickEstimateModal .quick-step-1 [required]').each(function() {
-                        if (!$(this).val() && $(this).is(':visible')) {
-                            isValid = false;
-                            $(this).addClass('is-invalid');
-                        } else {
-                            $(this).removeClass('is-invalid');
-                        }
-                    });
-                } else if (currentStep === 2) {
-                    let selectedBomCount = 0;
-                    $('#quickEstimateModal .quick-bom-row').each(function() {
-                        const select = $(this).find('.quick-bom-select');
-                        const qtyInput = $(this).find('.quick-bom-qty');
-                        const priceInput = $(this).find('.quick-bom-price');
-                        
-                        if (select.val()) {
-                            selectedBomCount++;
-                            const qty = parseFloat(qtyInput.val() || 0);
-                            const price = parseFloat(priceInput.val() || 0);
-                            
-                            if (!(qty > 0)) {
-                                qtyInput.addClass('is-invalid');
-                                isValid = false;
-                            } else {
-                                qtyInput.removeClass('is-invalid');
-                            }
-                            
-                            if (price < 0) {
-                                priceInput.addClass('is-invalid');
-                                isValid = false;
-                            } else {
-                                priceInput.removeClass('is-invalid');
-                            }
-                        }
-                    });
-                    
-                    if (selectedBomCount === 0) {
-                        $('#quick_bom_id-error').show();
-                        $('#quickEstimateModal .quick-bom-select').first().addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $('#quick_bom_id-error').hide();
-                    }
-                }
-                
+                const isValid = typeof window.validateQuickEstimateWizardStep === 'function'
+                    ? window.validateQuickEstimateWizardStep(currentStep)
+                    : true;
+
                 if (isValid && currentStep < totalSteps) {
                     currentStep++;
                     updateWizardUI();
@@ -429,12 +406,19 @@
             });
 
             // Dynamically clear validation errors using event delegation
-            $('#quickEstimateForm').on('change input', '[required], .quick-bom-select, .quick-bom-qty, .quick-bom-price', function() {
+            $('#quickEstimateForm').on('change input', '[required], .quick-bom-select, .quick-bom-make-select, .quick-bom-qty, .quick-bom-price', function() {
                 const val = $(this).val();
                 if (val || $(this).hasClass('quick-bom-qty') || $(this).hasClass('quick-bom-price')) {
-                    $(this).removeClass('is-invalid');
-                    if ($(this).hasClass('quick-bom-select')) {
-                        $('#quick_bom_id-error').hide();
+                    if (typeof window.markQuickEstimateFieldInvalid === 'function') {
+                        window.markQuickEstimateFieldInvalid(this, false);
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                    if ($(this).hasClass('quick-bom-select') && typeof window.updateQuickBomErrorVisibility === 'function') {
+                        window.updateQuickBomErrorVisibility(document.getElementById('quickEstimateForm'));
+                    }
+                    if ($(this).hasClass('quick-bom-make-select')) {
+                        $(this).closest('.quick-bom-row').find('.quick-bom-make-error').removeClass('d-block');
                     }
                 }
             });
@@ -452,11 +436,11 @@
 @endpush
 
 <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable quick-estimate-nested-modal">
         <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-bold">Add New BOM</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Add New BOM</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="quickAddBomForm" novalidate>

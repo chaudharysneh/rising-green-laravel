@@ -1,5 +1,151 @@
 /* Estimates Styling */
 
+.modal-open .select2-container--open,
+.modal-open .select2-dropdown {
+    z-index: 1070 !important;
+}
+
+@media (max-width: 767.98px) {
+    .modal-open .select2-dropdown .select2-results__options {
+        max-height: min(220px, 42vh) !important;
+    }
+
+    .select2-dropdown.quick-estimate-mobile-dropdown {
+        box-sizing: border-box;
+    }
+
+    #quickEstimateModal .modal-dialog {
+        margin: 0.5rem auto;
+        max-width: calc(100vw - 1rem);
+        width: calc(100vw - 1rem);
+    }
+
+    #quickEstimateModal .modal-content,
+    #quickEstimateModal .modal-body {
+        overflow-x: clip;
+        max-width: 100%;
+    }
+
+    #quickEstimateModal .modal-body {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    #quickEstimateModal .row {
+        --bs-gutter-x: 0.5rem;
+    }
+
+    #quickEstimateModal .row > [class*="col-"],
+    #quickEstimateModal .active-step .row > [class*="col-"] {
+        min-width: 0;
+    }
+
+    #quickEstimateModal label.form-label .crm-label-icon,
+    #quickEstimateModal label.form-label > i.fa-solid,
+    #quickEstimateModal label.form-label > i.bi:not(.bi-info-circle) {
+        display: none !important;
+    }
+
+    #quickEstimateModal label.form-label.crm-label-with-icon {
+        gap: 0;
+    }
+
+    #quickEstimateModal .quick-type-select-wrap,
+    #quickEstimateModal .quick-customer-select-wrap,
+    #quickEstimateModal .quick-template-select-wrap,
+    #quickEstimateModal .quick-type-select-wrap .select2-container,
+    #quickEstimateModal .quick-customer-select-wrap .select2-container,
+    #quickEstimateModal .quick-template-select-wrap .select2-container {
+        max-width: 100% !important;
+    }
+
+    #quickEstimateModal .select2-selection--single {
+        overflow: hidden;
+    }
+
+    #quickEstimateModal .select2-selection__rendered {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+}
+
+#quickEstimateModal .quick-customer-select-wrap .select2-container,
+#quickEstimateModal .quick-type-select-wrap .select2-container,
+#quickEstimateModal .quick-template-select-wrap .select2-container,
+#quickEstimateModal .quick-step-1 .select2-container {
+    width: 100% !important;
+    max-width: 100%;
+}
+
+#quickEstimateModal .quick-type-select-wrap,
+#quickEstimateModal .quick-customer-select-wrap,
+#quickEstimateModal .quick-template-select-wrap {
+    min-width: 0;
+}
+
+#quickEstimateModal .quick-step-field-col {
+    min-width: 0;
+}
+
+#addCustomerModal .modal-dialog,
+#quickAddBomModal .modal-dialog,
+.quick-estimate-nested-modal {
+    max-width: 420px;
+}
+
+#addCustomerModal .modal-content,
+#quickAddBomModal .modal-content {
+    overflow: hidden;
+}
+
+#quickAddBomModal .select2-container,
+#quickAddBomModal .select2-container .select2-selection {
+    max-width: 100% !important;
+}
+
+@media (max-width: 767.98px) {
+    #addCustomerModal.modal,
+    #quickAddBomModal.modal {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    #addCustomerModal .modal-dialog,
+    #quickAddBomModal .modal-dialog,
+    .quick-estimate-nested-modal {
+        margin: 1.5rem auto !important;
+        max-width: min(340px, calc(100vw - 2.5rem)) !important;
+        width: 100% !important;
+    }
+
+    #addCustomerModal .modal-header,
+    #quickAddBomModal .modal-header {
+        padding: 0.85rem 1rem;
+    }
+
+    #addCustomerModal .modal-body,
+    #quickAddBomModal .modal-body {
+        padding: 1rem;
+    }
+
+    #addCustomerModal .modal-footer,
+    #quickAddBomModal .modal-footer {
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+    }
+
+    #addCustomerModal .modal-footer .btn,
+    #quickAddBomModal .modal-footer .btn {
+        min-width: 0;
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+        font-size: 0.875rem;
+    }
+}
+
 .select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
     box-sizing: border-box;
     max-width: 100%;
@@ -25,6 +171,54 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+#quickEstimateModal .select2-container .select2-selection.is-invalid {
+    border-color: var(--bs-form-invalid-border-color, #dc3545) !important;
+}
+
+#quickEstimateModal .quick-bom-instruction {
+    padding: 0.65rem 0.85rem;
+    border: 1px dashed #121a33;
+    border-radius: 0.5rem;
+    background: rgba(18, 26, 51, 0.07);
+    color: #121a33;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-top: 10px;
+}
+
+#quickEstimateModal .quick-bom-instruction .bi {
+    color: #121a33;
+}
+
+.estimate-header-actions {
+    min-width: 0;
+}
+
+.estimate-header-actions .btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .estimate-header-actions {
+        flex-wrap: nowrap;
+    }
+
+    .estimate-header-actions .btn {
+        min-width: 0;
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    #quickEstimateModal .quick-bom-row .quick-bom-amount-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
 }
 
 @media (min-width: 768px) {
