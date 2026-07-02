@@ -208,9 +208,14 @@
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
     <script>
         $(document).ready(function() {
-            $('#customer_id, #estimate_id').select2({
+            $('#customer_id').select2({
                 theme: 'bootstrap-5',
                 width: '100%'
+            });
+            $('#estimate_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $('#estimate_id').closest('.flex-grow-1')
             });
 
             if (typeof window.initDealEstimateDropdowns === 'function') {

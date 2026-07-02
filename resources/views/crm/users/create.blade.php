@@ -47,7 +47,7 @@
 
                         <div class="row g-3">
                             <!-- Name -->
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="name">
                                     <i class="bi bi-person-fill"></i> Name <span class="text-danger">*</span>
                                 </label>
@@ -107,7 +107,7 @@
                             </div>
 
                             <!-- Image -->
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label class="form-label d-flex align-items-center gap-2" for="image">
                                     <i class="bi bi-person-circle"></i> Profile Image
                                 </label>

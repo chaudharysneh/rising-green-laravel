@@ -574,6 +574,9 @@ $(document).ready(function () {
                 $estimate.select2({
                     theme: "bootstrap-5",
                     width: "100%",
+                    dropdownParent: $estimate.closest(".flex-grow-1").length
+                        ? $estimate.closest(".flex-grow-1")
+                        : window.jQuery(document.body),
                 });
                 bindEstimateSelectSync();
             }

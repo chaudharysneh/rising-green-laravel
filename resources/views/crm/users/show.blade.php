@@ -127,7 +127,7 @@
                                         </div>
 
                                         <!-- Address -->
-                                        <div class="col-md-12 detail-view-row">
+                                        <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label pe-2"><i class="fas fa-map-marker-alt text-muted me-2"></i>Address:</span>
                                             <span class="detail-view-value">{{ $user->address ?: '--' }}</span>
                                         </div>

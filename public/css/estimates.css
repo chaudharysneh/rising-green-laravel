@@ -1,5 +1,63 @@
 /* Estimates Styling */
 
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+#quickEstimateModal .quick-bom-select-col,
+#quickEstimateModal .quick-bom-select-col .d-flex,
+#quickEstimateModal .quick-bom-select-col .select2-container {
+    min-width: 0;
+}
+
+#quickEstimateModal .quick-bom-select-col .select2-container {
+    width: 100% !important;
+}
+
+#quickEstimateModal .quick-bom-select-col .select2-selection--single {
+    overflow: hidden;
+}
+
+#quickEstimateModal .quick-bom-select-col .select2-selection__rendered {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    #quickEstimateModal .quick-bom-row .quick-bom-select-col {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+
+    #quickEstimateModal .quick-bom-row .quick-bom-make-col {
+        flex: 0 0 13%;
+        max-width: 13%;
+    }
+
+    #quickEstimateModal .quick-bom-row .quick-bom-qty-col {
+        flex: 0 0 7%;
+        max-width: 7%;
+    }
+
+    #quickEstimateModal .quick-bom-row .quick-bom-money-col {
+        flex: 0 0 16%;
+        max-width: 16%;
+    }
+
+    #quickEstimateModal .quick-bom-row .quick-bom-tax-col {
+        flex: 0 0 14%;
+        max-width: 14%;
+    }
+
+    #quickEstimateModal .quick-bom-row .quick-remove-bom-row {
+        min-width: 42px;
+    }
+}
+
 .estimate-avatar {
     width: 40px;
     height: 40px;

@@ -233,25 +233,25 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-6 col-md-2">
+                                            <div class="col-6 col-md-2 quick-bom-make-col">
                                                 <label class="form-label small fw-semibold">Make</label>
                                                 <select class="form-select quick-bom-make-select" name="quick_bom_make[]" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
-                                            <div class="col-6 col-md-1">
+                                            <div class="col-6 col-md-1 quick-bom-qty-col">
                                                 <label class="form-label small fw-semibold">Qty</label>
                                                 <input type="number" min="1" step="1" class="form-control quick-bom-qty" name="quick_bom_qty[]" value="1">
                                             </div>
-                                            <div class="col-6 col-md-2">
+                                            <div class="col-6 col-md-2 quick-bom-money-col">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-price" name="quick_bom_price[]" value="0">
                                             </div>
-                                            <div class="col-6 col-md-1">
+                                            <div class="col-6 col-md-1 quick-bom-money-col">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Amount</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-amount" value="0" readonly>
                                             </div>
-                                            <div class="col-12 col-md-2">
+                                            <div class="col-12 col-md-2 quick-bom-tax-col">
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="quick_bom_tax_rate[]" class="form-select quick-bom-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
