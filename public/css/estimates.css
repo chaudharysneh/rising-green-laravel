@@ -140,6 +140,50 @@
     display: block;
 }
 
+@media (max-width: 767.98px) {
+    #estimateCreateForm .estimate-charges-date-group > .row.g-3,
+    #estimateEditForm .estimate-charges-date-group > .row.g-3 {
+        min-height: 0 !important;
+        --bs-gutter-y: 0.75rem;
+    }
+
+    #estimateCreateForm .estimate-charges-date-group,
+    #estimateEditForm .estimate-charges-date-group {
+        margin-bottom: 0.75rem;
+    }
+
+    #estimateCreateForm .estimate-charges-date-group .estimate-structure-charges-col,
+    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col {
+        margin-top: 0.5rem;
+        padding-top: 0.25rem;
+    }
+
+    #estimateCreateForm .estimate-charges-date-group .estimate-structure-charges-col .form-label,
+    #estimateEditForm .estimate-charges-date-group .estimate-structure-charges-col .form-label {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    #estimateCreateForm .estimate-charges-date-group > .row,
+    #estimateEditForm .estimate-charges-date-group > .row {
+        align-items: flex-end;
+    }
+
+    #estimateCreateForm .estimate-charges-col,
+    #estimateEditForm .estimate-charges-col,
+    #estimateCreateForm .estimate-created-date-col,
+    #estimateEditForm .estimate-created-date-col {
+        min-width: 0;
+    }
+
+    #estimateCreateForm .estimate-structure-charges-col,
+    #estimateEditForm .estimate-structure-charges-col {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
 #addCustomerModal .modal-dialog,
 #quickAddBomModal .modal-dialog,
 .quick-estimate-nested-modal {

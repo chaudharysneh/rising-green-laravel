@@ -187,28 +187,56 @@
                 + '<a class="page-link" href="#" data-page="' + page + '">' + label + '</a></li>';
         }
 
-        function clearLog(id) {
-            if (!window.confirm("Clear this user log?")) {
-                return;
+        function confirmUserLogAction(options) {
+            if (typeof Swal !== "undefined") {
+                return Swal.fire({
+                    title: options.title || "Are you sure?",
+                    text: options.text || "",
+                    icon: options.icon || "warning",
+                    showCancelButton: true,
+                    confirmButtonText: options.confirmButtonText || "Yes",
+                    cancelButtonText: options.cancelButtonText || "Cancel",
+                    confirmButtonColor: options.confirmButtonColor || "#dc3545",
+                    cancelButtonColor: options.cancelButtonColor || "#6c757d",
+                    customClass: {
+                        popup: "rounded-4 shadow",
+                    },
+                });
             }
 
-            fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
-                method: "DELETE",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    "X-CSRF-TOKEN": csrf(),
-                },
-                credentials: "same-origin",
-            })
-                .then(parseJson)
-                .then(function (payload) {
-                    notify(payload.message || "User log cleared successfully.", "success");
-                    loadLogs();
+            return Promise.resolve({
+                isConfirmed: window.confirm(options.text || options.title || "Are you sure?"),
+            });
+        }
+
+        function clearLog(id) {
+            confirmUserLogAction({
+                title: "Clear this user log?",
+                text: "This log entry will be removed permanently.",
+                confirmButtonText: "Yes, clear it",
+            }).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                fetch(config.destroyBaseUrl + "/" + encodeURIComponent(id), {
+                    method: "DELETE",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrf(),
+                    },
+                    credentials: "same-origin",
                 })
-                .catch(function (error) {
-                    notify(error.message || "Failed to clear user log.", "error");
-                });
+                    .then(parseJson)
+                    .then(function (payload) {
+                        notify(payload.message || "User log cleared successfully.", "success");
+                        loadLogs();
+                    })
+                    .catch(function (error) {
+                        notify(error.message || "Failed to clear user log.", "error");
+                    });
+            });
         }
 
         function clearAllLogs() {
@@ -216,28 +244,34 @@
                 return;
             }
 
-            if (!window.confirm("Delete all user logs? This action cannot be undone.")) {
-                return;
-            }
+            confirmUserLogAction({
+                title: "Delete all user logs?",
+                text: "This action cannot be undone.",
+                confirmButtonText: "Yes, delete all",
+            }).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
 
-            fetch(config.destroyAllUrl, {
-                method: "DELETE",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    "X-CSRF-TOKEN": csrf(),
-                },
-                credentials: "same-origin",
-            })
-                .then(parseJson)
-                .then(function (payload) {
-                    notify(payload.message || "All user logs cleared successfully.", "success");
-                    state.page = 1;
-                    loadLogs();
+                fetch(config.destroyAllUrl, {
+                    method: "DELETE",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrf(),
+                    },
+                    credentials: "same-origin",
                 })
-                .catch(function (error) {
-                    notify(error.message || "Failed to clear user logs.", "error");
-                });
+                    .then(parseJson)
+                    .then(function (payload) {
+                        notify(payload.message || "All user logs cleared successfully.", "success");
+                        state.page = 1;
+                        loadLogs();
+                    })
+                    .catch(function (error) {
+                        notify(error.message || "Failed to clear user logs.", "error");
+                    });
+            });
         }
 
         function openDetail(id) {

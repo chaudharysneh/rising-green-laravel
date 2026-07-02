@@ -23,9 +23,9 @@
                         <a href="{{ route('users.export') }}" class="btn btn-outline-dark-blue">
                             <i class="fa-solid fa-download me-1"></i>Export
                         </a>
-                        <a href="{{ route('users.create') }}" class="btn btn-dark-blue">
+                        <button type="button" class="btn btn-dark-blue" id="addStaffBtn" onclick="handleAddStaffClick(event)">
                             <i class="bi bi-person-plus me-1"></i>Add Staff
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -112,6 +112,14 @@
 
 @push('scripts')
     <script>
+        window.usersIndexConfig = {
+            createUrl: @json(route('users.create')),
+            supportEmail: @json('info@fableadtechnolabs.com'),
+            staffLimit: @json($staffLimit),
+            currentStaffCount: @json($currentStaffCount),
+            planName: @json($planName),
+        };
+
         window.usersPermissionsConfig = {
             modules: @json(config('crm_permissions.modules', [])),
             actions: @json(config('crm_permissions.actions', [])),

@@ -119,7 +119,10 @@
                 display: flex !important;
                 flex-wrap: wrap;
             }
-            #estimateCreateForm .row.g-3 {
+            #estimateCreateForm .estimate-charges-date-group > .row {
+                min-height: 0 !important;
+            }
+            #estimateCreateForm > .row.g-3 {
                 min-height: 420px;
             }
             #estimateCreateForm .form-actions .mobile-create-wizard-btn {
@@ -315,41 +318,46 @@
                             <div class="invalid-feedback" id="template_id-error">Please select quotation template</div>
                         </div>
 
-                        <div class="col-12 create-step-1 active-step">
-                            <label class="form-label fw-semibold">Charges</label>
-                            <div class="form-control d-flex align-items-center bg-light"
-                                style="min-height: 38px; padding: 0.375rem 0.75rem;">
-                                <div class="form-check mb-0">
-                                    <input class="form-check-input" type="checkbox" id="solar_structure_charges_check"
-                                        value="1" @checked(old('solar_structure_charges_check'))>
-                                    <label class="form-check-label small" for="solar_structure_charges_check">
-                                        Solar Structure Charges
-                                    </label>
+                        <div class="col-12 create-step-1 active-step estimate-charges-date-group">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-8 estimate-charges-col">
+                                    <label class="form-label fw-semibold">Charges</label>
+                                    <div class="form-control d-flex align-items-center bg-light"
+                                        style="min-height: 38px; padding: 0.375rem 0.75rem;">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox" id="solar_structure_charges_check"
+                                                value="1" @checked(old('solar_structure_charges_check'))>
+                                            <label class="form-check-label small" for="solar_structure_charges_check">
+                                                Solar Structure Charges
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div id="structure-charges-input" style="display: none; margin-top: 12px;">
-                                <label class="form-label fw-semibold small">Enter Structure Charges</label>
-                                <input type="number" min="0" step="1" name="solar_structure_charges"
-                                    id="solar_structure_charges" value="{{ old('solar_structure_charges', 0) }}"
-                                    class="form-control @error('solar_structure_charges') is-invalid @enderror"
-                                    placeholder="0.00">
-                                <div class="invalid-feedback">
-                                    @error('solar_structure_charges')
-                                        {{ $message }}
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="col-md-4 d-none d-md-block">
-                            <label class="form-label fw-semibold">Created Date</label>
-                            <input type="date" name="estimate_date" id="estimate_date"
-                                value="{{ old('estimate_date', date('Y-m-d')) }}"
-                                class="form-control @error('estimate_date') is-invalid @enderror">
-                            <div class="invalid-feedback">
-                                @error('estimate_date')
-                                    {{ $message }}
-                                @enderror
+                                <div class="col-12 col-md-4 d-none d-md-block estimate-created-date-col">
+                                    <label class="form-label fw-semibold">Created Date</label>
+                                    <input type="date" name="estimate_date" id="estimate_date"
+                                        value="{{ old('estimate_date', date('Y-m-d')) }}"
+                                        class="form-control @error('estimate_date') is-invalid @enderror">
+                                    <div class="invalid-feedback">
+                                        @error('estimate_date')
+                                            {{ $message }}
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="col-12 estimate-structure-charges-col" id="structure-charges-input" style="display: none;">
+                                    <label class="form-label fw-semibold small">Enter Structure Charges</label>
+                                    <input type="number" min="0" step="1" name="solar_structure_charges"
+                                        id="solar_structure_charges" value="{{ old('solar_structure_charges', 0) }}"
+                                        class="form-control @error('solar_structure_charges') is-invalid @enderror"
+                                        placeholder="0.00">
+                                    <div class="invalid-feedback">
+                                        @error('solar_structure_charges')
+                                            {{ $message }}
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -1102,6 +1102,54 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+function handleAddStaffClick(event) {
+    event.preventDefault();
+
+    const config = window.usersIndexConfig || {};
+    const limit = Number(config.staffLimit || 0);
+    const count = Number(config.currentStaffCount || 0);
+
+    if (limit > 0 && count >= limit) {
+        const planLabel = config.planName
+            ? ` for your <strong>${escapeUsersHtml(config.planName)}</strong> plan`
+            : '';
+
+        const supportEmail = config.supportEmail || 'info@fableadtechnolabs.com';
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Staff Limit Exceeded',
+            html: `
+                <p class="mb-2">You have reached the maximum staff limit${planLabel} (${limit} staff).</p>
+                <p class="mb-0 text-muted">Please contact support to renew or upgrade your subscription:
+                    <a href="mailto:${escapeUsersHtml(supportEmail)}" class="fw-semibold">${escapeUsersHtml(supportEmail)}</a>
+                </p>
+            `,
+            confirmButtonText: 'Close',
+            customClass: {
+                confirmButton: 'btn btn-outline-dark-blue',
+            },
+            buttonsStyling: false,
+        });
+        return;
+    }
+
+    window.location.href = config.createUrl || '/users/create';
+}
+
+function escapeUsersHtml(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function showImportDialog() {
     Swal.fire({
         html: `

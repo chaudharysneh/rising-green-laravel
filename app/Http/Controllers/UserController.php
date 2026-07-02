@@ -2,19 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
+use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    private function getSubscriptionStaffMeta(?User $user): array
+    {
+        $meta = [
+            'staffLimit' => 0,
+            'currentStaffCount' => 0,
+            'planName' => null,
+        ];
+
+        if (!$user) {
+            return $meta;
+        }
+
+        $planOwner = $user->isAdmin()
+            ? $user
+            : (Schema::hasColumn('users', 'parent_id') && !empty($user->parent_id)
+                ? User::find($user->parent_id) ?? $user
+                : $user);
+
+        if (!Schema::hasTable('subscription_user_plan')) {
+            return $meta;
+        }
+
+        $assignment = DB::table('subscription_user_plan')
+            ->where('user_id', $planOwner->id)
+            ->orderByDesc('id')
+            ->first();
+
+        $plan = $assignment ? SubscriptionPlan::find($assignment->subscription_id) : null;
+
+        if (Schema::hasColumn('users', 'parent_id')) {
+            $meta['currentStaffCount'] = User::query()
+                ->nonAdmin()
+                ->where('parent_id', $planOwner->id)
+                ->count();
+        }
+
+        $meta['staffLimit'] = (int) ($plan->staff_limit ?? 0);
+        $meta['planName'] = $plan->name ?? null;
+
+        return $meta;
+    }
+
     public function index()
     {
-        return view('crm.users.index');
+        $subscriptionMeta = $this->getSubscriptionStaffMeta(auth()->user());
+
+        return view('crm.users.index', $subscriptionMeta);
     }
 
     public function create()
