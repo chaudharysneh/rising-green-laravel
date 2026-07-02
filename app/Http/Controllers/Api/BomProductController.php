@@ -126,6 +126,9 @@ class BomProductController extends ApiBaseController
             'categories' => $freshProduct->categories->pluck('name')->toArray(),
         ]);
 
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        send_admin_notification('BOM Product', 'Created', $freshProduct->product_name, []);
+
         return response()->json([
             'success' => true,
             'message' => 'BOM product created successfully.',
@@ -212,6 +215,9 @@ class BomProductController extends ApiBaseController
             'categories_count' => $freshProduct->categories->count(),
         ]);
 
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        send_admin_notification('BOM Product', 'Updated', $freshProduct->product_name, []);
+
         return response()->json([
             'success' => true,
             'message' => 'BOM product updated successfully.',
@@ -222,7 +228,10 @@ class BomProductController extends ApiBaseController
 
     public function destroy(BomProduct $bomProduct)
     {
+        $productName = $bomProduct->product_name;
         $bomProduct->delete();
+
+        send_admin_notification('BOM Product', 'Deleted', $productName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

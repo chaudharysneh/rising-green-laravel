@@ -239,6 +239,11 @@ class EstimateController extends Controller
                 'is_quotation' => 1,
             ]);
 
+            // ── Email: Estimate Customer & Admin Notifications ────────────────
+            $estimate->loadMissing(['customer', 'creator']);
+            send_estimate_view_notification($estimate);
+            send_admin_notification('Estimate', 'Created', $estimate->estimate_no, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Estimate created successfully',
@@ -422,6 +427,8 @@ class EstimateController extends Controller
 
             $estimate->update($updateData);
 
+            send_admin_notification('Estimate', 'Updated', $estimate->estimate_no, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Estimate updated successfully',
@@ -446,7 +453,10 @@ class EstimateController extends Controller
         $this->authorize('delete', $estimate);
 
         try {
+            $estimateName = $estimate->estimate_no;
             $estimate->delete();
+
+            send_admin_notification('Estimate', 'Deleted', $estimateName ?? 'N/A', []);
 
             return response()->json([
                 'success' => true,

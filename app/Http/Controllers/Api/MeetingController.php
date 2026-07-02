@@ -249,6 +249,12 @@ class MeetingController extends ApiBaseController
             ]);
         }
 
+        // ── Email: Meeting Notifications ─────────────────────────────────────
+        $meeting->loadMissing(['assignedUser', 'customer']);
+        send_meeting_staff_notification($meeting);
+        send_meeting_customer_notification($meeting);
+        send_admin_notification('Meeting', 'Scheduled', $meeting->title, []);
+
         return response()->json([
             'success' => true,
             'message' => 'Meeting scheduled successfully.',
@@ -438,6 +444,8 @@ class MeetingController extends ApiBaseController
             }
         }
 
+        send_admin_notification('Meeting', 'Updated', $meeting->title, []);
+
         return response()->json([
             'success' => true,
             'message' => 'Meeting updated successfully.',
@@ -487,6 +495,8 @@ class MeetingController extends ApiBaseController
                 ]);
             }
         }
+
+        send_admin_notification('Meeting', 'Deleted', $meetingName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

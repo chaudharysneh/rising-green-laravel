@@ -108,6 +108,9 @@ class ProjectController extends ApiBaseController
         $project->load(['customer', 'assignedUser', 'creator']);
         app(\App\Services\UserLogService::class)->created($project);
 
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        send_admin_notification('Project', 'Created', $project->project_name, []);
+
         return response()->json([
             'success' => true,
             'data' => $project,
@@ -188,6 +191,17 @@ class ProjectController extends ApiBaseController
         $project->load(['customer', 'assignedUser', 'updater']);
         app(\App\Services\UserLogService::class)->updated($project);
 
+        // ── Email: Project Completed (customer thank you) ───────────────
+        if (isset($data['status'])
+            && $data['status'] === 'completed'
+            && $data['status'] !== $originalStatus
+        ) {
+            send_project_completed_notification($project);
+        }
+
+        // ── Email: Admin Notification (staff activity) ─────────────────
+        send_admin_notification('Project', 'Updated', $project->project_name, []);
+
         return response()->json([
             'success' => true,
             'data' => $project,
@@ -207,7 +221,10 @@ class ProjectController extends ApiBaseController
         $project->deleted_by = Auth::id();
         $project->save();
         app(\App\Services\UserLogService::class)->deleted($project);
+        $projectName = $project->name;
         $project->delete();
+
+        send_admin_notification('Project', 'Deleted', $projectName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

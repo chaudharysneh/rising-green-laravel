@@ -234,6 +234,8 @@ class InvoiceController extends ApiBaseController
 
             DB::commit();
 
+            send_admin_notification('Invoice', 'Created', $invoice->invoice_no, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Invoice created successfully',
@@ -403,6 +405,8 @@ class InvoiceController extends ApiBaseController
 
             DB::commit();
 
+            send_admin_notification('Invoice', 'Updated', $invoice->invoice_no, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Invoice updated successfully',
@@ -422,8 +426,11 @@ class InvoiceController extends ApiBaseController
     public function destroy(Invoice $invoice)
     {
         $invoice->update(['deleted_by' => auth()->id()]);
+        $invoiceName = $invoice->invoice_no;
         app(\App\Services\UserLogService::class)->deleted($invoice, 'Deleted an Invoice ' . ($invoice->number ?: ('ID ' . $invoice->id)));
         $invoice->delete();
+
+        send_admin_notification('Invoice', 'Deleted', $invoiceName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

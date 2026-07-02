@@ -101,8 +101,6 @@ class LeadController extends ApiBaseController
             $lead->saveCustomFields($request->get('custom_fields'));
         }
 
-        $this->createAutoTaskForLead($lead);
-
         // WhatsApp notification — fire & forget, never breaks main flow
         try {
             $phone = $lead->whatsapp ?: $lead->phone;
@@ -116,6 +114,15 @@ class LeadController extends ApiBaseController
             }
         } catch (\Throwable) {
         }
+
+        // ── Email: Lead Assigned (if assigned to a staff) ──────────────────
+        if (!empty($data['assigned_user_id'])) {
+            $lead->loadMissing(['assignedUser', 'leadSource', 'creator']);
+            send_lead_assigned_notification($lead);
+        }
+
+        // ── Email: Admin Notification (staff activity) ──────────────────
+        send_admin_notification('Lead', 'Created', $lead->name, []);
 
         return response()->json([
             'success' => true,
@@ -142,7 +149,8 @@ class LeadController extends ApiBaseController
     {
         $lead = Lead::findOrFail($id);
         $this->authorize('update', $lead);
-        $originalStatus = $lead->status;
+        $originalStatus         = $lead->status;
+        $originalAssignedUserId = $lead->assigned_user_id;
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -197,6 +205,17 @@ class LeadController extends ApiBaseController
                 $lead->saveCustomFields($request->get('custom_fields'));
             }
 
+            // ── Email: Lead Assigned (if assignment changed) ───────────────
+            if (!empty($data['assigned_user_id'])
+                && (int) $data['assigned_user_id'] !== (int) $originalAssignedUserId
+            ) {
+                $lead->loadMissing(['assignedUser', 'leadSource', 'creator']);
+                send_lead_assigned_notification($lead);
+            }
+
+            // ── Email: Admin Notification (staff activity) ──────────────
+            send_admin_notification('Lead', 'Updated', $lead->name, []);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Lead updated successfully.',
@@ -231,24 +250,15 @@ class LeadController extends ApiBaseController
         }
 
         app(\App\Services\UserLogService::class)->deleted($lead);
+        
+        $leadName = $lead->name;
         $lead->delete();
+
+        send_admin_notification('Lead', 'Deleted', $leadName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,
             'message' => 'Lead deleted successfully.',
-        ]);
-    }
-
-    private function createAutoTaskForLead(Lead $lead): void
-    {
-        Task::create([
-            'title' => 'Follow up lead',
-            'description' => 'Auto task for new lead: ' . $lead->name,
-            'related_type' => 'lead',
-            'related_id' => $lead->id,
-            'assigned_user_id' => $lead->assigned_user_id,
-            'due_date' => Carbon::today()->addDays(1)->toDateString(),
-            'status' => 'pending',
         ]);
     }
 

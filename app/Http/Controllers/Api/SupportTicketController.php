@@ -91,6 +91,7 @@ class SupportTicketController extends ApiBaseController
         app(\App\Services\UserLogService::class)->created($ticket, 'Created a Ticket ' . ($ticket->ticket_name ?: ('ID ' . $ticket->id)));
 
         \send_ticket_created_notification($ticket);
+        send_admin_notification('Support Ticket', 'Created', $ticket->ticket_name, []);
 
         return response()->json([
             'success' => true,
@@ -138,6 +139,8 @@ class SupportTicketController extends ApiBaseController
         $ticket->load(['customer', 'creator']);
         app(\App\Services\UserLogService::class)->updated($ticket, 'Updated a Ticket ' . ($ticket->ticket_name ?: ('ID ' . $ticket->id)));
 
+        send_admin_notification('Support Ticket', 'Updated', $ticket->ticket_name, []);
+
         return response()->json([
             'success' => true,
             'message' => 'Ticket updated successfully.',
@@ -155,7 +158,10 @@ class SupportTicketController extends ApiBaseController
         ]);
 
         app(\App\Services\UserLogService::class)->deleted($ticket, 'Deleted a Ticket ' . ($ticket->ticket_name ?: ('ID ' . $ticket->id)));
+        $ticketName = $ticket->ticket_name;
         $ticket->delete();
+
+        send_admin_notification('Support Ticket', 'Deleted', $ticketName ?? 'N/A', []);
 
         return response()->json([
             'success' => true,

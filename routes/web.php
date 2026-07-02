@@ -480,6 +480,19 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
         Route::get('view/{id}', [PdfbuilderController::class, 'view'])->middleware('matrix_permission:view_templates')->name('view');
         Route::post('delete/{id}', [PdfbuilderController::class, 'delete'])->middleware('matrix_permission:delete_templates')->name('delete');
     });
+
+    // Background Email Processing Route
+    Route::get('/process-queued-emails', function () {
+        if (\Illuminate\Support\Facades\DB::table('jobs')->count() > 0) {
+            $command = 'php ' . base_path('artisan') . ' queue:work --stop-when-empty';
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                pclose(popen('start /B ' . $command . ' > NUL 2>&1', 'r'));
+            } else {
+                exec($command . ' > /dev/null 2>&1 &');
+            }
+        }
+        return response()->json(['status' => 'processed']);
+    })->name('process.queued.emails');
 });
 
 // Cache clearing route - accessible to clear compiled views

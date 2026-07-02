@@ -170,15 +170,21 @@ class CustomerController extends Controller
             } catch (\Throwable $e) {
                 Log::error('Customer create WhatsApp block failed', [
                     'customer_id' => $customer->id ?? null,
-                    'error' => $e->getMessage(),
+                    'error'       => $e->getMessage(),
                 ]);
             }
 
+            // ── Email: Customer Welcome ──────────────────────────────────
+            send_customer_welcome_notification($customer);
+
+            // ── Email: Admin Notification (if created by Staff) ──────────
+            send_admin_notification('Customer', 'Created', $customer->name ?? $customer->company_name ?? 'Unknown', [], url('/masters/customers/' . $customer->id . '/edit'));
+
             return response()->json([
-                'success' => true,
-                'message' => 'Customer created successfully.',
+                'success'  => true,
+                'message'  => 'Customer created successfully.',
                 'redirect' => '/masters/customers',
-                'data' => $customer
+                'data'     => $customer
             ], 201);
 
         } catch (ValidationException $e) {
@@ -262,6 +268,9 @@ class CustomerController extends Controller
                 ]);
             }
 
+            // ── Email: Admin Notification (if updated by Staff) ──────────
+            send_admin_notification('Customer', 'Updated', $customer->name ?? $customer->company_name ?? 'Unknown', [], url('/masters/customers/' . $customer->id . '/edit'));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Customer updated successfully.',
@@ -291,7 +300,10 @@ class CustomerController extends Controller
             if ($customer->image) {
                 Storage::disk('public')->delete($customer->image);
             }
+
             $customer->delete();
+
+            send_admin_notification('Customer', 'Deleted', $customerName ?? 'N/A', []);
 
             return response()->json([
                 'success' => true,
