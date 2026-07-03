@@ -61,7 +61,7 @@
                 <!-- Row 2: Price | Tax Type -->
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-tag me-2"></i>Price <span class="text-danger">*</span></label>
-                    <input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" class="form-control" placeholder="Enter price" step="0.01" min="0" required>
+                    <input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" class="form-control" placeholder="Enter price" step="1" min="1" required>
                     <div class="invalid-feedback d-block" id="price-error"></div>
                 </div>
                 <div class="col-md-6">

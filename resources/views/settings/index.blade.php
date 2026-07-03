@@ -666,7 +666,7 @@
                 </form>
             </div>
                             <div class="tab-pane fade" id="bank-details" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" id="bankDetailsForm" novalidate>
+                <form action="{{ route('settings.update') }}" method="POST" id="bankDetailsForm" enctype="multipart/form-data" novalidate>
                     @csrf
                     @method('PUT')
                     
@@ -699,12 +699,36 @@
                                         placeholder="Enter IFSC code">
                                     <div class="invalid-feedback" id="ifsc_code-error"></div>
                                 </div>
-                                <div class="col-md-12">
+                                @php
+                                    $qrPath = $settings['company_qr_code_path']->value ?? null;
+                                    $companyQrCodeUrl = $qrPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrPath)
+                                        ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($qrPath)
+                                        : null;
+                                @endphp
+                                <div class="col-md-6">
                                     <label class="form-label fw-semibold">Branch Name</label>
                                     <input type="text" name="branch_name" id="branch_name" class="form-control"
                                         value="{{ old('branch_name', $settings['branch_name']->value ?? '') }}"
                                         placeholder="Enter branch name">
                                     <div class="invalid-feedback" id="branch_name-error"></div>
+                                    <small class="text-muted d-block mt-1" style="visibility: hidden;">Spacer</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">QR Code (Upload)</label>
+                                    <div class="d-flex align-items-start gap-2">
+                                        <div class="flex-grow-1">
+                                            <input type="file" name="company_qr_code_path" id="bank-qr-input" accept="image/*" class="form-control">
+                                            <small class="text-muted d-block mt-1">Any image file - max 50 MB.</small>
+                                        </div>
+                                        <div class="profile-qr-preview-container flex-shrink-0">
+                                            <img src="{{ $companyQrCodeUrl ?: '' }}" alt="QR Code" class="profile-qr-mini {{ $companyQrCodeUrl ? '' : 'd-none' }}" id="bank-qr-preview">
+                                            @if(!$companyQrCodeUrl)
+                                                <div class="profile-qr-mini-placeholder d-flex align-items-center justify-content-center" id="bank-qr-placeholder">
+                                                    <i class="bi bi-qr-code"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
                             
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
@@ -1672,6 +1696,28 @@
                     });
                 }
             });
+            // Bank QR Code Preview
+            const bankQrInput = document.getElementById('bank-qr-input');
+            const bankQrPreview = document.getElementById('bank-qr-preview');
+            const bankQrPlaceholder = document.getElementById('bank-qr-placeholder');
+
+            if (bankQrInput) {
+                bankQrInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (bankQrPreview) {
+                                bankQrPreview.src = e.target.result;
+                                bankQrPreview.classList.remove('d-none');
+                            }
+                            if (bankQrPlaceholder) {
+                                bankQrPlaceholder.classList.add('d-none');
+                            }
+                        }
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
         </script>
         <script
             src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/js/setting.js') }}?v={{ filemtime(public_path('assets/js/setting.js')) }}">

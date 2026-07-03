@@ -108,11 +108,11 @@
                             <th class="text-center d-none d-md-table-cell">Staff Name</th>
                             <th class="text-center d-none d-md-table-cell">Estimate Name</th>
                             <th class="text-center">Task Title</th>
-                            <th class="text-center d-none d-md-table-cell">Priority</th>
-                            <th class="text-center d-none d-md-table-cell">Status</th>
-                            <th class="text-center d-none d-md-table-cell">Task Action</th>
-                            <th class="text-center d-none d-md-table-cell">Due Date</th>
-                            <th class="text-center d-none d-md-table-cell tasks-sticky-action" style="width: 140px;">Action</th>
+                            <th class="text-center d-none d-md-table-cell" style="width: 1%; white-space: nowrap;">Task Type</th>
+                            <th class="text-center d-none d-md-table-cell" style="width: 1%; white-space: nowrap;">Status</th>
+                            <th class="text-center d-none d-md-table-cell" style="width: 1%; white-space: nowrap;">Task Action</th>
+                            <th class="text-center d-none d-md-table-cell" style="width: 1%; white-space: nowrap;">Due Date</th>
+                            <th class="text-center d-none d-md-table-cell tasks-sticky-action" style="width: 100px;">Action</th>
                             <th class="text-center d-md-none" style="width: 80px;">Action</th>
                         </tr>
                     </thead>
@@ -125,7 +125,7 @@
     </div>
 
     <div class="modal fade task-action-modal" id="taskActionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-0">
                     <h5 class="modal-title mb-0 text-white">Task Details</h5>
@@ -138,12 +138,12 @@
 
                         <div class="mb-4">
                             <label for="taskActionComment" class="form-label fw-semibold">Comment <span class="text-muted fw-normal">(Optional)</span></label>
-                            <textarea id="taskActionComment" class="form-control" rows="4" placeholder="Add comment if needed"></textarea>
+                            <textarea id="taskActionComment" class="form-control" rows="2" placeholder="Add comment if needed"></textarea>
                         </div>
 
                         <div id="taskActionStartFields" class="d-none">
                             <div class="mb-3">
-                                <label for="taskActionImages" class="form-label fw-semibold">Upload Images</label>
+                                <label for="taskActionImages" class="form-label fw-semibold">Upload Images/ Docs</label>
                                 <input type="file" id="taskActionImages" class="form-control" multiple>
                             </div>
                         </div>

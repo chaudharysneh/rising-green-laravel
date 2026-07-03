@@ -208,7 +208,7 @@
                 }
 
                 tbody.innerHTML = tasks.map(function (task) {
-                    const priority = (task.priority || "-").toString().toLowerCase();
+                    const taskType = task.task_type || "-";
                     const status = (task.status || "-").toString().toLowerCase();
                     const taskAssignedTo = task.assigned_to || task.assigned_user || "-";
                     const taskCustomerName = task.customer || task.customer_name || "-";
@@ -217,7 +217,7 @@
                     return '<tr class="task-main-row" data-task-id="' + task.id + '">'
                         + '<td>' + escapeHtml(task.title || "-") + '</td>'
                         + '<td class="d-none d-md-table-cell">' + escapeHtml(taskAssignedTo) + '</td>'
-                        + '<td class="text-center"><span class="badge-priority ' + escapeHtml(priority) + '">' + escapeHtml((task.priority || "-").toString().toUpperCase()) + '</span></td>'
+                        + '<td class="text-center"><span class="text-muted">' + escapeHtml(taskType) + '</span></td>'
                         + '<td class="text-center d-none d-md-table-cell"><span class="badge-status ' + escapeHtml(status) + '">' + escapeHtml((task.status || "-").toString().replace(/_/g, "-").toUpperCase()) + '</span></td>'
                         + '<td class="text-center d-md-none">'
                         + '<button type="button" class="btn-task-expand" data-target="' + task.id + '">'

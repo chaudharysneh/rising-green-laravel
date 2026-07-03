@@ -83,7 +83,7 @@
                                     <label class="form-label fw-semibold">Profile Image (Upload)</label>
                                     <input type="file" name="avatar" id="avatar-input" accept="image/*" class="form-control @error('avatar') is-invalid @enderror">
                                     @error('avatar')<div class="profile-field-error">{{ $message }}</div>@enderror
-                                    <small class="text-muted">Any image file - max 2 MB.</small>
+                                    <small class="text-muted">Any image file - max 50 MB.</small>
                                 </div>
                             </div>
                         </div>
@@ -124,7 +124,7 @@
                                     <label class="form-label fw-semibold">Company Logo (Upload)</label>
                                     <input type="file" name="company_logo_path" id="company-logo-input" accept="image/*" class="form-control @error('company_logo_path') is-invalid @enderror">
                                     @error('company_logo_path')<div class="profile-field-error">{{ $message }}</div>@enderror
-                                    <small class="text-muted">Any image file - max 2 MB.</small>
+                                    <small class="text-muted">Any image file - max 50 MB.</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">QR Code (Upload)</label>
@@ -140,7 +140,7 @@
                                         </div>
                                     </div>
                                     @error('company_qr_code_path')<div class="profile-field-error">{{ $message }}</div>@enderror
-                                    <small class="text-muted">Any image file - max 2 MB.</small>
+                                    <small class="text-muted">Any image file - max 50 MB.</small>
                                 </div>
                             </div>
                         </div>

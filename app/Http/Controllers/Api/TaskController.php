@@ -337,14 +337,14 @@ class TaskController extends ApiBaseController
         ];
 
         if ($nextStatus === 'in_progress') {
-            $rules['images'] = ['required', 'array', 'min:1'];
-            $rules['images.*'] = ['required', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
+            $rules['images'] = ['nullable', 'array'];
+            $rules['images.*'] = ['file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
         }
 
         if ($nextStatus === 'completed') {
-            $rules['light_bill'] = ['required', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
-            $rules['measurements'] = ['required', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
-            $rules['site_photo'] = ['required', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
+            $rules['light_bill'] = ['nullable', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
+            $rules['measurements'] = ['nullable', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
+            $rules['site_photo'] = ['nullable', 'file', 'mimes:' . self::TASK_UPLOAD_MIMES, 'max:10240'];
         }
 
         $validator = Validator::make($request->all(), $rules, [
@@ -468,6 +468,7 @@ class TaskController extends ApiBaseController
             'due_date' => ['required', 'date', 'after_or_equal:today'],
             'priority' => ['nullable', 'in:low,medium,high'],
             'status' => ['nullable', 'in:pending,in_progress,completed'],
+            'task_type' => ['required', 'in:Normal task,Site visit'],
             'status_comment' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -486,6 +487,8 @@ class TaskController extends ApiBaseController
             'priority.in' => 'Please select a valid priority.',
             'status.required' => 'Status is required.',
             'status.in' => 'Please select a valid status.',
+            'task_type.required' => 'Task Type is required.',
+            'task_type.in' => 'Please select a valid task type.',
             'assigned_user_id.required' => 'Staff is required.',
             'assigned_user_id.exists' => 'Please select a valid staff user.',
         ];
@@ -572,33 +575,10 @@ class TaskController extends ApiBaseController
             return 'start';
         }
 
-        if ($status !== 'in_progress') {
-            return null;
+        if ($status === 'in_progress') {
+            return 'end';
         }
 
-        $hasAnyStartDocument = Document::query()
-            ->where('documentable_type', Task::class)
-            ->where('documentable_id', $task->id)
-            ->where('title', 'like', 'Task Start Image%')
-            ->exists();
-
-        $lastCompletedAt = $task->statusHistories()
-            ->where('status', 'completed')
-            ->latest('created_at')
-            ->value('created_at');
-
-        if (!$lastCompletedAt) {
-            return $hasAnyStartDocument ? 'end' : 'start';
-        }
-
-        $latestRestartMarkerAt = Document::query()
-            ->where('documentable_type', Task::class)
-            ->where('documentable_id', $task->id)
-            ->where('title', 'like', 'Task Start Image%')
-            ->where('created_at', '>', $lastCompletedAt)
-            ->latest('created_at')
-            ->value('created_at');
-
-        return $latestRestartMarkerAt ? 'end' : 'start';
+        return null;
     }
 }

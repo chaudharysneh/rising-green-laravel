@@ -79,10 +79,6 @@ class AppServiceProvider extends ServiceProvider
             $user = auth()->user();
             $skipHeaderQuickEstimateModal = request()->routeIs([
                 'estimates.index',
-                'estimates.create',
-                'estimates.edit',
-                'invoices.create',
-                'invoices.edit',
                 'deals.create',
                 'deals.edit',
                 'tasks.create',

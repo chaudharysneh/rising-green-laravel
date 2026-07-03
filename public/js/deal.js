@@ -302,6 +302,10 @@
                             <div class="d-inline-flex align-items-center justify-content-center gap-2 w-100">
                                 ${permissions.edit ? `<a href="/deals/${deal.id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>` : ''}
                                 ${permissions.view ? `<a href="/deals/${deal.id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ''}
+                                ${deal.estimate_id
+                                    ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger" title="Download PDF"><i class="bi bi-file-pdf"></i></a>`
+                                    : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')" title="Download PDF"><i class="bi bi-file-pdf"></i></button>`
+                                }
                                 ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-deal-id="${deal.id}" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
                             </div>
                         </td>
@@ -344,6 +348,10 @@
                                         <div class="d-flex flex-wrap gap-2 justify-content-end">
                                             ${permissions.edit ? `<a href="/deals/${deal.id}/edit" class="btn crm-action-btn btn-sm"><i class="bi bi-pencil"></i></a>` : ''}
                                             ${permissions.view ? `<a href="/deals/${deal.id}" class="btn crm-action-btn btn-sm"><i class="bi bi-eye"></i></a>` : ''}
+                                            ${deal.estimate_id
+                                                ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger"><i class="bi bi-file-pdf"></i></a>`
+                                                : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')"><i class="bi bi-file-pdf"></i></button>`
+                                            }
                                             ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-deal-id="${deal.id}"><i class="bi bi-trash"></i></button>` : ''}
                                         </div>
                                     </div>

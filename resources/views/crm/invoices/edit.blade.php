@@ -190,6 +190,7 @@
                                 <option value="commercial" @selected(old('type', $invoice->type) == 'commercial')>Commercial</option>
                                 <option value="industrial" @selected(old('type', $invoice->type) == 'industrial')>Industrial</option>
                                 <option value="common meter" @selected(old('type', $invoice->type) == 'common meter')>Common Meter</option>
+                                <option value="ground mounted" @selected(old('type', $invoice->type) == 'ground mounted')>Ground Mounted</option>
                             </select>
                             <div class="invalid-feedback" id="type-error">Please select invoice type</div>
                         </div>

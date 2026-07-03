@@ -65,6 +65,7 @@
                                         <option value="commercial">Commercial</option>
                                         <option value="industrial">Industrial</option>
                                         <option value="common meter">Common Meter</option>
+                                        <option value="ground mounted">Ground Mounted</option>
                                     </select>
                                     <div class="invalid-feedback" id="quick_type-error">Please select type.</div>
                                 </div>
