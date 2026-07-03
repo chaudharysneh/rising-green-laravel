@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\Technology;
 use App\Models\Warranty;
 use App\Models\Subsidy;
+use App\Support\DocumentSummaryPresenter;
 use Illuminate\Support\Facades\Storage;
 
 class EstimateController extends Controller
@@ -79,7 +80,19 @@ class EstimateController extends Controller
             $warranty_map[$war->id] = $war->title;
         }
 
-        return view('crm.estimates.show', compact('estimate', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'));
+        $documentSummary = DocumentSummaryPresenter::forView(
+            $estimate,
+            $estimate->customer,
+            $settings->all(),
+            $user,
+            [
+                'document_no' => $estimate->estimate_no,
+                'document_date' => $estimate->estimate_date?->format('Y-m-d') ?? date('Y-m-d'),
+                'quantity' => (string) ($estimate->quantity ?? '0'),
+            ]
+        );
+
+        return view('crm.estimates.show', compact('estimate', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map', 'documentSummary'));
     }
 
     public function edit(Estimate $estimate)

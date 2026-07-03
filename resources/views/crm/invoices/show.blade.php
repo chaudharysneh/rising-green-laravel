@@ -65,7 +65,7 @@
         .info-table th,
         .quotation-table th,
         .extra-info th {
-            background-color: #52866A;
+            background-color: #4b9349;
             color: #fff;
         }
 
@@ -90,7 +90,7 @@
         }
 
         .highlight-bg {
-            background-color: #52866A;
+            background-color: #4b9349;
             color: #fff !important;
         }
 
@@ -184,7 +184,7 @@
             }
 
             .comment-bank-qr-table td:first-child {
-                border-top: 3px solid #52866A;
+                border-top: 3px solid #4b9349;
             }
 
             .comment-bank-qr-table td::before {
@@ -194,7 +194,7 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                background: #52866A;
+                background: #4b9349;
                 color: #fff;
                 padding: 10px 15px;
                 font-weight: 600;
@@ -202,7 +202,7 @@
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 /* margin: -15px -15px 0 -15px; */
-                border-bottom: 1px solid #52866A;
+                border-bottom: 1px solid #4b9349;
             }
 
             .comment-bank-qr-table td div {
@@ -292,208 +292,24 @@
             <div class="card-body p-3 p-md-4">
                 <div class="quotation-block">
                     <div class="quotation-box mx-auto">
-                        <!-- Header -->
-                        <div class="quotation-header">
-                            <table>
-                                <tr>
-                                    <td class="company-logo" style="width: 50%;">
-                                        @php
-                                            $companyLogoPath = $settings['company_logo_path'] ?? null;
-                                            $companyLogoUrl = $companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)
-                                                ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyLogoPath)
-                                                : ($user && $user->company_logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->company_logo)
-                                                    ? asset('storage/' . $user->company_logo)
-                                                    : asset('assets/images/logo.png'));
-                                        @endphp
-                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="max-width: 100%; width: 300px; height: auto;" onerror="this.onerror=null;this.src='{{ asset('assets/images/logo.png') }}';">
-                                    </td>
-                                    <td class="quotation-title" style="width: 50%;">
-                                        <div style="line-height:22px;color:#000">
-                                            <strong style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company_name ?? 'Company Name') }}</strong><br>
-                                            {{ $settings['company_address'] ?? ($user->address ?? '--') }}<br>
-                                            @if(isset($settings['company_contact'])) {{ $settings['company_contact'] }} @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <hr>
-
-                        <!-- Invoice Info -->
-                        <div class="flex-between border-top mt-3 pt-4">
-                            <div style="font-weight:700; font-size:15px;">Invoice no.: #{{ $invoice->invoice_no }}</div>
-                            <div class="center-text" style="font-size:16px;">INVOICE</div>
-                            <div style="font-weight:700; font-size:15px;">Date:
-                                {{ $invoice->invoice_date ? $invoice->invoice_date->format('Y-m-d') : '-' }}</div>
-                        </div>
-
-                        <!-- Customer Info Table -->
-                        <table class="info-table info-table-responsive">
-                            <thead>
-                                <tr>
-                                    <th colspan="4">Customer Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Customer Name</strong></td>
-                                    <td>{{ $invoice->customer->name ?? '--' }}</td>
-                                    <td><strong>Email</strong></td>
-                                    <td>{{ $invoice->customer->email ?? '--' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Address</strong></td>
-                                    <td>{{ $invoice->customer->address ?? '--' }}</td>
-                                    <td><strong>Contact</strong></td>
-                                    <td>{{ $invoice->customer->phone ?? '--' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Invoice Details Table -->
-                        <div class="table-responsive-wrapper">
-                        <table class="quotation-table" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif; margin-bottom: 20px;">
-                            <thead style="background-color: #52866A; color: #fff;">
-                                <tr>
-                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Invoice Name</th>
-                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Quantity (kW)</th>
-                                    <th style="padding: 10px 12px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; background-color: #52866A !important; color: #ffffff !important;">Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ $invoice->invoice_name ?? '--' }}</td>
-                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ $invoice->quantity ?? '0' }}</td>
-                                    <td style="padding: 10px 12px; border: 1px solid #333; color: #333; font-family: sans-serif;">{{ number_format((float) ($invoice->price ?? 0), 2) }}</td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                @php
-                                    $subtotal = (float) ($invoice->total ?? 0);
-                                    $gstRate = (float) ($invoice->gst ?? 0);
-                                    $discount = (float) ($invoice->discount ?? 0);
-                                    $subsidy = (float) ($invoice->subsidy_amount ?? 0);
-                                    $solarStructureCharges = (float) ($invoice->solar_structure_charges ?? 0);
-
-                                    $gstAmount = ($subtotal + $solarStructureCharges) * ($gstRate / 100);
-                                    $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
-                                    $lendingCost = $totalPayable - $subsidy;
-                                @endphp
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Base Price</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($subtotal, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Solar Structure Charges</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($solarStructureCharges, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">GST ({{ $gstRate }}%)</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($invoice->gst_amount ?? $gstAmount, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Customer Payable Amount</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($totalPayable, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">Subsidy</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">-{{ number_format($subsidy, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid #333; background-color: #fff;"></td>
-                                    <td style="text-align: right; border: 1px solid #333; font-weight: bold; padding: 8px 12px; color: #333; font-family: sans-serif;">Lending Cost Of Customer</td>
-                                    <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; background-color: #52866A !important; color: #ffffff !important; font-weight: bold; font-family: sans-serif;">{{ number_format($lendingCost, 2) }}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        </div>
-
-                        <!-- Extra Info -->
-                        <div class="extra-info">
-                            <table>
-                                <tr>
-                                    <th style="width: 40%;">System Capacity</th>
-                                    <td>{{ $invoice->quantity ?? '0' }} kW</td>
-                                </tr>
-                                <tr>
-                                    <th>Invoice Type</th>
-                                    <td>{{ ucfirst($invoice->type ?? '') }}</td>
-                                </tr>
-                                @if (!empty($invoice->solar_meter_charges))
-                                    <tr>
-                                        <th>Solar Meter Charges</th>
-                                        <td>{{ ucwords(str_replace('_', ' ', $invoice->solar_meter_charges)) }}</td>
-                                    </tr>
-                                @endif
-                            </table>
-                        </div>
-
-                        <!-- Comment + Bank Details Table -->
-                        <table class="info-table comment-bank-qr-table" style="margin-top:15px;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 35%;">Comment</th>
-                                    <th style="width: 40%;">Bank Details</th>
-                                    <th style="width: 25%;">QR Code</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td data-label="Comment" style="vertical-align: top; background: #fafafa;">
-                                        {!! nl2br(e($invoice->comment ?? '--')) !!}
-                                    </td>
-                                    <td data-label="Bank Details" style="vertical-align: top; background: #fafafa;">
-                                        @if (!empty($settings['bank_name']) || !empty($settings['account_number']))
-                                            <div><strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}</div>
-                                            <div><strong>Account Name:</strong> {{ $settings['account_name'] ?? '--' }}</div>
-                                            <div><strong>Account No.:</strong> {{ $settings['account_number'] ?? '--' }}</div>
-                                            <div><strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}</div>
-                                            <div><strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}</div>
-                                        @else
-                                            <div style="color:#666;">No bank details available.</div>
-                                        @endif
-                                    </td>
-                                    <td data-label="QR Code" style="vertical-align: top; background: #fafafa; display: flex; align-items: center; justify-content: center;">
-                                        @php
-                                            $companyQrCodePath = $settings['company_qr_code_path'] ?? null;
-                                            $companyQrCodeUrl = $companyQrCodePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyQrCodePath)
-                                                ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyQrCodePath)
-                                                : ($user && $user->qr_code && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->qr_code)
-                                                    ? asset('storage/' . $user->qr_code)
-                                                    : null);
-                                        @endphp
-                                        @if ($companyQrCodeUrl)
-                                            <img src="{{ $companyQrCodeUrl }}" alt="QR Code" class="qr-code-img">
-                                        @else
-                                            <div style="color:#666;">No QR code available.</div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        @include('crm.partials.document-summary-view', ['documentSummary' => $documentSummary])
 
                         <!-- BOM Section -->
                         <div class="page-break"></div>
                         <div style="margin-top: 40px;">
-                            <h2 style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
+                            <h2 style="text-align: center; color: #4b9349; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
                                 BILL OF MATERIALS (BOM)
                             </h2>
                             <div class="table-responsive-wrapper">
                             <table class="quotation-table table table-bordered" style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
-                                <thead style="background-color: #52866A; color: #fff;">
+                                <thead style="background-color: #4b9349; color: #fff;">
                                     <tr>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #52866A !important; color: #ffffff !important;">Image</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #52866A !important; color: #ffffff !important;">Product Name</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #52866A !important; color: #ffffff !important;">Specifications</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Quantity</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Price</th>
-                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">Total(Excl. GST)</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #4b9349 !important; color: #ffffff !important;">Image</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #4b9349 !important; color: #ffffff !important;">Product Name</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #4b9349 !important; color: #ffffff !important;">Specifications</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">Quantity</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">Price</th>
+                                        <th style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">Total(Excl. GST)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -632,7 +448,7 @@
                                             <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">Total:</td>
                                             <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
                                             <td style="text-align: center; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">—</td>
-                                            <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #52866A !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
+                                            <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #4b9349 !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
                                         </tr>
                                     </tfoot>
                                 @endif
