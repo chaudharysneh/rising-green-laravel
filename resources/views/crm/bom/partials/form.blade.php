@@ -1,3 +1,10 @@
+@php
+    $dummyBomImageUrl = url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/logos/crmfavicon.png');
+    $bomPreviewImageUrl = ($product?->image)
+        ? route('bom-products.image', $product) . '?v=' . (optional($product?->updated_at)->timestamp ?? time())
+        : $dummyBomImageUrl;
+@endphp
+
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden bom-form-card">
     <div class="card-header bg-white border-bottom py-3 px-3 px-md-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -150,8 +157,8 @@
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-image me-2"></i>Image</label>
                     <input type="file" name="image" id="image" class="form-control" accept=".avif,.webp,.jpg,.jpeg,.png,.gif,.bmp,.svg,image/avif,image/webp,image/jpeg,image/png,image/gif,image/bmp,image/svg+xml">
                     <div class="invalid-feedback d-block" id="image-error"></div>
-                    <div class="mt-2 @if(!$product?->image) d-none @endif" id="bom-image-preview-wrap">
-                        <img src="{{ $product?->image ? route('bom-products.image', $product) . '?v=' . (optional($product?->updated_at)->timestamp ?? time()) : '' }}" alt="{{ $product?->product_name }}" class="img-thumbnail" style="max-height: 120px;" id="bom-image-preview">
+                    <div class="mt-2" id="bom-image-preview-wrap">
+                        <img src="{{ $bomPreviewImageUrl }}" alt="{{ $product?->product_name ?: 'BOM image' }}" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: contain;" id="bom-image-preview" data-default-src="{{ $bomPreviewImageUrl }}" onerror="this.onerror=null;this.src='{{ $dummyBomImageUrl }}';">
                     </div>
                 </div>
 
@@ -318,7 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         newPreview.src = e.target.result;
                         newPreview.alt = file.name;
                         newPreview.className = 'img-thumbnail';
-                        newPreview.style.maxHeight = '120px';
+                        newPreview.style.width = '120px';
+                        newPreview.style.height = '120px';
+                        newPreview.style.objectFit = 'contain';
                         newPreview.id = 'bom-image-preview';
                         imagePreviewWrap.appendChild(newPreview);
                     }
@@ -330,9 +339,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 reader.readAsDataURL(file);
             } else {
-                // Hide preview if no file selected
+                if (imagePreview) {
+                    imagePreview.src = imagePreview.dataset.defaultSrc || @json($dummyBomImageUrl);
+                    imagePreview.alt = 'BOM image';
+                }
                 if (imagePreviewWrap) {
-                    imagePreviewWrap.classList.add('d-none');
+                    imagePreviewWrap.classList.remove('d-none');
                 }
             }
         });

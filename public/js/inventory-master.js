@@ -18,6 +18,8 @@
 
         if (!moduleKey) return;
 
+        const dummyImageUrl = config.dummyImageUrl || "";
+
         const tableBody = document.querySelector(`#${moduleKey}Table tbody`);
         const searchInput = document.getElementById(`${moduleKey}Search`);
         const paginationContainer = document.getElementById(`${moduleKey}Pagination`);
@@ -94,12 +96,18 @@
 
         function imageCell(item) {
             if (!config.hasImage) return "";
-            if (!item.image_url) {
+            const imageUrl = item.image_url || dummyImageUrl;
+            if (!imageUrl) {
                 return `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="height:48px;width:48px;">
                             <i class="bi bi-image text-muted"></i>
                         </div>`;
             }
-            return `<img src="${item.image_url}" alt="${escapeHtml(item[config.fieldName] || config.resourceTitle)}" class="img-thumbnail" style="height:48px;width:48px;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">`;
+
+            const fallbackAttr = dummyImageUrl
+                ? ` onerror="this.onerror=null;this.src='${escapeHtml(dummyImageUrl)}';"`
+                : ` onerror="this.style.display='none'"`;
+
+            return `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item[config.fieldName] || config.resourceTitle)}" class="img-thumbnail" style="height:48px;width:48px;object-fit:contain;" loading="lazy"${fallbackAttr}>`;
         }
 
         function columnCount() {
@@ -287,8 +295,24 @@
             if (config.hasImage) {
                 const previewWrap = document.getElementById(`${moduleKey}ImagePreviewWrap`);
                 const preview = document.getElementById(`${moduleKey}ImagePreview`);
-                previewWrap?.classList.add("d-none");
-                if (preview) preview.src = "";
+                if (preview && dummyImageUrl) {
+                    preview.src = dummyImageUrl;
+                    preview.dataset.defaultSrc = dummyImageUrl;
+                    preview.onerror = function () {
+                        this.onerror = null;
+                        this.src = dummyImageUrl;
+                    };
+                } else if (preview) {
+                    preview.src = "";
+                    preview.removeAttribute("data-default-src");
+                    preview.onerror = null;
+                }
+
+                if (dummyImageUrl) {
+                    previewWrap?.classList.remove("d-none");
+                } else {
+                    previewWrap?.classList.add("d-none");
+                }
             }
         }
 
@@ -313,11 +337,21 @@
                 document.getElementById(`${moduleKey}FormMethod`).value = "PUT";
 
                 if (config.hasDescription) document.getElementById(`${moduleKey}Description`).value = item?.description || "";
-                if (config.hasImage && item?.image_url) {
+                if (config.hasImage) {
                     const previewWrap = document.getElementById(`${moduleKey}ImagePreviewWrap`);
                     const preview = document.getElementById(`${moduleKey}ImagePreview`);
-                    preview.src = item.image_url;
-                    previewWrap.classList.remove("d-none");
+                    const imageUrl = item?.image_url || dummyImageUrl;
+                    if (preview && imageUrl) {
+                        preview.src = imageUrl;
+                        preview.dataset.defaultSrc = imageUrl;
+                        preview.onerror = dummyImageUrl
+                            ? function () {
+                                this.onerror = null;
+                                this.src = dummyImageUrl;
+                            }
+                            : null;
+                        previewWrap?.classList.remove("d-none");
+                    }
                 }
 
                 modal.show();
@@ -400,7 +434,14 @@
                 const file = this.files && this.files[0];
                 const previewWrap = document.getElementById(`${moduleKey}ImagePreviewWrap`);
                 const preview = document.getElementById(`${moduleKey}ImagePreview`);
-                if (!file || !previewWrap || !preview) return;
+                if (!previewWrap || !preview) return;
+                if (!file) {
+                    if (preview.dataset.defaultSrc || dummyImageUrl) {
+                        preview.src = preview.dataset.defaultSrc || dummyImageUrl;
+                        previewWrap.classList.remove("d-none");
+                    }
+                    return;
+                }
                 const objectUrl = URL.createObjectURL(file);
                 preview.src = objectUrl;
                 previewWrap.classList.remove("d-none");

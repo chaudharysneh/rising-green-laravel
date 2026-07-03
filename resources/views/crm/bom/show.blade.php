@@ -20,7 +20,8 @@
             width: 100%;
             height: 100%;
             max-height: 280px;
-            object-fit: cover;
+            object-fit: contain;
+            padding: 1rem;
         }
 
         .bom-detail-image-empty {
@@ -44,6 +45,12 @@
 @endpush
 
 @section('content')
+    @php
+        $dummyBomImageUrl = url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/logos/crmfavicon.png');
+        $bomImageUrl = $bomProduct->image
+            ? route('bom-products.image', $bomProduct) . '?v=' . (optional($bomProduct->updated_at)?->timestamp ?? time())
+            : $dummyBomImageUrl;
+    @endphp
     <div class="container-fluid p-0">
         <div class="row g-4">
             <div class="col-lg-12">
@@ -72,14 +79,7 @@
                             <div class="row g-4 align-items-start">
                                 <div class="col-lg-3 col-md-4 d-flex justify-content-center">
                                     <div class="bom-detail-image-card">
-                                        @if($bomProduct->image)
-                                            <img src="{{ route('bom-products.image', $bomProduct) }}?v={{ optional($bomProduct->updated_at)?->timestamp ?? time() }}" alt="{{ $bomProduct->product_name }}">
-                                        @else
-                                            <div class="bom-detail-image-empty">
-                                                <i class="bi bi-image fs-1 d-block mb-2"></i>
-                                                <span>No image uploaded</span>
-                                            </div>
-                                        @endif
+                                        <img src="{{ $bomImageUrl }}" alt="{{ $bomProduct->product_name ?: 'BOM image' }}" onerror="this.onerror=null;this.src='{{ $dummyBomImageUrl }}';">
                                     </div>
                                 </div>
 
@@ -140,11 +140,6 @@
                                             <span class="detail-view-value">{{ $bomProduct->fitting_type ?: '--' }}</span>
                                         </div>
 
-                                        <div class="col-12 detail-view-row">
-                                            <span class="detail-view-label"><i class="bi bi-text-paragraph text-muted me-2"></i>Description:</span>
-                                            <span class="detail-view-value">{{ $bomProduct->description ?: '--' }}</span>
-                                        </div>
-
                                         <div class="col-md-6 detail-view-row">
                                             <span class="detail-view-label"><i class="bi bi-tags text-muted me-2"></i>Make:</span>
                                             <span class="detail-view-value">
@@ -157,6 +152,13 @@
                                                 @endif
                                             </span>
                                         </div>
+
+                                        <div class="col-12 detail-view-row">
+                                            <span class="detail-view-label"><i class="bi bi-text-paragraph text-muted me-2"></i>Description:</span>
+                                            <span class="detail-view-value">{{ $bomProduct->description ?: '--' }}</span>
+                                        </div>
+
+                                        
                                     </div>
                                 </div>
                             </div>
