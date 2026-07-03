@@ -36,6 +36,7 @@
         fieldLabel: 'Name',
         hasDescription: false,
         hasImage: true,
+        dummyImageUrl: @json(url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/logos/crmfavicon.png')),
         indexUrl: @json(route('api.make.index')),
         storeUrl: @json(route('api.make.store')),
         showUrlTemplate: @json(route('api.make.show', ['make' => '__ID__'])),
