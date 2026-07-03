@@ -13,6 +13,7 @@ use App\Models\Technology;
 use App\Models\Warranty;
 use App\Models\Subsidy;
 use App\Models\Tax;
+use App\Support\DocumentSummaryPresenter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -91,7 +92,19 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $settings = \App\Models\Setting::pluck('value', 'key');
 
-        return view('crm.invoices.show', compact('invoice', 'user', 'settings'));
+        $documentSummary = DocumentSummaryPresenter::forView(
+            $invoice,
+            $invoice->customer,
+            $settings->all(),
+            $user,
+            [
+                'document_no' => $invoice->invoice_no,
+                'document_date' => $invoice->invoice_date?->format('Y-m-d') ?? date('Y-m-d'),
+                'quantity' => (string) ($invoice->quantity ?? '0'),
+            ]
+        );
+
+        return view('crm.invoices.show', compact('invoice', 'user', 'settings', 'documentSummary'));
     }
 
     public function export(Request $request)

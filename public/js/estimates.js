@@ -1871,6 +1871,10 @@
     }
 
     function initDocumentForm() {
+        if (documentFormInitialized) {
+            return;
+        }
+
         const config = resolveDocumentFormConfig();
         if (!config) {
             return;
@@ -1880,6 +1884,8 @@
         if (!form) {
             return;
         }
+
+        documentFormInitialized = true;
 
         initBomHandlers();
         initCalculations();
@@ -1997,6 +2003,8 @@
     let quickEstimateBomTargetRow = null;
     let quickEstimateNestedModalActive = false;
     let quickAddBomInitialized = false;
+    let documentFormInitialized = false;
+    let bomHandlersInitialized = false;
 
     function setupQuickEstimateNestedModals() {
         const parentEl = document.getElementById('quickEstimateModal');
@@ -2804,11 +2812,17 @@
     }
 
     function initBomHandlers() {
+        if (bomHandlersInitialized) {
+            return;
+        }
+
         const addBtn = document.getElementById('add_more_bom');
         const container = document.getElementById('bomContainer');
         if (!addBtn || !container) {
             return;
         }
+
+        bomHandlersInitialized = true;
 
         container.querySelectorAll('.bom-row').forEach(function (row) {
             hydrateBomRow(row);

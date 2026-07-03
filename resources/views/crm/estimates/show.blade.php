@@ -144,7 +144,7 @@
             }
 
             .comment-bank-qr-table td:first-child {
-                border-top: 3px solid #52866A;
+                border-top: 3px solid #4b9349;
             }
 
             .comment-bank-qr-table td::before {
@@ -154,7 +154,7 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                background: #52866A;
+                background: #4b9349;
                 color: #fff;
                 padding: 10px 15px;
                 font-weight: 600;
@@ -162,7 +162,7 @@
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 /* margin: -15px -15px 0 -15px; */
-                border-bottom: 1px solid #52866A;
+                border-bottom: 1px solid #4b9349;
             }
 
             .comment-bank-qr-table td div {
@@ -208,7 +208,7 @@
         .info-table th,
         .quotation-table th,
         .extra-info th {
-            background-color: #52866A;
+            background-color: #4b9349;
             color: #fff;
         }
 
@@ -245,7 +245,7 @@
         }
 
         .highlight-bg {
-            background-color: #52866A;
+            background-color: #4b9349;
             color: #fff !important;
         }
 
@@ -314,344 +314,38 @@
             <div class="card-body p-3 p-md-4">
                 <div class="quotation-block">
                     <div class="quotation-box">
-                        <!-- Header -->
-                        <div class="quotation-header">
-                            <table>
-                                <tr>
-                                    <td class="company-logo" style="width: 50%;">
-                                        @php
-                                            $companyLogoPath = $settings['company_logo_path'] ?? null;
-                                            $companyLogoUrl = $companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)
-                                                ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyLogoPath)
-                                                : ($user && $user->company_logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->company_logo)
-                                                    ? asset('storage/' . $user->company_logo)
-                                                    : asset('assets/img/logo.jpg'));
-                                        @endphp
-                                        <img src="{{ $companyLogoUrl }}" alt="Company Logo" style="max-width: 100%; width: 300px; height: auto;" onerror="this.onerror=null;this.src='{{ asset('assets/img/logo.jpg') }}';">
-                                    </td>
-                                    <td class="quotation-title" style="width: 50%;">
-                                        <div style="line-height:22px;color:#000">
-                                            <strong
-                                                style="font-size:18px;color:#000">{{ $settings['company_name'] ?? ($user->company ?? 'Rising Green Energy') }}</strong><br>
-                                            <div style="max-width: 250px; display: inline-block; text-align: right; white-space: normal;">
-                                                {{ $settings['company_address'] ?? ($user->address ?? '--') }}
-                                            </div><br>
-                                            @if(!empty($settings['phone']))
-                                                {{ $settings['phone'] }}<br>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <hr>
-
-                        <!-- Quotation Info -->
-                        <div class="flex-between border-top mt-3 pt-4">
-                            <div style="font-weight:700; font-size:16px;">Estimate no.: #{{ $estimate->estimate_no }}</div>
-                            <div class="center-text" style="font-size:18px;">ESTIMATION</div>
-                            <div style="font-weight:700; font-size:16px;">Date:
-                                {{ $estimate->estimate_date->format('Y-m-d') }}
-                            </div>
-                        </div>
-
-                        <!-- Customer Info Table -->
-                        <table class="info-table info-table-responsive">
-                            <thead>
-                                <tr>
-                                    <th colspan="4">Customer Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Customer Name</strong></td>
-                                    <td>{{ $estimate->customer->name ?? '--' }}</td>
-                                    <td><strong>Email</strong></td>
-                                    <td>{{ $estimate->customer->email ?? '--' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Address</strong></td>
-                                    <td>{{ $estimate->customer->address ?? '--' }}</td>
-                                    <td><strong>Contact</strong></td>
-                                    <td>{{ $estimate->customer->phone ?? '--' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Estimate Details Table -->
-                        <div class="table-responsive-wrapper">
-                        <table class="quotation-table">
-                            <thead>
-                                <tr>
-                                    <th>Estimate Name</th>
-                                    <th>Quantity (kW)</th>
-                                    <th>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ $estimate->estimate_name ?? '--' }}</td>
-                                    <td>{{ $estimate->quantity ?? '0' }}</td>
-                                    <td>{{ number_format((float) ($estimate->price ?? 0), 2) }}</td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                @php
-                                    $summaryProducts = is_array($estimate->product_name)
-                                        ? $estimate->product_name
-                                        : (is_string($estimate->product_name) ? json_decode($estimate->product_name, true) : []);
-                                    $summaryProductsTotal = 0.0;
-                                    if (is_array($summaryProducts)) {
-                                        foreach ($summaryProducts as $summaryProduct) {
-                                            $summaryProductsTotal += (float) ($summaryProduct['quantity'] ?? 0) * (float) ($summaryProduct['price'] ?? 0);
-                                        }
-                                    }
-                                    $subtotal = (float) ($estimate->price ?? 0) + $summaryProductsTotal;
-                                    $gstRate = (float) ($estimate->gst ?? 0);
-                                    $discount = (float) ($estimate->discount ?? 0);
-                                    $subsidy = (float) ($estimate->subsidy_amount ?? 0);
-                                    $solarStructureCharges = (float) ($estimate->solar_structure_charges ?? 0);
-
-                                    $gstAmount = ($estimate->gst_amount ?? null) !== null && $estimate->gst_amount !== ''
-                                        ? (float) $estimate->gst_amount
-                                        : null;
-                                    $gstBreakupLines = [];
-                                    if (!empty($estimate->gst_breakdown)) {
-                                        $decodedGstBreakdown = is_array($estimate->gst_breakdown)
-                                            ? $estimate->gst_breakdown
-                                            : json_decode($estimate->gst_breakdown, true);
-                                        if (is_array($decodedGstBreakdown)) {
-                                            if ($gstAmount === null && isset($decodedGstBreakdown['gst_amount'])) {
-                                                $gstAmount = (float) $decodedGstBreakdown['gst_amount'];
-                                            }
-                                            foreach (($decodedGstBreakdown['groups'] ?? []) as $group) {
-                                                foreach (($group['lines'] ?? []) as $line) {
-                                                    $lineLabel = trim((string) ($line['label'] ?? ''));
-                                                    $lineAmount = (float) ($line['amount'] ?? 0);
-                                                    if ($lineLabel !== '' && strtoupper($lineLabel) !== 'GST' && $lineAmount > 0) {
-                                                        $gstBreakupLines[] = [
-                                                            'label' => $lineLabel,
-                                                            'rate' => $line['rate'] ?? null,
-                                                            'amount' => $lineAmount,
-                                                        ];
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (!empty($estimate->product_name)) {
-                                        $items = is_array($estimate->product_name)
-                                            ? $estimate->product_name
-                                            : (is_string($estimate->product_name) ? json_decode($estimate->product_name, true) : []);
-                                        if (is_array($items)) {
-                                            $productTaxBreakupLines = [];
-                                            foreach ($items as $item) {
-                                                $itemRate = (float) ($item['tax_rate'] ?? 0);
-                                                $itemLabel = strtoupper(trim((string) ($item['tax_label'] ?? '')));
-                                                $itemTaxable = (float) ($item['quantity'] ?? 0) * (float) ($item['price'] ?? 0);
-                                                if ($itemRate <= 0 || $itemTaxable <= 0) {
-                                                    continue;
-                                                }
-                                                if (str_contains($itemLabel, 'CGST') && str_contains($itemLabel, 'SGST')) {
-                                                    $halfRate = $itemRate / 2;
-                                                    foreach (['CGST', 'SGST'] as $splitLabel) {
-                                                        $productTaxBreakupLines[] = [
-                                                            'label' => $splitLabel,
-                                                            'rate' => $halfRate,
-                                                            'amount' => ($itemTaxable * $halfRate) / 100,
-                                                        ];
-                                                    }
-                                                } else {
-                                                    $productTaxBreakupLines[] = [
-                                                        'label' => str_contains($itemLabel, 'IGST') ? 'IGST' : 'GST',
-                                                        'rate' => $itemRate,
-                                                        'amount' => ($itemTaxable * $itemRate) / 100,
-                                                    ];
-                                                }
-                                            }
-                                            if (!empty($productTaxBreakupLines)) {
-                                                $aggregatedTaxLines = [];
-                                                foreach ($productTaxBreakupLines as $taxLine) {
-                                                    $taxKey = ($taxLine['label'] ?? '') . '|' . number_format((float) ($taxLine['rate'] ?? 0), 4, '.', '');
-                                                    if (!isset($aggregatedTaxLines[$taxKey])) {
-                                                        $aggregatedTaxLines[$taxKey] = [
-                                                            'label' => $taxLine['label'] ?? '',
-                                                            'rate' => $taxLine['rate'] ?? null,
-                                                            'amount' => 0,
-                                                        ];
-                                                    }
-                                                    $aggregatedTaxLines[$taxKey]['amount'] += (float) ($taxLine['amount'] ?? 0);
-                                                }
-                                                $gstBreakupLines = array_values($aggregatedTaxLines);
-                                            }
-                                        }
-                                    }
-                                    if (!empty($gstBreakupLines)) {
-                                        $gstAmount = array_sum(array_map(fn ($line) => (float) ($line['amount'] ?? 0), $gstBreakupLines));
-                                    }
-                                    if ($gstAmount === null) {
-                                        $gstAmount = $subtotal * ($gstRate / 100);
-                                    }
-                                    if (empty($gstBreakupLines) && $gstRate > 0 && $gstAmount > 0) {
-                                        $gstBreakupLines = [
-                                            ['label' => 'CGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
-                                            ['label' => 'SGST', 'rate' => $gstRate / 2, 'amount' => $gstAmount / 2],
-                                        ];
-                                    }
-                                    $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
-                                    $lendingCost = $totalPayable - $subsidy;
-                                @endphp
-                                <tr>
-                                    <td colspan="2">Base Price</td>
-                                    <td>{{ number_format($subtotal, 2) }}</td>
-                                </tr>
-                                @if ($solarStructureCharges > 0)
-                                    <tr>
-                                        <td colspan="2">Solar Structure Charges</td>
-                                        <td>{{ number_format($solarStructureCharges, 2) }}</td>
-                                    </tr>
-                                @endif
-                                @if (!empty($gstBreakupLines))
-                                    @foreach ($gstBreakupLines as $gstLine)
-                                        @php
-                                            $lineRate = is_numeric($gstLine['rate'] ?? null) ? rtrim(rtrim(number_format((float) $gstLine['rate'], 2, '.', ''), '0'), '.') : '';
-                                        @endphp
-                                        <tr>
-                                            <td colspan="2">{{ $gstLine['label'] }}{{ $lineRate !== '' ? ' (' . $lineRate . '%)' : '' }}</td>
-                                            <td>{{ number_format((float) $gstLine['amount'], 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                @elseif ($gstRate > 0 || $gstAmount > 0)
-                                    <tr>
-                                        <td colspan="2">GST ({{ $gstRate }}%)</td>
-                                        <td>{{ number_format($gstAmount, 2) }}</td>
-                                    </tr>
-                                @endif
-                                @if ($discount > 0)
-                                    <tr>
-                                        <td colspan="2">Discount</td>
-                                        <td>-{{ number_format($discount, 2) }}</td>
-                                    </tr>
-                                @endif
-                                <tr style="font-weight: bold; border-top: 2px solid #000;">
-                                    <td colspan="2">Customer Payable Amount</td>
-                                    <td class="highlight-bg">{{ number_format($totalPayable, 2) }}</td>
-                                </tr>
-                                @if ($subsidy > 0)
-                                    <tr>
-                                        <td colspan="2">Subsidy</td>
-                                        <td>-{{ number_format($subsidy, 2) }}</td>
-                                    </tr>
-                                    <tr style="font-weight: bold;">
-                                        <td colspan="2">Lending Cost Of Customer</td>
-                                        <td class="highlight-bg">{{ number_format($lendingCost, 2) }}</td>
-                                    </tr>
-                                @endif
-                            </tfoot>
-                        </table>
-                        </div>
-
-                        @if ($subsidy > 0)
-                            <p style="font-size: 16px; margin-top: 2px; color: #555;"><strong>Note:</strong> Subsidy Amount
-                                to be credited in clients account.</p>
-                        @endif
-
-                        <!-- Extra Info -->
-                        <div class="extra-info">
-                            <table>
-                                <tr>
-                                    <th style="width: 40%;">System Capacity</th>
-                                    <td>{{ $estimate->quantity ?? '0' }} kW</td>
-                                </tr>
-                                <tr>
-                                    <th>Estimate Type</th>
-                                    <td>{{ ucfirst($estimate->type ?? '') }}</td>
-                                </tr>
-                                @if (!empty($estimate->solar_meter_charges))
-                                    <tr>
-                                        <th>Solar Meter Charges</th>
-                                        <td>{{ ucwords(str_replace('_', ' ', $estimate->solar_meter_charges)) }}</td>
-                                    </tr>
-                                @endif
-                            </table>
-                        </div>
-
-                        <!-- Comment + Bank Details Table -->
-                        <table class="info-table comment-bank-qr-table" style="margin-top:15px;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 35%;">Comment</th>
-                                    <th style="width: 40%;">Bank Details</th>
-                                    <th style="width: 25%;">QR Code</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td data-label="Comment" style="vertical-align: top; background: #fafafa;">
-                                        {!! nl2br(e($estimate->comment ?? '--')) !!}
-                                    </td>
-                                    <td data-label="Bank Details" style="vertical-align: top; background: #fafafa;">
-                                        @if (!empty($settings['bank_name']) || !empty($settings['account_number']))
-                                            <div><strong>Bank:</strong> {{ $settings['bank_name'] ?? '--' }}</div>
-                                            <div><strong>Account Name:</strong> {{ $settings['account_name'] ?? '--' }}</div>
-                                            <div><strong>Account No.:</strong> {{ $settings['account_number'] ?? '--' }}</div>
-                                            <div><strong>IFSC:</strong> {{ $settings['ifsc_code'] ?? '--' }}</div>
-                                            <div><strong>Branch:</strong> {{ $settings['branch_name'] ?? '--' }}</div>
-                                        @else
-                                            <div style="color:#666;">No bank details available.</div>
-                                        @endif
-                                    </td>
-                                    <td data-label="QR Code"
-                                        style="vertical-align: top; background: #fafafa; display: flex; align-items: center; justify-content: center;">
-                                        @php
-                                            $companyQrCodePath = $settings['company_qr_code_path'] ?? null;
-                                            $companyQrCodeUrl = $companyQrCodePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyQrCodePath)
-                                                ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyQrCodePath)
-                                                : ($user && $user->qr_code && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->qr_code)
-                                                    ? asset('storage/' . $user->qr_code)
-                                                    : null);
-                                        @endphp
-                                        @if ($companyQrCodeUrl)
-                                            <img src="{{ $companyQrCodeUrl }}" alt="QR Code" class="qr-code-img">
-                                        @else
-                                            <div style="color:#666;">No QR code available.</div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        @include('crm.partials.document-summary-view', ['documentSummary' => $documentSummary])
 
                         <!-- Page Break for BOM -->
                         <div class="page-break"></div>
 
                         <div style="margin-top: 40px;">
                             <h2
-                                style="text-align: center; color: #52866A; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
+                                style="text-align: center; color: #4b9349; margin-bottom: 30px; text-decoration: underline; font-weight: bold; font-family: sans-serif;">
                                 BILL OF MATERIALS (BOM)
                             </h2>
                             <div class="table-responsive-wrapper">
                             <table class="quotation-table table table-bordered"
                                 style="border: 1px solid #333; border-collapse: collapse; width: 100%; font-family: sans-serif;">
-                                <thead style="background-color: #52866A; color: #fff;">
+                                <thead style="background-color: #4b9349; color: #fff;">
                                     <tr>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Image</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Product Name</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Specifications</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Quantity</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Price</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #52866A !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Total(Excl. GST)</th>
                                     </tr>
                                 </thead>
@@ -791,7 +485,7 @@
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">Total:</td>
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
                                                 <td style="text-align: center; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">—</td>
-                                                <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #52866A !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
+                                                <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #4b9349 !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
                                             </tr>
                                         </tfoot>
                                     @endif
