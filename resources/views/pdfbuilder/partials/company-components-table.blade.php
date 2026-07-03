@@ -4,7 +4,7 @@
         <td colspan="2" style="background-color:#4b9349; padding:0; border-bottom:2px solid #3d7a3b;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                 <tr>
-                    <td width="30%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px; font-family:'Montserrat',sans-serif;">
+                    <td width="30%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px; font-family:'Montserrat',sans-serif; border-right:1px solid #fff;">
                         Product Name
                     </td>
                     <td width="70%" style="padding:14px 16px; font-weight:bold; font-size:15px; color:#fff; letter-spacing:0.3px; font-family:'Montserrat',sans-serif;">
@@ -81,10 +81,9 @@
         $componentRowIndex++;
     ?>
     <tr style="page-break-inside:avoid;">
-        <td width="30%" style="padding:0; vertical-align:middle; background:<?= $productBg ?>; border-bottom:1px solid #dfe9df;">
+        <td width="30%" style="padding:0; vertical-align:middle; background:#ffffff; border-bottom:1px solid #dfe9df;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
                 <tr>
-                    <td width="4" style="background-color:#4b9349; font-size:0; line-height:0;">&nbsp;</td>
                     <td style="padding:18px 14px; text-align:center; vertical-align:middle;">
                         <?php if (!empty($productImagePath)): ?>
                         <div style="margin-bottom:10px;">
@@ -93,14 +92,14 @@
                                 style="width:88px; height:88px; object-fit:contain; display:inline-block; border:1px solid #d4e4d4; padding:8px; background:#fff;">
                         </div>
                         <?php endif; ?>
-                        <div style="font-size:15px; font-weight:bold; color:#2d5a2d; line-height:1.35; font-family:'DejaVu Sans',sans-serif;">
+                        <div style="font-size:15px; font-weight:bold; color:#000000; line-height:1.35; font-family:'DejaVu Sans',sans-serif;">
                             <?= esc($component['name'] ?? '--') ?>
                         </div>
                     </td>
                 </tr>
             </table>
         </td>
-        <td width="70%" style="padding:16px 20px; vertical-align:top; background:<?= $rowBg ?>; border-bottom:1px solid #dfe9df; border-left:1px solid #edf2ed; font-family:'DejaVu Sans',sans-serif;">
+        <td width="70%" style="padding:16px 20px; vertical-align:top; background:<?= $rowBg ?>; border-bottom:1px solid #dfe9df; border-left:1px solid #cfe0cf; font-family:'DejaVu Sans',sans-serif;">
             <?= $specHtml ?>
         </td>
     </tr>

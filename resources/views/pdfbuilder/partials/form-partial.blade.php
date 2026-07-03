@@ -505,7 +505,7 @@
                         <!-- Time line section -->
                         <div class="time-line-block mt-4" id="block-timeline">
                             <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i>OFFER & TERMS</h5>
+                                <h5 class="text-primary mb-0"><i class="fas fa-clock"></i> Offer & Terms</h5>
                                 <div class="form-check form-switch mb-0">
                                     <input type="hidden" id="timeline_active" name="timeline_active" value="{{ (int)($timeLine['active'] ?? 1) }}">
                                     <input class="form-check-input block-toggle"

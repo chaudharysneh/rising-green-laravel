@@ -24,11 +24,14 @@ if (!function_exists('normalize_pdf_image')) {
         }
 
         // Helper closure to optimize and convert progressive images to Baseline using GD
-        $optimizeImage = function($candidate) {
+        $optimizeImage = function ($candidate) {
             $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-            if (empty($ext)) $ext = 'png';
-            elseif ($ext === 'jpg') $ext = 'jpeg';
-            
+            if (empty($ext)) {
+                $ext = 'png';
+            } elseif ($ext === 'jpg') {
+                $ext = 'jpeg';
+            }
+
             if (extension_loaded('gd') && ($ext === 'jpg' || $ext === 'jpeg')) {
                 try {
                     // Detect Progressive JPEG format using header inspection
@@ -48,37 +51,38 @@ if (!function_exists('normalize_pdf_image')) {
                         if ($srcImg) {
                             $width = imagesx($srcImg);
                             $height = imagesy($srcImg);
-                            
+
                             // Keep 100% of original dimensions to prevent tampering with document layout sizes!
                             $newW = $width;
                             $newH = $height;
-                            
+
                             $dstImg = imagecreatetruecolor($newW, $newH);
                             $white = imagecolorallocate($dstImg, 255, 255, 255);
                             imagefilledrectangle($dstImg, 0, 0, $newW, $newH, $white);
-                            
+
                             imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $width, $height);
-                            
+
                             ob_start();
                             imageinterlace($dstImg, 0); // Enforce non-progressive baseline format
                             imagejpeg($dstImg, null, 90); // High quality 90 to preserve crispness
                             $binData = ob_get_clean();
-                            
+
                             imagedestroy($srcImg);
                             imagedestroy($dstImg);
-                            
+
                             if ($binData !== false && strlen($binData) > 0) {
                                 return 'data:image/jpeg;base64,' . base64_encode($binData);
                             }
                         }
                     }
-                } catch (\Throwable $t) {}
+                } catch (\Throwable $t) {
+                }
             }
-            
+
             // Fast pathway for all other formats (Baseline JPEG & PNG) to preserve exact original bytes
             $imgData = @file_get_contents($candidate);
             if ($imgData !== false) {
-                $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
                 return 'data:' . $mime . ';base64,' . base64_encode($imgData);
             }
             return null;
@@ -104,20 +108,20 @@ if (!function_exists('normalize_pdf_image')) {
         $candidates = [
             // 0. Raw path itself (may already be an absolute filesystem path)
             $path,
-            
+
             // 1. Standard Storage paths
             storage_path('app/public/' . $cleanPath),
             storage_path('app/' . $cleanPath),
-            
+
             // 2. Standard Public and Public/Storage paths
             public_path('storage/' . $cleanPath),
             public_path($cleanPath),
-            
+
             // 3. Raw filesystem path mappings in standard web-serving folders
             base_path('public_html/storage/' . $cleanPath),
             base_path('public_html/' . $cleanPath),
             base_path('public/storage/' . $cleanPath),
-            
+
             // 4. Deeply nested common project assets & uploads
             public_path('uploads/' . $cleanPath),
             public_path('uploads/products/' . $cleanPath),
@@ -145,12 +149,14 @@ if (!function_exists('normalize_pdf_image')) {
         foreach (array_unique($candidates) as $candidate) {
             if ($candidate && @file_exists($candidate) && @is_file($candidate)) {
                 $result = $optimizeImage($candidate);
-                if ($result) return $result;
+                if ($result) {
+                    return $result;
+                }
                 // Fallback if optimize failed but file is accessible
                 $imgData = @file_get_contents($candidate);
                 if ($imgData !== false) {
                     $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
-                    $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
                     return 'data:' . $mime . ';base64,' . base64_encode($imgData);
                 }
             }
@@ -158,7 +164,7 @@ if (!function_exists('normalize_pdf_image')) {
 
         // HTTP fallback: try to fetch the image via URL and convert to base64
         // (Dompdf often cannot fetch URLs from the same server due to loopback issues)
-        $urlToTry = (preg_match('/^https?:\/\//i', $path)) ? $path : asset('storage/' . $cleanPath);
+        $urlToTry = preg_match('/^https?:\/\//i', $path) ? $path : asset('storage/' . $cleanPath);
         try {
             $ctx = stream_context_create(['http' => ['timeout' => 5], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
             $imgData = @file_get_contents($urlToTry, false, $ctx);
@@ -167,7 +173,8 @@ if (!function_exists('normalize_pdf_image')) {
                 $mime = $finfo->buffer($imgData) ?: 'image/jpeg';
                 return 'data:' . $mime . ';base64,' . base64_encode($imgData);
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // Last resort: return the URL directly (may not render in Dompdf)
         return $urlToTry;
@@ -242,10 +249,7 @@ if (!function_exists('split_pdf_rich_html_half')) {
 
         $mid = (int) ceil(count($chunks) / 2);
 
-        return [
-            implode('', array_slice($chunks, 0, $mid)),
-            implode('', array_slice($chunks, $mid)),
-        ];
+        return [implode('', array_slice($chunks, 0, $mid)), implode('', array_slice($chunks, $mid))];
     }
 }
 
@@ -331,10 +335,10 @@ $_isActive = static function ($section): bool {
 // Since pages are conditionally rendered, compute which pages are active and only apply
 // the `page-break` class to pages BEFORE the last active page.
 if (!isset($paymentTerms) || !is_array($paymentTerms)) {
-    $paymentTerms = (isset($payment_terms) && is_array($payment_terms)) ? $payment_terms : [];
+    $paymentTerms = isset($payment_terms) && is_array($payment_terms) ? $payment_terms : [];
 }
 if (!isset($environmentImpact) || !is_array($environmentImpact)) {
-    $environmentImpact = (isset($environment_impact) && is_array($environment_impact)) ? $environment_impact : [];
+    $environmentImpact = isset($environment_impact) && is_array($environment_impact) ? $environment_impact : [];
 }
 
 $pdfTemplateName = trim((string) ($template_name ?? ''));
@@ -347,19 +351,19 @@ if ($pdfDocumentTitle === '') {
 }
 $__isResidentialTemplate = $pdfTemplateName !== '' && stripos($pdfTemplateName, 'resident') !== false;
 
-$__companyInfoSection = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
-$__generationSection0 = (isset($generationSection) && is_array($generationSection)) ? $generationSection : [];
-$__ongridRoiSection0 = (isset($ongridRoiSection) && is_array($ongridRoiSection)) ? $ongridRoiSection : [];
-$__timeLineSection = (isset($timeLine) && is_array($timeLine)) ? $timeLine : [];
-$__componentsSection = (isset($components) && is_array($components)) ? $components : [];
-$__environmentImpactSection = (isset($environmentImpact) && is_array($environmentImpact)) ? $environmentImpact : [];
-$__footerSection = (isset($footer) && is_array($footer)) ? $footer : [];
+$__companyInfoSection = isset($companyInfo) && is_array($companyInfo) ? $companyInfo : [];
+$__generationSection0 = isset($generationSection) && is_array($generationSection) ? $generationSection : [];
+$__ongridRoiSection0 = isset($ongridRoiSection) && is_array($ongridRoiSection) ? $ongridRoiSection : [];
+$__timeLineSection = isset($timeLine) && is_array($timeLine) ? $timeLine : [];
+$__componentsSection = isset($components) && is_array($components) ? $components : [];
+$__environmentImpactSection = isset($environmentImpact) && is_array($environmentImpact) ? $environmentImpact : [];
+$__footerSection = isset($footer) && is_array($footer) ? $footer : [];
 
 $__companyInfoActive0 = $_isActive($__companyInfoSection);
 $__generationActive0 = false;
 $__ongridRoiActive0 = $_isActive($__ongridRoiSection0);
 $__timeLineActive0 = $_isActive($__timeLineSection);
-$__paymentTermsSection0 = (isset($paymentTerms) && is_array($paymentTerms)) ? $paymentTerms : [];
+$__paymentTermsSection0 = isset($paymentTerms) && is_array($paymentTerms) ? $paymentTerms : [];
 $__paymentTermsActive0 = $_isActive($__paymentTermsSection0);
 $__componentsActive0 = $_isActive($__componentsSection);
 $__environmentImpactActive0 = $_isActive($__environmentImpactSection);
@@ -368,24 +372,33 @@ $__footerActive0 = $_isActive($__footerSection);
 // Page 5 (Offer & Terms content) uses timeline_active; Page 7 (Payment Terms) uses payment_terms active toggle.
 
 $__activePages = ['p1']; // first page always renders
-if ($__companyInfoActive0)
+if ($__companyInfoActive0) {
     $__activePages[] = 'p2';
-if ($__generationActive0)
+}
+if ($__generationActive0) {
     $__activePages[] = 'p3';
-if ($__ongridRoiActive0)
+}
+if ($__ongridRoiActive0) {
     $__activePages[] = 'p4';
-if ($__timeLineActive0)
+}
+if ($__timeLineActive0) {
     $__activePages[] = 'p5';
-if ($__componentsActive0)
+}
+if ($__componentsActive0) {
     $__activePages[] = 'p6';
-if ($__paymentTermsActive0)
+}
+if ($__paymentTermsActive0) {
     $__activePages[] = 'p7';
-if ($__environmentImpactActive0)
+}
+if ($__environmentImpactActive0) {
     $__activePages[] = 'p8';
-if ($__isResidentialTemplate)
+}
+if ($__isResidentialTemplate) {
     $__activePages[] = 'p8b';
-if ($__footerActive0)
+}
+if ($__footerActive0) {
     $__activePages[] = 'p9';
+}
 
 $__lastPageKey = $__activePages[count($__activePages) - 1];
 $_pageClass = static function (string $key) use ($__lastPageKey): string {
@@ -411,7 +424,7 @@ if (!$passedEstimate && !empty($estimate_no) && $estimate_no !== '--') {
 
 if ($passedEstimate) {
     $estdata = new \stdClass();
-    $attrs = ($passedEstimate instanceof \Illuminate\Database\Eloquent\Model) ? $passedEstimate->getAttributes() : (array) $passedEstimate;
+    $attrs = $passedEstimate instanceof \Illuminate\Database\Eloquent\Model ? $passedEstimate->getAttributes() : (array) $passedEstimate;
 
     foreach ($attrs as $key => $val) {
         $estdata->$key = $val;
@@ -425,15 +438,15 @@ if ($passedEstimate) {
 }
 
 // Determine model type to dynamically switch labels (Invoice vs Estimate)
-$isInvoice = ($passedEstimate instanceof \App\Models\Invoice);
+$isInvoice = $passedEstimate instanceof \App\Models\Invoice;
 $pdfTypeLabelCap = $isInvoice ? 'SOLAR INVOICE' : 'SOLAR PROPOSAL';
 $pdfTypeLabelMixed = $isInvoice ? 'Invoice' : 'Proposal';
 $pdfTypeLabelMixed2 = $isInvoice ? 'invoice' : 'proposal';
 
 // Get prepared by name (user who created/owns the estimate)
 $preparedByName = $user['name'] ?? ($user['company_name'] ?? '--');
-$preparedForName = ($estdata && isset($estdata->name)) ? $estdata->name : '--';
-$clientAddress = ($estdata && isset($estdata->address)) ? $estdata->address : '--';
+$preparedForName = $estdata && isset($estdata->name) ? $estdata->name : '--';
+$clientAddress = $estdata && isset($estdata->address) ? $estdata->address : '--';
 // Get quantity from estimate data
 // Get quantity from estimate data - ensure it displays correctly
 $quantity = '0';
@@ -471,14 +484,12 @@ if ($estdata) {
     if ($quantity == '0' && !empty($estdata->generation_data)) {
         $gd = json_decode($estdata->generation_data, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($gd)) {
-            $monthlyBill = (isset($gd['monthly_electricity_bill']) && is_numeric($gd['monthly_electricity_bill']))
-                ? (float) $gd['monthly_electricity_bill']
-                : 0.0;
-            $unitRateTmp = (isset($gd['unit_rate']) && is_numeric($gd['unit_rate'])) ? (float) $gd['unit_rate'] : 0.0;
+            $monthlyBill = isset($gd['monthly_electricity_bill']) && is_numeric($gd['monthly_electricity_bill']) ? (float) $gd['monthly_electricity_bill'] : 0.0;
+            $unitRateTmp = isset($gd['unit_rate']) && is_numeric($gd['unit_rate']) ? (float) $gd['unit_rate'] : 0.0;
 
             // Optional override keys if you later store them in generation_data
-            $avgUnitsPerKwTmp = (isset($gd['avg_units_per_kw']) && is_numeric($gd['avg_units_per_kw'])) ? (float) $gd['avg_units_per_kw'] : 4.31;
-            $prTmp = (isset($gd['pr']) && is_numeric($gd['pr'])) ? (float) $gd['pr'] : 80.1;
+            $avgUnitsPerKwTmp = isset($gd['avg_units_per_kw']) && is_numeric($gd['avg_units_per_kw']) ? (float) $gd['avg_units_per_kw'] : 4.31;
+            $prTmp = isset($gd['pr']) && is_numeric($gd['pr']) ? (float) $gd['pr'] : 80.1;
 
             $unitRateTmp = $unitRateTmp > 0 ? $unitRateTmp : 8.0;
             $avgUnitsPerKwTmp = $avgUnitsPerKwTmp > 0 ? $avgUnitsPerKwTmp : 4.32;
@@ -495,7 +506,7 @@ if ($estdata) {
         }
     }
 }
-$estimateDate = ($estdata && isset($estdata->estimate_date)) ? date('j, F Y', strtotime($estdata->estimate_date)) : date('j, F Y');
+$estimateDate = $estdata && isset($estdata->estimate_date) ? date('j, F Y', strtotime($estdata->estimate_date)) : date('j, F Y');
 $generatedDateTime = date('j, F Y | g:iA');
 
 // ================= ROI (Page 4) - Fixed assumptions (proposal-safe) =================
@@ -538,22 +549,18 @@ if ($unitRate <= 0) {
 }
 
 // System cost = Customer Payable Amount - Subsidy (your "Lending Cost Of Customer")
-$subtotalForCost = ($estdata && isset($estdata->price)) ? (float) $estdata->price : 0.0;
-$solarStructureChargesForCost = ($estdata && isset($estdata->solar_structure_charges)) ? (float) $estdata->solar_structure_charges : 0.0;
-$discountForCost = ($estdata && isset($estdata->discount)) ? (float) $estdata->discount : 0.0;
-$subsidyForCost = ($estdata && isset($estdata->subsidy_amount)) ? (float) $estdata->subsidy_amount : 0.0;
-$gstRateForCost = ($estdata && isset($estdata->gst)) ? (float) $estdata->gst : 0.0;
-
-
+$subtotalForCost = $estdata && isset($estdata->price) ? (float) $estdata->price : 0.0;
+$solarStructureChargesForCost = $estdata && isset($estdata->solar_structure_charges) ? (float) $estdata->solar_structure_charges : 0.0;
+$discountForCost = $estdata && isset($estdata->discount) ? (float) $estdata->discount : 0.0;
+$subsidyForCost = $estdata && isset($estdata->subsidy_amount) ? (float) $estdata->subsidy_amount : 0.0;
+$gstRateForCost = $estdata && isset($estdata->gst) ? (float) $estdata->gst : 0.0;
 
 $gstAmountForCost = null;
 if ($estdata && isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '') {
     $gstAmountForCost = (float) $estdata->gst_amount;
 }
 if ($gstAmountForCost === null && $estdata && !empty($estdata->gst_breakdown)) {
-    $decoded = is_array($estdata->gst_breakdown)
-        ? $estdata->gst_breakdown
-        : json_decode($estdata->gst_breakdown, true);
+    $decoded = is_array($estdata->gst_breakdown) ? $estdata->gst_breakdown : json_decode($estdata->gst_breakdown, true);
     if (is_array($decoded) && isset($decoded['gst_amount'])) {
         $gstAmountForCost = (float) $decoded['gst_amount'];
     }
@@ -599,17 +606,15 @@ $totalLifetimeSavings = 0.0;
 $netLifetimeProfit = 0.0;
 
 // Payback (as requested): Investment ÷ Year-1 savings (rounded to nearest whole year)
-$paybackExact = ($year1Savings > 0) ? ($systemCost / $year1Savings) : 0.0;
-$paybackRoundedYears = ($paybackExact > 0) ? (int) round($paybackExact) : 0;
+$paybackExact = $year1Savings > 0 ? $systemCost / $year1Savings : 0.0;
+$paybackRoundedYears = $paybackExact > 0 ? (int) round($paybackExact) : 0;
 
 // Build Year 1..25 cumulative savings with:
 // - 5% tariff escalation per year
 // - 0.7% panel degradation per year
 $cumulative = 0.0;
 for ($y = 1; $y <= $lifetimeYears; $y++) {
-    $yearSaving = $year1Savings
-        * pow(1.0 + $tariffEscalation, $y - 1)
-        * pow(1.0 - $panelDegradation, $y - 1);
+    $yearSaving = $year1Savings * pow(1.0 + $tariffEscalation, $y - 1) * pow(1.0 - $panelDegradation, $y - 1);
     $cumulative += $yearSaving;
 
     $roiData[] = [
@@ -625,7 +630,7 @@ $netLifetimeProfit = $totalLifetimeSavings - $systemCost;
 // Payback display value (whole years)
 $paybackPeriod = $paybackExact;
 // If payback can't be computed (0/empty), show "1" as requested (display-only)
-$paybackPeriodDisplay = (string) (max(1, (int) $paybackRoundedYears));
+$paybackPeriodDisplay = (string) max(1, (int) $paybackRoundedYears);
 
 // This template now always uses the fixed-assumptions ROI (Year 1–25).
 // Keep the flag for compatibility with existing chart rendering code below.
@@ -652,8 +657,9 @@ $maxRoiValue = max($allCumulativeValues);
 $minRoiValue = min($allCumulativeValues);
 $absMax = max(abs($maxRoiValue), abs($minRoiValue));
 $maxChartRoi = ceil($absMax / 500000) * 500000;
-if ($maxChartRoi < 500000)
+if ($maxChartRoi < 500000) {
     $maxChartRoi = 3000000;
+}
 
 // Fetch generation data from all current year estimates
 $monthlyData = [];
@@ -694,7 +700,7 @@ try {
         100,
         110,
         110,
-        100  // Jan-Dec
+        100, // Jan-Dec
     ];
 
     // Aggregate estimates by month based on created_at
@@ -746,15 +752,15 @@ try {
                     if (isset($genData[$monthKey])) {
                         $monthData = $genData[$monthKey];
                         $primary = isset($monthData['primary']) ? (float) $monthData['primary'] : (isset($monthData[0]) ? (float) $monthData[0] : 0);
-                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : ($primary * 0.9));
+                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : $primary * 0.9);
                     } elseif (isset($genData[$monthNum])) {
                         $monthData = $genData[$monthNum];
                         $primary = isset($monthData['primary']) ? (float) $monthData['primary'] : (isset($monthData[0]) ? (float) $monthData[0] : 0);
-                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : ($primary * 0.9));
+                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : $primary * 0.9);
                     } elseif (isset($genData[$index])) {
                         $monthData = $genData[$index];
                         $primary = isset($monthData['primary']) ? (float) $monthData['primary'] : (isset($monthData[0]) ? (float) $monthData[0] : 0);
-                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : ($primary * 0.9));
+                        $secondary = isset($monthData['secondary']) ? (float) $monthData['secondary'] : (isset($monthData[1]) ? (float) $monthData[1] : $primary * 0.9);
                     }
 
                     // Aggregate data
@@ -792,7 +798,6 @@ try {
             $monthlySecondary[$index] += $secondaryGen;
         }
     }
-
 } catch (\Throwable $e) {
     // If error, fall back to default
     $estimateCount = 0;
@@ -804,36 +809,23 @@ foreach ($months as $index => $month) {
     $monthlyData[] = [
         'month' => $month,
         'primary' => round($monthlyPrimary[$index]),
-        'secondary' => round($monthlySecondary[$index])
+        'secondary' => round($monthlySecondary[$index]),
     ];
 }
 
 // If no data found, use default calculated values based on current estimate quantity
 if (empty($monthlyData) || array_sum($monthlyPrimary) == 0) {
-    $baseMonthlyData = [
-        ['month' => 'Jan', 'primary' => 1100, 'secondary' => 1000],
-        ['month' => 'Feb', 'primary' => 1100, 'secondary' => 950],
-        ['month' => 'Mar', 'primary' => 1400, 'secondary' => 1200],
-        ['month' => 'Apr', 'primary' => 1500, 'secondary' => 1300],
-        ['month' => 'May', 'primary' => 1500, 'secondary' => 1350],
-        ['month' => 'Jun', 'primary' => 1200, 'secondary' => 1000],
-        ['month' => 'Jul', 'primary' => 900, 'secondary' => 750],
-        ['month' => 'Aug', 'primary' => 800, 'secondary' => 650],
-        ['month' => 'Sep', 'primary' => 1000, 'secondary' => 850],
-        ['month' => 'Oct', 'primary' => 1100, 'secondary' => 950],
-        ['month' => 'Nov', 'primary' => 1100, 'secondary' => 950],
-        ['month' => 'Dec', 'primary' => 1000, 'secondary' => 850],
-    ];
+    $baseMonthlyData = [['month' => 'Jan', 'primary' => 1100, 'secondary' => 1000], ['month' => 'Feb', 'primary' => 1100, 'secondary' => 950], ['month' => 'Mar', 'primary' => 1400, 'secondary' => 1200], ['month' => 'Apr', 'primary' => 1500, 'secondary' => 1300], ['month' => 'May', 'primary' => 1500, 'secondary' => 1350], ['month' => 'Jun', 'primary' => 1200, 'secondary' => 1000], ['month' => 'Jul', 'primary' => 900, 'secondary' => 750], ['month' => 'Aug', 'primary' => 800, 'secondary' => 650], ['month' => 'Sep', 'primary' => 1000, 'secondary' => 850], ['month' => 'Oct', 'primary' => 1100, 'secondary' => 950], ['month' => 'Nov', 'primary' => 1100, 'secondary' => 950], ['month' => 'Dec', 'primary' => 1000, 'secondary' => 850]];
 
     // Scale data based on quantity (baseMonthlyData is defined for 10kW, so scale only when quantity is provided)
-    $scaleFactor = ((float) $quantity > 0) ? ((float) $quantity / 10.0) : 0.0;
+    $scaleFactor = (float) $quantity > 0 ? (float) $quantity / 10.0 : 0.0;
 
     $monthlyData = [];
     foreach ($baseMonthlyData as $data) {
         $monthlyData[] = [
             'month' => $data['month'],
             'primary' => round($data['primary'] * $scaleFactor),
-            'secondary' => round($data['secondary'] * $scaleFactor)
+            'secondary' => round($data['secondary'] * $scaleFactor),
         ];
     }
 }
@@ -887,7 +879,7 @@ if (!empty($monthlyData)) {
         $totalUnits = $totalPrimary;
         $daysInYear = 365;
         if ($daysInYear > 0) {
-            $avgUnitsPerKw = round(($totalUnits / $calcQuantity) / $daysInYear, 2);
+            $avgUnitsPerKw = round($totalUnits / $calcQuantity / $daysInYear, 2);
         }
     }
 
@@ -905,7 +897,7 @@ if (!empty($monthlyData)) {
 } else {
     // If no monthly data, try to get defaults from estimates table statistics
     try {
-        $userId = $estdata ? ($estdata->user_id ?? null) : null;
+        $userId = $estdata ? $estdata->user_id ?? null : null;
         $query = \App\Models\Estimate::whereYear('created_at', $currentYear);
 
         if ($userId) {
@@ -944,7 +936,7 @@ $placeholders = [
     '{{sales_person_name}}' => $preparedByName ?? '--',
     '{{sales_person_designation}}' => $user['designation'] ?? '--',
     '{{system_capacity}}' => $quantity ?? '--',
-    '{{daily_generation}}' => (isset($quantity) && isset($avgUnitsPerKwPerDay_Roi)) ? round((float)$quantity * (float)$avgUnitsPerKwPerDay_Roi, 1) : '--',
+    '{{daily_generation}}' => isset($quantity) && isset($avgUnitsPerKwPerDay_Roi) ? round((float) $quantity * (float) $avgUnitsPerKwPerDay_Roi, 1) : '--',
     '{{monthly_generation}}' => isset($yearlyUnits) ? round($yearlyUnits / 12) : '--',
     '{{annual_generation}}' => $yearlyUnits ?? '--',
     '{{tariff_rate}}' => $unitRate ?? '--',
@@ -954,7 +946,7 @@ $placeholders = [
     '{{payback_period}}' => $paybackPeriodFormatted ?? '--',
     '{{co2_offset}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.82) / 1000, 1) : '--',
     '{{coal_equivalent}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.4) / 1000, 1) : '--',
-    '{{tree_equivalent}}' => isset($yearlyUnits) ? number_format(($yearlyUnits * 25 * 0.0117), 0) : '--',
+    '{{tree_equivalent}}' => isset($yearlyUnits) ? number_format($yearlyUnits * 25 * 0.0117, 0) : '--',
     '{{base_cost}}' => isset($subtotalForCost) ? number_format($subtotalForCost, 0) : '--',
     '{{gst_amount}}' => isset($gstAmountForCost) ? number_format($gstAmountForCost, 0) : '--',
     '{{gross_value}}' => isset($customerPayableForCost) ? number_format($customerPayableForCost, 0) : '--',
@@ -963,8 +955,10 @@ $placeholders = [
     '{{estimate_date}}' => $estimateDate ?? date('j, F Y'),
 ];
 
-$applyPlaceholders = function($text) use ($placeholders) {
-    if (empty($text) || !is_string($text)) return $text;
+$applyPlaceholders = function ($text) use ($placeholders) {
+    if (empty($text) || !is_string($text)) {
+        return $text;
+    }
     return str_replace(array_keys($placeholders), array_values($placeholders), $text);
 };
 
@@ -990,12 +984,11 @@ if (isset($after_blocks) && is_array($after_blocks)) {
     }
 }
 // --- END PLACEHOLDER LOGIC ---
-
 ?>
 <html>
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title><?= esc($pdfDocumentTitle) ?></title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
@@ -1162,7 +1155,6 @@ if (isset($after_blocks) && is_array($after_blocks)) {
         .pdf-env-impact-content h2,
         .pdf-env-impact-content h3 {
             font-weight: bold;
-            border-left: 6px solid #4b9349;
             padding-left: 14px;
             line-height: 1.25;
         }
@@ -1379,17 +1371,16 @@ if (isset($after_blocks) && is_array($after_blocks)) {
         }
     </style>
     <?php
-$img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
-$normalized_header = !empty($header_image) ? normalize_pdf_image($header_image) : '';
-$header_image = (strpos($normalized_header, 'data:image') === 0) ? $normalized_header : normalize_pdf_image('public/assets/img/header_Image.jpg');
+    $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
+    $normalized_header = !empty($header_image) ? normalize_pdf_image($header_image) : '';
+    $header_image = strpos($normalized_header, 'data:image') === 0 ? $normalized_header : normalize_pdf_image('public/assets/img/header_Image.jpg');
     ?>
 </head>
 
 <body>
 
     <!-- ✅ FIRST PAGE -->
-    <div class="<?= $_pageClass('p1') ?>"
-        style="position: relative; height: 100%; min-height: 842px; overflow: hidden;">
+    <div class="<?= $_pageClass('p1') ?>" style="position: relative; height: 100%; min-height: 842px; overflow: hidden;">
         <!-- Top Half: Header Image -->
         <div style="height: 62%; width: 100%; overflow: hidden; position: relative;">
             <img src="<?= $header_image ?>" alt="Header Image"
@@ -1417,18 +1408,19 @@ $header_image = (strpos($normalized_header, 'data:image') === 0) ? $normalized_h
                     <!-- Company Full Name -->
                     <div
                         style="font-size:20px; color:#000; margin:25px 0; font-weight:400; font-family: 'Montserrat', sans-serif;">
-                        <?php 
+                        <?php
                         $fullCompanyName = esc($globalCompanyName);
-if (stripos($fullCompanyName, 'technologies') === false && stripos($fullCompanyName, 'pvt') === false) {
-    $fullCompanyName .= ' Technologies Pvt. Ltd.';
-}
-echo $fullCompanyName;
+                        if (stripos($fullCompanyName, 'technologies') === false && stripos($fullCompanyName, 'pvt') === false) {
+                            $fullCompanyName .= ' Technologies Pvt. Ltd.';
+                        }
+                        echo $fullCompanyName;
                         ?>
                     </div>
 
                     <!-- Proposal No -->
                     <div style="font-size:20px; color:#000; font-weight:400; font-family: 'Montserrat', sans-serif;">
-                        <span style="font-weight:400;"><?= $pdfTypeLabelMixed ?> no : </span> #<?= esc($estimate_no) ?? '--' ?>
+                        <span style="font-weight:400;"><?= $pdfTypeLabelMixed ?> no : </span>
+                        #<?= esc($estimate_no) ?? '--' ?>
                     </div>
 
                 </td>
@@ -1442,7 +1434,8 @@ echo $fullCompanyName;
                         <?= ($estdata->type ?? '') === 'residential' ? 'CUSTOM SOLAR ENERGY PROPOSAL' : $pdfTypeLabelCap ?>
                     </div>
                     <?php if (($estdata->type ?? '') === 'residential'): ?>
-                    <div style="font-size:16px; font-style:italic; margin-bottom:15px; font-family: 'Montserrat', sans-serif; color:#666;">
+                    <div
+                        style="font-size:16px; font-style:italic; margin-bottom:15px; font-family: 'Montserrat', sans-serif; color:#666;">
                         Clean Energy. Guaranteed Savings. Sustainable Future.
                     </div>
                     <?php endif; ?>
@@ -1511,7 +1504,8 @@ echo $fullCompanyName;
                     <!-- Logo + Divider -->
                     <td width="10%" valign="middle" align="right" style="border-right:3px solid #fff;">
                         <?php if (!empty($companySettings['company_logo_path'])): ?>
-                        <img src="<?= normalize_pdf_image('public/assets/img/logos/favicon.jpeg') ?>" style="height:32px; width:32px; object-fit:contain;
+                        <img src="<?= normalize_pdf_image('public/assets/img/logos/favicon.jpeg') ?>"
+                            style="height:32px; width:32px; object-fit:contain;
                                         border-radius:6px; opacity:0.9; margin-right:5px;">
                         <?php endif; ?>
                     </td>
@@ -1538,8 +1532,8 @@ echo $fullCompanyName;
 
     <!-- ✅ SECOND PAGE: Company Information & Gallery -->
     <?php
-$__companyInfo = (isset($companyInfo) && is_array($companyInfo)) ? $companyInfo : [];
-$__companyInfoActive = $_isActive($__companyInfo);
+    $__companyInfo = isset($companyInfo) && is_array($companyInfo) ? $companyInfo : [];
+    $__companyInfoActive = $_isActive($__companyInfo);
     ?>
     <?php if ($__companyInfoActive): ?>
     <?php
@@ -1549,22 +1543,22 @@ $__companyInfoActive = $_isActive($__companyInfo);
     $cap = trim((string) ($companyInfo['company_capacity_installed'] ?? ''));
     $happy = trim((string) ($companyInfo['happy_customers'] ?? ''));
     $cities = trim((string) ($companyInfo['cities'] ?? ''));
-
+    
     $capDisplay = $cap !== '' ? esc($cap) . '+' : '100+';
     $happyDisplay = $happy !== '' ? esc($happy) . '+' : '30+';
     $citiesDisplay = $cities !== '' ? esc($cities) . '+' : '20+';
-
+    
     $img1 = !empty($companyInfo['image1']) ? normalize_pdf_image($companyInfo['image1']) : normalize_pdf_image('public/assets/img/seconpage_1.png');
     $img2 = !empty($companyInfo['image2']) ? normalize_pdf_image($companyInfo['image2']) : normalize_pdf_image('public/assets/img/secondpage_2.png');
     $img3 = !empty($companyInfo['image3']) ? normalize_pdf_image($companyInfo['image3']) : normalize_pdf_image('public/assets/img/secondpage_3.png');
-
+    
     $isResidentialIntro = ($estdata->type ?? '') === 'residential';
     $companyAboutLength = $isResidentialIntro ? 1200 : pdf_rich_html_plain_length($companyDescriptionRaw);
     $companyInfoSinglePage = !$isResidentialIntro && $companyAboutLength <= 500;
-
+    
     $galleryGap = 10;
     $galleryRightHeight = $companyInfoSinglePage ? 150 : 275;
-    $galleryLeftHeight = ($galleryRightHeight * 2) + $galleryGap;
+    $galleryLeftHeight = $galleryRightHeight * 2 + $galleryGap;
     $companyInfoPageClass = $_pageClass('p2');
     ?>
 
@@ -1579,14 +1573,17 @@ $__companyInfoActive = $_isActive($__companyInfo);
             </div>
             @include('pdfbuilder.partials.company-info-about')
         </div>
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
-                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE <?= $_pdfPageNumber() ?></td>
-                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE
+                    <?= $_pdfPageNumber() ?></td>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
                     Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
@@ -1595,7 +1592,8 @@ $__companyInfoActive = $_isActive($__companyInfo);
     <?php endif; ?>
 
     <!-- Stats + gallery (same page; full company section when intro is short) -->
-    <div class="<?= $companyInfoSinglePage ? $companyInfoPageClass : 'page page-break' ?>" style="position: relative; background: white;">
+    <div class="<?= $companyInfoSinglePage ? $companyInfoPageClass : 'page page-break' ?>"
+        style="position: relative; background: white;">
         <div style="padding: 36px 40px 44px;">
             @include('pdfbuilder.partials.pdf-page-header')
 
@@ -1611,14 +1609,17 @@ $__companyInfoActive = $_isActive($__companyInfo);
             @include('pdfbuilder.partials.company-gallery')
         </div>
 
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
                 </td>
-                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE <?= $_pdfPageNumber() ?></td>
-                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">PAGE
+                    <?= $_pdfPageNumber() ?></td>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
                     Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
@@ -1627,143 +1628,180 @@ $__companyInfoActive = $_isActive($__companyInfo);
     <?php endif; ?>
 
     <?php if (($estdata->type ?? '') === 'residential'): ?>
-        <!-- ================= PAGE 2b : HOW SOLAR WORKS & ADVANTAGES ================= -->
-        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
-            <!-- Header -->
-            <div style="padding: 40px;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                    <tr>
-                        <td width="50%" align="left" valign="top">
-                            <div style="font-size: 18px; color: #333;">
-                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                            </div>
-                        </td>
-                        <td width="50%" align="right" valign="top">
-                            <?php if (!empty($logoBase64)): ?>
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </table>
+    <!-- ================= PAGE 2b : HOW SOLAR WORKS & ADVANTAGES ================= -->
+    <div class="page page-break"
+        style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+        <!-- Header -->
+        <div style="padding: 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size: 18px; color: #333;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </div>
+                    </td>
+                    <td width="50%" align="right" valign="top">
+                        <?php if (!empty($logoBase64)): ?>
+                        <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
 
-                <!-- Section 2: How the Solar System Works -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
-                    2. How the Solar System Works
-                </div>
-                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: justify;">
-                    A grid-tied solar power system seamlessly integrates with your existing utility grid infrastructure to cleanly power your property:
+            <!-- Section 2: How the Solar System Works -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px;">
+                2. How the Solar System Works
+            </div>
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: justify;">
+                A grid-tied solar power system seamlessly integrates with your existing utility grid infrastructure to
+                cleanly power your property:
+            </p>
+            <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
+                <li style="margin-bottom: 8px;"><strong>Step 1: Solar Panels (Photovoltaic Modules) –</strong>
+                    Positioned optimally on your roof, these modules absorb sunlight ambient photon radiation and
+                    convert it directly into Direct Current (DC) electricity.</li>
+                <li style="margin-bottom: 8px;"><strong>Step 2: The Solar Inverter –</strong> Acts as the intelligent
+                    brain of the system, converting the DC electricity into stable Alternating Current (AC),
+                    standardizing it for all home appliances.</li>
+                <li style="margin-bottom: 8px;"><strong>Step 3: Home Consumption & Net Metering –</strong> Power goes
+                    to your appliances first. Any excess surplus electricity generated is instantly directed back to the
+                    government utility grid via a specialized bidirectional net meter.</li>
+                <li style="margin-bottom: 8px;"><strong>Step 4: Utility Grid Backup –</strong> At night or during
+                    heavily overcast days, the system smoothly pulls electricity back from the utility grid, ensuring
+                    uninterrupted power.</li>
+            </ul>
+
+            <!-- Section 3: Advantages of Solar Energy -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px; margin-top: 20px;">
+                3. Advantages of Solar Energy
+            </div>
+            <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 20px;">
+                <li style="margin-bottom: 8px;"><strong>Massive Utility Bill Reductions:</strong> Drastically slash
+                    your monthly energy spend by up to <strong>80% – 90%</strong>.</li>
+                <li style="margin-bottom: 8px;"><strong>High Return on Investment:</strong> Solar operates as a
+                    high-yielding financial asset that typical clears its payback period within <strong>3 – 4</strong>
+                    years, yielding completely free power for the remainder of its 25+ year lifecycle.</li>
+                <li style="margin-bottom: 8px;"><strong>Property Appreciation:</strong> Green-certified residential
+                    buildings equipped with fixed solar infrastructure command higher market resale values.</li>
+                <li style="margin-bottom: 8px;"><strong>Extremely Low Maintenance:</strong> With zero moving parts, the
+                    entire system requires minimal operational upkeep—restricted primarily to routine automated or
+                    manual panel washings.</li>
+                <li style="margin-bottom: 8px;"><strong>Environmental Stewardship:</strong> Directly mitigate carbon
+                    footprints and actively combat localized climate change.</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE <?= $_pdfPageNumber() ?>
+                </td>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ================= PAGE 2c : DIAGRAM & PM-SURYA GHAR ================= -->
+    <div class="page page-break"
+        style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+        <!-- Header -->
+        <div style="padding: 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size: 18px; color: #333;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </div>
+                    </td>
+                    <td width="50%" align="right" valign="top">
+                        <?php if (!empty($logoBase64)): ?>
+                        <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Section 4: Technical Line Diagram Layout -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px;">
+                4. Technical Line Diagram Layout
+            </div>
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">The layout below illustrates the
+                seamless logical electrical connection map from production to grid export.</p>
+            <div
+                style="border: 2px dashed #4b9349; padding: 15px; text-align: center; color: #333; background-color: #f9f9f9; border-radius: 6px; margin-bottom: 30px; font-size: 13px; font-style: italic; font-weight: 500; line-height: 1.4;">
+                [ Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB)
+                &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr;
+                Residential Load / Public Grid ]
+            </div>
+
+            <!-- Section 5: PM-Surya Ghar Process -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px; margin-top: 20px;">
+                5. PM-Surya Ghar: Muft Bijli Yojana Process
+            </div>
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">As a fully authorized and certified
+                empaneled solar vendor, we manage the entire national subsidy workflow framework for your project
+                end-to-end:</p>
+            <div
+                style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #1e3f20;">
+                <p style="margin-bottom: 8px;"><strong>1. Registration:</strong> We safely onboard your consumer
+                    credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
+                <p style="margin-bottom: 8px;"><strong>2. Technical Feasibility:</strong> The regional DISCOM
+                    (Electricity Board) reviews local grid capacity and issues a formal structural clearance approval.
                 </p>
-                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
-                    <li style="margin-bottom: 8px;"><strong>Step 1: Solar Panels (Photovoltaic Modules) –</strong> Positioned optimally on your roof, these modules absorb sunlight ambient photon radiation and convert it directly into Direct Current (DC) electricity.</li>
-                    <li style="margin-bottom: 8px;"><strong>Step 2: The Solar Inverter –</strong> Acts as the intelligent brain of the system, converting the DC electricity into stable Alternating Current (AC), standardizing it for all home appliances.</li>
-                    <li style="margin-bottom: 8px;"><strong>Step 3: Home Consumption & Net Metering –</strong> Power goes to your appliances first. Any excess surplus electricity generated is instantly directed back to the government utility grid via a specialized bidirectional net meter.</li>
-                    <li style="margin-bottom: 8px;"><strong>Step 4: Utility Grid Backup –</strong> At night or during heavily overcast days, the system smoothly pulls electricity back from the utility grid, ensuring uninterrupted power.</li>
-                </ul>
-
-                <!-- Section 3: Advantages of Solar Energy -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
-                    3. Advantages of Solar Energy
-                </div>
-                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 20px;">
-                    <li style="margin-bottom: 8px;"><strong>Massive Utility Bill Reductions:</strong> Drastically slash your monthly energy spend by up to <strong>80% – 90%</strong>.</li>
-                    <li style="margin-bottom: 8px;"><strong>High Return on Investment:</strong> Solar operates as a high-yielding financial asset that typical clears its payback period within <strong>3 – 4</strong> years, yielding completely free power for the remainder of its 25+ year lifecycle.</li>
-                    <li style="margin-bottom: 8px;"><strong>Property Appreciation:</strong> Green-certified residential buildings equipped with fixed solar infrastructure command higher market resale values.</li>
-                    <li style="margin-bottom: 8px;"><strong>Extremely Low Maintenance:</strong> With zero moving parts, the entire system requires minimal operational upkeep—restricted primarily to routine automated or manual panel washings.</li>
-                    <li style="margin-bottom: 8px;"><strong>Environmental Stewardship:</strong> Directly mitigate carbon footprints and actively combat localized climate change.</li>
-                </ul>
+                <p style="margin-bottom: 8px;"><strong>3. Execution & Installation:</strong> Our engineering wing
+                    carries out code-compliant installation adhering precisely to MNRE quality guidelines.</p>
+                <p style="margin-bottom: 8px;"><strong>4. Net Metering Inspection:</strong> DISCOM engineers perform
+                    physical on-site verification, deploy the smart net meter, and commission the plant.</p>
+                <p style="margin-bottom: 0;"><strong>5. Subsidy Disbursal:</strong> Post-commissioning, the sanctioned
+                    central government subsidy is electronically credited to your linked bank account within 30 business
+                    days.</p>
             </div>
-
-            <!-- Footer -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
-                <tr>
-                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                    </td>
-                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                        PAGE <?= $_pdfPageNumber() ?>
-                    </td>
-                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
-                        Generated by <?= esc($globalCompanyName) ?>
-                    </td>
-                </tr>
-            </table>
         </div>
 
-        <!-- ================= PAGE 2c : DIAGRAM & PM-SURYA GHAR ================= -->
-        <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
-            <!-- Header -->
-            <div style="padding: 40px;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                    <tr>
-                        <td width="50%" align="left" valign="top">
-                            <div style="font-size: 18px; color: #333;">
-                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                            </div>
-                        </td>
-                        <td width="50%" align="right" valign="top">
-                            <?php if (!empty($logoBase64)): ?>
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </table>
-
-                <!-- Section 4: Technical Line Diagram Layout -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
-                    4. Technical Line Diagram Layout
-                </div>
-                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">The layout below illustrates the seamless logical electrical connection map from production to grid export.</p>
-                <div style="border: 2px dashed #4b9349; padding: 15px; text-align: center; color: #333; background-color: #f9f9f9; border-radius: 6px; margin-bottom: 30px; font-size: 13px; font-style: italic; font-weight: 500; line-height: 1.4;">
-                    [ Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB) &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr; Residential Load / Public Grid ]
-                </div>
-
-                <!-- Section 5: PM-Surya Ghar Process -->
-                <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
-                    5. PM-Surya Ghar: Muft Bijli Yojana Process
-                </div>
-                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">As a fully authorized and certified empaneled solar vendor, we manage the entire national subsidy workflow framework for your project end-to-end:</p>
-                <div style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #1e3f20;">
-                    <p style="margin-bottom: 8px;"><strong>1. Registration:</strong> We safely onboard your consumer credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
-                    <p style="margin-bottom: 8px;"><strong>2. Technical Feasibility:</strong> The regional DISCOM (Electricity Board) reviews local grid capacity and issues a formal structural clearance approval.</p>
-                    <p style="margin-bottom: 8px;"><strong>3. Execution & Installation:</strong> Our engineering wing carries out code-compliant installation adhering precisely to MNRE quality guidelines.</p>
-                    <p style="margin-bottom: 8px;"><strong>4. Net Metering Inspection:</strong> DISCOM engineers perform physical on-site verification, deploy the smart net meter, and commission the plant.</p>
-                    <p style="margin-bottom: 0;"><strong>5. Subsidy Disbursal:</strong> Post-commissioning, the sanctioned central government subsidy is electronically credited to your linked bank account within 30 business days.</p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
-                <tr>
-                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                    </td>
-                    <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                        PAGE <?= $_pdfPageNumber() ?>
-                    </td>
-                    <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
-                        Generated by <?= esc($globalCompanyName) ?>
-                    </td>
-                </tr>
-            </table>
-        </div>
+        <!-- Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE <?= $_pdfPageNumber() ?>
+                </td>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
     <?php endif; ?>
 
     <?php
-$__generationSection = (isset($generationSection) && is_array($generationSection)) ? $generationSection : [];
-$__generationActive = false;
-
-$genTitle = trim((string) ($__generationSection['title'] ?? ''));
-$genTitle = $genTitle !== '' ? $genTitle : 'GENERATION';
-
-$genSubTitle = trim((string) ($__generationSection['sub_title'] ?? ''));
-$genSubTitle = $genSubTitle !== '' ? $genSubTitle : 'ROUND THE YEAR GENERATION';
-
-$genNote = trim((string) ($__generationSection['note'] ?? ''));
-$genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and may vary with site conditions and weather patterns.';
+    $__generationSection = isset($generationSection) && is_array($generationSection) ? $generationSection : [];
+    $__generationActive = false;
+    
+    $genTitle = trim((string) ($__generationSection['title'] ?? ''));
+    $genTitle = $genTitle !== '' ? $genTitle : 'GENERATION';
+    
+    $genSubTitle = trim((string) ($__generationSection['sub_title'] ?? ''));
+    $genSubTitle = $genSubTitle !== '' ? $genSubTitle : 'ROUND THE YEAR GENERATION';
+    
+    $genNote = trim((string) ($__generationSection['note'] ?? ''));
+    $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and may vary with site conditions and weather patterns.';
     ?>
     <?php if ($__generationActive): ?>
     <!-- ================= PAGE 3 : GENERATION ================= -->
-    <div class="<?= $_pageClass('p3') ?>" style="position:relative; min-height:842px; background:#fff;
+    <div class="<?= $_pageClass('p3') ?>"
+        style="position:relative; min-height:842px; background:#fff;
                    
                     font-family:'Montserrat', sans-serif;">
         <!-- Slightly tighter padding so chart + summary fit on one Dompdf page -->
@@ -1786,7 +1824,8 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
             </table>
 
             <!-- ================= TITLE ================= -->
-            <div style="font-size:45px; font-weight:700; margin-bottom:4px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
+            <div
+                style="font-size:45px; font-weight:700; margin-bottom:4px; font-family: 'Montserrat', sans-serif; padding-left:16px; line-height:1.1;">
                 <?= esc($genTitle) ?>
             </div>
             <div style="font-size:22px; margin-bottom:2px; font-family: 'Montserrat', sans-serif;">
@@ -1798,183 +1837,178 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
 
             <!-- ================= BAR CHART ================= -->
             <?php
-    // --------- Generation (Jan–Dec) from inputs ---------
-
-    $systemCapacity = max(0.0, (float) $quantity);
-
-    // Initialize
-    $avgUnitsPerKw = 0.0;   // kWh / kW / day
-    $pr = 0.0;   // %
-    $monsoonDip = 0.0;   // %
-
-    $monthlyBill = 0.0;
-    $unitRate = 0.0;
-
-    if (!empty($estdata->generation_data)) {
-        $gd = json_decode($estdata->generation_data, true);
-
-        if (json_last_error() === JSON_ERROR_NONE && is_array($gd)) {
-
-            // Raw inputs
-            if (isset($gd['monthly_electricity_bill']) && is_numeric($gd['monthly_electricity_bill'])) {
-                $monthlyBill = (float) $gd['monthly_electricity_bill'];
-            }
-
-            if (isset($gd['unit_rate']) && is_numeric($gd['unit_rate'])) {
-                $unitRate = (float) $gd['unit_rate'];
-            }
-
-            if (isset($gd['avg_units_per_kw']) && is_numeric($gd['avg_units_per_kw'])) {
-                $avgUnitsPerKw = (float) $gd['avg_units_per_kw'];
-            }
-
-            if (isset($gd['pr']) && is_numeric($gd['pr'])) {
-                $pr = (float) $gd['pr'];
-            }
-
-            if (isset($gd['monsoon_dip']) && is_numeric($gd['monsoon_dip'])) {
-                $monsoonDip = (float) $gd['monsoon_dip'];
-            }
-
-            // ---------- Derivation Logic ----------
-            // monthly_units = monthly_bill / unit_rate
-            $monthlyUnits = ($monthlyBill > 0 && $unitRate > 0)
-                ? ($monthlyBill / $unitRate)
-                : 0.0;
-
-            $days = 30.0;
-
-            if ($systemCapacity > 0 && $monthlyUnits > 0) {
-
-                // Case 1: avg_units_per_kw present, PR missing
-                if ($avgUnitsPerKw > 0 && $pr <= 0) {
-                    $pr = ($monthlyUnits / ($systemCapacity * $avgUnitsPerKw * $days)) * 100.0;
-                }
-
-                // Case 2: PR present, avg_units_per_kw missing
-                elseif ($pr > 0 && $avgUnitsPerKw <= 0) {
-                    $avgUnitsPerKw = $monthlyUnits / ($systemCapacity * $days * ($pr / 100.0));
-                }
-
-                // Case 3: Both missing → assume PR = 100 ONLY for derivation
-                elseif ($pr <= 0 && $avgUnitsPerKw <= 0) {
-                    $pr = 100.0; // derivation-only
-                    $avgUnitsPerKw = $monthlyUnits / ($systemCapacity * $days);
+            // --------- Generation (Jan–Dec) from inputs ---------
+            
+            $systemCapacity = max(0.0, (float) $quantity);
+            
+            // Initialize
+            $avgUnitsPerKw = 0.0; // kWh / kW / day
+            $pr = 0.0; // %
+            $monsoonDip = 0.0; // %
+            
+            $monthlyBill = 0.0;
+            $unitRate = 0.0;
+            
+            if (!empty($estdata->generation_data)) {
+                $gd = json_decode($estdata->generation_data, true);
+            
+                if (json_last_error() === JSON_ERROR_NONE && is_array($gd)) {
+                    // Raw inputs
+                    if (isset($gd['monthly_electricity_bill']) && is_numeric($gd['monthly_electricity_bill'])) {
+                        $monthlyBill = (float) $gd['monthly_electricity_bill'];
+                    }
+            
+                    if (isset($gd['unit_rate']) && is_numeric($gd['unit_rate'])) {
+                        $unitRate = (float) $gd['unit_rate'];
+                    }
+            
+                    if (isset($gd['avg_units_per_kw']) && is_numeric($gd['avg_units_per_kw'])) {
+                        $avgUnitsPerKw = (float) $gd['avg_units_per_kw'];
+                    }
+            
+                    if (isset($gd['pr']) && is_numeric($gd['pr'])) {
+                        $pr = (float) $gd['pr'];
+                    }
+            
+                    if (isset($gd['monsoon_dip']) && is_numeric($gd['monsoon_dip'])) {
+                        $monsoonDip = (float) $gd['monsoon_dip'];
+                    }
+            
+                    // ---------- Derivation Logic ----------
+                    // monthly_units = monthly_bill / unit_rate
+                    $monthlyUnits = $monthlyBill > 0 && $unitRate > 0 ? $monthlyBill / $unitRate : 0.0;
+            
+                    $days = 30.0;
+            
+                    if ($systemCapacity > 0 && $monthlyUnits > 0) {
+                        // Case 1: avg_units_per_kw present, PR missing
+                        if ($avgUnitsPerKw > 0 && $pr <= 0) {
+                            $pr = ($monthlyUnits / ($systemCapacity * $avgUnitsPerKw * $days)) * 100.0;
+                        }
+            
+                        // Case 2: PR present, avg_units_per_kw missing
+                        elseif ($pr > 0 && $avgUnitsPerKw <= 0) {
+                            $avgUnitsPerKw = $monthlyUnits / ($systemCapacity * $days * ($pr / 100.0));
+                        }
+            
+                        // Case 3: Both missing → assume PR = 100 ONLY for derivation
+                        elseif ($pr <= 0 && $avgUnitsPerKw <= 0) {
+                            $pr = 100.0; // derivation-only
+                            $avgUnitsPerKw = $monthlyUnits / ($systemCapacity * $days);
+                        }
+                    }
                 }
             }
-        }
-    }
-
-    // ---------- Final normalization ----------
-    $avgUnitsPerKw = max(0.0, $avgUnitsPerKw);
-    $pr = max(0.0, min(100.0, $pr));
-    $monsoonDip = max(0.0, min(100.0, $monsoonDip));
-
-
-    $prDisp = rtrim(rtrim(number_format($pr, 1, '.', ''), '0'), '.');          // ex: 80 / 80.5
-    $monsoonDipDisp = rtrim(rtrim(number_format($monsoonDip, 1, '.', ''), '0'), '.'); // ex: 13.8
-    $avgUnitsPerKwDisp = rtrim(rtrim(number_format($avgUnitsPerKw, 2, '.', ''), '0'), '.'); // ex: 4.31
-
-    // Seasonal adjustments:
-    // Feb–May: +12%
-    // Jun–Aug: -monsoonDip%
-    // Nov–Jan: -6%
-    // Sep–Oct: 0%
-    $peakBoost = 0.12;
-    $winterDip = 0.06;
-    $monsoonFactor = max(0, (float) $monsoonDip) / 100.0;
-
-    $daysByMonth = [
-        'Jan' => 31,
-        'Feb' => 28,
-        'Mar' => 31,
-        'Apr' => 30,
-        'May' => 31,
-        'Jun' => 30,
-        'Jul' => 31,
-        'Aug' => 31,
-        'Sep' => 30,
-        'Oct' => 31,
-        'Nov' => 30,
-        'Dec' => 31,
-    ];
-    $seasonFactor = [
-        'Jan' => -$winterDip,
-        'Feb' => $peakBoost,
-        'Mar' => $peakBoost,
-        'Apr' => $peakBoost,
-        'May' => $peakBoost,
-        'Jun' => -$monsoonFactor,
-        'Jul' => -$monsoonFactor,
-        'Aug' => -$monsoonFactor,
-        'Sep' => 0.0,
-        'Oct' => 0.0,
-        'Nov' => -$winterDip,
-        'Dec' => -$winterDip,
-    ];
-
-    // Monthly generation (kWh):
-    // - primary: after seasonal adjustment (before PR)
-    // - secondary: after PR (final usable output)
-    $monthlyData = [];
-    foreach ($daysByMonth as $m => $days) {
-        $dailyGen = $systemCapacity * (float) $avgUnitsPerKw;
-        $baseMonth = $dailyGen * (int) $days;
-        $adj = $baseMonth * (1.0 + (float) ($seasonFactor[$m] ?? 0.0));
-        $finalKwh = $adj * ((float) $pr / 100.0);
-        $monthlyData[] = [
-            'month' => $m,
-            'primary' => round(max(0, $adj)),
-            'secondary' => round(max(0, $finalKwh)),
-        ];
-    }
-
-    // Dompdf is sensitive to total vertical height; increase chart height a bit to reduce blank space,
-    // while still fitting chart + summary on a single page.
-    $chartHeight = 650;
-    // Use the dynamically calculated maxChartValue, or calculate from data if available
-    $maxPrimaryFromData = !empty($monthlyData) ? max(array_column($monthlyData, 'primary')) : 0;
-    $maxSecondaryFromData = !empty($monthlyData) ? max(array_column($monthlyData, 'secondary')) : 0;
-    $maxChartValue = (float) max($maxPrimaryFromData, $maxSecondaryFromData);
-    // Dynamic Y-axis labels (no hardcoded 2000/1600/...)
-    // Build a "nice" scale with 6 ticks (max..0) based on actual data.
-    $ticks = 6; // number of labels on Y-axis
-
-    $maxFromData = max((float) $maxPrimaryFromData, (float) $maxSecondaryFromData, 0);
-
-    // Choose a "nice" step (1/2/5 × 10^n)
-    $rawMax = max(1, $maxFromData);
-    $rawStep = $rawMax / ($ticks - 1);
-    $pow10 = pow(10, floor(log10($rawStep)));
-    $norm = $rawStep / $pow10;
-    if ($norm <= 1) {
-        $niceNorm = 1;
-    } elseif ($norm <= 2) {
-        $niceNorm = 2;
-    } elseif ($norm <= 5) {
-        $niceNorm = 5;
-    } else {
-        $niceNorm = 10;
-    }
-    $step = $niceNorm * $pow10;
-    $niceMax = $step * ($ticks - 1);
-
-    // If everything is 0, keep a small but readable axis
-    if ($maxFromData <= 0) {
-        $step = 1;
-        $niceMax = 5;
-    }
-
-    $yAxisLabels = [];
-    for ($i = 0; $i < $ticks; $i++) {
-        $yAxisLabels[] = (int) round($niceMax - ($step * $i));
-    }
-
-    // Use the axis max for scaling bars
-    $maxChartValue = (float) ($yAxisLabels[0] ?? $niceMax);
-
-    // Fix: row height must add up to chartHeight (previously it exceeded and pushed content to next page)
-    $rowHeight = $chartHeight / count($yAxisLabels);
+            
+            // ---------- Final normalization ----------
+            $avgUnitsPerKw = max(0.0, $avgUnitsPerKw);
+            $pr = max(0.0, min(100.0, $pr));
+            $monsoonDip = max(0.0, min(100.0, $monsoonDip));
+            
+            $prDisp = rtrim(rtrim(number_format($pr, 1, '.', ''), '0'), '.'); // ex: 80 / 80.5
+            $monsoonDipDisp = rtrim(rtrim(number_format($monsoonDip, 1, '.', ''), '0'), '.'); // ex: 13.8
+            $avgUnitsPerKwDisp = rtrim(rtrim(number_format($avgUnitsPerKw, 2, '.', ''), '0'), '.'); // ex: 4.31
+            
+            // Seasonal adjustments:
+            // Feb–May: +12%
+            // Jun–Aug: -monsoonDip%
+            // Nov–Jan: -6%
+            // Sep–Oct: 0%
+            $peakBoost = 0.12;
+            $winterDip = 0.06;
+            $monsoonFactor = max(0, (float) $monsoonDip) / 100.0;
+            
+            $daysByMonth = [
+                'Jan' => 31,
+                'Feb' => 28,
+                'Mar' => 31,
+                'Apr' => 30,
+                'May' => 31,
+                'Jun' => 30,
+                'Jul' => 31,
+                'Aug' => 31,
+                'Sep' => 30,
+                'Oct' => 31,
+                'Nov' => 30,
+                'Dec' => 31,
+            ];
+            $seasonFactor = [
+                'Jan' => -$winterDip,
+                'Feb' => $peakBoost,
+                'Mar' => $peakBoost,
+                'Apr' => $peakBoost,
+                'May' => $peakBoost,
+                'Jun' => -$monsoonFactor,
+                'Jul' => -$monsoonFactor,
+                'Aug' => -$monsoonFactor,
+                'Sep' => 0.0,
+                'Oct' => 0.0,
+                'Nov' => -$winterDip,
+                'Dec' => -$winterDip,
+            ];
+            
+            // Monthly generation (kWh):
+            // - primary: after seasonal adjustment (before PR)
+            // - secondary: after PR (final usable output)
+            $monthlyData = [];
+            foreach ($daysByMonth as $m => $days) {
+                $dailyGen = $systemCapacity * (float) $avgUnitsPerKw;
+                $baseMonth = $dailyGen * (int) $days;
+                $adj = $baseMonth * (1.0 + (float) ($seasonFactor[$m] ?? 0.0));
+                $finalKwh = $adj * ((float) $pr / 100.0);
+                $monthlyData[] = [
+                    'month' => $m,
+                    'primary' => round(max(0, $adj)),
+                    'secondary' => round(max(0, $finalKwh)),
+                ];
+            }
+            
+            // Dompdf is sensitive to total vertical height; increase chart height a bit to reduce blank space,
+            // while still fitting chart + summary on a single page.
+            $chartHeight = 650;
+            // Use the dynamically calculated maxChartValue, or calculate from data if available
+            $maxPrimaryFromData = !empty($monthlyData) ? max(array_column($monthlyData, 'primary')) : 0;
+            $maxSecondaryFromData = !empty($monthlyData) ? max(array_column($monthlyData, 'secondary')) : 0;
+            $maxChartValue = (float) max($maxPrimaryFromData, $maxSecondaryFromData);
+            // Dynamic Y-axis labels (no hardcoded 2000/1600/...)
+            // Build a "nice" scale with 6 ticks (max..0) based on actual data.
+            $ticks = 6; // number of labels on Y-axis
+            
+            $maxFromData = max((float) $maxPrimaryFromData, (float) $maxSecondaryFromData, 0);
+            
+            // Choose a "nice" step (1/2/5 × 10^n)
+            $rawMax = max(1, $maxFromData);
+            $rawStep = $rawMax / ($ticks - 1);
+            $pow10 = pow(10, floor(log10($rawStep)));
+            $norm = $rawStep / $pow10;
+            if ($norm <= 1) {
+                $niceNorm = 1;
+            } elseif ($norm <= 2) {
+                $niceNorm = 2;
+            } elseif ($norm <= 5) {
+                $niceNorm = 5;
+            } else {
+                $niceNorm = 10;
+            }
+            $step = $niceNorm * $pow10;
+            $niceMax = $step * ($ticks - 1);
+            
+            // If everything is 0, keep a small but readable axis
+            if ($maxFromData <= 0) {
+                $step = 1;
+                $niceMax = 5;
+            }
+            
+            $yAxisLabels = [];
+            for ($i = 0; $i < $ticks; $i++) {
+                $yAxisLabels[] = (int) round($niceMax - $step * $i);
+            }
+            
+            // Use the axis max for scaling bars
+            $maxChartValue = (float) ($yAxisLabels[0] ?? $niceMax);
+            
+            // Fix: row height must add up to chartHeight (previously it exceeded and pushed content to next page)
+            $rowHeight = $chartHeight / count($yAxisLabels);
             ?>
 
             <table width="100%" cellpadding="0" cellspacing="0"
@@ -1986,7 +2020,8 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <?php    foreach ($yAxisLabels as $label): ?>
                             <tr>
-                                <td style="height:<?= $rowHeight ?>px;
+                                <td
+                                    style="height:<?= $rowHeight ?>px;
                                             font-size:10px; color:#666;
                                             text-align:right; padding-right:6px;
                                             border-bottom:1px solid #eee;
@@ -2043,23 +2078,28 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
         $mLabel = strtoupper(substr($mLabel, 0, 3));
                                 ?>
                                 <td width="8.33%" valign="bottom" align="center">
-                                    <table width="100%" height="<?= $chartHeight ?>" cellpadding="0" cellspacing="0">
+                                    <table width="100%" height="<?= $chartHeight ?>" cellpadding="0"
+                                        cellspacing="0">
                                         <tr>
                                             <td valign="bottom">
                                                 <table width="100%" cellpadding="0" cellspacing="0">
                                                     <tr>
                                                         <!-- Green (after PR) -->
                                                         <td width="40%" valign="bottom">
-                                                            <div style="height:<?= $secondaryHeight ?>px;
+                                                            <div
+                                                                style="height:<?= $secondaryHeight ?>px;
                                                                         background:#00c389;
-                                                                        border-radius:8px 8px 0 0;"></div>
+                                                                        border-radius:8px 8px 0 0;">
+                                                            </div>
                                                         </td>
                                                         <td width="20%"></td>
                                                         <!-- Black (before PR) -->
                                                         <td width="40%" valign="bottom">
-                                                            <div style="height:<?= $primaryHeight ?>px;
+                                                            <div
+                                                                style="height:<?= $primaryHeight ?>px;
                                                                         background:#000;
-                                                                        border-radius:8px 8px 0 0;"></div>
+                                                                        border-radius:8px 8px 0 0;">
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -2067,7 +2107,8 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
                                         </tr>
                                     </table>
                                     <div style="margin-top:6px; height:26px; font-family:'Montserrat', sans-serif;">
-                                        <span style="display:inline-block; font-size:7px; line-height:1; color:#000;
+                                        <span
+                                            style="display:inline-block; font-size:7px; line-height:1; color:#000;
                                                      transform: rotate(-90deg); transform-origin:center;">
                                             <?= $mLabel ?>
                                         </span>
@@ -2088,14 +2129,16 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
             </table>
 
             <!-- ================= SUMMARY ================= -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px; page-break-inside: avoid;">
+            <table width="100%" cellpadding="0" cellspacing="0"
+                style="margin-bottom:18px; page-break-inside: avoid;">
                 <tr>
                     <td width="33.33%" align="center">
                         <div style="font-size:22px; font-weight:600; font-family: 'Montserrat', sans-serif;">80%</div>
                         <div style="font-size:18px; font-family: 'Montserrat', sans-serif;">PR: Performance Ratio</div>
                     </td>
                     <td width="33.33%" align="center">
-                        <div style="font-size:22px; font-weight:600; font-family: 'Montserrat', sans-serif;">13.8%</div>
+                        <div style="font-size:22px; font-weight:600; font-family: 'Montserrat', sans-serif;">13.8%
+                        </div>
                         <div style="font-size:18px; font-family: 'Montserrat', sans-serif;">Monsoon Dip</div>
                     </td>
                     <td width="33.33%" align="center">
@@ -2111,30 +2154,38 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
                 <?= esc($genNote) ?>
             </div>
             <?php if (($estdata->type ?? '') === 'residential'): ?>
-                <?php
-                $systemKwp = $quantity;
-                $dailyUnits = $quantity * 4.2;
-                $monthlyUnits = $dailyUnits * 30;
-                $annualUnits = $dailyUnits * 365;
-
-                $dailyUnitsFormatted = number_format($dailyUnits, 1);
-                $monthlyUnitsFormatted = number_format($monthlyUnits, 0);
-                $annualUnitsFormatted = number_format($annualUnits, 0);
-                ?>
-                <!-- Section 6: Generation Calculations -->
-                <div style="font-size: 20px; font-weight: bold; margin-top: 25px; margin-bottom: 10px; border-left:4px solid #4b9349; padding-left:10px; text-align: left;">
-                    6. Generation Calculations
-                </div>
-                <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: left;">Projected estimations are generated based on regional irradiance data for a premium proposed <strong><?= $systemKwp ?> kWp</strong> system:</p>
-                <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 15px; text-align: left;">
-                    <li style="margin-bottom: 8px;"><strong>Daily Average Generation:</strong> ~4 to 4.5 kWh (Units) per kWp installed &rarr; <strong><?= $dailyUnitsFormatted ?> Units/day</strong></li>
-                    <li style="margin-bottom: 8px;"><strong>Estimated Monthly Generation:</strong> <strong><?= $monthlyUnitsFormatted ?> Units/month</strong></li>
-                    <li style="margin-bottom: 8px;"><strong>Projected Annual Generation:</strong> <strong><?= $annualUnitsFormatted ?> Units/year</strong></li>
-                </ul>
+            <?php
+            $systemKwp = $quantity;
+            $dailyUnits = $quantity * 4.2;
+            $monthlyUnits = $dailyUnits * 30;
+            $annualUnits = $dailyUnits * 365;
+            
+            $dailyUnitsFormatted = number_format($dailyUnits, 1);
+            $monthlyUnitsFormatted = number_format($monthlyUnits, 0);
+            $annualUnitsFormatted = number_format($annualUnits, 0);
+            ?>
+            <!-- Section 6: Generation Calculations -->
+            <div
+                style="font-size: 20px; font-weight: bold; margin-top: 25px; margin-bottom: 10px; padding-left:10px; text-align: left;">
+                6. Generation Calculations
+            </div>
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5; text-align: left;">Projected
+                estimations are generated based on regional irradiance data for a premium proposed
+                <strong><?= $systemKwp ?> kWp</strong> system:</p>
+            <ul
+                style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 15px; text-align: left;">
+                <li style="margin-bottom: 8px;"><strong>Daily Average Generation:</strong> ~4 to 4.5 kWh (Units) per
+                    kWp installed &rarr; <strong><?= $dailyUnitsFormatted ?> Units/day</strong></li>
+                <li style="margin-bottom: 8px;"><strong>Estimated Monthly Generation:</strong>
+                    <strong><?= $monthlyUnitsFormatted ?> Units/month</strong></li>
+                <li style="margin-bottom: 8px;"><strong>Projected Annual Generation:</strong>
+                    <strong><?= $annualUnitsFormatted ?> Units/year</strong></li>
+            </ul>
             <?php endif; ?>
         </div>
         <!-- ================= FOOTER ================= -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                         background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px;">
@@ -2147,10 +2198,10 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
 
                 <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
                     <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                            ?>
+                    $companyName = esc($globalCompanyName);
+                    $companyParts = explode(' ', $companyName);
+                    $mainName = $companyParts[0] ?? $companyName;
+                    ?>
                     Generated by <?= esc($companyName) ?>
                 </td>
             </tr>
@@ -2161,24 +2212,25 @@ $genNote = $genNote !== '' ? $genNote : 'Generation figures are indicative and m
     <?php endif; ?>
 
     <?php
-$__ongridRoiSection = (isset($ongridRoiSection) && is_array($ongridRoiSection)) ? $ongridRoiSection : [];
-$__ongridRoiActive = $_isActive($__ongridRoiSection);
-
-$roiTitle = trim((string) ($__ongridRoiSection['title'] ?? ''));
-$roiTitle = $roiTitle !== '' ? $roiTitle : 'ROI';
-
-$roiSubTitle = trim((string) ($__ongridRoiSection['sub_title'] ?? ''));
-$roiSubTitle = $roiSubTitle !== '' ? $roiSubTitle : 'Ongrid ROI';
-
-$roiStarts = $__ongridRoiSection['residential_starts_percent'] ?? '';
-$roiStarts = (is_numeric($roiStarts) && (float) $roiStarts > 0) ? rtrim(rtrim(number_format((float) $roiStarts, 2, '.', ''), '0'), '.') : '';
-
-$roiNote = trim((string) ($__ongridRoiSection['note'] ?? ''));
-$roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU WILL EVER MAKE';
-   ?>
+    $__ongridRoiSection = isset($ongridRoiSection) && is_array($ongridRoiSection) ? $ongridRoiSection : [];
+    $__ongridRoiActive = $_isActive($__ongridRoiSection);
+    
+    $roiTitle = trim((string) ($__ongridRoiSection['title'] ?? ''));
+    $roiTitle = $roiTitle !== '' ? $roiTitle : 'ROI';
+    
+    $roiSubTitle = trim((string) ($__ongridRoiSection['sub_title'] ?? ''));
+    $roiSubTitle = $roiSubTitle !== '' ? $roiSubTitle : 'Ongrid ROI';
+    
+    $roiStarts = $__ongridRoiSection['residential_starts_percent'] ?? '';
+    $roiStarts = is_numeric($roiStarts) && (float) $roiStarts > 0 ? rtrim(rtrim(number_format((float) $roiStarts, 2, '.', ''), '0'), '.') : '';
+    
+    $roiNote = trim((string) ($__ongridRoiSection['note'] ?? ''));
+    $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU WILL EVER MAKE';
+    ?>
     <?php if ($__ongridRoiActive): ?>
     <!-- ================= PAGE 4 : ROI ================= -->
-    <div class="<?= $_pageClass('p4') ?>" style="position:relative; min-height:842px;
+    <div class="<?= $_pageClass('p4') ?>"
+        style="position:relative; min-height:842px;
                 background:#4b9349 !important;  /* image-like green */
                 font-family:'Montserrat', sans-serif;">
         <div style="padding: 50px;">
@@ -2204,81 +2256,59 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
 
             <!-- ================= ROI BAR CHART ================= -->
             <?php
-    // ROI chart:
-    // - If simple ROI inputs are present -> show Year 1..25
-    // - Else -> keep legacy "last 10 calendar years" behavior
-    $roiYears = $useSimpleRoi ? 25 : 10;
-
-    // Chart height (you changed this): keep as-is, but ensure it’s numeric
-    // $chartHeight = (int) ($chartHeight ?? 360);
-    $chartHeight = 550;
-    if ($chartHeight <= 0) {
-        $chartHeight = 360;
-    }
-
-    $roiDataSafe = is_array($roiData ?? null) ? $roiData : [];
-    $completeRoiData = [];
-
-    if ($useSimpleRoi) {
-        // Already prepared as Year 1..25 in the calculation block above
-        $completeRoiData = $roiDataSafe;
-    } else {
-        $roiMap = [];
-        foreach ($roiDataSafe as $d) {
-            $y = (int) ($d['year'] ?? 0); // calendar year
-            if ($y > 0) {
-                $roiMap[$y] = $d;
+            // ROI chart:
+            // - If simple ROI inputs are present -> show Year 1..25
+            // - Else -> keep legacy "last 10 calendar years" behavior
+            $roiYears = $useSimpleRoi ? 25 : 10;
+            
+            // Chart height (you changed this): keep as-is, but ensure it’s numeric
+            // $chartHeight = (int) ($chartHeight ?? 360);
+            $chartHeight = 550;
+            if ($chartHeight <= 0) {
+                $chartHeight = 360;
             }
-        }
-        $currentYearRoi = (int) date('Y');
-        $startYearRoi = $currentYearRoi - ($roiYears - 1);
-        for ($y = $startYearRoi; $y <= $currentYearRoi; $y++) {
-            if (isset($roiMap[$y])) {
-                $completeRoiData[] = $roiMap[$y];
+            
+            $roiDataSafe = is_array($roiData ?? null) ? $roiData : [];
+            $completeRoiData = [];
+            
+            if ($useSimpleRoi) {
+                // Already prepared as Year 1..25 in the calculation block above
+                $completeRoiData = $roiDataSafe;
             } else {
-                $completeRoiData[] = [
-                    'year' => $y,
-                    'cumulative' => 0,
-                ];
+                $roiMap = [];
+                foreach ($roiDataSafe as $d) {
+                    $y = (int) ($d['year'] ?? 0); // calendar year
+                    if ($y > 0) {
+                        $roiMap[$y] = $d;
+                    }
+                }
+                $currentYearRoi = (int) date('Y');
+                $startYearRoi = $currentYearRoi - ($roiYears - 1);
+                for ($y = $startYearRoi; $y <= $currentYearRoi; $y++) {
+                    if (isset($roiMap[$y])) {
+                        $completeRoiData[] = $roiMap[$y];
+                    } else {
+                        $completeRoiData[] = [
+                            'year' => $y,
+                            'cumulative' => 0,
+                        ];
+                    }
+                }
             }
-        }
-    }
-
-    // Dynamic Y-axis (Lakhs) + dynamic scaling
-    // Build a "nice" scale with 7 ticks (max..0) based on actual ROI data.
-    $ticks = 7;
-
-    $roiMaxFromData = 0;
-    foreach ($completeRoiData as $d) {
-        $roiMaxFromData = max($roiMaxFromData, (float) ($d['cumulative'] ?? 0));
-    }
-
-    $maxFromData = max($roiMaxFromData, (float) ($maxChartRoi ?? 0), 0);
-
-    // Choose a "nice" step (1/2/5 × 10^n)
-    $rawMax = max(1, $maxFromData);
-    $rawStep = $rawMax / ($ticks - 1);
-    $pow10 = pow(10, floor(log10($rawStep)));
-    $norm = $rawStep / $pow10;
-    if ($norm <= 1) {
-        $niceNorm = 1;
-    } elseif ($norm <= 2) {
-        $niceNorm = 2;
-    } elseif ($norm <= 5) {
-        $niceNorm = 5;
-    } else {
-        $niceNorm = 10;
-    }
-    $step = $niceNorm * $pow10;
-    $niceMax = $step * ($ticks - 1);
-
-    // If everything is 0, fall back to estimates-table min/max instead of fixed 30L.
-    // (If estimates are also empty, then use the old 30L default.)
-
-    if ($maxFromData <= 0) {
-        $fallbackMax = (float) ($estimateAmountMax ?? 0);
-        if ($fallbackMax > 0) {
-            $rawMax = max(1, $fallbackMax);
+            
+            // Dynamic Y-axis (Lakhs) + dynamic scaling
+            // Build a "nice" scale with 7 ticks (max..0) based on actual ROI data.
+            $ticks = 7;
+            
+            $roiMaxFromData = 0;
+            foreach ($completeRoiData as $d) {
+                $roiMaxFromData = max($roiMaxFromData, (float) ($d['cumulative'] ?? 0));
+            }
+            
+            $maxFromData = max($roiMaxFromData, (float) ($maxChartRoi ?? 0), 0);
+            
+            // Choose a "nice" step (1/2/5 × 10^n)
+            $rawMax = max(1, $maxFromData);
             $rawStep = $rawMax / ($ticks - 1);
             $pow10 = pow(10, floor(log10($rawStep)));
             $norm = $rawStep / $pow10;
@@ -2293,28 +2323,50 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
             }
             $step = $niceNorm * $pow10;
             $niceMax = $step * ($ticks - 1);
-        } else {
-            $step = 500000;    // 5L
-            $niceMax = 3000000; // 30L
-        }
-    }
-
-    $yAxis = [];
-    for ($i = 0; $i < $ticks; $i++) {
-        $val = $niceMax - ($step * $i);
-        if ($val <= 0) {
-            $yAxis[] = $rupeeHtml . '0';
-            continue;
-        }
-        $yAxis[] = $rupeeHtml . number_format($val / 100000, 1) . 'L';
-    }
-
-    // Use axis max for bar scaling
-    $maxValue = (float) $niceMax;
-
-    // Keep axis labels within chart height (Dompdf can overflow otherwise)
-    $rowHeight = $chartHeight / count($yAxis);
-        ?>
+            
+            // If everything is 0, fall back to estimates-table min/max instead of fixed 30L.
+            // (If estimates are also empty, then use the old 30L default.)
+            
+            if ($maxFromData <= 0) {
+                $fallbackMax = (float) ($estimateAmountMax ?? 0);
+                if ($fallbackMax > 0) {
+                    $rawMax = max(1, $fallbackMax);
+                    $rawStep = $rawMax / ($ticks - 1);
+                    $pow10 = pow(10, floor(log10($rawStep)));
+                    $norm = $rawStep / $pow10;
+                    if ($norm <= 1) {
+                        $niceNorm = 1;
+                    } elseif ($norm <= 2) {
+                        $niceNorm = 2;
+                    } elseif ($norm <= 5) {
+                        $niceNorm = 5;
+                    } else {
+                        $niceNorm = 10;
+                    }
+                    $step = $niceNorm * $pow10;
+                    $niceMax = $step * ($ticks - 1);
+                } else {
+                    $step = 500000; // 5L
+                    $niceMax = 3000000; // 30L
+                }
+            }
+            
+            $yAxis = [];
+            for ($i = 0; $i < $ticks; $i++) {
+                $val = $niceMax - $step * $i;
+                if ($val <= 0) {
+                    $yAxis[] = $rupeeHtml . '0';
+                    continue;
+                }
+                $yAxis[] = $rupeeHtml . number_format($val / 100000, 1) . 'L';
+            }
+            
+            // Use axis max for bar scaling
+            $maxValue = (float) $niceMax;
+            
+            // Keep axis labels within chart height (Dompdf can overflow otherwise)
+            $rowHeight = $chartHeight / count($yAxis);
+            ?>
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:40px;">
                 <tr>
@@ -2339,11 +2391,13 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                             ?>
                                 <td width="<?= round(100 / max(count($completeRoiData), 1), 2) ?>%" align="center"
                                     valign="bottom">
-                                    <div style="height:<?= $height ?>px;
+                                    <div
+                                        style="height:<?= $height ?>px;
                                             width:20px;
                                             margin:0 auto;
                                             background:#ffffff;
-                                            border-radius:10px 10px 0 0;"></div>
+                                            border-radius:10px 10px 0 0;">
+                                    </div>
                                     <!-- Dompdf doesn't reliably support writing-mode; keep labels horizontal & compact -->
                                     <div
                                         style="font-size:7px; color:#e8f6f4; margin-top:4px; line-height:1; white-space:nowrap; font-family: 'Montserrat', sans-serif;">
@@ -2364,7 +2418,8 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                         <table width="100%" cellpadding="0" cellspacing="0">
                             <?php    foreach ($yAxis as $label): ?>
                             <tr>
-                                <td style="height:<?= $rowHeight ?>px;
+                                <td
+                                    style="height:<?= $rowHeight ?>px;
                                         font-size:10px;
                                         color:#e8f6f4;
                                         text-align:right;
@@ -2391,7 +2446,7 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                 <td align="center" style="padding:16px 10px;">
                                     <div
                                         style="font-size:20px; font-weight:700; color:#fff; font-family: 'Montserrat', sans-serif;">
-                                        <?= $rupeeHtml ?><?= $yearlySavingsFormatted ?>
+                                        <?= $rupeeHtml . $yearlySavingsFormatted ?>
                                     </div>
                                     <div
                                         style="font-size:11px; font-weight:600; color:#e8f6f4; margin-top:6px; letter-spacing:0.5px; font-family: 'Montserrat', sans-serif;">
@@ -2425,17 +2480,19 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                                 <td align="center" style="padding:16px 10px;">
                                     <div
                                         style="font-size:20px; font-weight:700; color:#fff; font-family: 'Montserrat', sans-serif;">
-                                        <?= $rupeeHtml ?><?= $totalLifetimeSavingsLakhsFormatted ?>
+                                        <?= $rupeeHtml . $totalLifetimeSavingsLakhsFormatted ?>
                                     </div>
                                     <div
                                         style="font-size:11px; font-weight:600; color:#e8f6f4; margin-top:6px; letter-spacing:0.5px; font-family: 'Montserrat', sans-serif;">
                                         TOTAL LIFETIME SAVING
                                     </div>
-                                    <?php    //if ($useSimpleRoi): ?>
+                                    <?php //if ($useSimpleRoi):
+                                    ?>
                                     <!-- <div style="font-size:9px; color:#e8f6f4; margin-top:6px; font-family:'Montserrat', sans-serif;">
-                                        Net Profit: <?= $rupeeHtml ?><?=  $netLifetimeProfitLakhsFormatted ?>
+                                        Net Profit: <?= $rupeeHtml . $netLifetimeProfitLakhsFormatted ?>
                                     </div> -->
-                                    <?php    //endif; ?>
+                                    <?php //endif;
+                                    ?>
                                 </td>
                             </tr>
                         </table>
@@ -2452,7 +2509,8 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
                             <?= esc($roiNote) ?>
                         </div>
                         <?php if ($roiStarts !== ''): ?>
-                        <div style="background:#fff; color:#4b9349;
+                        <div
+                            style="background:#fff; color:#4b9349;
                                 padding:10px 30px;
                                 display:inline-block;                                font-size:13px;
                                 font-size:18px;
@@ -2465,160 +2523,184 @@ $roiNote = $roiNote !== '' ? $roiNote : 'SOLAR IS ONE OF THE BEST INVESTMENT YOU
             </table>
         </div>
         <?php if (($estdata->type ?? '') === 'residential'): ?>
-            <?php
-            $monthlySavingsFormatted = number_format($yearlySavings / 12, 0);
-            $totalCo2Offset = $systemCapacity * 1.01 * 25;
-            $coalAvoided = $systemCapacity * 1.259 * 25;
-            $treesPlanted = (int) round($totalCo2Offset * 2.0);
-            $co2OffsetFormatted = number_format($totalCo2Offset, 1);
-            $coalAvoidedFormatted = number_format($coalAvoided, 1);
-            ?>
-            <div style="position:fixed; bottom:10; left:0; right:0;
+        <?php
+        $monthlySavingsFormatted = number_format($yearlySavings / 12, 0);
+        $totalCo2Offset = $systemCapacity * 1.01 * 25;
+        $coalAvoided = $systemCapacity * 1.259 * 25;
+        $treesPlanted = (int) round($totalCo2Offset * 2.0);
+        $co2OffsetFormatted = number_format($totalCo2Offset, 1);
+        $coalAvoidedFormatted = number_format($coalAvoided, 1);
+        ?>
+        <div
+            style="position:fixed; bottom:10; left:0; right:0;
                         background:#4b9349; color:#fff; height:40px; border-top: 1px solid #fff;">
-                <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
-                    <tr>
-                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+            <table width="100%" height="36" cellpadding="0" cellspacing="0"
+                style="font-size:11px; color:#fff;">
+                <tr>
+                    <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                    </td>
+
+                    <td width="33.33%" align="center"
+                        style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                        PAGE <?= $_pdfPageNumber() ?>
+                    </td>
+
+                    <td width="33.33%" align="right"
+                        style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
+                        Generated by <?= esc($globalCompanyName) ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div> <!-- Close Page 4 green page div -->
+
+    <!-- ================= PAGE 4b : ROI & CARBON OFFSET ================= -->
+    <div class="page page-break"
+        style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
+        <div style="padding: 40px;">
+            <!-- Header -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size: 18px; color: #333;">
                             <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </td>
+                        </div>
+                    </td>
+                    <td width="50%" align="right" valign="top">
+                        <?php if (!empty($logoBase64)): ?>
+                        <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
 
-                        <td width="33.33%" align="center"
-                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                            PAGE <?= $_pdfPageNumber() ?>
-                        </td>
-
-                        <td width="33.33%" align="right"
-                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
-                            Generated by <?= esc($globalCompanyName) ?>
-                        </td>
-                    </tr>
-                </table>
+            <!-- Section 7: Return on Savings (ROI) -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px;">
+                7. Return on Savings (ROI)
             </div>
-            </div> <!-- Close Page 4 green page div -->
-
-            <!-- ================= PAGE 4b : ROI & CARBON OFFSET ================= -->
-            <div class="page page-break" style="position: relative; min-height: 842px; background: white; font-family:'Montserrat', sans-serif;">
-                <div style="padding: 40px;">
-                    <!-- Header -->
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                        <tr>
-                            <td width="50%" align="left" valign="top">
-                                <div style="font-size: 18px; color: #333;">
-                                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                                </div>
-                            </td>
-                            <td width="50%" align="right" valign="top">
-                                <?php if (!empty($logoBase64)): ?>
-                                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width: 160px; height: auto;">
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <!-- Section 7: Return on Savings (ROI) -->
-                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px;">
-                        7. Return on Savings (ROI)
-                    </div>
-                    <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">Financial projections calculated based on a baseline localized utility utility tariff of <strong><?= $rupeeHtml ?><?= number_format($unitRate, 2) ?></strong> per unit:</p>
-                    <table class="info-table" style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
-                        <thead>
-                            <tr style="background-color: #4b9349; color: #fff;">
-                                <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Financial Parameter</th>
-                                <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Projected Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Estimated Monthly Savings Target</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $monthlySavingsFormatted ?></td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Projected First-Year Annual Savings</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $yearlySavingsFormatted ?></td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Cumulative 25-Year System Lifecycle Savings</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?> <?= $totalLifetimeSavingsFormatted ?></td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9; font-weight: bold;">
-                                <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;">Calculated System Payback Period (Break-Even)</td>
-                                <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;"><?= $paybackPeriodDisplay ?> Years</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Section 8: Carbon Emission Offset Calculation -->
-                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
-                        8. Carbon Emission Offset Calculation
-                    </div>
-                    <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">By shifting power generation source to solar PV, your property achieves highly significant environmental offset targets across its guaranteed 25-year operational lifecycle:</p>
-                    <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
-                        <li style="margin-bottom: 8px;"><strong>CO₂ Emissions Prevented:</strong> <strong><?= $co2OffsetFormatted ?> Metric Tons</strong> of pure Carbon Dioxide stopped from entering the atmosphere.</li>
-                        <li style="margin-bottom: 8px;"><strong>Fossil Fuel Preservation:</strong> Equivalent to preventing the burning of <strong><?= $coalAvoidedFormatted ?> Tons</strong> of standard coal.</li>
-                        <li style="margin-bottom: 8px;"><strong>Reforestation Equivalence:</strong> Equal to the ecological impact of planting <strong><?= $treesPlanted ?> mature trees</strong>.</li>
-                    </ul>
-
-                    <!-- Section 9: Documents Required -->
-                    <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; border-left:6px solid #4b9349; padding-left:14px; margin-top: 20px;">
-                        9. Documents Required
-                    </div>
-                    <p style="font-size: 13px; margin-bottom: 12px; line-height: 1.4;">To initiate file processing for DISCOM permissions and central subsidy approvals, please provide:</p>
-                    <ul style="padding-left: 20px; font-size: 12.5px; line-height: 1.4; margin-bottom: 15px;">
-                        <li style="margin-bottom: 6px;">Latest Official Electricity Utility Bill (All pages included)</li>
-                        <li style="margin-bottom: 6px;">Aadhaar Card of the property owner (Name alignment must match utility billing details)</li>
-                        <li style="margin-bottom: 6px;">PAN Card Copy</li>
-                        <li style="margin-bottom: 6px;">Bank Cancelled Cheque or clear Passbook photocopy (Required for direct electronic subsidy disbursement)</li>
-                        <li style="margin-bottom: 6px;">Two recent passport-size color photographs</li>
-                    </ul>
-                </div>
-
-                <!-- Footer -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">Financial projections calculated based
+                on a baseline localized utility utility tariff of <strong><?= $rupeeHtml . number_format($unitRate, 2) ?></strong> per unit:</p>
+            <table class="info-table"
+                style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
+                <thead>
+                    <tr style="background-color: #4b9349; color: #fff;">
+                        <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Financial Parameter</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Projected Value</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <tr>
-                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </td>
-                        <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
-                            PAGE <?= $_pdfPageNumber() ?>
-                        </td>
-                        <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
-                            Generated by <?= esc($globalCompanyName) ?>
-                        </td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Estimated Monthly Savings Target</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?>
+                            <?= $monthlySavingsFormatted ?></td>
                     </tr>
-                </table>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Projected First-Year Annual Savings</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?>
+                            <?= $yearlySavingsFormatted ?></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Cumulative 25-Year System Lifecycle Savings
+                        </td>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><?= $rupeeHtml ?>
+                            <?= $totalLifetimeSavingsFormatted ?></td>
+                    </tr>
+                    <tr style="background-color: #f9f9f9; font-weight: bold;">
+                        <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;">Calculated System Payback
+                            Period (Break-Even)</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; color: #1e3f20;"><?= $paybackPeriodDisplay ?>
+                            Years</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Section 8: Carbon Emission Offset Calculation -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px; margin-top: 20px;">
+                8. Carbon Emission Offset Calculation
             </div>
-        <?php else: ?>
-            <div style="position:fixed; bottom:10; left:0; right:0;
+            <p style="font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">By shifting power generation source to
+                solar PV, your property achieves highly significant environmental offset targets across its guaranteed
+                25-year operational lifecycle:</p>
+            <ul style="padding-left: 20px; font-size: 13.5px; line-height: 1.5; margin-bottom: 25px;">
+                <li style="margin-bottom: 8px;"><strong>CO₂ Emissions Prevented:</strong>
+                    <strong><?= $co2OffsetFormatted ?> Metric Tons</strong> of pure Carbon Dioxide stopped from entering
+                    the atmosphere.</li>
+                <li style="margin-bottom: 8px;"><strong>Fossil Fuel Preservation:</strong> Equivalent to preventing the
+                    burning of <strong><?= $coalAvoidedFormatted ?> Tons</strong> of standard coal.</li>
+                <li style="margin-bottom: 8px;"><strong>Reforestation Equivalence:</strong> Equal to the ecological
+                    impact of planting <strong><?= $treesPlanted ?> mature trees</strong>.</li>
+            </ul>
+
+            <!-- Section 9: Documents Required -->
+            <div style="font-size: 26px; font-weight: bold; margin-bottom: 12px; padding-left:14px; margin-top: 20px;">
+                9. Documents Required
+            </div>
+            <p style="font-size: 13px; margin-bottom: 12px; line-height: 1.4;">To initiate file processing for DISCOM
+                permissions and central subsidy approvals, please provide:</p>
+            <ul style="padding-left: 20px; font-size: 12.5px; line-height: 1.4; margin-bottom: 15px;">
+                <li style="margin-bottom: 6px;">Latest Official Electricity Utility Bill (All pages included)</li>
+                <li style="margin-bottom: 6px;">Aadhaar Card of the property owner (Name alignment must match utility
+                    billing details)</li>
+                <li style="margin-bottom: 6px;">PAN Card Copy</li>
+                <li style="margin-bottom: 6px;">Bank Cancelled Cheque or clear Passbook photocopy (Required for direct
+                    electronic subsidy disbursement)</li>
+                <li style="margin-bottom: 6px;">Two recent passport-size color photographs</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0; background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
+                    PAGE <?= $_pdfPageNumber() ?>
+                </td>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <?php else: ?>
+    <div
+        style="position:fixed; bottom:10; left:0; right:0;
                         background:#4b9349; color:#fff; height:40px; border-top: 1px solid #fff;">
-                <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
-                    <tr>
-                        <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                        </td>
+        <table width="100%" height="36" cellpadding="0" cellspacing="0" style="font-size:11px; color:#fff;">
+            <tr>
+                <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
 
-                        <td width="33.33%" align="center"
-                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
-                            PAGE <?= $_pdfPageNumber() ?>
-                        </td>
+                <td width="33.33%" align="center"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px;">
+                    PAGE <?= $_pdfPageNumber() ?>
+                </td>
 
-                        <td width="33.33%" align="right"
-                            style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
-                            Generated by <?= esc($globalCompanyName) ?>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            </div> <!-- Close Page 4 -->
-        <?php endif; ?>
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; font-size:16px; white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </div> <!-- Close Page 4 -->
+    <?php endif; ?>
     </div>
     <!-- ================= END PAGE 4 ================= -->
     <?php endif; ?>
     <!-- ================= PAGE 5 : TIMELINE & SYSTEM SPECIFICATION ================= -->
     <?php
-$__timeLine = (isset($timeLine) && is_array($timeLine)) ? $timeLine : [];
-$__timeLineActive = $_isActive($__timeLine);
-?>
+    $__timeLine = isset($timeLine) && is_array($timeLine) ? $timeLine : [];
+    $__timeLineActive = $_isActive($__timeLine);
+    ?>
     <?php if ($__timeLineActive): ?>
-    <div class="<?= $_pageClass('p5') ?>" style="position: relative;
+    <div class="<?= $_pageClass('p5') ?>"
+        style="position: relative;
             min-height: 842px;
             background: #ffffff;
             font-family: 'Montserrat', sans-serif;">
@@ -2641,108 +2723,124 @@ $__timeLineActive = $_isActive($__timeLine);
             </table>
 
             <!-- Page main heading -->
-            <div style="font-size:32px; font-weight:bold; font-family:'Montserrat',sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1; margin-bottom:14px;">
+            <div
+                style="font-size:32px; font-weight:bold; font-family:'Montserrat',sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1; margin-bottom:14px;">
                 OFFER &amp; TERMS
             </div>
 
             <?php
-    // Template-specific timeline (saved in pdfbuilder_forms.time_line JSON)
-    $timeLine = isset($timeLine) && is_array($timeLine) ? $timeLine : [];
-    $timelineMainTitle = trim((string) ($timeLine['main_title'] ?? ''));
-    $timelineTitle = trim((string) ($timeLine['title'] ?? ''));
-    $timelineTitle2 = trim((string) ($timeLine['title2'] ?? ''));
-    $timelineNote = trim((string) ($timeLine['note'] ?? ''));
-
-    $timelineImg1 = !empty($timeLine['image1'])
-        ? normalize_pdf_image($timeLine['image1'])
-        : null;
-    $timelineImg2 = !empty($timeLine['image2'])
-        ? normalize_pdf_image($timeLine['image2'])
-        : null;
-
-    $timelineImg1 = (is_string($timelineImg1) && strpos($timelineImg1, 'data:image') === 0)
-        ? $timelineImg1
-        : normalize_pdf_image('public/assets/img/page-5-1.png');
-    $timelineImg2 = (is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0)
-        ? $timelineImg2
-        : normalize_pdf_image('public/assets/img/page-5-2.png');
-    ?>
+            // Template-specific timeline (saved in pdfbuilder_forms.time_line JSON)
+            $timeLine = isset($timeLine) && is_array($timeLine) ? $timeLine : [];
+            $timelineMainTitle = trim((string) ($timeLine['main_title'] ?? ''));
+            $timelineTitle = trim((string) ($timeLine['title'] ?? ''));
+            $timelineTitle2 = trim((string) ($timeLine['title2'] ?? ''));
+            $timelineNote = trim((string) ($timeLine['note'] ?? ''));
+            
+            $timelineImg1 = !empty($timeLine['image1']) ? normalize_pdf_image($timeLine['image1']) : null;
+            $timelineImg2 = !empty($timeLine['image2']) ? normalize_pdf_image($timeLine['image2']) : null;
+            
+            $timelineImg1 = is_string($timelineImg1) && strpos($timelineImg1, 'data:image') === 0 ? $timelineImg1 : normalize_pdf_image('public/assets/img/page-5-1.png');
+            $timelineImg2 = is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0 ? $timelineImg2 : normalize_pdf_image('public/assets/img/page-5-2.png');
+            ?>
             <!-- ================= OFFER & TERMS (timeline) ================= -->
             <div style="page-break-inside:avoid;">
-            <div
-                style="font-size:30px; font-weight:bold; color:#000; margin-bottom:6px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.1;">
-                <?= $timelineMainTitle !== '' ? esc($timelineMainTitle) : 'TIMELINE' ?>
-            </div>
-            <div style="font-size:17px; font-weight:bold; margin-bottom:12px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.2;">
-                <?= $timelineTitle !== '' ? esc($timelineTitle) : 'TIMELINE AND MILESTONES' ?>
-            </div>
+                <div
+                    style="font-size:30px; font-weight:bold; color:#000; margin-bottom:6px; font-family: 'Montserrat', sans-serif; color: #4b9349; padding-left:16px; line-height:1.1;">
+                    <?= $timelineMainTitle !== '' ? esc($timelineMainTitle) : 'TIMELINE' ?>
+                </div>
+                <div
+                    style="font-size:17px; font-weight:bold; margin-bottom:12px; font-family: 'Montserrat', sans-serif; padding-left:16px; line-height:1.2;">
+                    <span
+                        style="display:inline-block; width:10px; height:10px; background-color:#4b9349; border-radius:50%; margin-right:10px;"></span><?= $timelineTitle !== '' ? esc($timelineTitle) : 'TIMELINE AND MILESTONES' ?>
+                </div>
 
-            <?php if (!empty($timelineImg1)): ?>
-            <img src="<?= $timelineImg1 ?>" style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 12px;">
-            <?php else: ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto 12px; border-collapse:collapse;">
-                <tr>
-                    <td width="25%" align="center" style="padding:10px;">
-                        <div style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">1</div>
-                        <div style="font-size:15px; font-weight:bold;">10%</div>
-                        <div style="font-size:14px;">Advance</div>
-                    </td>
-                    <td width="25%" align="center" style="padding:10px;">
-                        <div style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">2</div>
-                        <div style="font-size:15px; font-weight:bold;">60%</div>
-                        <div style="font-size:14px;">Procurement</div>
-                    </td>
-                    <td width="25%" align="center" style="padding:10px;">
-                        <div style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">3</div>
-                        <div style="font-size:15px; font-weight:bold;">20%</div>
-                        <div style="font-size:14px;">Installation</div>
-                    </td>
-                    <td width="25%" align="center" style="padding:10px;">
-                        <div style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">4</div>
-                        <div style="font-size:15px; font-weight:bold;">10%</div>
-                        <div style="font-size:14px;">Net metering</div>
-                    </td>
-                </tr>
-            </table>
-            <?php endif; ?>
+                <?php if (!empty($timelineImg1)): ?>
+                <img src="<?= $timelineImg1 ?>"
+                    style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 12px;">
+                <?php else: ?>
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="margin:0 auto 12px; border-collapse:collapse;">
+                    <tr>
+                        <td width="25%" align="center" style="padding:10px;">
+                            <div
+                                style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">
+                                1</div>
+                            <div style="font-size:15px; font-weight:bold;">10%</div>
+                            <div style="font-size:14px;">Advance</div>
+                        </td>
+                        <td width="25%" align="center" style="padding:10px;">
+                            <div
+                                style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">
+                                2</div>
+                            <div style="font-size:15px; font-weight:bold;">60%</div>
+                            <div style="font-size:14px;">Procurement</div>
+                        </td>
+                        <td width="25%" align="center" style="padding:10px;">
+                            <div
+                                style="border:3px solid #4b9349; color:#4b9349; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">
+                                3</div>
+                            <div style="font-size:15px; font-weight:bold;">20%</div>
+                            <div style="font-size:14px;">Installation</div>
+                        </td>
+                        <td width="25%" align="center" style="padding:10px;">
+                            <div
+                                style="border:3px solid #000; color:#000; border-radius:50%; width:55px; height:55px; line-height:55px; font-size:24px; font-weight:bold; margin:0 auto 8px;">
+                                4</div>
+                            <div style="font-size:15px; font-weight:bold;">10%</div>
+                            <div style="font-size:14px;">Net metering</div>
+                        </td>
+                    </tr>
+                </table>
+                <?php endif; ?>
 
-            <!-- ================= SYSTEM SPECIFICATION ================= -->
-            <div style="font-size:17px; font-weight:bold; margin-bottom:10px; font-family: 'Montserrat', sans-serif; border-left:7px solid #4b9349; padding-left:16px; line-height:1.2;">
-                <?= $timelineTitle2 !== '' ? esc($timelineTitle2) : 'SYSTEM SPECIFICATION' ?>
-            </div>
+                <!-- ================= SYSTEM SPECIFICATION ================= -->
+                <div
+                    style="font-size:17px; font-weight:bold; margin-bottom:10px; font-family: 'Montserrat', sans-serif; padding-left:16px; line-height:1.2;">
+                    <span
+                        style="display:inline-block; width:10px; height:10px; background-color:#4b9349; border-radius:50%; margin-right:10px;"></span><?= $timelineTitle2 !== '' ? esc($timelineTitle2) : 'SYSTEM SPECIFICATION' ?>
+                </div>
 
-            <?php if (!empty($timelineImg2)): ?>
-            <img src="<?= $timelineImg2 ?>" style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 10px;">
-            <?php else: ?>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin:0 auto 10px;">
-                <tr>
-                    <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">System Specification</td>
-                    <td style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">Details</td>
-                </tr>
-                <tr>
-                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Capacity</td>
-                    <td style="padding:9px; border:1px solid #333;"><?= esc($quantity) ?> kW</td>
-                </tr>
-                <tr>
-                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Type</td>
-                    <td style="padding:9px; border:1px solid #333;">Ongrid</td>
-                </tr>
-                <tr>
-                    <td style="padding:9px; border:1px solid #333; font-weight:bold;">Application</td>
-                    <td style="padding:9px; border:1px solid #333;"><?= esc(ucfirst((string) ($estdata->type ?? 'Residential'))) ?></td>
-                </tr>
-            </table>
-            <?php endif; ?>
+                <?php if (!empty($timelineImg2)): ?>
+                <img src="<?= $timelineImg2 ?>"
+                    style="width:100%; max-width:590px; max-height:370px; display:block; margin:0 auto 10px;">
+                <?php else: ?>
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse; margin:0 auto 10px;">
+                    <tr>
+                        <td
+                            style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">
+                            System Specification</td>
+                        <td
+                            style="background:#4b9349; color:#fff; padding:9px; border:1px solid #333; font-weight:bold;">
+                            Details</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Capacity</td>
+                        <td style="padding:9px; border:1px solid #333;"><?= esc($quantity) ?> kW</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px; border:1px solid #333; font-weight:bold;">System Type</td>
+                        <td style="padding:9px; border:1px solid #333;">Ongrid</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px; border:1px solid #333; font-weight:bold;">Application</td>
+                        <td style="padding:9px; border:1px solid #333;">
+                            <?= esc(ucfirst((string) ($estdata->type ?? 'Residential'))) ?></td>
+                    </tr>
+                </table>
+                <?php endif; ?>
 
-            <!-- ================= NOTE ================= -->
-            <div style="text-align:center; font-size:13px; line-height:1.45; font-family: 'Montserrat', sans-serif; margin-top:6px;">
-                <?= $timelineNote !== '' ? esc($timelineNote) : "Net metering is entirely dependent on DISCOM, we don't control that process" ?>
-            </div>
+                <!-- ================= NOTE ================= -->
+                <div
+                    style="text-align:center; font-size:13px; line-height:1.45; font-family: 'Montserrat', sans-serif; margin-top:6px;">
+                    <?= $timelineNote !== '' ? esc($timelineNote) : "Net metering is entirely dependent on DISCOM, we don't control that process" ?>
+                </div>
             </div>
 
         </div>
         <!-- ================= FOOTER ================= -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                         background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px;">
@@ -2755,10 +2853,10 @@ $__timeLineActive = $_isActive($__timeLine);
 
                 <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
                     <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                            ?>
+                    $companyName = esc($globalCompanyName);
+                    $companyParts = explode(' ', $companyName);
+                    $mainName = $companyParts[0] ?? $companyName;
+                    ?>
                     Generated by <?= esc($companyName) ?>
                 </td>
             </tr>
@@ -2774,9 +2872,9 @@ $__timeLineActive = $_isActive($__timeLine);
     <!-- ================= END PAGE 5 ================= -->
 
     <?php
-$__components = (isset($components) && is_array($components)) ? $components : [];
-$__componentsActive = $_isActive($__components);
-?>
+    $__components = isset($components) && is_array($components) ? $components : [];
+    $__componentsActive = $_isActive($__components);
+    ?>
     <?php if ($__componentsActive): ?>
     <?php
     $components = isset($components) && is_array($components) ? $components : [];
@@ -2784,27 +2882,27 @@ $__componentsActive = $_isActive($__components);
     $componentsTitle = trim((string) ($components['title'] ?? ''));
     $componentsDescRaw = (string) ($components['description'] ?? '');
     $componentsDesc = sanitize_pdf_rich_html($componentsDescRaw);
-
+    
     // Load product data, technology map, warranty map, and categories
     $product_data = [];
     $technology_map = [];
     $warranty_map = [];
     $categories_data = [];
     $category_image_map = []; // Map category name to image
-
+    
     try {
         $product_data = \App\Models\BomProduct::with('categories')->get()->toArray();
-
+    
         $technologyList = \App\Models\Technology::all();
         foreach ($technologyList as $tech) {
             $technology_map[$tech->id] = $tech->title;
         }
-
+    
         $warrantyList = \App\Models\Warranty::all();
         foreach ($warrantyList as $war) {
             $warranty_map[$war->id] = $war->title;
         }
-
+    
         // Load categories to get brand images
         $categories_data = \App\Models\Category::all();
         foreach ($categories_data as $cat) {
@@ -2815,7 +2913,7 @@ $__componentsActive = $_isActive($__components);
     } catch (\Throwable $e) {
         // If models don't exist, continue with empty arrays
     }
-
+    
     // Get product data from estimate
     $componentsData = [];
     if ($estdata && !empty($estdata->product_name)) {
@@ -2827,14 +2925,14 @@ $__componentsActive = $_isActive($__components);
             }
             $allproduct = $decoded;
         }
-
+    
         if (is_array($allproduct) && !empty($allproduct)) {
             foreach ($allproduct as $item) {
                 $product_id = $item['product_id'] ?? null;
                 $product_name_display = $item['name'] ?? '';
                 $product_category_makes = $item['category_name'] ?? '';
                 $product_description = $item['description'] ?? '';
-
+    
                 // Find product details from master list
                 $full_product_details = null;
                 if ($product_id) {
@@ -2846,7 +2944,7 @@ $__componentsActive = $_isActive($__components);
                         }
                     }
                 }
-
+    
                 // Robust product name fallback
                 if (empty(trim($product_name_display)) && $full_product_details) {
                     $product_name_display = $full_product_details['product_name'] ?? '';
@@ -2855,26 +2953,26 @@ $__componentsActive = $_isActive($__components);
                     $product_name_display = 'Product name not found';
                 }
                 $product_name_display = ucfirst(strtolower($product_name_display));
-
+    
                 // Robust Make (category) fallback
                 if (empty(trim($product_category_makes)) && $full_product_details && !empty($full_product_details['categories'])) {
                     $firstCat = reset($full_product_details['categories']);
                     $product_category_makes = $firstCat['name'] ?? '';
                 }
-
+    
                 // Build specifications rows as: [Label, Value]
                 $specifications = [];
-
+    
                 // Capacity
                 if ($full_product_details && !empty($full_product_details['capacity'])) {
                     $specifications[] = ['Capacity', htmlspecialchars((string) $full_product_details['capacity'])];
                 }
-
+    
                 // Watt Peak
                 if ($full_product_details && !empty($full_product_details['watt_peak'])) {
                     $specifications[] = ['Watt Peak', htmlspecialchars((string) $full_product_details['watt_peak'])];
                 }
-
+    
                 // Technology with fallback to legacy JSON and ID lookups
                 $techVal = null;
                 if ($full_product_details && !empty($full_product_details['technology_id'])) {
@@ -2893,7 +2991,7 @@ $__componentsActive = $_isActive($__components);
                 if ($techVal) {
                     $specifications[] = ['Type', htmlspecialchars($techVal)];
                 }
-
+    
                 // Warranty with fallback to legacy JSON and ID lookups
                 $warVal = null;
                 if ($full_product_details && !empty($full_product_details['warranty_id'])) {
@@ -2912,41 +3010,41 @@ $__componentsActive = $_isActive($__components);
                 if ($warVal) {
                     $specifications[] = ['Warranty', htmlspecialchars($warVal)];
                 }
-
+    
                 // Height
                 if ($full_product_details && !empty($full_product_details['height'])) {
                     $specifications[] = ['Height', htmlspecialchars((string) $full_product_details['height'])];
                 }
-
+    
                 // Thickness
                 if ($full_product_details && !empty($full_product_details['thickness'])) {
                     $specifications[] = ['Thickness', htmlspecialchars((string) $full_product_details['thickness'])];
                 }
-
+    
                 // Fitting Material
                 if ($full_product_details && !empty($full_product_details['fitting_material'])) {
                     $specifications[] = ['Fitting Material', htmlspecialchars((string) $full_product_details['fitting_material'])];
                 }
-
+    
                 // Fitting Type
                 if ($full_product_details && !empty($full_product_details['fitting_type'])) {
                     $specifications[] = ['Fitting Type', htmlspecialchars((string) $full_product_details['fitting_type'])];
                 }
-
+    
                 // Size of Pipe
                 if ($full_product_details && !empty($full_product_details['size_of_pipe'])) {
                     $specifications[] = ['Size of Pipe', htmlspecialchars((string) $full_product_details['size_of_pipe'])];
                 }
-
+    
                 // Get product image
-                $product_image = $full_product_details['image'] ?? $full_product_details['product_image'] ?? $full_product_details['photo'] ?? null;
-
+                $product_image = $full_product_details['image'] ?? ($full_product_details['product_image'] ?? ($full_product_details['photo'] ?? null));
+    
                 // Get category/brand image
                 $category_image = null;
                 if (!empty($product_category_makes) && isset($category_image_map[$product_category_makes])) {
                     $category_image = $category_image_map[$product_category_makes];
                 }
-
+    
                 // Get description from product table
                 $product_table_description = '';
                 if ($full_product_details) {
@@ -2957,7 +3055,7 @@ $__componentsActive = $_isActive($__components);
                         }
                     }
                 }
-
+    
                 // Use product table description first, then fallback to estimate item description
                 $final_description = '';
                 if (!empty($product_table_description) && trim($product_table_description) !== '') {
@@ -2965,7 +3063,7 @@ $__componentsActive = $_isActive($__components);
                 } elseif (!empty($product_description) && trim($product_description) !== '') {
                     $final_description = trim($product_description);
                 }
-
+    
                 // Store ALL products
                 $uniqueKey = $product_id . '_' . $product_name_display;
                 $componentsData[$uniqueKey] = [
@@ -2975,12 +3073,12 @@ $__componentsActive = $_isActive($__components);
                     'description' => $final_description,
                     'specifications' => $specifications,
                     'image' => $product_image,
-                    'quantity' => $item['quantity'] ?? 0
+                    'quantity' => $item['quantity'] ?? 0,
                 ];
             }
         }
     }
-
+    
     // Default components if no data
     if (empty($componentsData)) {
         $componentsData = [
@@ -2990,7 +3088,7 @@ $__componentsActive = $_isActive($__components);
                 'description' => 'Bifacial High Wattage solar panels, with 25 years of warranty.',
                 'specifications' => '<strong>Watt Peak:</strong> 585-615<br><strong>Type:</strong> Bifacial<br><strong>Warranty:</strong> 10 years (product), 25 years (performance)',
                 'image' => null,
-                'category_image' => null
+                'category_image' => null,
             ],
             'Inverter' => [
                 'name' => 'Inverter',
@@ -2998,7 +3096,7 @@ $__componentsActive = $_isActive($__components);
                 'description' => 'Sungrow 15kw inverter, with all protection features, and anti-islanding support.',
                 'specifications' => '<strong>Capacity:</strong> 15 KW design<br><strong>Type:</strong> On-Grid<br><strong>Warranty:</strong> 10 years',
                 'image' => null,
-                'category_image' => null
+                'category_image' => null,
             ],
             'Cable' => [
                 'name' => 'Cable',
@@ -3006,7 +3104,7 @@ $__componentsActive = $_isActive($__components);
                 'description' => 'Polycab U/V resistant, long lasting cables.',
                 'specifications' => '<strong>Type:</strong> DC/AC Cables<br>double insulated cables<br><strong>Warranty:</strong> 30 years',
                 'image' => null,
-                'category_image' => null
+                'category_image' => null,
             ],
             'Electrical Component' => [
                 'name' => 'Electrical Component',
@@ -3014,23 +3112,18 @@ $__componentsActive = $_isActive($__components);
                 'description' => 'TruePower electrical system.',
                 'specifications' => 'MC4 Connectors<br>HDGI Earthing',
                 'image' => null,
-                'category_image' => null
+                'category_image' => null,
             ],
-
         ];
     }
-
-    $componentsIntroLength = pdf_rich_html_plain_length(
-        ($componentsActive === 1 && $componentsDescRaw !== '')
-            ? $componentsDescRaw
-            : 'High-quality components from trusted Tier-1 OEMs, selected for performance, safety, and long-term ROI.'
-    );
+    
+    $componentsIntroLength = pdf_rich_html_plain_length($componentsActive === 1 && $componentsDescRaw !== '' ? $componentsDescRaw : 'High-quality components from trusted Tier-1 OEMs, selected for performance, safety, and long-term ROI.');
     $componentsRowCount = count($componentsData);
     $componentsPageClass = $_pageClass('p6');
     $componentsList = array_values($componentsData);
     $componentsContinuationRowsPerPage = 4;
     $componentsPages = [];
-
+    
     if ($componentsRowCount === 0) {
         $componentsPages[] = ['layout' => 'combined', 'rows' => []];
     } elseif ($componentsRowCount <= 4) {
@@ -3041,8 +3134,8 @@ $__componentsActive = $_isActive($__components);
             $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
         }
     } else {
-        $firstPageRowCount = ($componentsIntroLength > 420) ? 3 : 4;
-
+        $firstPageRowCount = $componentsIntroLength > 420 ? 3 : 4;
+    
         if ($firstPageRowCount >= $componentsRowCount) {
             $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
         } else {
@@ -3055,9 +3148,10 @@ $__componentsActive = $_isActive($__components);
             }
         }
     }
-
+    
     $componentsPageTotal = count($componentsPages);
     ?>
+    <?php endif; ?>
 
     <!-- PAGE 6A: ESTIMATION / INVOICE -->
     <div class="page page-break" style="position: relative; background: white;">
@@ -3065,7 +3159,8 @@ $__componentsActive = $_isActive($__components);
             @include('pdfbuilder.partials.pdf-page-header')
             @include('pdfbuilder.partials.estimate-invoice-summary')
         </div>
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
@@ -3074,13 +3169,15 @@ $__componentsActive = $_isActive($__components);
                 <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     PAGE <?= $_pdfPageNumber() ?>
                 </td>
-                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
                     Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
         </table>
     </div>
 
+    <?php if ($__componentsActive && isset($componentsPages)): ?>
     <?php foreach ($componentsPages as $componentsPageIndex => $componentsPage):
         $isLastComponentsPage = ($componentsPageIndex === $componentsPageTotal - 1);
         $componentsChunkPageClass = $isLastComponentsPage ? $componentsPageClass : 'page page-break';
@@ -3090,16 +3187,21 @@ $__componentsActive = $_isActive($__components);
         <div style="padding: 40px; padding-bottom: 56px;">
             @include('pdfbuilder.partials.pdf-page-header')
             <?php if ($componentsPageLayout === 'intro_block'): ?>
-                @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
+            @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
             <?php elseif ($componentsPageLayout === 'combined'): ?>
-                @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
-                @include('pdfbuilder.partials.company-components-table', ['componentsTableRows' => $componentsPage['rows'] ?? []])
+            @include('pdfbuilder.partials.company-components-intro', ['componentsIntroExpanded' => false])
+            @include('pdfbuilder.partials.company-components-table', [
+                'componentsTableRows' => $componentsPage['rows'] ?? [],
+            ])
             <?php else: ?>
-                @include('pdfbuilder.partials.company-components-title')
-                @include('pdfbuilder.partials.company-components-table', ['componentsTableRows' => $componentsPage['rows'] ?? []])
+            @include('pdfbuilder.partials.company-components-title')
+            @include('pdfbuilder.partials.company-components-table', [
+                'componentsTableRows' => $componentsPage['rows'] ?? [],
+            ])
             <?php endif; ?>
         </div>
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px; font-family: 'Montserrat', sans-serif;">
@@ -3108,7 +3210,8 @@ $__componentsActive = $_isActive($__components);
                 <td width="33.33%" align="center" style="padding:10px; font-family: 'Montserrat', sans-serif;">
                     PAGE <?= $_pdfPageNumber() ?>
                 </td>
-                <td width="33.33%" align="right" style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
+                <td width="33.33%" align="right"
+                    style="padding:10px; font-family: 'Montserrat', sans-serif; white-space:nowrap;">
                     Generated by <?= esc($globalCompanyName) ?>
                 </td>
             </tr>
@@ -3125,10 +3228,7 @@ $__componentsActive = $_isActive($__components);
     $paymentTermsTitle = trim((string) ($paymentTerms['title'] ?? ''));
     $paymentTermsScope = trim((string) ($paymentTerms['scope'] ?? ''));
     $paymentTermsNote = trim((string) ($paymentTerms['note'] ?? ''));
-    $paymentTermsImg = resolve_pdf_image_with_fallback(
-        $paymentTerms['image'] ?? '',
-        'public/assets/img/page_7.png'
-    );
+    $paymentTermsImg = resolve_pdf_image_with_fallback($paymentTerms['image'] ?? '', 'public/assets/img/page_7.png');
     $services = $paymentTerms['services'] ?? [];
     if (!is_array($services)) {
         $services = [];
@@ -3145,9 +3245,7 @@ $__componentsActive = $_isActive($__components);
         }
     }
     $paymentRows = array_values(array_filter($paymentRows, static fn($r) => ($r['left'] ?? '') !== '' || ($r['right'] ?? '') !== ''));
-    $paymentTermsHeading = ($estdata->type ?? '') === 'residential'
-        ? '12. Payment Terms'
-        : ($paymentTermsTitle !== '' ? $paymentTermsTitle : 'PAYMENT TERMS');
+    $paymentTermsHeading = ($estdata->type ?? '') === 'residential' ? '12. Payment Terms' : ($paymentTermsTitle !== '' ? $paymentTermsTitle : 'PAYMENT TERMS');
     ?>
     <div class="<?= $_pageClass('p7') ?>" style="position: relative; min-height: 842px; background: white;">
         <div style="padding: 38px 42px 30px;">
@@ -3169,12 +3267,14 @@ $__componentsActive = $_isActive($__components);
                 </tr>
             </table>
 
-            <div style="font-size:32px;font-weight:bold;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;margin-bottom:18px;">
+            <div
+                style="font-size:32px;font-weight:bold;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;margin-bottom:18px;">
                 <?= esc($paymentTermsHeading) ?>
             </div>
 
             <div style="page-break-inside:avoid;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:14px;">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse;margin-bottom:14px;">
                     <tr>
                         <td align="center" valign="middle">
                             <img src="<?= $paymentTermsImg ?>" alt="Payment Terms Timeline"
@@ -3184,15 +3284,21 @@ $__componentsActive = $_isActive($__components);
                 </table>
 
                 <?php if (($estdata->type ?? '') === 'residential'): ?>
-                <ul style="padding-left:20px;font-size:13px;line-height:1.5;margin-top:8px;margin-bottom:12px;font-family:'Montserrat',sans-serif;">
-                    <li style="margin-bottom:6px;"><strong>30% Mobilization Advance:</strong> Booked to initiate legal DISCOM file log, architectural layouts, and factory component ordering.</li>
-                    <li style="margin-bottom:6px;"><strong>60% Component Delivery Milestone:</strong> Payable immediately upon the safe arrival of primary inventory (PV Modules &amp; Inverter) at the installation site.</li>
-                    <li style="margin-bottom:6px;"><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
+                <ul
+                    style="padding-left:20px;font-size:13px;line-height:1.5;margin-top:8px;margin-bottom:12px;font-family:'Montserrat',sans-serif;">
+                    <li style="margin-bottom:6px;"><strong>30% Mobilization Advance:</strong> Booked to initiate legal
+                        DISCOM file log, architectural layouts, and factory component ordering.</li>
+                    <li style="margin-bottom:6px;"><strong>60% Component Delivery Milestone:</strong> Payable
+                        immediately upon the safe arrival of primary inventory (PV Modules &amp; Inverter) at the
+                        installation site.</li>
+                    <li style="margin-bottom:6px;"><strong>10% Commissioning Milestone:</strong> Balance due upon
+                        successful grid connection synchronization and hand over of system logins.</li>
                 </ul>
                 <?php endif; ?>
 
                 <?php if ($paymentTermsScope !== ''): ?>
-                <div style="font-size:17px;font-weight:bold;margin:12px 0 10px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.2;">
+                <div
+                    style="font-size:17px;font-weight:bold;margin:12px 0 10px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.2;">
                     <?= esc($paymentTermsScope) ?>
                 </div>
                 <?php endif; ?>
@@ -3200,18 +3306,19 @@ $__componentsActive = $_isActive($__components);
                 <?php if (!empty($paymentRows)): ?>
                 <?php
                 $ptHeaderStyle = 'background-color:#4b9349;color:#fff;padding:11px 14px;font-size:14px;font-weight:bold;font-family:Montserrat,sans-serif;border:1px solid #3d7a3b;';
-                $ptLeftStyle = 'padding:11px 14px;font-size:13px;font-weight:bold;color:#1e3f20;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;border-left:4px solid #4b9349;vertical-align:top;width:30%;line-height:1.4;background-color:#eef6ee;';
+                $ptLeftStyle = 'padding:11px 14px;font-size:13px;font-weight:bold;color:#000000;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;vertical-align:top;width:30%;line-height:1.4;background-color:#ffffff;';
                 $ptRightStyle = 'padding:11px 14px;font-size:13px;color:#333;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;vertical-align:top;width:70%;line-height:1.55;';
                 $ptRowEvenStyle = 'background-color:#fafcfa;';
                 ?>
-                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:14px 0 16px;border:1px solid #4b9349;">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse;margin:14px 0 16px;border:1px solid #4b9349;">
                     <tr>
                         <td colspan="2" style="<?= $ptHeaderStyle ?>letter-spacing:0.4px;">
                             What we cover under our services
                         </td>
                     </tr>
                     <?php foreach ($paymentRows as $ptIdx => $r): ?>
-                    <?php $ptRowBg = ($ptIdx % 2 === 1) ? $ptRowEvenStyle : ''; ?>
+                    <?php $ptRowBg = $ptIdx % 2 === 1 ? $ptRowEvenStyle : ''; ?>
                     <tr style="<?= $ptRowBg ?>">
                         <td style="<?= $ptLeftStyle ?>">
                             <?= esc($r['left'] ?? '') ?>
@@ -3225,14 +3332,16 @@ $__componentsActive = $_isActive($__components);
                 <?php endif; ?>
 
                 <?php if ($paymentTermsNote !== ''): ?>
-                <div style="font-size:13px;font-style:italic;margin-top:8px;font-family:'Montserrat',sans-serif;line-height:1.45;">
+                <div
+                    style="font-size:13px;font-style:italic;margin-top:8px;font-family:'Montserrat',sans-serif;line-height:1.45;">
                     <?= esc($paymentTermsNote) ?>
                 </div>
                 <?php endif; ?>
             </div>
         </div>
         <!-- Footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px;">
@@ -3245,10 +3354,10 @@ $__componentsActive = $_isActive($__components);
 
                 <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
                     <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                        ?>
+                    $companyName = esc($globalCompanyName);
+                    $companyParts = explode(' ', $companyName);
+                    $mainName = $companyParts[0] ?? $companyName;
+                    ?>
                     Generated by <?= esc($companyName) ?>
                 </td>
             </tr>
@@ -3259,8 +3368,8 @@ $__componentsActive = $_isActive($__components);
 
     <!-- ================= PAGE 8 : ENVIRONMENT IMPACT ================= -->
     <?php
-$__environmentImpact = (isset($environmentImpact) && is_array($environmentImpact)) ? $environmentImpact : [];
-$__environmentImpactActive = $_isActive($__environmentImpact);
+    $__environmentImpact = isset($environmentImpact) && is_array($environmentImpact) ? $environmentImpact : [];
+    $__environmentImpactActive = $_isActive($__environmentImpact);
     ?>
     <?php if ($__environmentImpactActive): ?>
     <div class="<?= $_pageClass('p8') ?>" style="position:relative;min-height:842px;background:#fff;">
@@ -3284,52 +3393,45 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
             </table>
 
             <?php
-    $systemCapacity = max(0.0, (float) $quantity);
-    $envLifetimeYears = 25;
-    $co2PerKwPerYear = 1.01;
-    $acresPerKwPerYear = 1.187;
-    $coalPerKwPerYear = 1.259;
-
-    $totalCo2Offset = $systemCapacity * $co2PerKwPerYear * $envLifetimeYears;
-    $equivalentAcres = $systemCapacity * $acresPerKwPerYear;
-    $coalAvoided = $systemCapacity * $coalPerKwPerYear;
-
-    $co2OffsetDisplay = number_format($totalCo2Offset, 1);
-    $equivalentAcresDisplay = number_format($equivalentAcres, 2);
-    $coalAvoidedDisplay = number_format($coalAvoided, 2);
-
-    $environmentImpact = isset($environmentImpact) && is_array($environmentImpact) ? $environmentImpact : [];
-    $envTitle = trim((string) ($environmentImpact['title'] ?? ''));
-    $envContentRaw = trim((string) ($environmentImpact['content'] ?? ''));
-    $envContent = $envContentRaw !== ''
-        ? sanitize_pdf_rich_html($envContentRaw)
-        : "You are contributing to solve earth's biggest problem- <strong>Climate Change.</strong>";
-
-    [$envContentTop, $envContentBottom] = split_env_content_for_image($envContent);
-    if (pdf_rich_html_plain_length($envContent) < 120) {
-        $envContentTop = $envContent;
-        $envContentBottom = '';
-    }
-
-    $envImg = resolve_pdf_image_with_fallback(
-        $environmentImpact['image'] ?? '',
-        'public/assets/img/page_8.png'
-    );
-
-    $envMetrics = [
-        ['label' => 'CARBON DIOXIDE OFFSET', 'value' => $co2OffsetDisplay . ' Metric Tons'],
-        ['label' => 'EQUIVALENT ACRES OF FOREST', 'value' => $equivalentAcresDisplay . ' Acres/Year'],
-        ['label' => 'COAL BURN AVOIDED', 'value' => $coalAvoidedDisplay . ' Metric Tons'],
-    ];
+            $systemCapacity = max(0.0, (float) $quantity);
+            $envLifetimeYears = 25;
+            $co2PerKwPerYear = 1.01;
+            $acresPerKwPerYear = 1.187;
+            $coalPerKwPerYear = 1.259;
+            
+            $totalCo2Offset = $systemCapacity * $co2PerKwPerYear * $envLifetimeYears;
+            $equivalentAcres = $systemCapacity * $acresPerKwPerYear;
+            $coalAvoided = $systemCapacity * $coalPerKwPerYear;
+            
+            $co2OffsetDisplay = number_format($totalCo2Offset, 1);
+            $equivalentAcresDisplay = number_format($equivalentAcres, 2);
+            $coalAvoidedDisplay = number_format($coalAvoided, 2);
+            
+            $environmentImpact = isset($environmentImpact) && is_array($environmentImpact) ? $environmentImpact : [];
+            $envTitle = trim((string) ($environmentImpact['title'] ?? ''));
+            $envContentRaw = trim((string) ($environmentImpact['content'] ?? ''));
+            $envContent = $envContentRaw !== '' ? sanitize_pdf_rich_html($envContentRaw) : "You are contributing to solve earth's biggest problem- <strong>Climate Change.</strong>";
+            
+            [$envContentTop, $envContentBottom] = split_env_content_for_image($envContent);
+            if (pdf_rich_html_plain_length($envContent) < 120) {
+                $envContentTop = $envContent;
+                $envContentBottom = '';
+            }
+            
+            $envImg = resolve_pdf_image_with_fallback($environmentImpact['image'] ?? '', 'public/assets/img/page_8.png');
+            
+            $envMetrics = [['label' => 'CARBON DIOXIDE OFFSET', 'value' => $co2OffsetDisplay . ' Metric Tons'], ['label' => 'EQUIVALENT ACRES OF FOREST', 'value' => $equivalentAcresDisplay . ' Acres/Year'], ['label' => 'COAL BURN AVOIDED', 'value' => $coalAvoidedDisplay . ' Metric Tons']];
             ?>
 
             <div style="page-break-inside:avoid;">
                 <?php if ($envTitle !== ''): ?>
-                <div style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
+                <div
+                    style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
                     <?= esc($envTitle) ?>
                 </div>
                 <?php elseif ($envContentRaw === ''): ?>
-                <div style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
+                <div
+                    style="font-size:28px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;font-family:'Montserrat',sans-serif;border-left:7px solid #4b9349;padding-left:16px;line-height:1.1;">
                     ENVIRONMENT IMPACT
                 </div>
                 <?php endif; ?>
@@ -3341,7 +3443,8 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                 <?php endif; ?>
 
                 <?php if ($envImg !== ''): ?>
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 12px;border-collapse:collapse;">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="margin:10px 0 12px;border-collapse:collapse;">
                     <tr>
                         <td align="center" valign="middle" style="padding:15px 0;">
                             <img src="<?= $envImg ?>" alt="Environment Impact"
@@ -3357,14 +3460,18 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
                 </div>
                 <?php endif; ?>
 
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;table-layout:fixed;">
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="margin-top:8px;border-collapse:collapse;table-layout:fixed;">
                     <tr>
                         <?php foreach ($envMetrics as $metric): ?>
-                        <td width="33.33%" valign="middle" style="padding:15px 12px 15px 0;min-height:70px;font-family:'Montserrat',sans-serif;">
-                            <div style="font-size:11px;font-weight:bold;letter-spacing:0.2px;color:#111;border-left:4px solid #4b9349;padding-left:10px;line-height:1.35;min-height:28px;">
+                        <td width="33.33%" valign="middle"
+                            style="padding:15px 12px 15px 0;min-height:70px;font-family:'Montserrat',sans-serif;">
+                            <div
+                                style="font-size:11px;font-weight:bold;letter-spacing:0.2px;color:#111;padding-left:10px;line-height:1.35;min-height:28px;">
                                 <?= esc($metric['label']) ?>
                             </div>
-                            <div style="font-size:15px;font-weight:bold;color:#4b9349;margin-top:8px;padding-left:14px;line-height:1.3;min-height:22px;">
+                            <div
+                                style="font-size:15px;font-weight:bold;color:#4b9349;margin-top:8px;padding-left:14px;line-height:1.3;min-height:22px;">
                                 <?= esc($metric['value']) ?>
                             </div>
                         </td>
@@ -3374,7 +3481,8 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
             </div>
         </div>
         <!-- Footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px;">
@@ -3387,10 +3495,10 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
 
                 <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
                     <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                        ?>
+                    $companyName = esc($globalCompanyName);
+                    $companyParts = explode(' ', $companyName);
+                    $mainName = $companyParts[0] ?? $companyName;
+                    ?>
                     Generated by <?= esc($companyName) ?>
                 </td>
             </tr>
@@ -3400,107 +3508,142 @@ $__environmentImpactActive = $_isActive($__environmentImpact);
     <!-- ================= END PAGE 8 ================= -->
 
     <?php if ($__isResidentialTemplate): ?>
-        <!-- ================= PAGE 8b : TERMS, DISCLAIMER & TESTIMONIALS (Residential templates) ================= -->
-        <div class="<?= $_pageClass('p8b') ?>" style="position:relative;min-height:842px;background:#fff;font-family:'Montserrat',sans-serif;">
-            <div style="padding:38px 42px 34px;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+    <!-- ================= PAGE 8b : TERMS, DISCLAIMER & TESTIMONIALS (Residential templates) ================= -->
+    <div class="<?= $_pageClass('p8b') ?>"
+        style="position:relative;min-height:842px;background:#fff;font-family:'Montserrat',sans-serif;">
+        <div style="padding:38px 42px 34px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+                <tr>
+                    <td width="50%" align="left" valign="top">
+                        <div style="font-size:14px;color:#111;">
+                            <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                        </div>
+                    </td>
+                    <td width="50%" align="right" valign="top">
+                        <?php if (!empty($logoBase64)): ?>
+                        <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="page-break-inside:avoid;">
+                <!-- Terms & Conditions -->
+                <div
+                    style="font-size:22px;font-weight:bold;margin-bottom:12px;padding-left:14px;line-height:1.2;color:#111;">
+                    Terms &amp; Conditions
+                </div>
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="margin-bottom:22px;border-collapse:collapse;">
                     <tr>
-                        <td width="50%" align="left" valign="top">
-                            <div style="font-size:14px;color:#111;">
-                                <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                            </div>
+                        <td
+                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            <strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon
+                            localized utility board structural approval speed.
                         </td>
-                        <td width="50%" align="right" valign="top">
-                            <?php if (!empty($logoBase64)): ?>
-                            <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
-                            <?php endif; ?>
+                    </tr>
+                    <tr>
+                        <td style="height:8px;font-size:0;line-height:0;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td
+                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            <strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop
+                            clearance, secure storage space for physical components, and a continuous water line
+                            connection for maintenance panels cleaning.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="height:8px;font-size:0;line-height:0;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td
+                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            <strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly
+                            onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications
+                            will be billed extra as per agreed metrics.
                         </td>
                     </tr>
                 </table>
 
-                <div style="page-break-inside:avoid;">
-                    <!-- Terms & Conditions -->
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:12px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
-                        Terms &amp; Conditions
-                    </div>
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px;border-collapse:collapse;">
-                        <tr>
-                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
-                                <strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.
-                            </td>
-                        </tr>
-                        <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
-                        <tr>
-                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
-                                <strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.
-                            </td>
-                        </tr>
-                        <tr><td style="height:8px;font-size:0;line-height:0;">&nbsp;</td></tr>
-                        <tr>
-                            <td style="padding:10px 12px 10px 14px;border-left:4px solid #4b9349;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
-                                <strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications will be billed extra as per agreed metrics.
-                            </td>
-                        </tr>
-                    </table>
-
-                    <!-- Disclaimer -->
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:12px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
-                        Disclaimer
-                    </div>
-                    <div style="padding:14px 16px 14px 18px;border-left:5px solid #4b9349;background-color:#fafcfa;font-size:13px;line-height:1.58;color:#444;margin-bottom:22px;text-align:justify;">
-                        Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.
-                    </div>
-
-                    <!-- Client Testimonials -->
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;border-left:7px solid #4b9349;padding-left:14px;line-height:1.2;color:#111;">
-                        Client Testimonials
-                    </div>
-
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;border-collapse:collapse;border:1px solid #d8e8d8;">
-                        <tr>
-                            <td style="padding:14px 16px;background-color:#f4faf4;border-left:5px solid #4b9349;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
-                                &ldquo;The complete migration process to solar with this team was entirely fluid. Our typical monthly operational electric bills fell right down from near <?= $rupeeHtml ?>8,000 to basic minimal meter standing charges under <?= $rupeeHtml ?>500! Clean installation and outstanding customer portal communication.&rdquo;
-                                <div style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
-                                    &mdash; Rajesh K., Verified Residential Client
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #d8e8d8;">
-                        <tr>
-                            <td style="padding:14px 16px;background-color:#f4faf4;border-left:5px solid #4b9349;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
-                                &ldquo;Outstanding expertise handling the central PM-Surya Ghar portal compliance parameters. The full subsidy allocation arrived securely into my bank profile within exactly 25 working days post meter calibration.&rdquo;
-                                <div style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
-                                    &mdash; Sunita Sharma, Verified Residential Client
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <!-- Disclaimer -->
+                <div
+                    style="font-size:22px;font-weight:bold;margin-bottom:12px;padding-left:14px;line-height:1.2;color:#111;">
+                    Disclaimer
                 </div>
-            </div>
+                <div
+                    style="padding:14px 16px 14px 18px;background-color:#fafcfa;font-size:13px;line-height:1.58;color:#444;margin-bottom:22px;text-align:justify;">
+                    Solar generation metrics are derived parameters calculated utilizing historical long-term satellite
+                    climate records for your specific latitude/longitude. Actual real-time production yields may
+                    fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading
+                    patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep
+                    consistency.
+                </div>
 
-            <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed;bottom:10;left:0;right:0;background:#fff;color:#4b9349;height:40px;border-top:1px solid #4b9349;">
-                <tr>
-                    <td width="33.33%" style="padding:10px;font-family:'Montserrat',sans-serif;">
-                        <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
-                    </td>
-                    <td width="33.33%" align="center" style="padding:10px;font-family:'Montserrat',sans-serif;">
-                        PAGE <?= $_pdfPageNumber() ?>
-                    </td>
-                    <td width="33.33%" align="right" style="padding:10px;font-family:'Montserrat',sans-serif;white-space:nowrap;">
-                        Generated by <?= esc($globalCompanyName) ?>
-                    </td>
-                </tr>
-            </table>
+                <!-- Client Testimonials -->
+                <div
+                    style="font-size:22px;font-weight:bold;margin-bottom:14px;padding-left:14px;line-height:1.2;color:#111;">
+                    Client Testimonials
+                </div>
+
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="margin-bottom:12px;border-collapse:collapse;border:1px solid #d8e8d8;">
+                    <tr>
+                        <td
+                            style="padding:14px 16px;background-color:#f4faf4;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                            &ldquo;The complete migration process to solar with this team was entirely fluid. Our
+                            typical monthly operational electric bills fell right down from near <?= $rupeeHtml ?>8,000
+                            to basic minimal meter standing charges under <?= $rupeeHtml ?>500! Clean installation and
+                            outstanding customer portal communication.&rdquo;
+                            <div
+                                style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
+                                &mdash; Rajesh K., Verified Residential Client
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table width="100%" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse;border:1px solid #d8e8d8;">
+                    <tr>
+                        <td
+                            style="padding:14px 16px;background-color:#f4faf4;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                            &ldquo;Outstanding expertise handling the central PM-Surya Ghar portal compliance
+                            parameters. The full subsidy allocation arrived securely into my bank profile within exactly
+                            25 working days post meter calibration.&rdquo;
+                            <div
+                                style="font-weight:bold;font-style:normal;margin-top:10px;font-size:12.5px;color:#1e3f20;">
+                                &mdash; Sunita Sharma, Verified Residential Client
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed;bottom:10;left:0;right:0;background:#fff;color:#4b9349;height:40px;border-top:1px solid #4b9349;">
+            <tr>
+                <td width="33.33%" style="padding:10px;font-family:'Montserrat',sans-serif;">
+                    <?= $quantity ?>kW Ongrid <?= $pdfTypeLabelMixed ?>
+                </td>
+                <td width="33.33%" align="center" style="padding:10px;font-family:'Montserrat',sans-serif;">
+                    PAGE <?= $_pdfPageNumber() ?>
+                </td>
+                <td width="33.33%" align="right"
+                    style="padding:10px;font-family:'Montserrat',sans-serif;white-space:nowrap;">
+                    Generated by <?= esc($globalCompanyName) ?>
+                </td>
+            </tr>
+        </table>
+    </div>
     <?php endif; ?>
     <!-- ================= END PAGE 8b ================= -->
 
     <!-- ================= PAGE 9 : THANK YOU ================= -->
     <?php
-$__footer = (isset($footer) && is_array($footer)) ? $footer : [];
-$__footerActive = $_isActive($__footer);
+    $__footer = isset($footer) && is_array($footer) ? $footer : [];
+    $__footerActive = $_isActive($__footer);
     ?>
     <?php if ($__footerActive): ?>
     <div class="page" style="position: relative; min-height: 842px; background: white;">
@@ -3531,15 +3674,13 @@ $__footerActive = $_isActive($__footer);
                 <tr>
                     <td align="center">
                         <?php
-    // Template-specific footer (saved in DB as JSON)
-    $footer = isset($footer) && is_array($footer) ? $footer : [];
-    $footerActive = (int) ($footer['active'] ?? 1);
-    $footerTitle = trim((string) ($footer['title'] ?? ''));
-    $footerSubTitle = trim((string) ($footer['sub_title'] ?? ''));
-    $footerImg = !empty($footer['image'])
-        ? normalize_pdf_image($footer['image'])
-        : normalize_pdf_image('public/assets/img/footer.png');
-                    ?>
+                        // Template-specific footer (saved in DB as JSON)
+                        $footer = isset($footer) && is_array($footer) ? $footer : [];
+                        $footerActive = (int) ($footer['active'] ?? 1);
+                        $footerTitle = trim((string) ($footer['title'] ?? ''));
+                        $footerSubTitle = trim((string) ($footer['sub_title'] ?? ''));
+                        $footerImg = !empty($footer['image']) ? normalize_pdf_image($footer['image']) : normalize_pdf_image('public/assets/img/footer.png');
+                        ?>
                         <img src="<?= $footerImg ?>" alt="Solar Panels"
                             style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
                     </td>
@@ -3552,11 +3693,8 @@ $__footerActive = $_isActive($__footer);
                     <td align="left" style="padding-bottom: 12px;">
                         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                             <tr>
-                                <td width="8" valign="top" style="padding: 0; font-size: 0; line-height: 0;">
-                                    <div style="width: 8px; height: 77px; background-color: #4b9349; display: block;"></div>
-                                </td>
-                                <td valign="top"
-                                    style="font-size: 80px; color: #000; padding-left: 18px; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; line-height: 1.05;">
+                                <td align="center" valign="top"
+                                    style="font-size: 80px; color: #000; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; line-height: 1.05; text-align: center;">
                                     <?= $footerTitle !== '' ? esc($footerTitle) : 'THANK YOU' ?>
                                 </td>
                             </tr>
@@ -3571,9 +3709,9 @@ $__footerActive = $_isActive($__footer);
                                 <!-- Text -->
                                 <td align="left" style="font-size: 20px; font-family: 'Montserrat', sans-serif;">
                                     <?php
-    $defaultSub = 'Looking forward to work and add value';
-    echo esc(($footerActive === 1 && $footerSubTitle !== '') ? $footerSubTitle : $defaultSub);
-                        ?>
+                                    $defaultSub = 'Looking forward to work and add value';
+                                    echo esc($footerActive === 1 && $footerSubTitle !== '' ? $footerSubTitle : $defaultSub);
+                                    ?>
                                 </td>
 
                                 <!-- Image -->
@@ -3589,13 +3727,13 @@ $__footerActive = $_isActive($__footer);
 
             <!-- Contact Information Footer (Black Box) -->
             <?php
-    $companySettings = $companySettings ?? [];
-    $userPhone = $companySettings['phone'] ?? $user['phone'] ?? $user['whatsapp'] ?? $user['contact'] ?? $user['whatsapp_no'] ?? $user['contact_phone'] ?? '';
-    $userEmail = $companySettings['email'] ?? $user['email'] ?? $user['contact_email'] ?? '';
-    $userWebsite = $companySettings['company_name'] ?? $user['website'] ?? '';
-    $userAddress = $companySettings['company_address'] ?? $user['address'] ?? '';
-    $company_name = $companySettings['company_name'] ?? $user['company_name'] ?? '';
-        ?>
+            $companySettings = $companySettings ?? [];
+            $userPhone = $companySettings['phone'] ?? ($user['phone'] ?? ($user['whatsapp'] ?? ($user['contact'] ?? ($user['whatsapp_no'] ?? ($user['contact_phone'] ?? '')))));
+            $userEmail = $companySettings['email'] ?? ($user['email'] ?? ($user['contact_email'] ?? ''));
+            $userWebsite = $companySettings['company_name'] ?? ($user['website'] ?? '');
+            $userAddress = $companySettings['company_address'] ?? ($user['address'] ?? '');
+            $company_name = $companySettings['company_name'] ?? ($user['company_name'] ?? '');
+            ?>
             <table width="100%" cellpadding="0" cellspacing="0"
                 style="background-color: #4b9349; color: #fff; padding: 20px; margin-top: 20px;">
                 <tr>
@@ -3650,7 +3788,8 @@ $__footerActive = $_isActive($__footer);
             </table>
         </div>
         <!-- Footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="position:fixed; bottom:10; left:0; right:0;
+        <table width="100%" cellpadding="0" cellspacing="0"
+            style="position:fixed; bottom:10; left:0; right:0;
                     background:#fff; color:#4b9349; height:40px; border-top: 1px solid #4b9349;">
             <tr>
                 <td width="33.33%" style="padding:10px;">
@@ -3663,10 +3802,10 @@ $__footerActive = $_isActive($__footer);
 
                 <td width="33.33%" align="right" style="padding:10px; white-space:nowrap;">
                     <?php
-    $companyName = esc($globalCompanyName);
-    $companyParts = explode(' ', $companyName);
-    $mainName = $companyParts[0] ?? $companyName;
-                        ?>
+                    $companyName = esc($globalCompanyName);
+                    $companyParts = explode(' ', $companyName);
+                    $mainName = $companyParts[0] ?? $companyName;
+                    ?>
                     Generated by <?= esc($companyName) ?>
                 </td>
             </tr>
