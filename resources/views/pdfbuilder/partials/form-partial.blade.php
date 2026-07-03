@@ -1,4 +1,13 @@
 @php
+    $imageExists = function($path) {
+        if (empty($path)) return false;
+        $path = ltrim($path, '/');
+        if (file_exists(public_path($path))) return true;
+        if (strpos($path, 'storage/') === 0 && file_exists(storage_path('app/public/' . substr($path, 8)))) return true;
+        if (file_exists(base_path($path))) return true;
+        return false;
+    };
+
     $formData = [];
     if (isset($template) && isset($template->form_data)) {
         $formData = is_array($template->form_data) ? $template->form_data : (json_decode($template->form_data, true) ?: []);
@@ -291,7 +300,7 @@
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label class="form-label"><i class="fas fa-image"></i> Header Image (First Page)</label>
-                                @if (isset($edit_mode) && $edit_mode && !empty($template->first_img))
+                                @if (isset($edit_mode) && $edit_mode && !empty($template->first_img) && $imageExists($template->first_img))
                                     <div class="mb-2">
                                         <span class="small text-muted d-block">Current image (kept if you do not upload a new one):</span>
                                         <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $template->first_img) }}" alt="Current header image" style="width: 300px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -356,7 +365,7 @@
                                 <!-- Image 1 -->
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image 1</label>
-                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image1']))
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image1']) && $imageExists($companyInfo['image1']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 1:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image1']) }}" alt="Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -386,7 +395,7 @@
                                 <!-- Image 2 -->
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image 2</label>
-                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image2']))
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image2']) && $imageExists($companyInfo['image2']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 2:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image2']) }}" alt="Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -416,7 +425,7 @@
                                 <!-- Image 3 -->
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image 3</label>
-                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image3']))
+                                    @if (isset($edit_mode) && $edit_mode && !empty($companyInfo['image3']) && $imageExists($companyInfo['image3']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image 3:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image3']) }}" alt="Image 3" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -521,7 +530,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image</label>
-                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image1']))
+                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image1']) && $imageExists($timeLine['image1']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image1']) }}" alt="Timeline Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -544,7 +553,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image</label>
-                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image2']))
+                                    @if (isset($edit_mode) && $edit_mode && !empty($timeLine['image2']) && $imageExists($timeLine['image2']))
                                         <div class="mb-2">
                                             <span class="small text-muted d-block">Current Image:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image2']) }}" alt="Timeline Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -721,7 +730,7 @@
                                 </div>
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image</label>
-                                     @if (isset($edit_mode) && $edit_mode && !empty($paymentTerms['image']))
+                                     @if (isset($edit_mode) && $edit_mode && !empty($paymentTerms['image']) && $imageExists($paymentTerms['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $paymentTerms['image']) }}" alt="Payment Terms Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -775,7 +784,7 @@
                                 </div>
                             <div class="col-md-12 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image</label>
-                                     @if (isset($edit_mode) && $edit_mode && !empty($environmentImpact['image']))
+                                     @if (isset($edit_mode) && $edit_mode && !empty($environmentImpact['image']) && $imageExists($environmentImpact['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $environmentImpact['image']) }}" alt="Environment Impact Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
@@ -816,7 +825,7 @@
                                 <div class="row mb-4">
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label"><i class="fas fa-image"></i> Image</label>
-                                     @if (isset($edit_mode) && $edit_mode && !empty($footer['image']))
+                                     @if (isset($edit_mode) && $edit_mode && !empty($footer['image']) && $imageExists($footer['image']))
                                          <div class="mb-2">
                                              <span class="small text-muted d-block">Current Image:</span>
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $footer['image']) }}" alt="Footer Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
