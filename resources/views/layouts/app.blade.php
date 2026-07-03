@@ -281,16 +281,7 @@
                         </a>
                     </li>
 
-                    <!-- Manage Staff -->
-                    @if(auth()->user()?->isAdmin())
-                        <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('users.*')) active @endif"
-                                href="{{ route('users.index') }}">
-                                <i class="fa fa-users me-2 text-info"></i>
-                                <span>Manage Staff</span>
-                            </a>
-                        </li>
-                    @endif
+
 
                     @if (auth()->user()?->hasMatrixPermission('view_customers') || auth()->user()?->hasMatrixPermission('create_customers'))
                         <!-- Manage Customers -->
@@ -303,36 +294,41 @@
                         </li>
                     @endif
 
-                    @if(auth()->user()?->hasMatrixPermission('view_leads'))
-                        <!-- Manage Leads -->
+                    @if(
+                        auth()->user()?->hasMatrixPermission('view_leads') ||
+                        auth()->user()?->hasMatrixPermission('view_followups') ||
+                        auth()->user()?->hasMatrixPermission('view_meetings')
+                    )
+                        <!-- Sales CRM -->
                         <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('leads.*')) active @endif"
-                                href="{{ route('leads.index') }}">
-                                <i class="fa fa-bullhorn me-2 text-warning"></i>
-                                <span>Manage Leads</span>
+                            <a class="nav-link nav-link-collapse" data-bs-toggle="collapse"
+                                href="#salesCrmMenu" role="button"
+                                aria-expanded="{{ request()->routeIs('leads.*') || request()->routeIs('followups.*') || request()->routeIs('meetings.*') ? 'true' : 'false' }}">
+                                <i class="fa-solid fa-briefcase me-2 text-primary"></i>
+                                <span>Sales CRM</span>
+                                <i class="fa fa-chevron-down small sidebar-chevron"></i>
                             </a>
-                        </li>
-                    @endif
 
-                    @if(auth()->user()?->hasMatrixPermission('view_followups'))
-                        <!-- Manage Follow up -->
-                        <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('followups.*')) active @endif"
-                                href="{{ route('followups.index') }}">
-                                <i class="fa fa-user-tie me-2 text-secondary"></i>
-                                <span>Manage Follow up</span>
-                            </a>
-                        </li>
-                    @endif
+                            <div id="salesCrmMenu"
+                                class="collapse {{ request()->routeIs('leads.*') || request()->routeIs('followups.*') || request()->routeIs('meetings.*') ? 'show' : '' }}"
+                                data-bs-parent="#sidebarMenu">
+                                <ul class="nav flex-column ms-3 mt-2">
+                                    @if(auth()->user()?->hasMatrixPermission('view_leads'))
+                                        <li><a class="nav-link {{ request()->routeIs('leads.*') ? 'active' : '' }}"
+                                                href="{{ route('leads.index') }}"><i class="fa fa-bullhorn me-2 text-warning"></i>Manage Leads</a></li>
+                                    @endif
 
-                    @if(auth()->user()?->hasMatrixPermission('view_meetings'))
-                        <!-- Manage Meetings -->
-                        <li class="nav-item mt-2">
-                            <a class="nav-link ccc ddd @if(request()->routeIs('meetings.*')) active @endif"
-                                href="{{ route('meetings.index') }}">
-                                <i class="fa-solid fa-handshake me-2 text-success"></i>
-                                <span>Manage Meetings</span>
-                            </a>
+                                    @if(auth()->user()?->hasMatrixPermission('view_followups'))
+                                        <li><a class="nav-link {{ request()->routeIs('followups.*') ? 'active' : '' }}"
+                                                href="{{ route('followups.index') }}"><i class="fa fa-user-tie me-2 text-secondary"></i>Manage Follow up</a></li>
+                                    @endif
+
+                                    @if(auth()->user()?->hasMatrixPermission('view_meetings'))
+                                        <li><a class="nav-link {{ request()->routeIs('meetings.*') ? 'active' : '' }}"
+                                                href="{{ route('meetings.index') }}"><i class="fa-solid fa-handshake me-2 text-success"></i>Manage Meetings</a></li>
+                                    @endif
+                                </ul>
+                            </div>
                         </li>
                     @endif
 
@@ -497,6 +493,17 @@
                                 href="{{ route('tasks.index') }}">
                                 <i class="fa fa-tasks me-2 text-info"></i>
                                 <span>Manage Tasks</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    <!-- Manage Staff -->
+                    @if(auth()->user()?->isAdmin())
+                        <li class="nav-item mt-2">
+                            <a class="nav-link ccc ddd @if(request()->routeIs('users.*')) active @endif"
+                                href="{{ route('users.index') }}">
+                                <i class="fa fa-users me-2 text-info"></i>
+                                <span>Manage Staff</span>
                             </a>
                         </li>
                     @endif

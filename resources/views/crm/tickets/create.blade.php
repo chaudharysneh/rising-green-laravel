@@ -40,12 +40,12 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    <div class="invalid-feedback" id="customer_id-error"></div>
                                 </div>
                                 <button type="button" class="btn btn-dark-blue flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback" id="customer_id-error"></div>
                         </div>
 
                         <div class="col-md-6">
