@@ -3437,7 +3437,12 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                 <?php endif; ?>
 
                 <?php if ($envContentTop !== ''): ?>
-                <div class="pdf-env-impact-content" style="margin-bottom:10px;">
+                <style>
+                    .pdf-env-impact-content-top h1, .pdf-env-impact-content-top h2, .pdf-env-impact-content-top h3, .pdf-env-impact-content-top h4, .pdf-env-impact-content-top h5, .pdf-env-impact-content-top h6 {
+                        color: #4b9349 !important;
+                    }
+                </style>
+                <div class="pdf-env-impact-content pdf-env-impact-content-top" style="margin-bottom:10px;">
                     <?= $envContentTop ?>
                 </div>
                 <?php endif; ?>
