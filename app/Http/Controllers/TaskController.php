@@ -111,7 +111,7 @@ class TaskController extends Controller
             "Expires" => "0"
         ];
 
-        $columns = ['No', 'Title', 'Status', 'Priority', 'Due Date', 'Assigned To', 'Customer', 'Project', 'Created At'];
+        $columns = ['No', 'Title', 'Status', 'Task Type', 'Due Date', 'Assigned To', 'Customer', 'Project', 'Created At'];
 
         $callback = function () use ($tasks, $columns) {
             $file = fopen('php://output', 'w');
@@ -123,7 +123,7 @@ class TaskController extends Controller
                     $i++,
                     $task->title,
                     ucfirst(str_replace('_', ' ', $task->status)),
-                    ucfirst($task->priority),
+                    $task->task_type,
                     $task->due_date ? $task->due_date->format('Y-m-d') : '',
                     $task->assignedUser ? $task->assignedUser->name : '',
                     $task->project?->customer?->name ?? '',

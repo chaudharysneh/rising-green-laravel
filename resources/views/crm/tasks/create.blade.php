@@ -111,6 +111,16 @@
                             </select>
                             <div class="invalid-feedback d-block" id="status-error">{{ $errors->first('status') }}</div>
                         </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-tags me-2 text-muted"></i>Task Type <span class="text-danger">*</span></label>
+                            <select name="task_type" id="task_type" class="form-select searchable-select @error('task_type') is-invalid @enderror" required>
+                                <option value="">Select Task Type</option>
+                                <option value="Normal task" @selected(old('task_type') === 'Normal task')>Normal task</option>
+                                <option value="Site visit" @selected(old('task_type') === 'Site visit')>Site visit</option>
+                            </select>
+                            <div class="invalid-feedback d-block" id="task_type-error">{{ $errors->first('task_type') }}</div>
+                        </div>
                     </div>
 
                     <div class="mt-4 pt-4 border-top d-flex flex-sm-row justify-content-end gap-2 form-actions">

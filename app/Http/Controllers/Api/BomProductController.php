@@ -252,7 +252,7 @@ class BomProductController extends ApiBaseController
             'product_name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'array'],
             'category_id.*' => ['exists:category,id'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:1'],
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,gif,bmp,webp,avif,svg', 'max:2048'],
             // All other fields are optional - no validation
             'tax_type' => ['nullable'],
@@ -281,7 +281,7 @@ class BomProductController extends ApiBaseController
             'category_id.*.exists' => 'Please select a valid Make!',
             'price.required' => 'Please enter the price!',
             'price.numeric' => 'Price must be a valid number!',
-            'price.min' => 'Price must be greater than or equal to 0!',
+            'price.min' => 'Price must be greater than or equal to 1!',
             'image.required' => 'Please select an image!',
             'image.mimes' => 'Please select a valid image. Allowed types: AVIF, WEBP, JPG, JPEG, PNG, GIF, BMP, SVG.',
             'image.max' => 'Please select an image smaller than 2MB!',

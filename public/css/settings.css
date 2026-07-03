@@ -936,3 +936,6 @@
 [data-theme="dark"] .settings-panel-head.dashboard-widget-head {
     background: #0f172a;
 }
+
+.profile-qr-mini { width: 42px; height: 42px; object-fit: contain; border: 1px solid #ccd5e6; border-radius: 6px; background: #fff; padding: 2px; flex-shrink: 0; }
+.profile-qr-mini-placeholder { width: 42px; height: 42px; border: 1px dashed #ccd5e6; border-radius: 6px; background: #f8fafc; color: #64748b; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }

@@ -178,6 +178,7 @@ class SettingController extends Controller
             'account_number' => ['sometimes', 'nullable', 'string', 'max:255'],
             'ifsc_code' => ['sometimes', 'nullable', 'string', 'max:255'],
             'branch_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'company_qr_code_path' => ['sometimes', 'nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,avif', 'max:51200'],
         ]);
 
         foreach ($validated as $key => $value) {

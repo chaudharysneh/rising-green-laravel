@@ -295,7 +295,7 @@
             }
         }
 
-        function openTaskActionModal(taskId, nextStatus) {
+        function openTaskActionModal(taskId, nextStatus, taskType) {
             if (!taskActionModal || !taskActionForm) {
                 return;
             }
@@ -312,7 +312,11 @@
             }
 
             if (nextStatus === "completed") {
-                taskActionEndFields?.classList.remove("d-none");
+                if (taskType === "Site visit") {
+                    taskActionEndFields?.classList.remove("d-none");
+                } else {
+                    taskActionStartFields?.classList.remove("d-none");
+                }
                 if (taskActionSubmitText) {
                     taskActionSubmitText.textContent = "End Task";
                 }
@@ -483,7 +487,7 @@
                 const staffName = escapeHtml(task.assignedUser?.name || task.owner?.name || "-");
                 const estimateName = escapeHtml(task.estimate?.estimate_name || task.estimate?.estimate_no || "-");
                 const taskTitle = escapeHtml(task.title ?? "-");
-                const priorityLabel = escapeHtml(formatLabel(task.priority));
+                const taskTypeLabel = escapeHtml(task.task_type || "-");
                 const statusLabel = escapeHtml(formatLabel(normalizeTaskStatus(task.status)));
                 const dueDate = escapeHtml(formatDate(task.due_date));
                 const rowNumber = meta && meta.from ? meta.from + index : index + 1;
@@ -500,23 +504,23 @@
                         <td class="text-center">
                             <div class="fw-bold small">${taskTitle}</div>
                         </td>
-                        <td class="text-center d-none d-md-table-cell">
-                            <span class="fw-semibold text-uppercase ${priorityClass(task.priority)}">
-                                ${priorityLabel}
+                        <td class="text-center d-none d-md-table-cell text-nowrap">
+                            <span class="fw-semibold text-uppercase text-muted">
+                                ${taskTypeLabel}
                             </span>
                         </td>
-                        <td class="text-center d-none d-md-table-cell">
+                        <td class="text-center d-none d-md-table-cell text-nowrap">
                             <span class="badge crm-status-pill rounded-pill ${statusClass(task.status)}">
                                 ${statusLabel}
                             </span>
                         </td>
-                        <td class="text-center d-none d-md-table-cell">
+                        <td class="text-center d-none d-md-table-cell text-nowrap">
                             ${actionConfig
-                                ? `<button type="button" class="${actionConfig.buttonClass}" data-task-id="${task.id}" data-next-status="${actionConfig.nextStatus}">${actionConfig.label}</button>`
+                                ? `<button type="button" class="${actionConfig.buttonClass}" data-task-id="${task.id}" data-next-status="${actionConfig.nextStatus}" data-task-type="${escapeHtml(task.task_type || '')}">${actionConfig.label}</button>`
                                 : '<span class="text-muted">-</span>'}
                         </td>
-                        <td class="text-center d-none d-md-table-cell">${dueDate}</td>
-                        <td class="text-center d-none d-md-table-cell tasks-sticky-action">
+                        <td class="text-center d-none d-md-table-cell text-nowrap">${dueDate}</td>
+                        <td class="text-center d-none d-md-table-cell tasks-sticky-action text-nowrap">
                             <div class="d-inline-flex align-items-center gap-2">
                                 ${permissions.edit ? `<a href="/tasks/${task.id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>` : ''}
                                 ${permissions.view ? `<a href="/tasks/${task.id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ''}
@@ -550,9 +554,9 @@
                                         <div class="expand-value text-end">${taskTitle}</div>
                                     </div>
                                     <div class="col-12 d-flex justify-content-between align-items-center gap-3">
-                                        <div class="expand-label"><i class="fa-solid fa-flag"></i> Priority :</div>
-                                        <div class="expand-value text-end">
-                                            <span class="fw-semibold text-uppercase ${priorityClass(task.priority)}">${priorityLabel}</span>
+                                        <div class="expand-label"><i class="fa-solid fa-tags"></i> Task Type :</div>
+                                        <div class="expand-value">
+                                            <span class="fw-semibold text-uppercase text-muted">${taskTypeLabel}</span>
                                         </div>
                                     </div>
                                     <div class="col-12 d-flex justify-content-between align-items-center gap-3">
@@ -565,7 +569,7 @@
                                         <div class="expand-label"><i class="fa-solid fa-play"></i> Task Action :</div>
                                         <div class="expand-value text-end">
                                             ${actionConfig
-                                                ? `<button type="button" class="${actionConfig.buttonClass}" data-task-id="${task.id}" data-next-status="${actionConfig.nextStatus}">${actionConfig.label}</button>`
+                                                ? `<button type="button" class="${actionConfig.buttonClass}" data-task-id="${task.id}" data-next-status="${actionConfig.nextStatus}" data-task-type="${escapeHtml(task.task_type || '')}">${actionConfig.label}</button>`
                                                 : '<span class="text-muted">-</span>'}
                                         </div>
                                     </div>
@@ -595,7 +599,7 @@
 
             document.querySelectorAll(".quick-task-status-btn").forEach(function (button) {
                 button.addEventListener("click", function () {
-                    openTaskActionModal(this.dataset.taskId, this.dataset.nextStatus);
+                    openTaskActionModal(this.dataset.taskId, this.dataset.nextStatus, this.dataset.taskType);
                 });
             });
 

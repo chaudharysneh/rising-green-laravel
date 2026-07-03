@@ -217,9 +217,9 @@ class ProfileController extends Controller
             'company_tagline' => ['nullable', 'string', 'max:255'],
             'company_address' => ['required', 'string', 'max:255'],
             'company_tax_id' => ['nullable', 'string', 'max:255'],
-            'avatar' => ['nullable', 'file', $imageFileRule, 'max:2048'],
-            'company_logo_path' => ['nullable', 'file', $imageFileRule, 'max:2048'],
-            'company_qr_code_path' => ['nullable', 'file', $imageFileRule, 'max:2048'],
+            'avatar' => ['nullable', 'file', $imageFileRule, 'max:51200'],
+            'company_logo_path' => ['nullable', 'file', $imageFileRule, 'max:51200'],
+            'company_qr_code_path' => ['nullable', 'file', $imageFileRule, 'max:51200'],
             'social_instagram' => ['nullable', 'string', 'max:255'],
             'social_facebook' => ['nullable', 'string', 'max:255'],
             'social_linkedin' => ['nullable', 'string', 'max:255'],
@@ -228,9 +228,9 @@ class ProfileController extends Controller
             'phone.required' => 'Phone number is required!',
             'company_name.required' => 'Company name is required!',
             'company_address.required' => 'Address is required!',
-            'avatar.max' => 'Profile image must not be larger than 2 MB.',
-            'company_logo_path.max' => 'Company logo must not be larger than 2 MB.',
-            'company_qr_code_path.max' => 'QR Code must not be larger than 2 MB.',
+            'avatar.max' => 'Profile image must not be larger than 50 MB.',
+            'company_logo_path.max' => 'Company logo must not be larger than 50 MB.',
+            'company_qr_code_path.max' => 'QR Code must not be larger than 50 MB.',
         ]);
 
         if ($request->hasFile('avatar')) {

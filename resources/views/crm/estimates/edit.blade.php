@@ -280,6 +280,7 @@
                                 <option value="commercial" @selected(old('type', $estimate->type) == 'commercial')>Commercial</option>
                                 <option value="industrial" @selected(old('type', $estimate->type) == 'industrial')>Industrial</option>
                                 <option value="common meter" @selected(old('type', $estimate->type) == 'common meter')>Common Meter</option>
+                                <option value="ground mounted" @selected(old('type', $estimate->type) == 'ground mounted')>Ground Mounted</option>
                             </select>
                             <div class="invalid-feedback" id="type-error">Please select estimate type</div>
                         </div>

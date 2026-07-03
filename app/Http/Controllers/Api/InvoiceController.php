@@ -95,7 +95,7 @@ class InvoiceController extends ApiBaseController
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'invoice_name' => 'required|string|min:1',
-            'type' => 'required|in:residential,commercial,industrial,common meter',
+            'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted',
             'quantity' => 'required|numeric|gt:0',
             'price' => 'required|numeric|gt:0',
             'template_id' => 'nullable|exists:pdf_builder_forms,id',
@@ -270,7 +270,7 @@ class InvoiceController extends ApiBaseController
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'invoice_name' => 'required|string|min:1',
-            'type' => 'required|in:residential,commercial,industrial,common meter',
+            'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted',
             'quantity' => 'required|numeric|gt:0',
             'price' => 'required|numeric|gt:0',
             'template_id' => 'nullable|exists:pdf_builder_forms,id',

@@ -1451,6 +1451,8 @@
                         modal?.hide();
                         if (typeof window.refreshEstimatesList === 'function') {
                             window.refreshEstimatesList(1);
+                        } else if (!window.quickEstimateDealContext?.onCreated) {
+                            window.location.href = '/estimates';
                         }
                     })
                     .catch(function (error) {
@@ -1685,14 +1687,14 @@
                 const editAction = permissions.edit
                     ? (isApproved
                         ? `<span class="btn crm-action-btn btn-sm text-muted disabled" title="Editing disabled for approved estimate" style="opacity:.5;cursor:not-allowed;"><i class="bi bi-pencil"></i></span>`
-                        : `<a href="/estimates/${estimate.estimate_id}/edit" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="Edit"><i class="bi bi-pencil"></i></a>`)
+                        : `<a href="/estimates/${estimate.estimate_id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>`)
                     : '';
 
                 const actionsHtml = `
                     <div class="d-inline-flex align-items-center gap-2 justify-content-center justify-content-md-end w-100">
                         ${editAction}
                         ${permissions.edit ? `<button type="button" class="btn crm-action-btn btn-sm docs-btn" data-id="${estimate.estimate_id}" title="Customer Documents"><i class="bi bi-upload"></i></button>` : ''}
-                        ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="View"><i class="bi bi-eye"></i></a>` : ''}
+                        ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ''}
                         ${permissions.view ? `<a href="/estimates/${estimate.estimate_id}/pdf" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="Download PDF"><i class="bi bi-file-pdf"></i></a>` : ''}
                         ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${estimate.estimate_id}" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
                     </div>`;
