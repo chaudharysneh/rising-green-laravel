@@ -39,7 +39,7 @@
 
         // Activate the correct tab based on URL parameter
         if (currentFilter) {
-            document.querySelectorAll('#dealFilterTabs button[data-filter]').forEach(function(tab) {
+            document.querySelectorAll('#dealFilterTabs button[data-filter]').forEach(function (tab) {
                 if (tab.dataset.filter === currentFilter) {
                     tab.classList.add('active');
                 } else {
@@ -49,15 +49,15 @@
         }
 
         // Tab click handlers
-        document.querySelectorAll('#dealFilterTabs button[data-filter]').forEach(function(tab) {
-            tab.addEventListener('click', function() {
+        document.querySelectorAll('#dealFilterTabs button[data-filter]').forEach(function (tab) {
+            tab.addEventListener('click', function () {
                 currentFilter = this.dataset.filter;
-                
+
                 // Update URL without page reload - use replaceState to ensure it persists
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.set('filter', currentFilter);
                 window.history.replaceState({}, '', newUrl);
-                
+
                 fetchDeals();
             });
         });
@@ -266,9 +266,9 @@
                     const amount =
                         deal.amount !== null && deal.amount !== undefined
                             ? Number(deal.amount).toLocaleString("en-US", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                              })
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })
                             : "0.00";
 
                     const statusName = deal.status?.name || "-";
@@ -303,9 +303,9 @@
                                 ${permissions.edit ? `<a href="/deals/${deal.id}/edit" class="btn crm-action-btn btn-sm" title="Edit"><i class="bi bi-pencil"></i></a>` : ''}
                                 ${permissions.view ? `<a href="/deals/${deal.id}" class="btn crm-action-btn btn-sm" title="View"><i class="bi bi-eye"></i></a>` : ''}
                                 ${deal.estimate_id
-                                    ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger" title="Download PDF"><i class="bi bi-file-pdf"></i></a>`
-                                    : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')" title="Download PDF"><i class="bi bi-file-pdf"></i></button>`
-                                }
+                            ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger" title="Download PDF"><i class="bi bi-file-pdf"></i></a>`
+                            : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')" title="Download PDF"><i class="bi bi-file-pdf"></i></button>`
+                        }
                                 ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-deal-id="${deal.id}" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
                             </div>
                         </td>
@@ -349,9 +349,9 @@
                                             ${permissions.edit ? `<a href="/deals/${deal.id}/edit" class="btn crm-action-btn btn-sm"><i class="bi bi-pencil"></i></a>` : ''}
                                             ${permissions.view ? `<a href="/deals/${deal.id}" class="btn crm-action-btn btn-sm"><i class="bi bi-eye"></i></a>` : ''}
                                             ${deal.estimate_id
-                                                ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger"><i class="bi bi-file-pdf"></i></a>`
-                                                : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')"><i class="bi bi-file-pdf"></i></button>`
-                                            }
+                            ? `<a href="/estimates/${deal.estimate_id}/pdf" target="_blank" class="btn crm-action-btn btn-sm text-danger"><i class="bi bi-file-pdf"></i></a>`
+                            : `<button type="button" class="btn crm-action-btn btn-sm text-danger" onclick="Swal.fire('No Estimate', 'This deal does not have an estimate attached yet. Please edit the deal and select an Estimate to generate a PDF.', 'info')"><i class="bi bi-file-pdf"></i></button>`
+                        }
                                             ${permissions.delete ? `<button type="button" class="btn crm-action-btn btn-sm text-danger delete-btn" data-deal-id="${deal.id}"><i class="bi bi-trash"></i></button>` : ''}
                                         </div>
                                     </div>
@@ -456,7 +456,7 @@ $(document).ready(function () {
             });
         }
     }
-    
+
     function showToast(message, type = "info") {
         const mappedType =
             {
@@ -642,8 +642,8 @@ $(document).ready(function () {
                 "";
             const option = selectedId
                 ? estimateSelect.querySelector(
-                      'option[value="' + selectedId.replace(/"/g, '\\"') + '"]',
-                  )
+                    'option[value="' + selectedId.replace(/"/g, '\\"') + '"]',
+                )
                 : null;
             const meta = estimateMetaById[String(selectedId)] || {};
 
