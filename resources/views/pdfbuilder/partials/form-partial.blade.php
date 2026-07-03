@@ -298,7 +298,8 @@
                                     </div>
                                 @else
                                     <div class="mb-2">
-                                        <span class="small text-muted d-block">If not uploaded, the default header will be used.</span>
+                                        <span class="small text-muted d-block">Default image (will be used if not uploaded):</span>
+                                        <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/header_Image.jpg') }}" alt="Default header image" style="width: 300px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                     </div>
                                 @endif
                                 <input type="hidden" id="first_img_existing" value="{{ $template->first_img ?? '' }}">
@@ -361,6 +362,11 @@
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image1']) }}" alt="Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image1_old" value="{{ $companyInfo['image1'] }}">
                                         </div>
+                                    @else
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Default Image 1:</span>
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/seconpage_1.png') }}" alt="Default Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                        </div>
                                     @endif
                                     <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
                                          style="cursor: pointer; min-height: 100px; display: flex; flex-direction: column; justify-content: center;"
@@ -386,6 +392,11 @@
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image2']) }}" alt="Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image2_old" value="{{ $companyInfo['image2'] }}">
                                         </div>
+                                    @else
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Default Image 2:</span>
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/secondpage_2.png') }}" alt="Default Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                        </div>
                                     @endif
                                     <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
                                          style="cursor: pointer; min-height: 100px; display: flex; flex-direction: column; justify-content: center;"
@@ -410,6 +421,11 @@
                                             <span class="small text-muted d-block">Current Image 3:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $companyInfo['image3']) }}" alt="Image 3" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="image3_old" value="{{ $companyInfo['image3'] }}">
+                                        </div>
+                                    @else
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Default Image 3:</span>
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/secondpage_3.png') }}" alt="Default Image 3" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                         </div>
                                     @endif
                                     <div class="border-dashed-blue rounded-2 px-3 py-2 text-center bg-blue upload-area"
@@ -511,6 +527,11 @@
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image1']) }}" alt="Timeline Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="timeline_image1_old" value="{{ $timeLine['image1'] }}">
                                         </div>
+                                    @else
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Default Image:</span>
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/page-5-1.png') }}" alt="Default Timeline Image 1" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                        </div>
                                     @endif
                                     <input type="file" class="form-control" name="timeline_image1" accept="image/*" onchange="showCompanyFileName(this, 'timeline_image1')">
                                     <div class="mt-1 text-success small company-file-name-timeline_image1">
@@ -528,6 +549,11 @@
                                             <span class="small text-muted d-block">Current Image:</span>
                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $timeLine['image2']) }}" alt="Timeline Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                             <input type="hidden" name="timeline_image2_old" value="{{ $timeLine['image2'] }}">
+                                        </div>
+                                    @else
+                                        <div class="mb-2">
+                                            <span class="small text-muted d-block">Default Image:</span>
+                                            <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/page-5-2.png') }}" alt="Default Timeline Image 2" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                         </div>
                                     @endif
                                     <input type="file" class="form-control" name="timeline_image2" accept="image/*" onchange="showCompanyFileName(this, 'timeline_image2')">
@@ -701,6 +727,11 @@
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $paymentTerms['image']) }}" alt="Payment Terms Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="payment_terms_image_old" value="{{ $paymentTerms['image'] }}">
                                          </div>
+                                     @else
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Default Image:</span>
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/page_7.png') }}" alt="Default Payment Terms Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                         </div>
                                      @endif
                                     <input type="file" class="form-control" name="payment_terms_image" accept="image/*" onchange="showCompanyFileName(this, 'payment_terms_image')">
                                     <div class="mt-1 text-success small company-file-name-payment_terms_image">
@@ -750,6 +781,11 @@
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $environmentImpact['image']) }}" alt="Environment Impact Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="environment_impact_image_old" value="{{ $environmentImpact['image'] }}">
                                          </div>
+                                     @else
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Default Image:</span>
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/page_8.png') }}" alt="Default Environment Impact Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                         </div>
                                      @endif
                                     <input type="file" class="form-control" name="environment_impact_image" accept="image/*" onchange="showCompanyFileName(this, 'environment_impact_image')">
                                     <div class="mt-1 text-success small company-file-name-environment_impact_image">
@@ -785,6 +821,11 @@
                                              <span class="small text-muted d-block">Current Image:</span>
                                              <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . $footer['image']) }}" alt="Footer Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                              <input type="hidden" name="footer_image_old" value="{{ $footer['image'] }}">
+                                         </div>
+                                     @else
+                                         <div class="mb-2">
+                                             <span class="small text-muted d-block">Default Image:</span>
+                                             <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/footer.png') }}" alt="Default Footer Image" style="width: 150px; height: 120px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
                                          </div>
                                      @endif
                                         <input type="file" class="form-control" name="footer_image" accept="image/*" onchange="showCompanyFileName(this, 'footer_image')">
