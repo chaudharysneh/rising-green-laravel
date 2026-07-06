@@ -126,7 +126,7 @@
                                     @error('company_logo_path')<div class="profile-field-error">{{ $message }}</div>@enderror
                                     <small class="text-muted">Any image file - max 50 MB.</small>
                                 </div>
-                                <div class="col-md-6">
+                                <!-- <div class="col-md-6">
                                     <label class="form-label fw-semibold">QR Code (Upload)</label>
                                     <div class="d-flex align-items-center gap-2">
                                         <input type="file" name="company_qr_code_path" id="company-qr-input" accept="image/*" class="form-control @error('company_qr_code_path') is-invalid @enderror">
@@ -141,7 +141,7 @@
                                     </div>
                                     @error('company_qr_code_path')<div class="profile-field-error">{{ $message }}</div>@enderror
                                     <small class="text-muted">Any image file - max 50 MB.</small>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
