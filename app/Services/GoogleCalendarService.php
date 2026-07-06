@@ -138,6 +138,10 @@ class GoogleCalendarService
 
     public function isConfigured(): bool
     {
+        if (!\App\Helpers\IntegrationHelper::isGoogleEnabled()) {
+            return false;
+        }
+
         return $this->clientId !== ''
             && $this->clientSecret !== ''
             && $this->redirectUri !== '';
@@ -145,6 +149,10 @@ class GoogleCalendarService
 
     public function getAuthUrl(): string
     {
+        if (!\App\Helpers\IntegrationHelper::isGoogleEnabled()) {
+            return '';
+        }
+
         if ($this->clientId === '' || $this->redirectUri === '') {
             Log::error('Google OAuth configuration is incomplete.', [
                 'has_client_id' => $this->clientId !== '',
@@ -167,6 +175,10 @@ class GoogleCalendarService
 
     public function handleCallback(string $authCode): bool
     {
+        if (!\App\Helpers\IntegrationHelper::isGoogleEnabled()) {
+            return false;
+        }
+
         if ($this->clientId === '' || $this->clientSecret === '' || $this->redirectUri === '') {
             Log::error('Google OAuth callback failed due to incomplete configuration.', [
                 'has_client_id' => $this->clientId !== '',
@@ -312,6 +324,10 @@ class GoogleCalendarService
 
     protected function authorizedRequest(string $method, string $url, array $options = []): ?array
     {
+        if (!\App\Helpers\IntegrationHelper::isGoogleEnabled()) {
+            return null;
+        }
+
         $token = $this->getValidToken();
         if (!$token || empty($token['access_token'])) {
             return null;
@@ -349,6 +365,10 @@ class GoogleCalendarService
 
     public function isAuthenticated(): bool
     {
+        if (!\App\Helpers\IntegrationHelper::isGoogleEnabled()) {
+            return false;
+        }
+
         if (!$this->isConfigured()) {
             return false;
         }

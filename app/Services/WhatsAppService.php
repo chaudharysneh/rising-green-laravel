@@ -50,6 +50,10 @@ class WhatsAppService
 
     public function isConfigured(): bool
     {
+        if (!\App\Helpers\IntegrationHelper::isWhatsAppEnabled()) {
+            return false;
+        }
+
         $cfg = $this->config();
 
         return $cfg

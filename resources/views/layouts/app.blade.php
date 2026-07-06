@@ -723,20 +723,40 @@
                             @endif
 
                             @if ($showTopEstimatesButton)
-                                @if (auth()->user()?->hasMatrixPermission('create_estimates'))
-                                    <button type="button"
-                                        class="btn top-action-btn old-crm-nav-btn d-none d-lg-inline-flex"
-                                        data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
-                                        <i class="bi bi-lightning-charge"></i>
-                                        <span>Quick Estimate</span>
-                                    </button>
-                                @else
-                                    <a href="{{ route('estimates.index') }}"
-                                        class="btn top-action-btn old-crm-nav-btn d-none d-lg-inline-flex {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}">
+                                <div class="dropdown d-none d-lg-block">
+                                    <button class="btn top-action-btn old-crm-nav-btn {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-file-lines"></i>
-                                        <span>Estimates</span>
-                                    </a>
-                                @endif
+                                        <span>Estimate</span>
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <ul class="dropdown-menu old-crm-top-menu">
+                                        @if (auth()->user()?->hasMatrixPermission('create_estimates'))
+                                            <li>
+                                                <button type="button" class="dropdown-item"
+                                                    data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
+                                                    <i class="bi bi-lightning-charge"></i>
+                                                    <span>Quick Estimate</span>
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item {{ request()->routeIs('estimates.create') ? 'active' : '' }}"
+                                                    href="{{ route('estimates.create') }}">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                    <span>Add Estimate</span>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li>
+                                                <a class="dropdown-item {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}"
+                                                    href="{{ route('estimates.index') }}">
+                                                    <i class="fa-solid fa-file-lines"></i>
+                                                    <span>Estimates</span>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </div>
                             @endif
 
                             <div class="crm-top-icon-group">

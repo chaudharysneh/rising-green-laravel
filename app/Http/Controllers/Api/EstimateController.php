@@ -431,9 +431,10 @@ class EstimateController extends Controller
 
             send_admin_notification('Estimate', 'Updated', $estimate->estimate_no, []);
 
-            return response()->json([
+             return response()->json([
                 'success' => true,
                 'message' => 'Estimate updated successfully',
+                'estimate_id' => $estimate->estimate_id,
                 'redirect' => route('estimates.index')
             ]);
 

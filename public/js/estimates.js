@@ -1,4 +1,9 @@
 (function () {
+    if (window.estimatesJsInitialized) {
+        return;
+    }
+    window.estimatesJsInitialized = true;
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -1939,6 +1944,9 @@
                     if (typeof window.showAlert === 'function') {
                         window.showAlert('success', response.message || activeConfig.saveSuccessMessage, 'Success!');
                     }
+                    if (response.estimate_id) {
+                        window.open('/estimates/' + response.estimate_id + '/pdf', '_blank');
+                    }
                     setTimeout(function () {
                         window.location.href = response.redirect || activeConfig.defaultRedirect;
                     }, 300);
@@ -2826,12 +2834,112 @@
 
         bomHandlersInitialized = true;
 
+        // Hydrate initial rows
         container.querySelectorAll('.bom-row').forEach(function (row) {
             hydrateBomRow(row);
-            attachBomRowHandlers(row);
         });
 
-        addBtn.addEventListener('click', function () {
+        // 1. Qty, Price, Tax Rate change/input -> Update calculations
+        $(container).on('input change', 'input[name="product_qty[]"], .product-price, .product-tax-rate', function () {
+            toggleBomError(false);
+            calculateTotals();
+        });
+
+        // 2. Product select change -> populate makes, update units/price/calculations
+        $(container).on('change', '.product-select', function () {
+            const row = this.closest('.bom-row');
+            const makeSelect = row.querySelector('.product-make');
+            const priceInput = row.querySelector('.product-price');
+            const qtyInput = row.querySelector('input[name="product_qty[]"]');
+
+            if (this.value && !validateTopFieldsBeforeBom(true)) {
+                this.value = '';
+                if ($.fn.select2 && $(this).hasClass('select2-hidden-accessible')) {
+                    $(this).trigger('change.select2');
+                }
+                return;
+            }
+
+            populateMakeOptions(this, makeSelect, '');
+            markEstimateBomFieldInvalid(makeSelect, false);
+            row.querySelector('.bom-make-error')?.classList.remove('d-block');
+            
+            const option = this.options[this.selectedIndex];
+            let labelText = 'Qty';
+            if (option && this.value) {
+                if (priceInput) {
+                    priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
+                }
+                
+                const meter = option.dataset.meter;
+                const nos = option.dataset.nos;
+                const hasMeter = meter && String(meter).trim() !== '' && String(meter).toLowerCase() !== 'null';
+                const hasNos = nos && String(nos).trim() !== '' && String(nos).toLowerCase() !== 'null';
+                
+                if (hasMeter) {
+                    labelText = 'Qty(meter)';
+                } else if (hasNos) {
+                    labelText = 'Qty(nos)';
+                }
+            }
+            
+            const label = row.querySelector('.product-qty-label') || qtyInput?.closest('div')?.querySelector('label');
+            if (label) {
+                const icon = label.querySelector('i');
+                if (icon) {
+                    label.innerHTML = '';
+                    label.appendChild(icon);
+                    label.appendChild(document.createTextNode(' ' + labelText));
+                    label.insertAdjacentHTML('beforeend', ' <span class="text-danger">*</span>');
+                } else {
+                    label.innerHTML = labelText + ' <span class="text-danger">*</span>';
+                }
+            }
+            
+            toggleBomError(false);
+            calculateTotals();
+        });
+
+        // Prevent opening BOM select if top fields are invalid
+        $(container).on('select2:opening', '.product-select', function (event) {
+            if (!validateTopFieldsBeforeBom(true)) {
+                event.preventDefault();
+            }
+        });
+
+        // 3. Make select change
+        $(container).on('change select2:select', '.product-make', function () {
+            const row = this.closest('.bom-row');
+            markEstimateBomFieldInvalid(this, false);
+            row.querySelector('.bom-make-error')?.classList.remove('d-block');
+            toggleBomError(false);
+            calculateTotals();
+        });
+
+        // 4. Delete row
+        $(container).on('click', '.delete-bom-row', function () {
+            const row = this.closest('.bom-row');
+            if (container.querySelectorAll('.bom-row').length > 1) {
+                row.remove();
+                toggleBomError(false);
+                calculateTotals();
+            }
+        });
+
+        // 5. Restrict negative inputs
+        $(container).on('keydown', 'input[type="number"]', function(e) {
+            if (e.key === '-') {
+                e.preventDefault();
+            }
+        });
+        $(container).on('input', 'input[type="number"]', function() {
+            if (parseFloat(this.value) < 0) {
+                this.value = 0;
+            }
+        });
+
+        // Add More BOM button click
+        $(addBtn).off('click').on('click', function () {
             if (!validateTopFieldsBeforeBom(true)) {
                 return;
             }
@@ -2856,7 +2964,7 @@
                 }
             });
             newRow.querySelectorAll('input[name="product_qty[]"]').forEach(function (input) {
-                input.value = '';
+                input.value = '1';
                 input.placeholder = 'Add Quantity';
             });
 
@@ -2866,8 +2974,11 @@
             }
 
             container.appendChild(newRow);
-            attachBomRowHandlers(newRow);
         });
+    }
+
+    function attachBomRowHandlers(row) {
+        // Obsolete due to event delegation
     }
 
     function hydrateBomRow(row) {
@@ -2908,137 +3019,6 @@
         
         if ($(makeSelect).hasClass('select2-hidden-accessible')) {
             $(makeSelect).trigger('change.select2');
-        }
-    }
-
-    function attachBomRowHandlers(row) {
-        const productSelect = row.querySelector('.product-select');
-        const makeSelect = row.querySelector('.product-make');
-        const deleteBtn = row.querySelector('.delete-bom-row');
-        const qtyInput = row.querySelector('input[name="product_qty[]"]');
-        const priceInput = row.querySelector('.product-price');
-        const taxSelect = row.querySelector('.product-tax-rate');
-
-        if (qtyInput) {
-            restrictNegative(qtyInput);
-        }
-
-        if (priceInput) {
-            restrictNegative(priceInput);
-        }
-
-        if (productSelect) {
-            $(productSelect).on('select2:opening', function (event) {
-                if (!validateTopFieldsBeforeBom(true)) {
-                    event.preventDefault();
-                }
-            });
-
-            $(productSelect).on('change', function () {
-                if (this.value && !validateTopFieldsBeforeBom(true)) {
-                    this.value = '';
-                    if ($.fn.select2 && $(this).hasClass('select2-hidden-accessible')) {
-                        $(this).trigger('change.select2');
-                    }
-                    return;
-                }
-
-                populateMakeOptions(this, makeSelect, '');
-                markEstimateBomFieldInvalid(makeSelect, false);
-                row.querySelector('.bom-make-error')?.classList.remove('d-block');
-                
-                const option = this.options[this.selectedIndex];
-                let labelText = 'Qty';
-                if (option && this.value) {
-                    if (priceInput) {
-                        priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
-                    }
-                    
-                    const meter = option.dataset.meter;
-                    const nos = option.dataset.nos;
-                    const hasMeter = meter && String(meter).trim() !== '' && String(meter).toLowerCase() !== 'null';
-                    const hasNos = nos && String(nos).trim() !== '' && String(nos).toLowerCase() !== 'null';
-                    
-                    if (hasMeter) {
-                        labelText = 'Qty(meter)';
-                    } else if (hasNos) {
-                        labelText = 'Qty(nos)';
-                    }
-                }
-                
-                const label = row.querySelector('.product-qty-label') || qtyInput?.closest('div')?.querySelector('label');
-                if (label) {
-                    const icon = label.querySelector('i');
-                    if (icon) {
-                        label.innerHTML = '';
-                        label.appendChild(icon);
-                        label.appendChild(document.createTextNode(' ' + labelText));
-                        label.insertAdjacentHTML('beforeend', ' <span class="text-danger">*</span>');
-                    } else {
-                        label.innerHTML = labelText + ' <span class="text-danger">*</span>';
-                    }
-                }
-                
-                toggleBomError(false);
-                calculateTotals();
-            });
-        }
-
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', function () {
-                const container = document.getElementById('bomContainer');
-                if (container.querySelectorAll('.bom-row').length > 1) {
-                    row.remove();
-                    toggleBomError(false);
-                    calculateTotals();
-                }
-            });
-        }
-
-        if (qtyInput) {
-            qtyInput.addEventListener('input', function () {
-                toggleBomError(false);
-                calculateTotals();
-            });
-            qtyInput.addEventListener('change', function () {
-                toggleBomError(false);
-                calculateTotals();
-            });
-        }
-
-        if (priceInput) {
-            priceInput.addEventListener('input', function () {
-                toggleBomError(false);
-                calculateTotals();
-            });
-            priceInput.addEventListener('change', function () {
-                toggleBomError(false);
-                calculateTotals();
-            });
-        }
-
-        if (taxSelect) {
-            taxSelect.addEventListener('change', function () {
-                toggleBomError(false);
-                calculateTotals();
-            });
-        }
-
-        if (makeSelect) {
-            makeSelect.addEventListener('change', function () {
-                markEstimateBomFieldInvalid(makeSelect, false);
-                row.querySelector('.bom-make-error')?.classList.remove('d-block');
-                toggleBomError(false);
-                calculateTotals();
-            });
-            
-            // Also bind Select2 change event if it's initialized
-            $(makeSelect).on('select2:select', function() {
-                markEstimateBomFieldInvalid(makeSelect, false);
-                row.querySelector('.bom-make-error')?.classList.remove('d-block');
-                toggleBomError(false);
-                calculateTotals();
-            });
         }
     }
 
@@ -3174,6 +3154,7 @@
             const select = row.querySelector('.product-select');
             const qtyIn = row.querySelector('input[name="product_qty[]"]');
             const priceIn = row.querySelector('.product-price');
+            const taxSelect = row.querySelector('.product-tax-rate');
             
             if (select && select.value && qtyIn) {
                 const qty = parseFloat(qtyIn.value || 0);
@@ -3184,13 +3165,15 @@
                     const opt = select.options[select.selectedIndex];
                     p = parseFloat(opt?.dataset?.price || 0);
                 }
-                const rowTotal = qty * p;
-                productsTotal += rowTotal;
+                const rate = parseFloat(taxSelect?.value || 0);
+                const taxAmount = (qty * p) * (rate / 100);
+                const rowTotalWithTax = (qty * p) + taxAmount;
+                productsTotal += (qty * p);
 
                 // Update per-row readout if element exists
                 const totalEl = row.querySelector('.product-total');
                 if (totalEl) {
-                    totalEl.value = formatStepOneInputValue(rowTotal);
+                    totalEl.value = formatStepOneInputValue(rowTotalWithTax);
                 }
             }
         });
@@ -3223,6 +3206,7 @@
         const cgstDisplay = document.getElementById('cgst_display');
         const sgstDisplay = document.getElementById('sgst_display');
         const igstDisplay = document.getElementById('igst_display');
+        const gstPercent = document.getElementById('apply_gst')?.checked ? taxBreakdown.totalRate : 0;
 
         if (cgstDisplay && sgstDisplay && igstDisplay) {
             const halfGst = gstPercent / 2;
@@ -3350,7 +3334,7 @@
         }
 
         // Attach robust listeners to all key fields
-        const inputs = ['price', 'quantity', 'solar_structure_charges', 'discount', 'subsidy_amount'];
+        const inputs = ['price', 'solar_structure_charges', 'discount', 'subsidy_amount'];
         inputs.forEach(function (id) {
             const input = document.getElementById(id);
             if (input) {
@@ -3362,26 +3346,22 @@
                             const v = input.value;
                             isPriceManualOverride = (v !== null && String(v).trim() !== '');
                         }
-
-                        // Special case: if quantity changed, auto-update subsidy first
-                        if (id === 'quantity') {
-                            autoCalculateSubsidy();
-                        }
                         calculateTotals();
                     });
                 });
             }
         });
 
-        const typeInput = document.getElementById('type');
-        if (typeInput) {
-            ['input', 'change'].forEach(function(evt) {
-                typeInput.addEventListener(evt, function() {
-                    autoCalculateSubsidy();
-                    calculateTotals();
-                });
-            });
-        }
+        // Use jQuery for type and quantity to fully support Select2 events
+        $('#type').on('change select2:select', function () {
+            autoCalculateSubsidy();
+            calculateTotals();
+        });
+
+        $('#quantity').on('input change', function () {
+            autoCalculateSubsidy();
+            calculateTotals();
+        });
 
         const structureCheckbox = document.getElementById('solar_structure_charges_check');
         const gstCheckbox = document.getElementById('apply_gst');

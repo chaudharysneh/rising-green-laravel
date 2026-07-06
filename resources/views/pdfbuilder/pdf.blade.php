@@ -1431,7 +1431,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     <!-- Title -->
                     <div
                         style="margin-top: -25px; font-size:35px; font-weight:700; margin-bottom:10px; font-family: 'Montserrat', sans-serif; color:#000;">
-                        <?= ($estdata->type ?? '') === 'residential' ? 'CUSTOM SOLAR ENERGY PROPOSAL' : $pdfTypeLabelCap ?>
+                        <?= ($estdata->type ?? '') === 'residential' ? 'SOLAR PROPOSAL' : $pdfTypeLabelCap ?>
                     </div>
                     <?php if (($estdata->type ?? '') === 'residential'): ?>
                     <div

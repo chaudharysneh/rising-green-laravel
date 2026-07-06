@@ -10,6 +10,10 @@ class WhatsappWebhookController extends Controller
 {
     public function verify(Request $request)
     {
+        if (!\App\Helpers\IntegrationHelper::isWhatsAppEnabled()) {
+            return response('Forbidden', 403);
+        }
+
         $mode = $request->query('hub_mode');
         $token = $request->query('hub_verify_token');
         $challenge = $request->query('hub_challenge');
@@ -25,6 +29,10 @@ class WhatsappWebhookController extends Controller
 
     public function handle(Request $request)
     {
+        if (!\App\Helpers\IntegrationHelper::isWhatsAppEnabled()) {
+            return response()->json(['status' => 'disabled']);
+        }
+
         $payload = $request->all();
         Log::info('WhatsApp webhook received', $payload);
 

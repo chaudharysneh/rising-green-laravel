@@ -53,7 +53,13 @@ class SettingController extends Controller
             return $posA <=> $posB;
         });
 
-        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions', 'taxes', 'subsidies', 'truncateTables'));
+        $integrationSettings = \App\Models\IntegrationSetting::first() ?? \App\Models\IntegrationSetting::create([
+            'whatsapp_integration' => true,
+            'email_smtp' => true,
+            'google_connection' => true,
+        ]);
+
+        return view('settings.index', compact('settings', 'whatsappTemplates', 'whatsappModuleOptions', 'taxes', 'subsidies', 'truncateTables', 'integrationSettings'));
     }
 
     public function update(Request $request)
@@ -438,5 +444,38 @@ class SettingController extends Controller
                 'message' => 'Failed to fetch subsidies.',
             ], 500);
         }
+    }
+
+    /**
+     * Toggle integration status
+     */
+    public function toggleIntegration(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'integration' => ['required', 'string', 'in:social_media_integration,whatsapp_integration,email_smtp,google_connection'],
+            'enabled' => ['required', 'boolean'],
+        ]);
+
+        $settings = \App\Models\IntegrationSetting::first() ?? \App\Models\IntegrationSetting::create([
+            'social_media_integration' => true,
+            'whatsapp_integration' => true,
+            'email_smtp' => true,
+            'google_connection' => true,
+        ]);
+
+        $settings->update([
+            $validated['integration'] => $validated['enabled'],
+        ]);
+
+        \App\Helpers\IntegrationHelper::clearCache();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Integration status updated successfully.',
+            'data' => [
+                'integration' => $validated['integration'],
+                'enabled' => (bool) $settings->{$validated['integration']},
+            ]
+        ]);
     }
 }
