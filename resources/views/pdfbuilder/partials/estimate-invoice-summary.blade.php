@@ -243,7 +243,7 @@ $summaryLendingCost = $summaryNetPayable;
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:6px;border-collapse:collapse;">
     <tr>
         <td style="<?= $summaryHeaderCellStyle ?>width:68%;">Description</td>
-        <td style="<?= $summaryHeaderCellStyle ?>width:32%;text-align:right;">Amount (&#8377;)</td>
+        <td style="<?= $summaryHeaderCellStyle ?>width:32%;text-align:right;">Amount (<span style="font-family: DejaVu Sans, sans-serif;">&#8377;</span>)</td>
     </tr>
     <tr>
         <td style="<?= $summaryCellStyle ?>">Base cost</td>

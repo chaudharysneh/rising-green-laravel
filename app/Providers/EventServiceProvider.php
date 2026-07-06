@@ -25,7 +25,12 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class, function ($event) {
+            if (!\App\Helpers\IntegrationHelper::isEmailEnabled()) {
+                \Illuminate\Support\Facades\Log::info('Email SMTP integration is disabled. Preventing outgoing email.');
+                return false;
+            }
+        });
     }
 
     /**

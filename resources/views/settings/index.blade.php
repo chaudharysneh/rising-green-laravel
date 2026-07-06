@@ -63,7 +63,15 @@
                         <div class="tab-content" id="integrationSettingsTabContent">
                             <div class="tab-pane fade show active" id="integrations" role="tabpanel">
                 <div class="settings-panel">
-                    <div class="settings-panel-head">Integrations</div>
+                    <div class="settings-panel-head d-flex justify-content-between align-items-center">
+                        <span>Integrations</span>
+                        <div class="form-check form-switch form-check-reverse mb-0">
+                            <input class="form-check-input integration-status-toggle" type="checkbox" role="switch" id="socialMediaIntegrationToggle" data-integration="social_media_integration" {{ $integrationSettings->social_media_integration ? 'checked' : '' }} style="cursor: pointer;">
+                            <label class="form-check-label small fw-semibold text-muted me-2" for="socialMediaIntegrationToggle" id="socialMediaIntegrationToggleLabel" style="cursor: pointer;">
+                                {{ $integrationSettings->social_media_integration ? 'Enable' : 'Disable' }}
+                            </label>
+                        </div>
+                    </div>
                     <div class="settings-panel-body">
                         <div class="integrations-accordion" id="integrationsAccordion">
                             <div class="integration-card">
@@ -197,13 +205,19 @@
             </div>
                             <div class="tab-pane fade" id="whatsapp-configure" role="tabpanel">
                 
-                        <div class="mb-4">
+                        <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div>
                                 <h4 class="fw-bold mb-1">Configure your WhatsApp API settings <span
                                         class="settings-status-badge settings-inline-status"><span
                                             class="settings-status-dot"></span>Connected</span></h4>
                                 <div class="text-muted">Enter your WhatsApp App details and WhatsApp Business credentials.
                                 </div>
+                            </div>
+                            <div class="form-check form-switch form-check-reverse mb-0">
+                                <input class="form-check-input integration-status-toggle" type="checkbox" role="switch" id="whatsappIntegrationToggle" data-integration="whatsapp_integration" {{ $integrationSettings->whatsapp_integration ? 'checked' : '' }} style="cursor: pointer;">
+                                <label class="form-check-label small fw-semibold text-muted me-2" for="whatsappIntegrationToggle" id="whatsappIntegrationToggleLabel" style="cursor: pointer;">
+                                    {{ $integrationSettings->whatsapp_integration ? 'Enable' : 'Disable' }}
+                                </label>
                             </div>
                         </div>
 
@@ -412,9 +426,20 @@
                     </div>
                 </div>
             </div>
-                            <div class="tab-pane fade" id="smtp" role="tabpanel">
-                <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data"
-                    id="smtpSettingsForm">
+                             <div class="tab-pane fade" id="smtp" role="tabpanel">
+                                <div class="settings-panel mb-4">
+                                    <div class="settings-panel-head d-flex justify-content-between align-items-center">
+                                        <span>Email SMTP Integration</span>
+                                        <div class="form-check form-switch form-check-reverse mb-0">
+                                            <input class="form-check-input integration-status-toggle" type="checkbox" role="switch" id="emailSmtpToggle" data-integration="email_smtp" {{ $integrationSettings->email_smtp ? 'checked' : '' }} style="cursor: pointer;">
+                                            <label class="form-check-label small fw-semibold text-muted me-2" for="emailSmtpToggle" id="emailSmtpToggleLabel" style="cursor: pointer;">
+                                                {{ $integrationSettings->email_smtp ? 'Enable' : 'Disable' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data"
+                                    id="smtpSettingsForm">
                     @csrf
                     @method('PUT')
                     
@@ -485,15 +510,23 @@
                                             </small>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-success" id="connectToGoogleBtn">
-                                        <i class="bi bi-link-45deg me-1"></i>Connect to Google
-                                    </button>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check form-switch form-check-reverse mb-0">
+                                            <input class="form-check-input integration-status-toggle" type="checkbox" role="switch" id="googleConnectionToggle" data-integration="google_connection" {{ $integrationSettings->google_connection ? 'checked' : '' }} style="cursor: pointer;">
+                                            <label class="form-check-label small fw-semibold text-muted me-2" for="googleConnectionToggle" id="googleConnectionToggleLabel" style="cursor: pointer;">
+                                                {{ $integrationSettings->google_connection ? 'Enable' : 'Disable' }}
+                                            </label>
+                                        </div>
+                                        <button type="button" class="btn btn-success" id="connectToGoogleBtn">
+                                            <i class="bi bi-link-45deg me-1"></i>Connect to Google
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Google OAuth Credentials Section -->
-                            <h6 class="fw-semibold mb-3">Google OAuth Credentials</h6>
-                            <div class="row g-3">
+                            <h6 class="fw-semibold mb-3 d-none">Google OAuth Credentials</h6>
+                            <div class="row g-3 d-none">
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Google Client ID</label>
                                     <input type="text" name="google_client_id" id="google_client_id"
@@ -905,6 +938,7 @@
                 taxUpdateUrl: @json(route('settings.taxes.update', ':id')),
                 taxDestroyUrl: @json(route('settings.taxes.destroy', ':id')),
                 subsidyUpdateUrl: @json(route('settings.subsidies.update', ':id')),
+                toggleIntegrationUrl: @json(route('settings.toggle_integration')),
             };
 
             // Tax Management Functions

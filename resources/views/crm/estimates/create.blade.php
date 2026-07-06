@@ -403,7 +403,7 @@
                                             <div>
                                                 <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
-                                                    value="" class="form-control" placeholder="Add Quantity">
+                                                    value="1" class="form-control" placeholder="Add Quantity">
                                             </div>
                                             <div>
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>

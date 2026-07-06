@@ -11,6 +11,8 @@
         bindIntegrationCarets();
         bindAjaxForm("smtpSettingsForm", config.apiSettingsIndex, config.apiSettingsUpdate, "smtpSettingsStatus");
         bindAjaxForm("keysSettingsForm", config.apiSettingsIndex, config.apiSettingsUpdate, "keysSettingsStatus");
+        bindIntegrationsToggle();
+        bindIntegrationStatusToggles();
         //hydrateSettings(config.apiSettingsIndex);
     }
 
@@ -199,5 +201,78 @@
     function csrf() {
         const token = document.querySelector('meta[name="csrf-token"]');
         return token ? token.getAttribute("content") : "";
+    }
+
+    function bindIntegrationsToggle() {
+        const toggle = document.getElementById("socialMediaIntegrationToggle");
+        const accordion = document.getElementById("integrationsAccordion");
+        const label = document.getElementById("socialMediaIntegrationToggleLabel");
+        if (!toggle || !accordion) {
+            return;
+        }
+
+        function updateState() {
+            if (toggle.checked) {
+                accordion.style.opacity = "1";
+                accordion.style.pointerEvents = "auto";
+                if (label) {
+                    label.textContent = "Enable";
+                }
+            } else {
+                accordion.style.opacity = "0.5";
+                accordion.style.pointerEvents = "none";
+                if (label) {
+                    label.textContent = "Disable";
+                }
+            }
+        }
+
+        toggle.addEventListener("change", updateState);
+        updateState();
+    }
+
+    function bindIntegrationStatusToggles() {
+        const toggles = document.querySelectorAll(".integration-status-toggle");
+        toggles.forEach(function (toggle) {
+            const integration = toggle.getAttribute("data-integration");
+            const labelId = toggle.id + "Label";
+            const label = document.getElementById(labelId);
+
+            toggle.addEventListener("change", function () {
+                const enabled = toggle.checked;
+
+                if (label) {
+                    label.textContent = enabled ? "Enable" : "Disable";
+                }
+
+                const config = window.settingsPageConfig || {};
+                const url = config.toggleIntegrationUrl || "/settings/toggle-integration";
+
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrf(),
+                    },
+                    body: JSON.stringify({
+                        integration: integration,
+                        enabled: enabled ? 1 : 0
+                    }),
+                    credentials: "same-origin",
+                })
+                .then(parseJson)
+                .then(function (payload) {
+                    notify(payload.message || "Integration status updated.", "success");
+                })
+                .catch(function (error) {
+                    toggle.checked = !enabled;
+                    if (label) {
+                        label.textContent = !enabled ? "Enable" : "Disable";
+                    }
+                    notify(error.message || "Failed to update integration status.", "error");
+                });
+            });
+        });
     }
 })();

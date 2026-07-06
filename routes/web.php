@@ -170,6 +170,7 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     // Settings web routes
     Route::get('/settings', [SettingController::class, 'index'])->middleware('main_admin')->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->middleware('main_admin')->name('settings.update');
+    Route::post('/settings/toggle-integration', [SettingController::class, 'toggleIntegration'])->middleware('main_admin')->name('settings.toggle_integration');
     
     // Table Truncate routes
     Route::post('/settings/table-truncate-all', [\App\Http\Controllers\TableTruncateController::class, 'truncateAll'])->middleware('main_admin')->name('settings.table-truncate-all');
