@@ -408,6 +408,7 @@
                                                                     data-price="{{ $bom->price ?? 0 }}"
                                                                     data-meter="{{ $bom->meter ?? '' }}"
                                                                     data-nos="{{ $bom->nos ?? '' }}"
+                                                                    data-tax-rate="{{ $bom->tax_rate ?? 0 }}"
                                                                     @selected((string) ($selectedProduct['product_id'] ?? '') === (string) $bom->id)>
                                                                     {{ $bom->product_name }}
                                                                 </option>

@@ -337,7 +337,8 @@
                                                             <option value="{{ $bom->id }}"
                                                                 data-name="{{ $bom->product_name }}"
                                                                 data-price="{{ $bom->price ?? 0 }}"
-                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'>
+                                                                data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
+                                                                data-tax-rate="{{ $bom->tax_rate ?? 0 }}">
                                                                 {{ $bom->product_name }}
                                                             </option>
                                                         @endforeach
