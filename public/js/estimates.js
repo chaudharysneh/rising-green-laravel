@@ -901,7 +901,7 @@
 
             const syncQuickBomRowFromSelection = function (row, preferredMake) {
                 const select = row.querySelector('.quick-bom-select');
-                const option = select?.options[select.selectedIndex];
+                const option = select?.querySelector('option[value="' + select.value + '"]');
                 const makeSelect = row.querySelector('.quick-bom-make-select');
                 const priceInput = row.querySelector('.quick-bom-price');
                 const qtyInput = row.querySelector('.quick-bom-qty');
@@ -922,6 +922,22 @@
                 }
                 if (qtyInput && !parseFloat(qtyInput.value || 0)) {
                     qtyInput.value = '1';
+                }
+                const taxSelect = row.querySelector('.quick-bom-tax-rate');
+                if (taxSelect && option && option.dataset.taxRate !== undefined) {
+                    const rawTaxRate = parseFloat(option.dataset.taxRate || 0);
+                    let found = false;
+                    for (let i = 0; i < taxSelect.options.length; i++) {
+                        const optVal = parseFloat(taxSelect.options[i].value || 0);
+                        if (Math.abs(optVal - rawTaxRate) < 0.001) {
+                            taxSelect.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        taxSelect.value = '0';
+                    }
                 }
                 calculateQuickBomRow(row);
             };
@@ -2864,11 +2880,27 @@
             markEstimateBomFieldInvalid(makeSelect, false);
             row.querySelector('.bom-make-error')?.classList.remove('d-block');
             
-            const option = this.options[this.selectedIndex];
+            const option = this.querySelector('option[value="' + this.value + '"]');
             let labelText = 'Qty';
             if (option && this.value) {
                 if (priceInput) {
                     priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
+                }
+                const taxSelect = row.querySelector('.product-tax-rate');
+                if (taxSelect && option.dataset.taxRate !== undefined) {
+                    const rawTaxRate = parseFloat(option.dataset.taxRate || 0);
+                    let found = false;
+                    for (let i = 0; i < taxSelect.options.length; i++) {
+                        const optVal = parseFloat(taxSelect.options[i].value || 0);
+                        if (Math.abs(optVal - rawTaxRate) < 0.001) {
+                            taxSelect.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        taxSelect.value = '0';
+                    }
                 }
                 
                 const meter = option.dataset.meter;

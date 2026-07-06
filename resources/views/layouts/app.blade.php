@@ -732,20 +732,21 @@
                                     </button>
                                     <ul class="dropdown-menu old-crm-top-menu">
                                         @if (auth()->user()?->hasMatrixPermission('create_estimates'))
-                                            <li>
+                                        <li>
+                                                <a class="dropdown-item {{ request()->routeIs('estimates.create') ? 'active' : '' }}"
+                                                    href="{{ route('estimates.create') }}">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                    <span>Add Estimate</span>
+                                                </a>
+                                            </li>    
+                                        <li>
                                                 <button type="button" class="dropdown-item"
                                                     data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
                                                     <i class="bi bi-lightning-charge"></i>
                                                     <span>Quick Estimate</span>
                                                 </button>
                                             </li>
-                                            <li>
-                                                <a class="dropdown-item {{ request()->routeIs('estimates.create') ? 'active' : '' }}"
-                                                    href="{{ route('estimates.create') }}">
-                                                    <i class="fa-solid fa-plus"></i>
-                                                    <span>Add Estimate</span>
-                                                </a>
-                                            </li>
+                                            
                                         @else
                                             <li>
                                                 <a class="dropdown-item {{ request()->is('estimate') || request()->is('estimates') || request()->is('estimates/*') || request()->is('invoices*') || request()->is('pdfbuilder*') ? 'active' : '' }}"

@@ -517,9 +517,15 @@
                                                 {{ $integrationSettings->google_connection ? 'Enable' : 'Disable' }}
                                             </label>
                                         </div>
-                                        <button type="button" class="btn btn-success" id="connectToGoogleBtn">
-                                            <i class="bi bi-link-45deg me-1"></i>Connect to Google
-                                        </button>
+                                        @if (!empty($settings['google_client_id']->value ?? ''))
+                                            <button type="button" class="btn btn-danger" id="disconnectFromGoogleBtn">
+                                                <i class="bi bi-box-arrow-right me-1"></i>Disconnect
+                                            </button>
+                                        @else
+                                            <button type="button" class="btn btn-success" id="connectToGoogleBtn">
+                                                <i class="bi bi-link-45deg me-1"></i>Connect to Google
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -1563,6 +1569,26 @@
 
                         // Redirect to Google OAuth
                         window.location.href = '/auth/google';
+                    });
+                }
+
+                // Disconnect from Google button handler
+                const disconnectBtn = document.getElementById('disconnectFromGoogleBtn');
+                if (disconnectBtn) {
+                    disconnectBtn.addEventListener('click', function() {
+                        if (confirm('Are you sure you want to disconnect from Google? This will remove your credentials.')) {
+                            document.getElementById('google_client_id').value = '';
+                            document.getElementById('google_client_secret').value = '';
+                            
+                            // submit the form programmatically to clear credentials in backend
+                            const submitEvent = new Event('submit', {
+                                'bubbles': true,
+                                'cancelable': true
+                            });
+                            document.getElementById('googleConnectionForm').dispatchEvent(submitEvent);
+                            
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
                     });
                 }
             }

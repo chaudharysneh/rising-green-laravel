@@ -238,8 +238,21 @@
             const labelId = toggle.id + "Label";
             const label = document.getElementById(labelId);
 
-            toggle.addEventListener("change", function () {
+            toggle.addEventListener("change", function (e) {
                 const enabled = toggle.checked;
+
+                if (integration === 'google_connection' && document.getElementById('disconnectFromGoogleBtn')) {
+                    if (!enabled) {
+                        e.preventDefault();
+                        toggle.checked = true; // revert
+                        if (typeof showAlert === 'function') {
+                            showAlert('warning', 'Please disconnect Google Connection first before disabling.');
+                        } else {
+                            alert('Please disconnect Google Connection first before disabling.');
+                        }
+                        return;
+                    }
+                }
 
                 if (label) {
                     label.textContent = enabled ? "Enable" : "Disable";

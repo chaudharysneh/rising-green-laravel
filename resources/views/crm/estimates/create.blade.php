@@ -382,7 +382,8 @@
                                                                     data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
                                                                     data-price="{{ $bom->price ?? 0 }}"
                                                                     data-meter="{{ $bom->meter ?? '' }}"
-                                                                    data-nos="{{ $bom->nos ?? '' }}">
+                                                                    data-nos="{{ $bom->nos ?? '' }}"
+                                                                    data-tax-rate="{{ $bom->tax_rate ?? 0 }}">
                                                                     {{ $bom->product_name }}
                                                                 </option>
                                                             @endforeach
