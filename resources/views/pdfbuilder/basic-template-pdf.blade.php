@@ -1,17 +1,81 @@
 @php
     $doc = $estimate ?? $estdata ?? null;
     $customer = $doc->customer ?? null;
+    $preparedUser = $doc->user ?? $doc->creator ?? $profileUser ?? $user ?? null;
     $clientName = trim((string) ($customer->name ?? $doc->name ?? ''));
     $clientAddress = trim((string) ($customer->address ?? $doc->address ?? ''));
     $companySettings = isset($companySettings) && is_iterable($companySettings) ? collect($companySettings) : collect($companySettings ?? []);
-    $companyName = trim((string) ($companySettings['company_name'] ?? $user['company_name'] ?? $profileUser->company_name ?? ''));
-    $companyName = $companyName !== '' ? $companyName : '[Your Company Name]';
-    $clientName = $clientName !== '' && !in_array(strtolower($clientName), ['--', 'client name'], true) ? $clientName : '[Client Name]';
-    $clientAddress = $clientAddress !== '' && !in_array(strtolower($clientAddress), ['--', 'address'], true) ? $clientAddress : '[Client Address]';
-    $capacity = trim((string) ($doc->quantity ?? ''));
-    $capacity = $capacity !== '' && $capacity !== '0' ? rtrim(rtrim(number_format((float) $capacity, 1), '0'), '.') . ' kWp' : '[X] kWp';
-    $unitRate = data_get($doc, 'generation_data.unit_rate', '[Tariff]') ?: '[Tariff]';
-    $currencyAmount = '&#8377; [Amount]';
+    $valueOr = static function ($value, string $fallback = '') {
+        $value = trim((string) $value);
+        return $value !== '' && !in_array(strtolower($value), ['--', 'address', 'client name', 'n/a', 'na'], true) ? $value : $fallback;
+    };
+    $money = static function ($value) {
+        return '&#8377; ' . number_format((float) $value, 2);
+    };
+    $plainNumber = static function ($value, int $decimals = 0) {
+        return rtrim(rtrim(number_format((float) $value, $decimals), '0'), '.');
+    };
+    $companyName = $valueOr($companySettings['company_name'] ?? data_get($preparedUser, 'company') ?? data_get($preparedUser, 'company_name'), 'Rising Green Energy');
+    $clientName = $valueOr($clientName, 'Valued Customer');
+    $clientAddress = $valueOr($clientAddress, 'the project site');
+    $preparedName = $valueOr(data_get($preparedUser, 'name'), $companyName . ' Team');
+    $preparedTitle = $valueOr(data_get($preparedUser, 'job_title'), 'Solar Consultant');
+    $companyPhone = $valueOr($companySettings['phone'] ?? data_get($preparedUser, 'phone') ?? data_get($preparedUser, 'mobile'));
+    $companyEmail = $valueOr($companySettings['email'] ?? data_get($preparedUser, 'email'));
+    $companyWebsite = $valueOr($companySettings['website'] ?? data_get($preparedUser, 'website'));
+    $contactParts = array_values(array_filter([$companyPhone, $companyEmail]));
+    $contactInfo = !empty($contactParts) ? implode(' | ', $contactParts) : 'Contact details on record';
+    $websiteInfo = $companyWebsite !== '' ? $companyWebsite : 'Website on record';
+    $capacityValue = (float) ($doc->quantity ?? 0);
+    $capacity = $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kWp' : 'as proposed';
+    $unitRateValue = (float) (data_get($doc, 'generation_data.unit_rate') ?: 8);
+    $unitRate = $plainNumber($unitRateValue, 2);
+    $dailyGenerationValue = $capacityValue > 0 ? $capacityValue * 4.3 : 0;
+    $monthlyGenerationValue = $dailyGenerationValue * 30;
+    $annualGenerationValue = $dailyGenerationValue * 365;
+    $dailyGeneration = $dailyGenerationValue > 0 ? $plainNumber($dailyGenerationValue, 1) : 'As per system size';
+    $monthlyGeneration = $monthlyGenerationValue > 0 ? $plainNumber($monthlyGenerationValue, 0) : 'As per system size';
+    $annualGeneration = $annualGenerationValue > 0 ? $plainNumber($annualGenerationValue, 0) : 'As per system size';
+    $monthlySavingsValue = $monthlyGenerationValue * $unitRateValue;
+    $annualSavingsValue = $annualGenerationValue * $unitRateValue;
+    $lifecycleSavingsValue = $annualSavingsValue * 25;
+    $netInvestmentValue = (float) ($doc->amount ?? 0);
+    $paybackValue = $annualSavingsValue > 0 && $netInvestmentValue > 0 ? $netInvestmentValue / $annualSavingsValue : 0;
+    $payback = $paybackValue > 0 ? $plainNumber($paybackValue, 1) . ' Years' : 'As per final commercial value';
+    $co2OffsetValue = $capacityValue > 0 ? $capacityValue * 1.01 * 25 : 0;
+    $coalSavedValue = $capacityValue > 0 ? $capacityValue * 1.259 : 0;
+    $treesValue = $co2OffsetValue > 0 ? $co2OffsetValue * 45 : 0;
+    $co2Offset = $co2OffsetValue > 0 ? $plainNumber($co2OffsetValue, 1) : 'As per system size';
+    $coalSaved = $coalSavedValue > 0 ? $plainNumber($coalSavedValue, 1) : 'As per system size';
+    $treesEquivalent = $treesValue > 0 ? $plainNumber($treesValue, 0) : 'As per system size';
+    $baseSystemValue = (float) ($doc->total ?? $doc->price ?? 0);
+    $gstValue = (float) ($doc->gst_amount ?? 0);
+    $grossValue = $baseSystemValue + $gstValue;
+    $subsidyValue = (float) ($doc->subsidy_amount ?? 0);
+    $netInvestment = $netInvestmentValue > 0 ? $netInvestmentValue : max(0, $grossValue - $subsidyValue);
+    $productsRaw = $doc->product_name ?? [];
+    $products = is_array($productsRaw) ? $productsRaw : (json_decode((string) $productsRaw, true) ?: []);
+    $componentRows = [];
+    foreach (array_slice($products, 0, 5) as $product) {
+        if (!is_array($product)) {
+            continue;
+        }
+        $componentRows[] = [
+            'type' => $valueOr($product['name'] ?? '', 'Selected BOM Component'),
+            'make' => $valueOr($product['category_name'] ?? '', 'Approved Make'),
+            'spec' => $valueOr($product['description'] ?? '', 'As per selected technical BOQ'),
+            'warranty' => 'Standard OEM Warranty',
+        ];
+    }
+    if (empty($componentRows)) {
+        $componentRows = [
+            ['type' => 'Solar PV Panels', 'make' => 'Tier-1 Approved Brand', 'spec' => 'Mono PERC / high-efficiency solar module', 'warranty' => '10 Yr Product / 25 Yr Performance'],
+            ['type' => 'Grid-Tied Inverter', 'make' => 'Approved Inverter Make', 'spec' => 'High efficiency string inverter with app monitoring', 'warranty' => '5 Years Base Warranty'],
+            ['type' => 'Mounting Structure', 'make' => 'Custom Engineered', 'spec' => 'Hot-dip galvanized structural steel / aluminium', 'warranty' => '5 Years Structural'],
+            ['type' => 'AC / DC Cabling', 'make' => 'Approved Cable Make', 'spec' => 'Multi-strand copper, FRLS, XLPE solar grade', 'warranty' => 'Standard OEM Warranty'],
+            ['type' => 'Switchgear / Safety', 'make' => 'Approved Switchgear Make', 'spec' => 'IP65 enclosed ACDB & DCDB with Type-II SPD & fuses', 'warranty' => '1 Year Comprehensive'],
+        ];
+    }
     $proposalLabel = 'Solar Power Project Proposal | Confidential';
 @endphp
 <!doctype html>
@@ -160,7 +224,7 @@
             <p>With electricity tariffs rising consistently year after year, switching to solar is no longer just an environmental choice-it is one of the smartest and safest financial investments available today. At <strong>{{ $companyName }}</strong>, we combine premium Tier-1 components, precise engineering, and seamless multi-stage execution to ensure your transition to clean energy is entirely effortless and highly profitable.</p>
             <p>Enclosed, you will find a comprehensive breakdown of your custom tailored solar solution, expected annual generation metrics, long-term financial returns, and an end-to-end implementation roadmap.</p>
             <p>Best Regards,</p>
-            <p><strong>[Your Name/Title]</strong><br>[Your Company Name] | [Contact Information] | [Website]</p>
+            <p><strong>{{ $preparedName }} / {{ $preparedTitle }}</strong><br>{{ $companyName }} | {{ $contactInfo }} | {{ $websiteInfo }}</p>
         </div>
 
         <div class="section">
@@ -194,7 +258,7 @@
         <div class="section">
             <h2 class="section-title">4. Technical Line Diagram Layout</h2>
             <p>The layout below illustrates the seamless logical electrical connection map from production to grid export.</p>
-            <div class="diagram-box">[ Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB) &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr; Residential Load / Public Grid ]</div>
+            <div class="diagram-box">Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB) &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr; Residential Load / Public Grid</div>
         </div>
 
         <div class="section">
@@ -213,9 +277,9 @@
             <h2 class="section-title">6. Generation Calculations</h2>
             <p>Projected estimations are generated based on regional irradiance data for a premium proposed <strong>{{ $capacity }}</strong> system:</p>
             <ul>
-                <li><strong>Daily Average Generation:</strong> ~4 to 4.5 kWh (Units) per kWp installed - <strong>[X] Units/day</strong></li>
-                <li><strong>Estimated Monthly Generation:</strong> <strong>[X] Units/month</strong></li>
-                <li><strong>Projected Annual Generation:</strong> <strong>[X] Units/year</strong></li>
+                <li><strong>Daily Average Generation:</strong> ~4 to 4.5 kWh (Units) per kWp installed - <strong>{{ $dailyGeneration }} Units/day</strong></li>
+                <li><strong>Estimated Monthly Generation:</strong> <strong>{{ $monthlyGeneration }} Units/month</strong></li>
+                <li><strong>Projected Annual Generation:</strong> <strong>{{ $annualGeneration }} Units/year</strong></li>
             </ul>
         </div>
         <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 2 of 5</span></div>
@@ -228,10 +292,10 @@
             <table class="data-table">
                 <thead><tr><th>Financial Parameter</th><th>Projected Value</th></tr></thead>
                 <tbody>
-                    <tr><td>Estimated Monthly Savings Target</td><td>{!! $currencyAmount !!}</td></tr>
-                    <tr><td>Projected First-Year Annual Savings</td><td>{!! $currencyAmount !!}</td></tr>
-                    <tr><td>Cumulative 25-Year System Lifecycle Savings</td><td>{!! $currencyAmount !!}</td></tr>
-                    <tr><td><strong>Calculated System Payback Period (Break-Even)</strong></td><td><strong>[X] Years</strong></td></tr>
+                    <tr><td>Estimated Monthly Savings Target</td><td>{!! $money($monthlySavingsValue) !!}</td></tr>
+                    <tr><td>Projected First-Year Annual Savings</td><td>{!! $money($annualSavingsValue) !!}</td></tr>
+                    <tr><td>Cumulative 25-Year System Lifecycle Savings</td><td>{!! $money($lifecycleSavingsValue) !!}</td></tr>
+                    <tr><td><strong>Calculated System Payback Period (Break-Even)</strong></td><td><strong>{{ $payback }}</strong></td></tr>
                 </tbody>
             </table>
         </div>
@@ -240,9 +304,9 @@
             <h2 class="section-title">8. Carbon Emission Offset Calculation</h2>
             <p>By shifting power generation source to solar PV, your property achieves highly significant environmental offset targets across its guaranteed 25-year operational lifecycle:</p>
             <ul>
-                <li><strong>CO2 Emissions Prevented:</strong> <strong>[X] Metric Tons</strong> of pure Carbon Dioxide stopped from entering the atmosphere.</li>
-                <li><strong>Fossil Fuel Preservation:</strong> Equivalent to preventing the burning of <strong>[X] Tons</strong> of standard coal.</li>
-                <li><strong>Reforestation Equivalence:</strong> Equal to the ecological impact of planting <strong>[X] mature trees</strong>.</li>
+                <li><strong>CO2 Emissions Prevented:</strong> <strong>{{ $co2Offset }} Metric Tons</strong> of pure Carbon Dioxide stopped from entering the atmosphere.</li>
+                <li><strong>Fossil Fuel Preservation:</strong> Equivalent to preventing the burning of <strong>{{ $coalSaved }} Tons</strong> of standard coal.</li>
+                <li><strong>Reforestation Equivalence:</strong> Equal to the ecological impact of planting <strong>{{ $treesEquivalent }} mature trees</strong>.</li>
             </ul>
         </div>
 
@@ -270,11 +334,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><strong>Solar PV Panels</strong></td><td>[Waaree / Adani / Tata]</td><td>Mono PERC - Half Cut Module ([X]Wp)</td><td>10 Yr Product / 25 Yr Performance</td></tr>
-                    <tr><td><strong>Grid-Tied Inverter</strong></td><td>[Growatt / Sungrow / Solis]</td><td>High Efficiency String Inverter with App Monitoring</td><td>5 Years Base Warranty</td></tr>
-                    <tr><td><strong>Mounting Structure</strong></td><td>[Custom Engineered]</td><td>Hot-Dip Galvanized Structural Steel (HDG) / Al</td><td>5 Years Structural</td></tr>
-                    <tr><td><strong>AC / DC Cabling</strong></td><td>[Polycab / KEI Industries]</td><td>Multi-strand Copper, FRLS, XLPE Solar Grade</td><td>Standard OEM Warranty</td></tr>
-                    <tr><td><strong>Switchgear / Safety</strong></td><td>[Schneider / Legrand]</td><td>IP65 Enclosed ACDB &amp; DCDB with Type-II SPD &amp; Fuses</td><td>1 Year Comprehensive</td></tr>
+                    @foreach ($componentRows as $component)
+                        <tr>
+                            <td><strong>{{ $component['type'] }}</strong></td>
+                            <td>{{ $component['make'] }}</td>
+                            <td>{{ $component['spec'] }}</td>
+                            <td>{{ $component['warranty'] }}</td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -285,11 +352,11 @@
             <table class="data-table">
                 <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
                 <tbody>
-                    <tr><td>Base System Supply, Engineering, Liaisoning &amp; Installation Cost</td><td>{!! $currencyAmount !!}</td></tr>
-                    <tr><td>Applicable Statutory Goods and Services Tax (GST)</td><td>{!! $currencyAmount !!}</td></tr>
-                    <tr><td><strong>Gross Capital Project Value (A)</strong></td><td><strong>{!! $currencyAmount !!}</strong></td></tr>
-                    <tr><td><em>Less: Eligible PM-Surya Ghar Portal Subsidy Allocation (B)</em></td><td><em>- {!! $currencyAmount !!}</em></td></tr>
-                    <tr class="total-row"><td>Net Out-of-Pocket Customer Investment (A - B)</td><td>{!! $currencyAmount !!}</td></tr>
+                    <tr><td>Base System Supply, Engineering, Liaisoning &amp; Installation Cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
+                    <tr><td>Applicable Statutory Goods and Services Tax (GST)</td><td>{!! $money($gstValue) !!}</td></tr>
+                    <tr><td><strong>Gross Capital Project Value (A)</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
+                    <tr><td><em>Less: Eligible PM-Surya Ghar Portal Subsidy Allocation (B)</em></td><td><em>- {!! $money($subsidyValue) !!}</em></td></tr>
+                    <tr class="total-row"><td>Net Out-of-Pocket Customer Investment (A - B)</td><td>{!! $money($netInvestment) !!}</td></tr>
                 </tbody>
             </table>
         </div>
