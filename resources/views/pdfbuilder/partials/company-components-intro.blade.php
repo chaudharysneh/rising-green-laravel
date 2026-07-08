@@ -7,7 +7,7 @@
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                 <tr>
-                    <td style="padding: <?= !empty($componentsIntroExpanded) ? '26px 28px 24px 24px' : '20px 24px 18px 22px' ?>; background-color: #f8fbf8;">
+                    <td style="padding: <?= !empty($componentsIntroExpanded) ? '26px 28px 24px 24px' : '20px 24px 18px 22px' ?>;">
                         <div class="pdf-rich-content pdf-rich-content-spacious pdf-company-page-about">
                         <?php if ($componentsActive === 1 && $componentsDesc !== ''): ?>
                         <?= $componentsDesc ?>
