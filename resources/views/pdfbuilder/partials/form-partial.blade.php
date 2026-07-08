@@ -67,6 +67,22 @@
         background: #bdc5f121;
     }
 
+    #pdf-builder-form .form-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    #pdf-builder-form .form-label i,
+    #pdf-builder-form h5 i {
+        margin-right: 0px;
+        flex-shrink: 0;
+    }
+
+    #pdf-builder-form .form-label .text-danger {
+        margin-left: 2px;
+    }
+
     /* 🔵 CKEditor Styling */
     .cke {
         border-radius: 6px !important;
