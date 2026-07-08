@@ -20,35 +20,35 @@
     <meta charset="utf-8">
     <title>Basic Template</title>
     <style>
-        @page { margin: 0; size: A4 portrait; }
+        @page { margin: 14mm 15mm 12mm; size: A4 portrait; }
         * { box-sizing: border-box; }
         body {
             margin: 0;
             color: #1e2f44;
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11.4px;
-            line-height: 1.5;
+            font-size: 10.8px;
+            line-height: 1.48;
             background: #fff;
         }
         .page {
             position: relative;
-            width: 210mm;
-            height: 297mm;
-            padding: 14mm 15mm 16mm;
-            overflow: hidden;
-            page-break-before: always;
+            width: 100%;
+            min-height: 260mm;
+            padding-bottom: 11mm;
+            page-break-after: always;
             background: #fff;
+            overflow: visible;
         }
-        .page:first-child { page-break-before: auto; }
+        .page:last-child { page-break-after: auto; }
         .cover-header {
-            margin: -14mm -15mm 8mm;
+            margin: -14mm -15mm 9mm;
             padding: 13mm 15mm 10mm;
             background: #183d66;
             color: #fff;
             border-bottom: 4px solid #f2a51c;
         }
         .cover-title {
-            font-size: 27px;
+            font-size: 25px;
             line-height: 1;
             font-weight: 700;
             letter-spacing: .2px;
@@ -56,7 +56,7 @@
             margin-bottom: 7px;
         }
         .cover-subtitle {
-            font-size: 11px;
+            font-size: 10.5px;
             font-style: italic;
             color: #eef5ff;
         }
@@ -65,7 +65,7 @@
         }
         .section-title {
             color: #14395f;
-            font-size: 15.5px;
+            font-size: 14.4px;
             line-height: 1.2;
             font-weight: 700;
             border-left: 4px solid #f2a51c;
@@ -83,6 +83,8 @@
             color: #58708a;
             font-style: italic;
             text-align: center;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .process-box {
             margin: 9px 0 15px;
@@ -90,6 +92,8 @@
             border: 1px solid #9fd5f3;
             border-radius: 4px;
             background: #eef9ff;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         .data-table {
             width: 100%;
@@ -132,9 +136,9 @@
         }
         .footer {
             position: absolute;
-            left: 15mm;
-            right: 15mm;
-            bottom: 8mm;
+            left: 0;
+            right: 0;
+            bottom: 0;
             color: #7c8ca0;
             font-size: 8.5px;
         }
