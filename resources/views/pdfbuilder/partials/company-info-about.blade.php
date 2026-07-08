@@ -1,11 +1,11 @@
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px; border-collapse: collapse;">
     <tr>
-        <td style="padding: 20px 24px 18px 22px; background-color: #f8fbf8;">
+        <td style="padding: 20px 24px 18px 22px;">
             <div class="pdf-rich-content pdf-rich-content-spacious pdf-company-page-about">
                 <?php if (($estdata->type ?? '') === 'residential'): ?>
                     <p style="margin-bottom: 14px; font-size: 16px; font-weight: normal;">Dear <strong><?= esc($preparedForName) ?></strong>,</p>
                     <p style="margin-bottom: 14px; font-size: 16px; text-align: justify; line-height: 1.65; font-weight: normal;">
-                        Thank you for giving <strong><?= esc($globalCompanyName) ?></strong> the opportunity to present this customized solar energy proposal for your property located at <strong><?= esc($clientAddress) ?></strong>.
+                        Thank you for giving <strong><?= esc($globalCompanyName) ?></strong> the opportunity to present this customized solar energy proposal<?= !empty($hasClientAddress) ? ' for your property located at <strong>' . esc($clientAddress) . '</strong>' : '' ?>.
                     </p>
                     <p style="margin-bottom: 14px; font-size: 16px; text-align: justify; line-height: 1.65; font-weight: normal;">
                         With electricity tariffs rising consistently year after year, switching to solar is no longer just an environmental choice—it is one of the smartest and safest financial investments available today. At <strong><?= esc($globalCompanyName) ?></strong>, we combine premium Tier-1 components, precise engineering, and seamless multi-stage execution to ensure your transition to clean energy is entirely effortless and highly profitable.
