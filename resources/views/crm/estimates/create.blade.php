@@ -460,7 +460,13 @@
                             </div>
 
                             <div>
-                                <label class="form-label fw-semibold">Comment</label>
+                                <label class="form-label fw-semibold w-100 d-flex align-items-center gap-2 mb-1">
+                                    <span>Comment</span>
+                                    <button type="button" id="edit_template_comment_btn" class="btn btn-link btn-sm text-primary text-decoration-none p-0 ms-auto d-none">
+                                        Edit
+                                    </button>
+                                </label>
+                                <input type="hidden" name="update_template_comment" id="update_template_comment" value="0">
                                 <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="2"
                                     placeholder="Add any comments...">{{ old('comment') }}</textarea>
                                 <div class="invalid-feedback">

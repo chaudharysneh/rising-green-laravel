@@ -7,6 +7,7 @@ use App\Models\BomProduct;
 use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Customer;
+use App\Models\PdfBuilderForm;
 use App\Models\Tax;
 use App\Models\Technology;
 use App\Models\Warranty;
@@ -242,6 +243,10 @@ class EstimateController extends Controller
             ]);
 
             // ── Email: Estimate Customer & Admin Notifications ────────────────
+            if ($request->boolean('update_template_comment')) {
+                $this->updateTemplateEstimateComment($templateId, $comment);
+            }
+
             $estimate->loadMissing(['customer', 'creator']);
             send_estimate_view_notification($estimate);
             send_admin_notification('Estimate', 'Created', $estimate->estimate_no, []);
@@ -428,6 +433,10 @@ class EstimateController extends Controller
             }
 
             $estimate->update($updateData);
+
+            if ($request->boolean('update_template_comment')) {
+                $this->updateTemplateEstimateComment($templateId, $comment);
+            }
 
             send_admin_notification('Estimate', 'Updated', $estimate->estimate_no, []);
 
@@ -677,6 +686,29 @@ class EstimateController extends Controller
                 'uploaded_at' => $doc['uploaded_at'] ?? null,
             ];
         }, array_filter($docs)));
+    }
+
+    private function updateTemplateEstimateComment(int $templateId, string $comment): void
+    {
+        if ($templateId <= 0) {
+            return;
+        }
+
+        $template = PdfBuilderForm::find($templateId);
+        if (!$template) {
+            return;
+        }
+
+        $formData = is_array($template->form_data) ? $template->form_data : [];
+        $existingComment = is_array($formData['estimate_comment'] ?? null) ? $formData['estimate_comment'] : [];
+
+        $formData['estimate_comment'] = array_merge($existingComment, [
+            'active' => 1,
+            'content' => $comment,
+        ]);
+
+        $template->form_data = $formData;
+        $template->save();
     }
 
     private function calculateProductsTotal(array $products): float

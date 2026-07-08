@@ -2741,6 +2741,8 @@
     function initTemplateCommentAutofill() {
         const templateSelect = document.getElementById('template_id');
         const commentField = document.getElementById('comment');
+        const updateTemplateCommentField = document.getElementById('update_template_comment');
+        const editTemplateCommentBtn = document.getElementById('edit_template_comment_btn');
         const formConfig = getActiveDocumentFormConfig();
         const templates = window[formConfig.templateCommentsKey] || window.estimateTemplateComments || {};
 
@@ -2748,8 +2750,38 @@
             return;
         }
 
+        const updateCommentEditButton = function () {
+            if (!editTemplateCommentBtn) {
+                return;
+            }
+
+            if (templateSelect.value) {
+                editTemplateCommentBtn.classList.remove('d-none');
+            } else {
+                editTemplateCommentBtn.classList.add('d-none');
+                if (updateTemplateCommentField) {
+                    updateTemplateCommentField.value = '0';
+                }
+                editTemplateCommentBtn.textContent = 'Edit';
+                editTemplateCommentBtn.classList.remove('fw-semibold');
+            }
+        };
+
+        const resetTemplateCommentEditState = function () {
+            if (updateTemplateCommentField) {
+                updateTemplateCommentField.value = '0';
+            }
+            if (editTemplateCommentBtn) {
+                editTemplateCommentBtn.textContent = 'Edit';
+                editTemplateCommentBtn.classList.remove('fw-semibold');
+            }
+        };
+
         const fillFromSelectedTemplate = function (overwrite) {
             const config = templates[String(templateSelect.value)] || {};
+            updateCommentEditButton();
+            resetTemplateCommentEditState();
+
             if (parseInt(config.active || 0, 10) !== 1) {
                 return;
             }
@@ -2761,6 +2793,25 @@
             }
         };
 
+        if (editTemplateCommentBtn) {
+            editTemplateCommentBtn.addEventListener('click', function () {
+                if (!templateSelect.value) {
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('error', 'Please select quotation template first.');
+                    }
+                    return;
+                }
+
+                if (updateTemplateCommentField) {
+                    updateTemplateCommentField.value = '1';
+                }
+                editTemplateCommentBtn.textContent = 'Editing';
+                editTemplateCommentBtn.classList.add('fw-semibold');
+                commentField.focus();
+                commentField.select();
+            });
+        }
+
         templateSelect.addEventListener('change', function () {
             fillFromSelectedTemplate(true);
         });
@@ -2771,6 +2822,7 @@
             });
         }
 
+        updateCommentEditButton();
         fillFromSelectedTemplate(false);
     }
 
