@@ -3,6 +3,7 @@
     if (!cardEl) return;
 
     const toggleBtn = document.getElementById('chatbotToggleBtn');
+    const dismissBtn = document.getElementById('chatbotDismissBtn');
     const closeBtn = document.getElementById('chatbotCloseBtn');
     const sendBtn = document.getElementById('chatbotSendBtn');
     const inputEl = document.getElementById('chatbotInput');
@@ -525,6 +526,11 @@
         removeBackButton();
     }
 
+    function dismissChatbot() {
+        closeChatbot();
+        document.body.classList.add('chatbot-is-dismissed');
+    }
+
     function toggleChatbot() {
         if (cardEl.classList.contains('open')) {
             closeChatbot();
@@ -538,6 +544,9 @@
     }
 
     toggleBtn.addEventListener('click', toggleChatbot);
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', dismissChatbot);
+    }
     closeBtn.addEventListener('click', closeChatbot);
 
     document.addEventListener('keydown', function (event) {

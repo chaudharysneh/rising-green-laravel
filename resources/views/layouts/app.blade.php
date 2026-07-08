@@ -1066,6 +1066,9 @@
     <div class="chatbot-float-btn chatbot-toggle-btn" id="chatbotToggleBtn" role="button" aria-label="Open chatbot">
         <i class="fa-solid fa-headset"></i>
     </div>
+     <button type="button" class="chatbot-dismiss-btn" id="chatbotDismissBtn" aria-label="Hide chatbot">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
     {{-- @include('crm.chatbot.chatbot-modal') --}}
     <!-- Chatbot Card -->
     <div class="chatbot-card" id="chatbotCard" role="dialog" aria-labelledby="chatbotCardLabel" aria-hidden="true">
