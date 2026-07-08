@@ -11,6 +11,15 @@ if (!function_exists('esc')) {
     }
 }
 
+if (!function_exists('pdf_has_real_value')) {
+    function pdf_has_real_value($value): bool
+    {
+        $value = trim((string) $value);
+
+        return $value !== '' && !in_array(strtolower($value), ['--', 'address', 'n/a', 'na'], true);
+    }
+}
+
 if (!defined('FCPATH')) {
     define('FCPATH', public_path() . DIRECTORY_SEPARATOR);
 }
@@ -433,7 +442,7 @@ if ($passedEstimate) {
     // Add aliases needed by this template for Customer details
     if (isset($passedEstimate->customer)) {
         $estdata->name = $passedEstimate->customer->name ?? '--';
-        $estdata->address = $passedEstimate->customer->address ?? '--';
+        $estdata->address = $passedEstimate->customer->address ?? '';
     }
 }
 
@@ -446,7 +455,8 @@ $pdfTypeLabelMixed2 = $isInvoice ? 'invoice' : 'proposal';
 // Get prepared by name (user who created/owns the estimate)
 $preparedByName = $user['name'] ?? ($user['company_name'] ?? '--');
 $preparedForName = $estdata && isset($estdata->name) ? $estdata->name : '--';
-$clientAddress = $estdata && isset($estdata->address) ? $estdata->address : '--';
+$clientAddress = $estdata && isset($estdata->address) ? trim((string) $estdata->address) : '';
+$hasClientAddress = pdf_has_real_value($clientAddress);
 // Get quantity from estimate data
 // Get quantity from estimate data - ensure it displays correctly
 $quantity = '0';
@@ -929,7 +939,7 @@ if (!empty($monthlyData)) {
 // --- START PLACEHOLDER LOGIC ---
 $placeholders = [
     '{{client_name}}' => $preparedForName ?? '--',
-    '{{client_address}}' => $clientAddress ?? '--',
+    '{{client_address}}' => $hasClientAddress ? $clientAddress : '',
     '{{company_name}}' => $globalCompanyName ?? '--',
     '{{company_contact}}' => $companySettings['phone'] ?? ($user['mobile'] ?? '--'),
     '{{company_website}}' => $companySettings['website'] ?? ($user['website'] ?? '--'),
@@ -1460,10 +1470,12 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                         <span style="font-size:20px;">Client name :</span> <?= esc($preparedForName) ?>
                     </div>
 
+                    <?php if ($hasClientAddress): ?>
                     <!-- Client Address -->
                     <div style="font-size:22px; font-weight:400; font-family: 'Montserrat', sans-serif;">
                         <?= esc($clientAddress) ?>
                     </div>
+                    <?php endif; ?>
 
                     <!-- Red Line -->
                     <!-- <div style="border-top:1px solid #ff0000; margin-top:15px;"></div> -->
@@ -2743,7 +2755,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
             $timelineImg2 = is_string($timelineImg2) && strpos($timelineImg2, 'data:image') === 0 ? $timelineImg2 : normalize_pdf_image('public/assets/img/page-5-2.png');
             ?>
             <!-- ================= OFFER & TERMS (timeline) ================= -->
-            <div style="page-break-inside:avoid;">
+            <div>
                 <div
                     style="font-size:30px; font-weight:bold; color:#000; margin-bottom:6px; font-family: 'Montserrat', sans-serif; color: #4b9349; padding-left:16px; line-height:1.1;">
                     <?= $timelineMainTitle !== '' ? esc($timelineMainTitle) : 'TIMELINE' ?>
@@ -3278,7 +3290,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     <tr>
                         <td align="center" valign="middle">
                             <img src="<?= $paymentTermsImg ?>" alt="Payment Terms Timeline"
-                                style="max-width:78%;max-height:220px;height:auto;display:block;margin:0 auto;">
+                                style="max-width:66%;max-height:150px;height:auto;display:block;margin:0 auto;">
                         </td>
                     </tr>
                 </table>
