@@ -1762,7 +1762,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                 empaneled solar vendor, we manage the entire national subsidy workflow framework for your project
                 end-to-end:</p>
             <div
-                style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #1e3f20;">
+                style="border: 1.5px solid #bbf7d0; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.5; color: #1e3f20;">
                 <p style="margin-bottom: 8px;"><strong>1. Registration:</strong> We safely onboard your consumer
                     credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
                 <p style="margin-bottom: 8px;"><strong>2. Technical Feasibility:</strong> The regional DISCOM
@@ -3317,10 +3317,10 @@ if (isset($after_blocks) && is_array($after_blocks)) {
 
                 <?php if (!empty($paymentRows)): ?>
                 <?php
-                $ptHeaderStyle = 'background-color:#4b9349;color:#fff;padding:11px 14px;font-size:14px;font-weight:bold;font-family:Montserrat,sans-serif;border:1px solid #3d7a3b;';
+                $ptHeaderStyle = 'color:#000;padding:11px 14px;font-size:14px;font-weight:bold;font-family:Montserrat,sans-serif;border:1px solid #3d7a3b;';
                 $ptLeftStyle = 'padding:11px 14px;font-size:13px;font-weight:bold;color:#000000;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;vertical-align:top;width:30%;line-height:1.4;background-color:#ffffff;';
                 $ptRightStyle = 'padding:11px 14px;font-size:13px;color:#333;font-family:Montserrat,sans-serif;border:1px solid #d8e8d8;vertical-align:top;width:70%;line-height:1.55;';
-                $ptRowEvenStyle = 'background-color:#fafcfa;';
+                $ptRowEvenStyle = '';
                 ?>
                 <table width="100%" cellpadding="0" cellspacing="0"
                     style="border-collapse:collapse;margin:14px 0 16px;border:1px solid #4b9349;">
@@ -3554,7 +3554,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     style="margin-bottom:22px;border-collapse:collapse;">
                     <tr>
                         <td
-                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            style="padding:10px 12px 10px 14px;font-size:13.5px;line-height:1.55;color:#333;">
                             <strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon
                             localized utility board structural approval speed.
                         </td>
@@ -3564,7 +3564,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     </tr>
                     <tr>
                         <td
-                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            style="padding:10px 12px 10px 14px;font-size:13.5px;line-height:1.55;color:#333;">
                             <strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop
                             clearance, secure storage space for physical components, and a continuous water line
                             connection for maintenance panels cleaning.
@@ -3575,7 +3575,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     </tr>
                     <tr>
                         <td
-                            style="padding:10px 12px 10px 14px;background-color:#f7fbf7;font-size:13.5px;line-height:1.55;color:#333;">
+                            style="padding:10px 12px 10px 14px;font-size:13.5px;line-height:1.55;color:#333;">
                             <strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly
                             onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications
                             will be billed extra as per agreed metrics.
@@ -3589,7 +3589,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     Disclaimer
                 </div>
                 <div
-                    style="padding:14px 16px 14px 18px;background-color:#fafcfa;font-size:13px;line-height:1.58;color:#444;margin-bottom:22px;text-align:justify;">
+                    style="padding:14px 16px 14px 18px;font-size:13px;line-height:1.58;color:#444;margin-bottom:22px;text-align:justify;">
                     Solar generation metrics are derived parameters calculated utilizing historical long-term satellite
                     climate records for your specific latitude/longitude. Actual real-time production yields may
                     fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading
@@ -3607,7 +3607,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     style="margin-bottom:12px;border-collapse:collapse;border:1px solid #d8e8d8;">
                     <tr>
                         <td
-                            style="padding:14px 16px;background-color:#f4faf4;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                            style="padding:14px 16px;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
                             &ldquo;The complete migration process to solar with this team was entirely fluid. Our
                             typical monthly operational electric bills fell right down from near <?= $rupeeHtml ?>8,000
                             to basic minimal meter standing charges under <?= $rupeeHtml ?>500! Clean installation and
@@ -3624,7 +3624,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
                     style="border-collapse:collapse;border:1px solid #d8e8d8;">
                     <tr>
                         <td
-                            style="padding:14px 16px;background-color:#f4faf4;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
+                            style="padding:14px 16px;font-size:13px;line-height:1.55;color:#444;font-style:italic;">
                             &ldquo;Outstanding expertise handling the central PM-Surya Ghar portal compliance
                             parameters. The full subsidy allocation arrived securely into my bank profile within exactly
                             25 working days post meter calibration.&rdquo;
