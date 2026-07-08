@@ -575,6 +575,7 @@ class PdfbuilderController extends Controller
         $pdfData = $this->buildTemplateViewPdfData($template, $estimateNo);
 
         $pdf = Pdf::loadView($this->isBasicTemplate($template) ? 'pdfbuilder.basic-template-pdf' : 'pdfbuilder.pdf', $pdfData);
+        $pdf->setPaper('A4', 'portrait');
         $this->applyPdfDocumentTitle($pdf, (string) $template->template_name);
 
         return $pdf->stream($this->pdfDownloadFilename($template));

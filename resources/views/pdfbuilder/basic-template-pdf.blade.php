@@ -26,27 +26,29 @@
             margin: 0;
             color: #1e2f44;
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 10.5px;
-            line-height: 1.55;
+            font-size: 11.4px;
+            line-height: 1.5;
             background: #fff;
         }
         .page {
             position: relative;
-            min-height: 297mm;
-            padding: 18mm 15mm 17mm;
-            page-break-after: always;
+            width: 210mm;
+            height: 297mm;
+            padding: 14mm 15mm 16mm;
+            overflow: hidden;
+            page-break-before: always;
             background: #fff;
         }
-        .page:last-child { page-break-after: auto; }
+        .page:first-child { page-break-before: auto; }
         .cover-header {
-            margin: -18mm -15mm 8mm;
-            padding: 14mm 15mm 11mm;
+            margin: -14mm -15mm 8mm;
+            padding: 13mm 15mm 10mm;
             background: #183d66;
             color: #fff;
             border-bottom: 4px solid #f2a51c;
         }
         .cover-title {
-            font-size: 25px;
+            font-size: 27px;
             line-height: 1;
             font-weight: 700;
             letter-spacing: .2px;
@@ -54,28 +56,28 @@
             margin-bottom: 7px;
         }
         .cover-subtitle {
-            font-size: 9px;
+            font-size: 11px;
             font-style: italic;
             color: #eef5ff;
         }
         .section {
-            margin: 0 0 15px;
+            margin: 0 0 14px;
         }
         .section-title {
             color: #14395f;
-            font-size: 14px;
+            font-size: 15.5px;
             line-height: 1.2;
             font-weight: 700;
             border-left: 4px solid #f2a51c;
             padding-left: 8px;
-            margin: 0 0 10px;
+            margin: 0 0 9px;
         }
-        p { margin: 0 0 8px; }
-        ul { margin: 0 0 10px 15px; padding: 0; }
-        li { margin: 0 0 5px; }
+        p { margin: 0 0 7px; }
+        ul { margin: 0 0 9px 15px; padding: 0; }
+        li { margin: 0 0 4px; }
         .diagram-box {
-            margin: 10px 0 18px;
-            padding: 16px 18px;
+            margin: 9px 0 15px;
+            padding: 14px 16px;
             border: 1px dashed #b9c8d7;
             background: #f8fbfe;
             color: #58708a;
@@ -83,8 +85,8 @@
             text-align: center;
         }
         .process-box {
-            margin: 10px 0 18px;
-            padding: 13px 16px;
+            margin: 9px 0 15px;
+            padding: 12px 15px;
             border: 1px solid #9fd5f3;
             border-radius: 4px;
             background: #eef9ff;
@@ -92,18 +94,18 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 8px 0 18px;
+            margin: 7px 0 15px;
         }
         .data-table th {
             background: #2d73b6;
             color: #fff;
-            font-size: 9.2px;
+            font-size: 10.2px;
             text-align: left;
-            padding: 8px 9px;
+            padding: 7px 8px;
             border: 1px solid #2d73b6;
         }
         .data-table td {
-            padding: 8px 9px;
+            padding: 7px 8px;
             border: 1px solid #d5e0eb;
             vertical-align: top;
         }
@@ -117,13 +119,13 @@
         .quote-box {
             border-left: 3px solid #c5d1de;
             background: #f7f9fb;
-            padding: 12px 14px;
-            margin-bottom: 11px;
+            padding: 11px 13px;
+            margin-bottom: 10px;
             font-style: italic;
         }
         .quote-author {
             display: block;
-            margin-top: 7px;
+            margin-top: 6px;
             font-style: normal;
             font-weight: 700;
             color: #1e2f44;
@@ -134,7 +136,7 @@
             right: 15mm;
             bottom: 8mm;
             color: #7c8ca0;
-            font-size: 8px;
+            font-size: 8.5px;
         }
         .footer .page-no { float: right; }
         strong { color: #19314c; }
