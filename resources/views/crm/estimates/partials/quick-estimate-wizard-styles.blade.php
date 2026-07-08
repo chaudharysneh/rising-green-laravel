@@ -25,6 +25,23 @@
         display: block !important;
     }
 
+    @media (min-width: 768px) {
+        #quickEstimateModal .quick-comment-col,
+        #quickEstimateModal .quick-totals-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #quickEstimateModal .quick-comment-col textarea {
+            flex: 1;
+            min-height: 210px;
+        }
+
+        #quickEstimateModal .quick-totals-card {
+            height: 100%;
+        }
+    }
+
     @media (max-width: 767.98px) {
         #addCustomerModal.modal,
         #quickAddBomModal.modal {

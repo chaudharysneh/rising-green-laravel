@@ -55,6 +55,23 @@
             display: block !important;
         }
 
+        @media (min-width: 768px) {
+            #quickEstimateModal .quick-comment-col,
+            #quickEstimateModal .quick-totals-col {
+                display: flex;
+                flex-direction: column;
+            }
+
+            #quickEstimateModal .quick-comment-col textarea {
+                flex: 1;
+                min-height: 210px;
+            }
+
+            #quickEstimateModal .quick-totals-card {
+                height: 100%;
+            }
+        }
+
         @media (max-width: 767.98px) {
             #addCustomerModal.modal,
             #quickAddBomModal.modal {
@@ -394,7 +411,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 quick-step-3">
+                        <div class="col-12 col-md-6 quick-step-3 quick-totals-col order-md-2">
                             <div class="totals-card quick-totals-card rounded-3">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
@@ -439,7 +456,7 @@
                             <input type="hidden" id="quick_final_total" value="0">
                             <input type="hidden" id="quick_gst" value="0">
                         </div>
-                        <div class="col-12 quick-step-3">
+                        <div class="col-12 col-md-6 quick-step-3 quick-comment-col order-md-1">
                             <label class="form-label fw-semibold">Comment</label>
                             <textarea class="form-control" name="comment" id="quick_estimate_comment" rows="3" placeholder="Optional comment"></textarea>
                         </div>
@@ -677,6 +694,5 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush
-
 
 
