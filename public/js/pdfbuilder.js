@@ -37,6 +37,8 @@
 
                 const viewUrl = `/pdfbuilder/view/${template.id}`;
                 const editUrl = `/pdfbuilder/edit/${template.id}`;
+                const isStaticBasicTemplate = template.is_static_basic_template || String(template.template_name || '').trim().toLowerCase() === 'basic template';
+                const editAction = isStaticBasicTemplate ? '' : `<a href="${editUrl}" class="btn crm-action-btn btn-sm" title="Edit Template"><i class="bi bi-pencil"></i></a>`;
 
                 return `
                 <tr class="template-row">
@@ -55,7 +57,7 @@
                     <td class="text-end pe-4 d-none d-md-table-cell">
                         <div class="d-inline-flex align-items-center gap-2">
                             <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener" title="View PDF"><i class="bi bi-eye"></i></a>
-                            <a href="${editUrl}" class="btn crm-action-btn btn-sm" title="Edit Template"><i class="bi bi-pencil"></i></a>
+                            ${editAction}
                             <button class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${template.id}" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
@@ -81,7 +83,7 @@
                                     <div class="expand-label"><i class="fa-solid fa-gear"></i> Actions :</div>
                                     <div class="d-flex justify-content-end flex-wrap gap-2">
                                         <a href="${viewUrl}" class="btn crm-action-btn btn-sm" target="_blank" rel="noopener"><i class="bi bi-eye"></i></a>
-                                        <a href="${editUrl}" class="btn crm-action-btn btn-sm"><i class="bi bi-pencil"></i></a>
+                                        ${editAction}
                                         <button class="btn crm-action-btn btn-sm text-danger delete-btn" data-id="${template.id}"><i class="bi bi-trash"></i></button>
                                     </div>
                                 </div>
@@ -709,4 +711,3 @@
         });
     });
 })();
-

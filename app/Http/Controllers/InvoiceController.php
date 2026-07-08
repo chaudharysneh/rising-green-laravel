@@ -17,6 +17,7 @@ use App\Support\DocumentSummaryPresenter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
@@ -240,7 +241,10 @@ class InvoiceController extends Controller
                 'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             ];
 
-            $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
+            $pdfView = Str::lower(trim((string) $template->template_name)) === 'basic template'
+                ? 'pdfbuilder.basic-template-pdf'
+                : 'pdfbuilder.pdf';
+            $pdf = Pdf::loadView($pdfView, $pdfData);
             $pdf->setPaper('A4', 'portrait');
         } else {
             $pdf = Pdf::loadView('crm.invoices.pdf', compact('invoice', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'));

@@ -14,6 +14,11 @@ use Illuminate\Support\Str;
 
 class PdfbuilderController extends Controller
 {
+    private function isBasicTemplate(PdfBuilderForm $template): bool
+    {
+        return Str::lower(trim((string) $template->template_name)) === 'basic template';
+    }
+
     private function pdfDownloadFilename(PdfBuilderForm $template): string
     {
         $name = trim((string) $template->template_name);
@@ -206,6 +211,10 @@ class PdfbuilderController extends Controller
     public function edit($id)
     {
         $template = PdfBuilderForm::findOrFail($id);
+
+        if ($this->isBasicTemplate($template)) {
+            return redirect()->route('pdfbuilder.index')->with('error', 'Basic Template is a static PDF and cannot be edited.');
+        }
 
         $form_data = $template->form_data ?? [];
         $companyInfo = $template->company_information ?? [];
@@ -565,7 +574,7 @@ class PdfbuilderController extends Controller
         $estimateNo = request()->query('estimate_no') ?? '--';
         $pdfData = $this->buildTemplateViewPdfData($template, $estimateNo);
 
-        $pdf = Pdf::loadView('pdfbuilder.pdf', $pdfData);
+        $pdf = Pdf::loadView($this->isBasicTemplate($template) ? 'pdfbuilder.basic-template-pdf' : 'pdfbuilder.pdf', $pdfData);
         $this->applyPdfDocumentTitle($pdf, (string) $template->template_name);
 
         return $pdf->stream($this->pdfDownloadFilename($template));
