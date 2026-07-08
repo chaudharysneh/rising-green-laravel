@@ -167,7 +167,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 quick-step-3">
+                        <div class="col-12 col-md-6 quick-step-3 quick-totals-col order-md-2">
                             <div class="totals-card quick-totals-card rounded-3">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
@@ -212,7 +212,7 @@
                             <input type="hidden" id="quick_final_total" value="0">
                             <input type="hidden" id="quick_gst" value="0">
                         </div>
-                        <div class="col-12 quick-step-3">
+                        <div class="col-12 col-md-6 quick-step-3 quick-comment-col order-md-1">
                             <label class="form-label fw-semibold">Comment</label>
                             <textarea class="form-control" name="comment" id="quick_estimate_comment" rows="2" placeholder="Optional comment"></textarea>
                         </div>
@@ -283,7 +283,6 @@
         </div>
     </div>
 </div>
-
 
 
 
