@@ -90,8 +90,8 @@
             margin: 0;
             color: #1e2f44;
             font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 10.8px;
-            line-height: 1.48;
+            font-size: 11.7px;
+            line-height: 1.47;
             background: #fff;
         }
         .page {
@@ -129,7 +129,7 @@
         }
         .section-title {
             color: #14395f;
-            font-size: 14.4px;
+            font-size: 15.3px;
             line-height: 1.2;
             font-weight: 700;
             border-left: 4px solid #f2a51c;
@@ -167,7 +167,7 @@
         .data-table th {
             background: #2d73b6;
             color: #fff;
-            font-size: 10.2px;
+            font-size: 11px;
             text-align: left;
             padding: 7px 8px;
             border: 1px solid #2d73b6;
@@ -204,7 +204,7 @@
             right: 0;
             bottom: 0;
             color: #7c8ca0;
-            font-size: 8.5px;
+            font-size: 10px;
         }
         .footer .page-no { float: right; }
         strong { color: #19314c; }
