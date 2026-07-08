@@ -9,6 +9,7 @@ use App\Models\PdfType;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class PdfbuilderApiController extends Controller
 {
@@ -41,6 +42,11 @@ class PdfbuilderApiController extends Controller
         }
 
         $templates = $query->paginate(10);
+        $templates->getCollection()->transform(function ($template) {
+            $template->is_static_basic_template = Str::lower(trim((string) $template->template_name)) === 'basic template';
+
+            return $template;
+        });
 
         return response()->json([
             'success' => true,

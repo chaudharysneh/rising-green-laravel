@@ -16,6 +16,7 @@ use App\Models\Warranty;
 use App\Models\Subsidy;
 use App\Support\DocumentSummaryPresenter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EstimateController extends Controller
 {
@@ -213,7 +214,10 @@ class EstimateController extends Controller
                 'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             ];
 
-            $pdf = \PDF::loadView('pdfbuilder.pdf', $pdfData);
+            $pdfView = Str::lower(trim((string) $template->template_name)) === 'basic template'
+                ? 'pdfbuilder.basic-template-pdf'
+                : 'pdfbuilder.pdf';
+            $pdf = \PDF::loadView($pdfView, $pdfData);
             $pdf->setPaper('A4', 'portrait');
         } else {
             // Fallback to original behavior if absolutely no template exists
@@ -322,7 +326,6 @@ class EstimateController extends Controller
             ->exists();
     }
 }
-
 
 
 
