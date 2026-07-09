@@ -299,7 +299,7 @@
         function renderDetail(data) {
             setText("userLogDetailModule", data.module || "Activity");
             setText("userLogDetailTitle", data.record_name ? data.record_name : "Activity details");
-            setText("userLogDetailMeta", (data.actioned_by || "--") + " • " + (data.created_at || "-"));
+            setText("userLogDetailMeta", (data.actioned_by || "--") + " | " + (data.created_at || "-"));
             setText("userLogDetailMessage", data.message || "-");
             setText("userLogDetailSummary", data.summary || "No summary available.");
 
@@ -321,8 +321,19 @@
                 { key: "added", title: "Added", tone: "success" },
                 { key: "updated", title: "Updated", tone: "primary" },
                 { key: "deleted", title: "Deleted", tone: "danger" },
-            ].filter(function (section) {
-                return Array.isArray(groups[section.key]) && groups[section.key].length > 0;
+            ].map(function (section) {
+                const originalItems = Array.isArray(groups[section.key]) ? groups[section.key] : [];
+                const displayItems = originalItems
+                    .map(normalizeChangeItem)
+                    .filter(Boolean);
+
+                return Object.assign({}, section, {
+                    originalCount: originalItems.length,
+                    displayItems: displayItems.slice(0, 6),
+                    hiddenCount: Math.max(displayItems.length - 6, 0),
+                });
+            }).filter(function (section) {
+                return section.displayItems.length > 0;
             });
 
             if (!sections.length) {
@@ -333,17 +344,95 @@
 
             emptyState.classList.add("d-none");
             groupsWrap.innerHTML = sections.map(function (section) {
-                return '<div class="col-12 col-lg-4">'
+                return '<div class="col-12">'
                     + '<div class="user-log-detail-card h-100">'
-                    + '<div class="user-log-section-title text-' + section.tone + '">' + section.title + '</div>'
-                    + groups[section.key].map(function (item) {
+                    + '<div class="user-log-section-title">'
+                    + '<span>' + section.title + '</span>'
+                    + '<span class="user-log-section-count">' + section.originalCount + '</span>'
+                    + '</div>'
+                    + '<div class="user-log-change-grid">'
+                    + section.displayItems.map(function (item) {
                         return '<div class="user-log-change-item">'
-                            + '<div class="user-log-change-label">' + escapeHtml(item.label || item.field || "Field") + '</div>'
-                            + '<div class="user-log-change-value">' + escapeHtml(item.value || "Not available") + '</div>'
+                            + '<div class="user-log-change-label">' + escapeHtml(item.label) + '</div>'
+                            + '<div class="user-log-change-value">' + escapeHtml(item.value) + '</div>'
                             + '</div>';
                     }).join("")
+                    + '</div>'
+                    + (section.hiddenCount > 0
+                        ? '<div class="user-log-change-more">+' + section.hiddenCount + ' more tracked fields</div>'
+                        : '')
                     + '</div></div>';
             }).join("");
+        }
+
+        function normalizeChangeItem(item) {
+            const rawField = String(item.field || item.label || "").trim();
+            const field = rawField.toLowerCase().replace(/\s+/g, "_");
+            const value = item.value == null || item.value === "" ? "Not available" : String(item.value);
+
+            if (isInternalField(field)) {
+                return null;
+            }
+
+            if (field === "product_name" || field === "products") {
+                return {
+                    label: "BOM Items",
+                    value: summarizeProducts(value),
+                };
+            }
+
+            return {
+                label: item.label || humanizeField(rawField || "Field"),
+                value: summarizeValue(value),
+            };
+        }
+
+        function isInternalField(field) {
+            return [
+                "id",
+                "user_id",
+                "customer_id",
+                "estimate_id",
+                "invoice_id",
+                "created_by",
+                "updated_by",
+                "deleted_by",
+            ].includes(field) || /(^|_)id$/.test(field);
+        }
+
+        function humanizeField(field) {
+            return String(field || "Field")
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, function (char) { return char.toUpperCase(); });
+        }
+
+        function summarizeValue(value) {
+            const compact = String(value || "").replace(/\s+/g, " ").trim();
+            if (compact.length <= 120) {
+                return compact || "Not available";
+            }
+
+            return compact.slice(0, 117) + "...";
+        }
+
+        function summarizeProducts(value) {
+            try {
+                const parsed = JSON.parse(value);
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    return summarizeValue(value);
+                }
+
+                const items = parsed.slice(0, 3).map(function (product) {
+                    const name = product.name || product.product_name || product.product_id || "BOM";
+                    const qty = product.quantity || product.qty || product.product_qty;
+                    return qty ? String(name) + " x" + qty : String(name);
+                });
+
+                const remaining = parsed.length - items.length;
+                return items.join(", ") + (remaining > 0 ? " +" + remaining + " more" : "");
+            } catch (error) {
+                return summarizeValue(value);
+            }
         }
 
         function setText(id, value) {

@@ -73,35 +73,60 @@
         </div>
     </div>
 
-    <div class="modal fade" id="userLogDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal fade user-log-modal" id="userLogDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header border-0 pb-0">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge text-bg-light" id="userLogDetailModule">Activity</span>
-                            <span class="badge rounded-pill" id="userLogDetailAction">UPDATE</span>
+                <div class="modal-header user-log-modal-header border-0">
+                    <div class="user-log-modal-heading">
+                        <div class="user-log-modal-icon">
+                            <i class="bi bi-clock-history"></i>
                         </div>
-                        <h5 class="modal-title fw-bold mb-1" id="userLogDetailTitle">Activity details</h5>
-                        <p class="text-muted small mb-0" id="userLogDetailMeta">--</p>
+                        <div class="min-w-0">
+                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                <span class="user-log-module-pill" id="userLogDetailModule">Activity</span>
+                                <span class="badge rounded-pill user-log-action-pill" id="userLogDetailAction">UPDATE</span>
+                            </div>
+                            <h5 class="modal-title fw-bold mb-1" id="userLogDetailTitle">Activity details</h5>
+                            <p class="user-log-modal-meta mb-0" id="userLogDetailMeta">--</p>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="user-log-modal-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-                <div class="modal-body pt-3">
-                    <div class="user-log-detail-card mb-3">
-                        <div class="user-log-detail-label">Message</div>
-                        <div class="user-log-detail-message" id="userLogDetailMessage">--</div>
+                <div class="modal-body user-log-modal-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-lg-7">
+                            <div class="user-log-detail-card user-log-detail-card--message h-100">
+                                <div class="user-log-detail-label">
+                                    <i class="bi bi-chat-left-text"></i>
+                                    <span>Message</span>
+                                </div>
+                                <div class="user-log-detail-message" id="userLogDetailMessage">--</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-5">
+                            <div class="user-log-detail-card user-log-detail-card--summary h-100">
+                                <div class="user-log-detail-label">
+                                    <i class="bi bi-card-checklist"></i>
+                                    <span>Summary</span>
+                                </div>
+                                <div class="user-log-detail-summary" id="userLogDetailSummary">--</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="user-log-detail-card mb-3">
-                        <div class="user-log-detail-label">Summary</div>
-                        <div class="user-log-detail-summary" id="userLogDetailSummary">--</div>
+                    <div class="user-log-detail-section-head">
+                        <span>Tracked Changes</span>
                     </div>
-
                     <div id="userLogDetailGroups" class="row g-3"></div>
-                    <div id="userLogDetailEmpty" class="alert alert-light border text-muted mb-0 d-none">
-                        Detailed field tracking is not available for this older log entry.
+                    <div id="userLogDetailEmpty" class="user-log-empty-state d-none">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Detailed field tracking is not available for this older log entry.</span>
                     </div>
+                </div>
+                <div class="modal-footer user-log-modal-footer border-0">
+                    <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
