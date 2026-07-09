@@ -162,9 +162,16 @@ if (! function_exists('safe_dispatch_mail')) {
                 return; // Skip silently — no valid email
             }
 
-            Mail::to(array_values($validEmails))->queue($mailable);
+            dispatch(function () use ($validEmails, $mailable) {
+                try {
+                    setMailConfig(); // Re-apply config inside the background process
+                    Mail::to(array_values($validEmails))->send($mailable);
+                } catch (\Throwable $e) {
+                    Log::error('Async email send failed: ' . $e->getMessage());
+                }
+            })->afterResponse();
 
-            Log::info('safe_dispatch_mail: Queued ' . get_class($mailable), [
+            Log::info('safe_dispatch_mail: Dispatched ' . get_class($mailable), [
                 'to' => array_values($validEmails),
             ]);
 
@@ -326,7 +333,7 @@ if (! function_exists('send_admin_notification')) {
         ?string $entityUrl = null
     ): void {
         try {
-            $actor = auth()->user();
+            $actor = auth('sanctum')->user() ?? auth()->user();
 
             // Only send if performed by staff (not admin)
             if (!$actor || $actor->isAdmin()) {
@@ -477,8 +484,14 @@ if (! function_exists('send_ticket_created_notification')) {
         }
 
         try {
-            setMailConfig();
-            Mail::to($ticket->customer->email)->send(new TicketCreatedMail($ticket));
+            dispatch(function () use ($ticket) {
+                try {
+                    setMailConfig();
+                    Mail::to($ticket->customer->email)->send(new TicketCreatedMail($ticket));
+                } catch (\Exception $e) {
+                    Log::error('Async ticket created notification failed: ' . $e->getMessage());
+                }
+            })->afterResponse();
             return true;
         } catch (\Exception $e) {
             Log::error('send_ticket_created_notification failed: ' . $e->getMessage());
