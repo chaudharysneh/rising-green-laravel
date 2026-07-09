@@ -92,7 +92,7 @@
 
         </div>
 
-        <div class="lead-board-wrapper p-0" id="leadBoardWrapper">
+        {{-- <div class="lead-board-wrapper p-0" id="leadBoardWrapper">
             <button type="button" class="lead-board-arrow lead-board-arrow--left" id="leadBoardLeft" title="Scroll Left">
                 <i class="fa-solid fa-angle-left fs-5"></i>
             </button>
@@ -105,7 +105,7 @@
                 title="Scroll Right">
                 <i class="fa-solid fa-angle-right fs-5"></i>
             </button>
-        </div>
+        </div> --}}
 
 
         <div class="row g-3 mt-1">
@@ -201,8 +201,9 @@
 
             <div class="col-12 col-xl-5">
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header dashboard-widget-head py-3">
+                    <div class="card-header dashboard-widget-head py-3 d-flex align-items-center justify-content-between">
                         <h5 class="mb-0 fw-bold">Lead Conversion Snapshot</h5>
+                        <a href="{{ route('leads.index') }}" class="badge bg-light text-dark px-3 py-2 fw-semibold small">View All</a>
                     </div>
                     <div class="card-body conversion-snapshot-card">
                         @if (!($leadConversionSnapshot['can_view'] ?? false))
@@ -380,7 +381,7 @@
 
         </div>
         <footer class="dashboard-footer text-center py-2 mt-4">
-            © {{ date('Y') }} Copyright - Fablead Developers Technolab
+            © {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer">Fablead Developers Technolab</a>
         </footer>
 
         <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"

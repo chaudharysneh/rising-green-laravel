@@ -87,7 +87,7 @@
                             </form>
 
                             <footer class="mt-4 text-center text-muted" style="font-size: 0.8rem;">
-                                &copy; {{ date('Y') }} Copyright - Fablead Developers Technolab
+                                &copy; {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer" class="text-muted">Fablead Developers Technolab</a>
                             </footer>
 
                         </div>
