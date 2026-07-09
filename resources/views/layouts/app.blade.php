@@ -198,6 +198,27 @@
             color: #fff;
             transform: translateY(-1px);
         }
+
+        .dashboard-footer {
+            background: transparent !important;
+            color: #94A3B8 !important;
+            font-size: .8rem;
+            font-weight: 500;
+            border-top: 1px solid var(--crm-border, #E2E8F0);
+            margin-top: 24px;
+            padding: 16px 0 !important;
+        }
+
+        [data-theme="dark"] .dashboard-footer {
+            border-top-color: rgba(255,255,255,.06);
+            color: #475569 !important;
+        }
+
+        @media (max-width: 575.98px) {
+            .dashboard-footer {
+                font-size: 0.75rem;
+            }
+        }
     </style>
     @stack('styles')
     @include('crm.estimates.partials.header-quick-estimate-assets')

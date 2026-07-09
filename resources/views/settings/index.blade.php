@@ -35,7 +35,7 @@
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#financial-information" type="button" role="tab">Financial Information</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#table-truncate" type="button" role="tab">Table Truncate</button>
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#table-truncate" type="button" role="tab">Table Clear</button>
                 </li>
             </ul>
         </div>
@@ -790,7 +790,7 @@
             <div class="settings-panel">
                 <div
                     class="settings-panel-head d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
-                    <span>Table Truncate Utility</span>
+                    <span>Table Clear Utility</span>
                     <button type="button" class="btn btn-danger rounded-pill shadow-sm fw-semibold"
                         style="padding: 8px 20px;" id="truncateAllBtn">
                         <i class="bi bi-exclamation-octagon-fill me-1"></i> Clear All Allowed
@@ -801,7 +801,7 @@
                         <div class="alert alert-warning m-0" role="alert"
                             style="background-color: #fdf6e3; border: 1px solid #ffe8a1; color: #856404; border-radius: 6px; padding: 12px 16px; font-size: 0.9rem;">
                             <i class="bi bi-exclamation-triangle-fill" style="color: #f5b041; margin-right: 6px;"></i>
-                            <strong>Warning:</strong> Truncating a table permanently deletes all its records (except Admin
+                            <strong>Warning:</strong> Clearing a table permanently deletes all its records (except Admin
                             users in the users table). This action cannot be undone. System configuration tables are marked
                             as 'Not Allowed'.
                         </div>
@@ -830,7 +830,7 @@
                                                 <button type="button"
                                                     class="btn crm-action-btn btn-sm text-danger truncate-btn shadow-sm"
                                                     style="border-radius: 8px; background-color: #fff2f2; border: 1px solid #ffcccc;"
-                                                    data-table="{{ $tableInfo['name'] }}" title="Truncate Table">
+                                                    data-table="{{ $tableInfo['name'] }}" title="Clear Table">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </td>
