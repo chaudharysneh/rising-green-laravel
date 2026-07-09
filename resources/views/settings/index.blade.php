@@ -793,7 +793,7 @@
                     <span>Table Truncate Utility</span>
                     <button type="button" class="btn btn-danger rounded-pill shadow-sm fw-semibold"
                         style="padding: 8px 20px;" id="truncateAllBtn">
-                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Truncate All Allowed
+                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Clear All Allowed
                     </button>
                 </div>
                 <div class="settings-panel-body p-0">

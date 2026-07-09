@@ -380,9 +380,6 @@
             </div>
 
         </div>
-        <footer class="dashboard-footer text-center py-2 mt-4">
-            © {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer">Fablead Developers Technolab</a>
-        </footer>
 
         <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"
             aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
