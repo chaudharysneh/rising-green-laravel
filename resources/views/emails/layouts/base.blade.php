@@ -254,7 +254,7 @@
                         </div>
                         @endif
                         <div class="footer-disclaimer">
-                            © {{ date('Y') }} Fablead Developers Technolab. All rights reserved.
+                            © {{ date('Y') }} <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer">Fablead Developers Technolab</a>. All rights reserved.
                         </div>
                         <!-- Prevent Gmail Trimming -->
                         <div style="display:none; white-space:nowrap; font:15px courier; line-height:0;">
