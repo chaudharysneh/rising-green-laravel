@@ -995,9 +995,11 @@
                         <span>Profile</span>
                     </a>
                 </div>
+                 @if(request()->routeIs('dashboard'))
                 <footer class="dashboard-footer text-center py-2 mt-4">
                     © {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer">Fablead Developers Technolab</a>
                 </footer>
+                @endif
             </div>
     @endauth
 
