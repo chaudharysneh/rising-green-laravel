@@ -213,7 +213,7 @@
 <body>
     <section class="page">
         <div class="cover-header">
-            <div class="cover-title">Custom Solar Energy Proposal</div>
+            <div class="cover-title">Rising Green Energy Proposal</div>
             <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
         </div>
 
