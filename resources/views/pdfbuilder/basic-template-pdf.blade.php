@@ -28,20 +28,13 @@
     $websiteInfo = $companyWebsite !== '' ? $companyWebsite : 'Website on record';
     $capacityValue = (float) ($doc->quantity ?? 0);
     $capacity = $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kWp' : 'as proposed';
-    $unitRateValue = (float) (data_get($doc, 'generation_data.unit_rate') ?: 8);
-    $unitRate = $plainNumber($unitRateValue, 2);
     $dailyGenerationValue = $capacityValue > 0 ? $capacityValue * 4.3 : 0;
     $monthlyGenerationValue = $dailyGenerationValue * 30;
     $annualGenerationValue = $dailyGenerationValue * 365;
     $dailyGeneration = $dailyGenerationValue > 0 ? $plainNumber($dailyGenerationValue, 1) : 'As per system size';
     $monthlyGeneration = $monthlyGenerationValue > 0 ? $plainNumber($monthlyGenerationValue, 0) : 'As per system size';
     $annualGeneration = $annualGenerationValue > 0 ? $plainNumber($annualGenerationValue, 0) : 'As per system size';
-    $monthlySavingsValue = $monthlyGenerationValue * $unitRateValue;
-    $annualSavingsValue = $annualGenerationValue * $unitRateValue;
-    $lifecycleSavingsValue = $annualSavingsValue * 25;
     $netInvestmentValue = (float) ($doc->amount ?? 0);
-    $paybackValue = $annualSavingsValue > 0 && $netInvestmentValue > 0 ? $netInvestmentValue / $annualSavingsValue : 0;
-    $payback = $paybackValue > 0 ? $plainNumber($paybackValue, 1) . ' Years' : 'As per final commercial value';
     $co2OffsetValue = $capacityValue > 0 ? $capacityValue * 1.01 * 25 : 0;
     $coalSavedValue = $capacityValue > 0 ? $capacityValue * 1.259 : 0;
     $treesValue = $co2OffsetValue > 0 ? $co2OffsetValue * 45 : 0;
@@ -55,6 +48,74 @@
     $netInvestment = $netInvestmentValue > 0 ? $netInvestmentValue : max(0, $grossValue - $subsidyValue);
     $productsRaw = $doc->product_name ?? [];
     $products = is_array($productsRaw) ? $productsRaw : (json_decode((string) $productsRaw, true) ?: []);
+    $bomValue = 0.0;
+    foreach ($products as $product) {
+        if (is_array($product)) {
+            $bomValue += (float) ($product['quantity'] ?? 0) * (float) ($product['price'] ?? 0);
+        }
+    }
+    $baseSystemValue = (float) ($doc->price ?? 0);
+    $gstRate = (float) ($doc->gst ?? 0);
+    $gstBreakdown = is_array($doc->gst_breakdown ?? null)
+        ? $doc->gst_breakdown
+        : (json_decode((string) ($doc->gst_breakdown ?? ''), true) ?: []);
+    $taxLines = [];
+    if (!empty($gstBreakdown['groups']) && is_array($gstBreakdown['groups'])) {
+        foreach ($gstBreakdown['groups'] as $group) {
+            if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
+                continue;
+            }
+            foreach (($group['lines'] ?? []) as $line) {
+                $label = trim((string) ($line['label'] ?? ''));
+                $amount = (float) ($line['amount'] ?? 0);
+                if ($label !== '' && strtoupper($label) !== 'GST' && $amount > 0) {
+                    $taxLines[] = ['label' => $label, 'rate' => $line['rate'] ?? null, 'amount' => $amount];
+                }
+            }
+        }
+    }
+    if (empty($taxLines)) {
+        $taxBuckets = [];
+        foreach ($products as $product) {
+            if (!is_array($product)) {
+                continue;
+            }
+            $taxable = (float) ($product['quantity'] ?? 0) * (float) ($product['price'] ?? 0);
+            $rate = (float) ($product['tax_rate'] ?? 0);
+            $label = strtoupper(trim((string) ($product['tax_label'] ?? '')));
+            if ($taxable <= 0 || $rate <= 0) {
+                continue;
+            }
+            $parts = str_contains($label, 'CGST') && str_contains($label, 'SGST')
+                ? [['CGST', $rate / 2], ['SGST', $rate / 2]]
+                : [[str_contains($label, 'IGST') ? 'IGST' : 'GST', $rate]];
+            foreach ($parts as [$taxLabel, $taxRate]) {
+                $key = $taxLabel . '|' . number_format($taxRate, 4, '.', '');
+                if (!isset($taxBuckets[$key])) {
+                    $taxBuckets[$key] = ['label' => $taxLabel, 'rate' => $taxRate, 'amount' => 0.0];
+                }
+                $taxBuckets[$key]['amount'] += ($taxable * $taxRate) / 100;
+            }
+        }
+        $taxLines = array_values($taxBuckets);
+    }
+    $gstValue = !empty($taxLines)
+        ? array_sum(array_map(static fn ($line) => (float) ($line['amount'] ?? 0), $taxLines))
+        : (float) ($doc->gst_amount ?? ($bomValue * ($gstRate / 100)));
+    if (empty($taxLines) && $gstValue > 0) {
+        $taxLines = $gstRate > 0
+            ? [
+                ['label' => 'CGST', 'rate' => $gstRate / 2, 'amount' => $gstValue / 2],
+                ['label' => 'SGST', 'rate' => $gstRate / 2, 'amount' => $gstValue / 2],
+            ]
+            : [['label' => 'GST', 'rate' => null, 'amount' => $gstValue]];
+    }
+    $solarStructureValue = (float) ($doc->solar_structure_charges ?? 0);
+    $discountValue = (float) ($doc->discount ?? 0);
+    $grossValue = $baseSystemValue + $bomValue + $gstValue + $solarStructureValue - $discountValue;
+    $netInvestment = max(0, $grossValue - $subsidyValue);
+    $estimateType = $valueOr(ucfirst((string) ($doc->type ?? '')), '--');
+    $solarMeterCharges = $valueOr(ucwords(str_replace('_', ' ', (string) ($doc->solar_meter_charges ?? ''))), '--');
     $componentRows = [];
     foreach (array_slice($products, 0, 5) as $product) {
         if (!is_array($product)) {
@@ -288,16 +349,15 @@
     <section class="page">
         <div class="section">
             <h2 class="section-title">7. Return on Savings (ROI)</h2>
-            <p>Financial projections calculated based on a baseline localized utility tariff of <strong>&#8377;{{ $unitRate }}/kWh</strong> per unit:</p>
-            <table class="data-table">
-                <thead><tr><th>Financial Parameter</th><th>Projected Value</th></tr></thead>
-                <tbody>
-                    <tr><td>Estimated Monthly Savings Target</td><td>{!! $money($monthlySavingsValue) !!}</td></tr>
-                    <tr><td>Projected First-Year Annual Savings</td><td>{!! $money($annualSavingsValue) !!}</td></tr>
-                    <tr><td>Cumulative 25-Year System Lifecycle Savings</td><td>{!! $money($lifecycleSavingsValue) !!}</td></tr>
-                    <tr><td><strong>Calculated System Payback Period (Break-Even)</strong></td><td><strong>{{ $payback }}</strong></td></tr>
-                </tbody>
-            </table>
+            <p>A solar power system is a long-term investment designed to reduce dependence on conventional grid electricity and provide lasting value throughout its operating life.</p>
+            <ul>
+                <li><strong>Lower Electricity Dependence:</strong> On-site solar generation reduces the amount of electricity purchased from the utility provider.</li>
+                <li><strong>Protection Against Tariff Changes:</strong> Producing clean energy on-site helps reduce exposure to future increases in grid electricity rates.</li>
+                <li><strong>Long Operating Life:</strong> Quality solar systems are designed to generate reliable energy over many years with appropriate maintenance.</li>
+                <li><strong>Low Operating Requirements:</strong> Solar PV systems require no fuel and contain few moving parts, keeping routine maintenance straightforward.</li>
+                <li><strong>Long-Term Property Benefit:</strong> A professionally installed solar system can improve the property's energy efficiency and overall appeal.</li>
+            </ul>
+            <p>Actual savings and the investment recovery period depend on site conditions, electricity consumption, applicable tariffs, system performance, maintenance, and utility policies.</p>
         </div>
 
         <div class="section">
@@ -352,11 +412,41 @@
             <table class="data-table">
                 <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
                 <tbody>
-                    <tr><td>Base System Supply, Engineering, Liaisoning &amp; Installation Cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
-                    <tr><td>Applicable Statutory Goods and Services Tax (GST)</td><td>{!! $money($gstValue) !!}</td></tr>
-                    <tr><td><strong>Gross Capital Project Value (A)</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
-                    <tr><td><em>Less: Eligible PM-Surya Ghar Portal Subsidy Allocation (B)</em></td><td><em>- {!! $money($subsidyValue) !!}</em></td></tr>
-                    <tr class="total-row"><td>Net Out-of-Pocket Customer Investment (A - B)</td><td>{!! $money($netInvestment) !!}</td></tr>
+                    <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
+                    <tr><td>Bill of Materials (BOM)</td><td>{!! $money($bomValue) !!}</td></tr>
+                    @if ($gstValue > 0)
+                        <tr><td><strong>Taxes on Bill of Materials (BOM) Only</strong></td><td></td></tr>
+                        @foreach ($taxLines as $taxLine)
+                            @php
+                                $taxRateText = is_numeric($taxLine['rate'] ?? null)
+                                    ? rtrim(rtrim(number_format((float) $taxLine['rate'], 2, '.', ''), '0'), '.')
+                                    : '';
+                            @endphp
+                            <tr>
+                                <td>{{ $taxLine['label'] }}{{ $taxRateText !== '' ? ' (' . $taxRateText . '%)' : '' }}</td>
+                                <td>{!! $money($taxLine['amount']) !!}</td>
+                            </tr>
+                        @endforeach
+                        <tr><td><strong>Total Taxes on BOM</strong></td><td><strong>{!! $money($gstValue) !!}</strong></td></tr>
+                    @endif
+                    @if ($solarStructureValue > 0)
+                        <tr><td>Solar Structure Charges</td><td>{!! $money($solarStructureValue) !!}</td></tr>
+                    @endif
+                    @if ($discountValue > 0)
+                        <tr><td>Discount</td><td>- {!! $money($discountValue) !!}</td></tr>
+                    @endif
+                    <tr><td><strong>Invoice Subtotal</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
+                    @if ($subsidyValue > 0)
+                        <tr><td>Subsidy</td><td>- {!! $money($subsidyValue) !!}</td></tr>
+                    @endif
+                    <tr class="total-row"><td>Net Amount Payable</td><td>{!! $money($netInvestment) !!}</td></tr>
+                </tbody>
+            </table>
+            <table class="data-table">
+                <tbody>
+                    <tr><td><strong>System Capacity</strong></td><td>{{ $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : '--' }}</td></tr>
+                    <tr><td><strong>Estimate Type</strong></td><td>{{ $estimateType }}</td></tr>
+                    <tr><td><strong>Solar Meter Charges</strong></td><td>{{ $solarMeterCharges }}</td></tr>
                 </tbody>
             </table>
         </div>
