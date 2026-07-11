@@ -137,7 +137,7 @@
             ['type' => 'Switchgear / Safety', 'make' => 'Approved Switchgear Make', 'spec' => 'IP65 enclosed ACDB & DCDB with Type-II SPD & fuses', 'warranty' => '1 Year Comprehensive'],
         ];
     }
-    $proposalLabel = 'Solar Power Project Proposal | Confidential';
+    $proposalLabel = 'System Capacity: ' . ($capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : 'To be finalized');
 @endphp
 <!doctype html>
 <html>
