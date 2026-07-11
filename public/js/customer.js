@@ -378,6 +378,8 @@ $(document).ready(function () {
     var totalSteps = $steps.length;
     var currentStep = 1;
     var currentCustomerId = $form.data('id') || null;
+    var freeStepNavigation = $form.data('free-step-navigation') === true;
+    var alwaysShowSubmit = $form.data('always-show-submit') === true;
 
         function showStep(step) {
             currentStep = step;
@@ -386,7 +388,7 @@ $(document).ready(function () {
             $prevBtn.toggleClass('d-none', step === 1);
             $cancelBtn.toggleClass('d-none', step !== 1);
             $nextBtn.toggleClass('d-none', step === totalSteps);
-            $submitBtn.toggleClass('d-none', step !== totalSteps);
+            $submitBtn.toggleClass('d-none', !alwaysShowSubmit && step !== totalSteps);
         }
 
         function scrollToFirstInvalid() {
@@ -559,6 +561,10 @@ $(document).ready(function () {
 
         $nextBtn.on('click', function (e) {
             e.preventDefault();
+            if (freeStepNavigation) {
+                showStep(Math.min(currentStep + 1, totalSteps));
+                return;
+            }
             if (!validateCurrentStep()) {
                 scrollToFirstInvalid();
                 return;
@@ -589,6 +595,10 @@ $(document).ready(function () {
 
         $stepBtns.on('click', function () {
             var targetStep = Number($(this).data('step'));
+            if (freeStepNavigation) {
+                showStep(targetStep);
+                return;
+            }
             if (targetStep > currentStep) {
                 if (!validateCurrentStep()) {
                     scrollToFirstInvalid();
@@ -620,9 +630,19 @@ $(document).ready(function () {
         e.preventDefault();
         var $form  = $(this);
 
-        if (!$form.valid()) {
+        var submitValidator = $form.validate();
+        var originalIgnore = submitValidator.settings.ignore;
+        submitValidator.settings.ignore = [];
+        var formIsValid = $form.valid();
+        submitValidator.settings.ignore = originalIgnore;
+
+        if (!formIsValid) {
             var $firstInvalid = $form.find('.is-invalid').first();
             if ($firstInvalid.length) {
+                var invalidStep = Number($firstInvalid.closest('.customer-form-step').data('step'));
+                if (invalidStep) {
+                    showStep(invalidStep);
+                }
                 $('html, body').animate({
                     scrollTop: $firstInvalid.offset().top - 100
                 }, 300);
@@ -676,6 +696,10 @@ $(document).ready(function () {
                     // Scroll to first error field
                     var $firstError = $form.find('.is-invalid').first();
                     if ($firstError.length) {
+                        var errorStep = Number($firstError.closest('.customer-form-step').data('step'));
+                        if (errorStep) {
+                            showStep(errorStep);
+                        }
                         $('html, body').animate({
                             scrollTop: $firstError.offset().top - 100
                         }, 300);
