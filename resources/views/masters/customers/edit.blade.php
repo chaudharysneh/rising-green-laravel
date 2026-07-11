@@ -18,23 +18,28 @@
                 </div>
             </div>
             <div class="card-body p-3 p-md-4">
-                <form id="customerForm" data-id="{{ $customer->id }}" enctype="multipart/form-data" novalidate>
+                <form id="customerForm" data-id="{{ $customer->id }}" enctype="multipart/form-data"
+                    data-free-step-navigation="true" data-always-show-submit="true" novalidate>
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="country_id" value="">
+                    <input type="hidden" name="city_id" value="">
+                    <input type="hidden" name="dob" value="">
+                    <input type="hidden" name="anniversary_date" value="">
 
                     <div class="mb-4">
-                        <div class="d-flex flex-wrap gap-2" id="customerFormSteps">
-                            <button type="button" class="btn btn-outline-dark-blue active" data-step="1">Personal
-                                Details</button>
-                            <button type="button" class="btn btn-outline-dark-blue" data-step="2">Address Details</button>
-                            <button type="button" class="btn btn-outline-dark-blue" data-step="3">Other Details</button>
+                        <div class="d-flex flex-nowrap gap-2 customer-form-tabs" id="customerFormSteps">
+                            <button type="button" class="btn btn-outline-dark-blue active text-nowrap" data-step="1">Personal
+                                Information</button>
+                            <button type="button" class="btn btn-outline-dark-blue text-nowrap" data-step="2">Other
+                                Information</button>
                         </div>
                     </div>
 
                     <div class="customer-form-step" data-step="1">
                         <div class="border-bottom mb-4 pb-3">
-                            <h5 class="mb-1">Personal Details</h5>
-                            <p class="text-muted small mb-0">Enter the customer name, contact and basic profile information.
+                            <h5 class="mb-1">Personal Information</h5>
+                            <p class="text-muted small mb-0">Enter the customer's primary contact information.
                             </p>
                         </div>
                         <div class="row g-4 mb-4">
@@ -60,6 +65,20 @@
                                 <input type="text" name="whatsapp" class="form-control"
                                     value="{{ old('whatsapp', $customer->whatsapp) }}" placeholder="WhatsApp Number">
                             </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Address</label>
+                                <textarea name="address" class="form-control" rows="2"
+                                    placeholder="Full residential or office address">{{ old('address', $customer->address) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="customer-form-step d-none" data-step="2">
+                        <div class="border-bottom mb-4 pb-3">
+                            <h5 class="mb-1">Other Information</h5>
+                            <p class="text-muted small mb-0">Complete the remaining customer profile information.</p>
+                        </div>
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Image</label>
                                 <input type="file" name="image" class="form-control" accept="image/*">
@@ -70,38 +89,6 @@
                                     value="{{ old('company_name', $customer->company_name) }}"
                                     placeholder="Business / Company Name">
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="customer-form-step d-none" data-step="2">
-                        <div class="border-bottom mb-4 pb-3">
-                            <h5 class="mb-1">Address Details</h5>
-                            <p class="text-muted small mb-0">Provide the customer address and location information.</p>
-                        </div>
-                        <div class="row g-4 mb-4">
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Address </label>
-                                <textarea name="address" class="form-control" rows="2"
-                                    placeholder="Full residential or office address">{{ old('address', $customer->address) }}</textarea>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Country</label>
-                                <select name="country_id" id="country_id" class="form-select">
-                                    <option value=""></option>
-                                    @foreach($countries as $country)
-                                        <option value="{{ $country->id }}" @selected(old('country_id', $customer->country_id) == $country->id)>{{ $country->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">City</label>
-                                <select name="city_id" id="city_id" class="form-select">
-                                    <option value=""></option>
-                                    @foreach($cities as $city)
-                                        <option value="{{ $city->id }}" @selected(old('city_id', $customer->city_id) == $city->id)>{{ $city->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Type</label>
                                 <select name="type" class="form-select">
@@ -111,38 +98,18 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="customer-form-step d-none" data-step="3">
-                        <div class="border-bottom mb-4 pb-3">
-                            <h5 class="mb-1">Contact Details</h5>
-                            <p class="text-muted small mb-0">Complete the remaining customer settings and profile details.
-                            </p>
-                        </div>
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold">Website</label>
                                 <input type="text" name="website" class="form-control"
                                     value="{{ old('website', $customer->website) }}" placeholder="https://example.com">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Date of Birth</label>
-                                <input type="date" name="dob" class="form-control" value="{{ old('dob', $customer->dob) }}" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Anniversary Date</label>
-                                <input type="date" name="anniversary_date" class="form-control"
-                                    value="{{ old('anniversary_date', $customer->anniversary_date) }}" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-semibold">Tax Number</label>
                                 <input type="text" name="tax_number" class="form-control"
                                     value="{{ old('tax_number', $customer->tax_number) }}" placeholder="GST / VAT / Tax ID">
                             </div>
+                            @include('partials.custom_fields', ['model' => $customer])
                         </div>
-
-                        @include('partials.custom_fields', ['model' => $customer])
                     </div>
 
                     <div class="mt-4 pt-4 border-top d-flex gap-2 customer-form-actions">
@@ -150,7 +117,7 @@
                         <div class="me-sm-auto d-none d-sm-block"></div>
                         <button type="button" class="btn btn-outline-dark-blue prev-step d-none flex-grow-1 flex-sm-grow-0">Previous</button>
                         <button type="button" class="btn btn-dark-blue next-step flex-grow-1 flex-sm-grow-0">Next</button>
-                        <button type="submit" class="btn btn-dark-blue d-none flex-grow-1 flex-sm-grow-0">Update</button>
+                        <button type="submit" class="btn btn-dark-blue flex-grow-1 flex-sm-grow-0">Save &amp; Exit</button>
                     </div>
                 </form>
             </div>
@@ -159,6 +126,21 @@
 
     @push('styles')
         <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+        <style>
+            .customer-form-tabs .btn.active {
+                border-color: transparent !important;
+                box-shadow: rgba(10, 37, 64, 0.5) 0 0 0 .25rem;
+            }
+
+            @media (max-width: 575.98px) {
+                .customer-form-tabs .btn {
+                    flex: 1 1 0;
+                    min-width: 0;
+                    padding-inline: .25rem;
+                    font-size: .9rem;
+                }
+            }
+        </style>
     @endpush
 
     @push('scripts')
@@ -168,8 +150,15 @@
             src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/customer.js') }}?v={{ filemtime(public_path('js/customer.js')) }}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                const countryElement = document.getElementById('country_id');
+                const cityElement = document.getElementById('city_id');
+
+                if (!countryElement || !cityElement) {
+                    return;
+                }
+
                 // Initialize TomSelect with proper configuration to prevent flickering
-                const countrySelect = new TomSelect('#country_id', {
+                const countrySelect = new TomSelect(countryElement, {
                     placeholder: 'Search Country',
                     maxOptions: null,
                     closeOnSelect: true,
@@ -177,7 +166,7 @@
                     dropdownParent: 'body'
                 });
                 
-                const citySelect = new TomSelect('#city_id', {
+                const citySelect = new TomSelect(cityElement, {
                     placeholder: 'Search City',
                     maxOptions: null,
                     closeOnSelect: true,
@@ -186,7 +175,7 @@
                 });
 
                 // Handle country change - load cities
-                document.getElementById('country_id').addEventListener('change', function () {
+                countryElement.addEventListener('change', function () {
                     const countryId = this.value;
 
                     // Clear city selection
