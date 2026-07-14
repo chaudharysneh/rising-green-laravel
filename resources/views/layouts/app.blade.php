@@ -222,6 +222,20 @@
     </style>
     @stack('styles')
     @include('crm.estimates.partials.header-quick-estimate-assets')
+    @auth
+        @if (auth()->user()?->hasMatrixPermission('create_bom') && !request()->routeIs('bom-products.index'))
+            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+            <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+            <style>
+                #quickBomModal .select2-container { width: 100% !important; }
+                #quickBomModal .select2-selection { min-height: 38px; }
+                #quickBomModal .select2-selection.is-invalid { border-color: #dc3545; }
+                #quickBomModal .modal-header .modal-title,
+                #quickBomModal .modal-header .modal-title i { color: #fff !important; }
+                #quickBomModal .modal-header p { color: rgba(255, 255, 255, .65) !important; }
+            </style>
+        @endif
+    @endauth
 
     <!-- Theme Management -->
     @unless (request()->routeIs('login'))
@@ -767,6 +781,14 @@
                                                     <span>Quick Estimate</span>
                                                 </button>
                                             </li>
+                                        @if (auth()->user()?->hasMatrixPermission('create_bom'))
+                                            <li>
+                                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#quickBomModal">
+                                                    <i class="bi bi-box-seam"></i>
+                                                    <span>Quick BOM</span>
+                                                </button>
+                                            </li>
+                                        @endif
                                             
                                         @else
                                             <li>
@@ -1065,6 +1087,13 @@
         @endif
 
         @include('crm.estimates.partials.header-quick-estimate-modals')
+        @if (auth()->user()?->hasMatrixPermission('create_bom') && !request()->routeIs('bom-products.index'))
+            @include('crm.bom.partials.quick-modal', [
+                'categories' => $headerQuickBomCategories,
+                'technologies' => $headerQuickBomTechnologies,
+                'warranties' => $headerQuickBomWarranties,
+            ])
+        @endif
     @endauth
 
     <div class="modal fade status-comment-modal" id="statusCommentModal" tabindex="-1" aria-hidden="true">
@@ -1145,6 +1174,18 @@
 
     @stack('scripts')
     @include('crm.estimates.partials.header-quick-estimate-scripts')
+    @if (auth()->user()?->hasMatrixPermission('create_bom') && !request()->routeIs('bom-products.index'))
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script>
+            window.bomProductsConfig = {
+                storeUrl: @json(route('api.bom-products.store')),
+                makeStoreUrl: @json(route('api.make.store')),
+                technologyStoreUrl: @json(route('api.technology.store')),
+                warrantyStoreUrl: @json(route('api.warranty.store'))
+            };
+        </script>
+        <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/bom-products.js') }}?v={{ time() }}"></script>
+    @endif
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/crm-layout.js') }}?v={{ filemtime(PUBLIC_PATH('js/crm-layout.js')) }}"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/status-comment-box.js') }}?v={{ filemtime(PUBLIC_PATH('js/status-comment-box.js')) }}"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/global-search.js') }}?v={{ filemtime(PUBLIC_PATH('js/global-search.js')) }}"></script>
