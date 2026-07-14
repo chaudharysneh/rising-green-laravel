@@ -291,8 +291,8 @@
                         ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($mainLogoPath)
                         : url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'logo/fableadcrmLogo.png');
                 @endphp
-                <div class="sidenav-header">
-                    <a class="navbar-brand m-0 d-flex flex-row align-items-center" href="{{ route('dashboard') }}">
+                <div class="sidenav-header sidebar-logo-header">
+                    <a class="navbar-brand sidebar-logo-panel m-0 d-flex align-items-center justify-content-center" href="{{ route('dashboard') }}">
                         <img src="{{ $mainLogoUrl }}" class="navbar-brand-img h-100 main-logo-full" alt="main_logo">
                         <img src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'logo/favicon.jpeg') }}" class="navbar-brand-img h-100 main-logo-collapsed" alt="main_logo_collapsed" style="border-radius: 5px; max-height: 40px;">
                     </a>

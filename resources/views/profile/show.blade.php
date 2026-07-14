@@ -120,7 +120,7 @@
                                     <input type="text" name="company_tax_id" value="{{ old('company_tax_id', $settings['company_tax_id'] ?? '') }}" class="form-control @error('company_tax_id') is-invalid @enderror">
                                     @error('company_tax_id')<div class="profile-field-error">{{ $message }}</div>@enderror
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <label class="form-label fw-semibold">Company Logo (Upload)</label>
                                     <input type="file" name="company_logo_path" id="company-logo-input" accept="image/*" class="form-control @error('company_logo_path') is-invalid @enderror">
                                     @error('company_logo_path')<div class="profile-field-error">{{ $message }}</div>@enderror

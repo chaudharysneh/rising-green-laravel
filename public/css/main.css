@@ -27,8 +27,34 @@
     z-index: 1050;
 }
 
-.main-logo-collapsed {
-    display: none;
+.sidebar-logo-panel {
+    position: relative;
+    width: 100%;
+    height: 60px;
+    padding: 8px 12px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #fff;
+    transition: width .3s ease, height .3s ease, padding .3s ease,
+        background-color .3s ease, border-radius .3s ease;
+}
+
+.sidebar-logo-panel .main-logo-full,
+.sidebar-logo-panel .main-logo-collapsed {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    max-width: calc(100% - 5px);
+    object-fit: contain;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    transition: opacity .25s ease, transform .3s ease;
+}
+
+.sidebar-logo-panel .main-logo-collapsed {
+    display: block;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.82);
+    pointer-events: none;
 }
 
 @media (min-width: 992px) {
@@ -40,13 +66,36 @@
 
     .crm-sidebar.collapsed .brand-logo-text,
     .crm-sidebar.collapsed .nav-link span,
-    .crm-sidebar.collapsed .dropdown-toggle::after,
-    .crm-sidebar.collapsed .main-logo-full {
+    .crm-sidebar.collapsed .dropdown-toggle::after {
         display: none !important;
+    }
+
+    .crm-sidebar.collapsed .sidebar-logo-header {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .crm-sidebar.collapsed .sidebar-logo-panel {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        margin: 0 auto !important;
+        background: transparent;
+        border-radius: 5px;
+    }
+
+    .crm-sidebar.collapsed .main-logo-full {
+        display: block !important;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.82);
+        pointer-events: none;
     }
 
     .crm-sidebar.collapsed .main-logo-collapsed {
         display: block !important;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        pointer-events: auto;
     }
 
     .crm-sidebar.collapsed .profile-card.brand-card {
