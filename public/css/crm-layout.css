@@ -163,6 +163,7 @@ a {
     gap: 10px;
     margin: 0 4px;
     border: 1px solid rgba(255, 255, 255, .07);
+    overflow: hidden;
 }
 
 .profile-card .brand-logo-icon {
@@ -175,11 +176,15 @@ a {
 }
 
 .profile-card .brand-logo-text {
+    flex: 1 1 auto;
+    min-width: 0;
     font-weight: 700;
     color: #F1F5F9;
     font-size: .95rem;
     letter-spacing: -.01em;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Nav links */
