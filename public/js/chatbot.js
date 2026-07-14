@@ -264,31 +264,7 @@
         const bot = await getBotResponseFromServer(val);
         loader.remove();
         appendMessage(bot.reply, false);
-        if (bot.data && Array.isArray(bot.data)) {
-            bot.data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'chatbot-data-card';
-                card.style.background = 'white';
-                card.style.padding = '10px';
-                card.style.borderRadius = '10px';
-                card.style.border = '1px solid #e2e8f0';
-                card.style.marginTop = '5px';
-                card.style.fontSize = '0.9rem';
-
-                let html = '';
-                // Try to find name/title
-                const name = item.name || item.title || item.ticket_name || item.id;
-                html += `<strong>${name}</strong><br>`;
-                
-                if (item.email) html += `Email: ${item.email}<br>`;
-                if (item.phone) html += `Phone: ${item.phone}<br>`;
-                if (item.status) html += `Status: <span class="badge bg-secondary">${item.status}</span><br>`;
-                if (item.priority) html += `Priority: ${item.priority}<br>`;
-                
-                card.innerHTML = html;
-                messagesEl.appendChild(card);
-            });
-        }
+        if (bot.data && Array.isArray(bot.data)) renderData(bot.data);
 
         // Always add Back button after the response
         const backBtnWrapper = document.createElement('div');
@@ -448,25 +424,40 @@
     function renderRecordList(records) {
         let html = `<div class="chatbot-records-list">`;
         records.forEach(record => {
+            const fields = Array.isArray(record.fields) ? record.fields : [];
+            const fieldPriority = { Phone: 1, Mobile: 1, 'Created by': 2, Address: 3 };
+            const orderedFields = [...fields].sort((a, b) => (fieldPriority[a.label] || 10) - (fieldPriority[b.label] || 10));
+            const price = record.price !== null && record.price !== undefined && record.price !== ''
+                ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(Number(record.price))
+                : null;
             html += `
                 <div class="chatbot-record-card">
                     <div class="chatbot-record-header">
-                        <strong>${record.name || 'Record'}</strong>
+                        <span class="chatbot-record-icon"><i class="bi ${getRecordIcon(record.type)}"></i></span>
+                        <div class="chatbot-record-title"><strong>${escapeHtml(record.name || 'Record')}</strong><small>#${escapeHtml(record.id || '--')}</small></div>
+                        <span class="badge ${getStatusBadgeClass(record.status)}">${escapeHtml(record.status || 'Not set')}</span>
                     </div>
                     <div class="chatbot-record-details">
-                        ${record.service_name ? `<div class="chatbot-record-field"><span>Service:</span> ${record.service_name}</div>` : ''}
-                        ${record.product_name ? `<div class="chatbot-record-field"><span>Product:</span> ${record.product_name}</div>` : ''}
-                        ${record.price ? `<div class="chatbot-record-field"><span>Price:</span> $${parseFloat(record.price).toLocaleString()}</div>` : ''}
-                        <div class="chatbot-record-status">
-                            Status: <span class="badge ${getStatusBadgeClass(record.status)}">${record.status || '--'}</span>
-                        </div>
+                        ${orderedFields.map(field => `<div class="chatbot-record-field ${field.label === 'Address' ? 'chatbot-record-field-full' : ''}"><span>${escapeHtml(field.label)}</span><strong>${escapeHtml(field.value)}</strong></div>`).join('')}
+                        ${price ? `<div class="chatbot-record-field"><span>Price</span><strong>${escapeHtml(price)}</strong></div>` : ''}
                     </div>
-                    <a href="${record.url}" class="chatbot-view-link">View Details</a>
+                    ${record.url && record.url !== '#' ? `<a href="${escapeHtml(record.url)}" class="chatbot-view-link">View details <i class="bi bi-arrow-up-right"></i></a>` : ''}
                 </div>
             `;
         });
         html += `</div>`;
         return html;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    function getRecordIcon(type) {
+        return ({ leads: 'bi-megaphone', customers: 'bi-people', followups: 'bi-person-check', tasks: 'bi-list-check',
+            projects: 'bi-kanban', meetings: 'bi-calendar-event', deals: 'bi-handshake', invoices: 'bi-receipt',
+            tickets: 'bi-ticket-perforated', products: 'bi-box-seam', services: 'bi-tools', staff: 'bi-person-badge',
+            pipeline: 'bi-diagram-3' })[type] || 'bi-file-earmark-text';
     }
 
     function getStatusBadgeClass(status) {

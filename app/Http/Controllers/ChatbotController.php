@@ -114,14 +114,25 @@ class ChatbotController extends Controller
             ]);
         }
 
-        $formattedData = $records->map(function ($record) use ($type) {
+        $creatorNames = User::query()
+            ->whereIn('id', $records->pluck('created_by')->filter()->unique())
+            ->pluck('name', 'id');
+
+        $formattedData = $records->map(function ($record) use ($type, $creatorNames) {
+            $fields = $this->getRecordFields($record);
+            if ($record->created_by && isset($creatorNames[$record->created_by])) {
+                $fields[] = ['label' => 'Created by', 'value' => $creatorNames[$record->created_by]];
+            }
+
             return [
                 'id' => $record->id,
-                'name' => $record->name ?? $record->title ?? $record->pipeline_name ?? $record->service_name ?? $record->product_name ?? $record->ticket_name ?? 'Record',
-                'status' => $record->status,
+                'type' => $type,
+                'name' => $record->name ?? $record->title ?? $record->purpose ?? $record->subject ?? $record->pipeline_name ?? $record->service_name ?? $record->product_name ?? $record->ticket_name ?? 'Record',
+                'status' => $record->status ?? (isset($record->is_active) ? ($record->is_active ? 'Active' : 'Inactive') : null),
                 'service_name' => $record->service_name ?? null,
                 'product_name' => ($type === 'services' && $record->product) ? $record->product->name : ($record->product_name ?? $record->name ?? null),
                 'price' => $record->service_price ?? $record->price ?? null,
+                'fields' => $fields,
                 'url' => $this->getRecordUrl($type, $record),
             ];
         });
@@ -130,6 +141,56 @@ class ChatbotController extends Controller
             'reply' => "Here are $timeLabel $label:",
             'data'  => $formattedData
         ]);
+    }
+
+    private function getRecordFields($record): array
+    {
+        $fieldMap = [
+            'email' => 'Email',
+            'mobile' => 'Mobile',
+            'phone' => 'Phone',
+            'whatsapp' => 'WhatsApp',
+            'company_name' => 'Company',
+            'customer_name' => 'Customer',
+            'lead_source' => 'Source',
+            'source' => 'Source',
+            'priority' => 'Priority',
+            'type' => 'Type',
+            'meeting_type' => 'Meeting type',
+            'purpose' => 'Purpose',
+            'quantity' => 'Quantity',
+            'service_name' => 'Service',
+            'product_name' => 'Product',
+            'location' => 'Location',
+            'address' => 'Address',
+            'website' => 'Website',
+            'tax_number' => 'Tax number',
+            'due_date' => 'Due date',
+            'follow_up_date' => 'Follow-up',
+            'follow_up_at' => 'Follow-up',
+            'meeting_date' => 'Meeting date',
+            'scheduled_at' => 'Scheduled',
+            'start_date' => 'Start date',
+            'end_date' => 'End date',
+        ];
+
+        $fields = [];
+        $usedLabels = [];
+        foreach ($fieldMap as $attribute => $label) {
+            $value = $record->getAttribute($attribute);
+            if ($value === null || $value === '' || isset($usedLabels[$label])) {
+                continue;
+            }
+
+            if ($value instanceof \DateTimeInterface) {
+                $value = $value->format('d M Y, h:i A');
+            }
+
+            $fields[] = ['label' => $label, 'value' => (string) $value];
+            $usedLabels[$label] = true;
+        }
+
+        return array_slice($fields, 0, 6);
     }
 
     private function getRecordUrl($type, $record)
@@ -153,7 +214,7 @@ class ChatbotController extends Controller
 
         $path = $routes[$type] ?? '#';
         if ($path !== '#' && isset($record->id)) {
-            return $baseUrl . $path . '/' . $record->id;
+            return rtrim($baseUrl . $path, '/') . '/' . $record->id;
         }
         return '#';
     }
