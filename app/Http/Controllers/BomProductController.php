@@ -13,7 +13,11 @@ class BomProductController extends Controller
 {
     public function index()
     {
-        return view('crm.bom.index');
+        return view('crm.bom.index', [
+            'categories' => Category::query()->orderBy('name')->get(),
+            'technologies' => Technology::query()->orderBy('title')->get(),
+            'warranties' => Warranty::query()->orderBy('title')->get(),
+        ]);
     }
 
     public function create()

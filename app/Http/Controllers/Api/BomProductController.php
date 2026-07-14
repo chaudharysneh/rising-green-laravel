@@ -50,7 +50,11 @@ class BomProductController extends ApiBaseController
             'product_name' => $input['product_name'] ?? null,
         ]);
 
-        $validator = Validator::make($input, $this->rules(), $this->messages(true));
+        $validator = Validator::make(
+            $input,
+            $this->rules(null, $request->boolean('quick_bom')),
+            $this->messages(true)
+        );
 
         if ($validator->fails()) {
             \Log::warning('BOM Store Validation Failed', ['errors' => $validator->errors()->toArray()]);
@@ -239,7 +243,7 @@ class BomProductController extends ApiBaseController
         ]);
     }
 
-    private function rules(?BomProduct $product = null): array
+    private function rules(?BomProduct $product = null, bool $isQuickBom = false): array
     {
         // ✅ CHANGED: Only validate 4 required fields
         // 1. product_name (Name)
@@ -252,7 +256,9 @@ class BomProductController extends ApiBaseController
             'product_name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'array'],
             'category_id.*' => ['exists:category,id'],
-            'price' => ['required', 'numeric', 'min:1'],
+            'price' => $isQuickBom
+                ? ['nullable', 'numeric', 'min:0']
+                : ['required', 'numeric', 'min:1'],
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,gif,bmp,webp,avif,svg', 'max:2048'],
             // All other fields are optional - no validation
             'tax_type' => ['nullable'],

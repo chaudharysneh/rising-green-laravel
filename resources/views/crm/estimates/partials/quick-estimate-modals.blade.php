@@ -19,7 +19,7 @@
         <form id="quickEstimateForm" novalidate class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
                 <div>
-                    <h5 class="modal-title fw-bold mb-0 text-white">Quick Estimate</h5>
+                    <h5 class="modal-title fw-bold mb-0 text-white"><i class="bi bi-lightning-charge-fill me-2 text-white" aria-hidden="true"></i>Quick Estimate</h5>
                     <p class="small text-white-50 mb-0">Create a basic estimate with default/static settings.</p>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -283,7 +283,6 @@
         </div>
     </div>
 </div>
-
 
 
 

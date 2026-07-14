@@ -74,6 +74,9 @@ class AppServiceProvider extends ServiceProvider
                 'headerQuickEstimateCategories' => collect(),
                 'headerQuickEstimateGstTaxes' => collect(),
                 'headerQuickEstimateSubsidies' => collect(),
+                'headerQuickBomCategories' => collect(),
+                'headerQuickBomTechnologies' => collect(),
+                'headerQuickBomWarranties' => collect(),
             ];
 
             $user = auth()->user();
@@ -93,6 +96,12 @@ class AppServiceProvider extends ServiceProvider
                 $viewData['headerQuickEstimateCategories'] = \App\Models\Category::orderBy('name')->get();
                 $viewData['headerQuickEstimateGstTaxes'] = \App\Models\Tax::active()->orderBy('name')->orderBy('rate')->get();
                 $viewData['headerQuickEstimateSubsidies'] = \App\Models\Subsidy::active()->get();
+            }
+
+            if ($user?->hasMatrixPermission('create_bom') && !request()->routeIs('bom-products.index')) {
+                $viewData['headerQuickBomCategories'] = \App\Models\Category::orderBy('name')->get();
+                $viewData['headerQuickBomTechnologies'] = \App\Models\Technology::orderBy('title')->get();
+                $viewData['headerQuickBomWarranties'] = \App\Models\Warranty::orderBy('title')->get();
             }
 
             $view->with($viewData);

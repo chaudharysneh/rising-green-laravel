@@ -50,12 +50,166 @@
         const paginationContainer = document.getElementById("bomProductsPagination");
         const permissions = window.crmUserPermissions?.bom || {};
 
-        if (!config.indexUrl || !tableBody || !searchInput || !paginationContainer) return;
-
         let searchTimer = null;
+
+        initQuickBom();
+
+        if (!config.indexUrl || !tableBody || !searchInput || !paginationContainer) return;
 
         function buildUrl(template, id) {
             return (template || "").replace("__ID__", id);
+        }
+
+        function initQuickBom() {
+            const modalElement = document.getElementById("quickBomModal");
+            const form = document.getElementById("quickBomForm");
+            const submitButton = document.getElementById("saveQuickBomBtn");
+            if (!modalElement || !form || !submitButton || !config.storeUrl) return;
+
+            const $ = window.jQuery;
+            if ($?.fn?.select2) {
+                form.querySelectorAll(".quick-bom-select").forEach((select) => {
+                    const options = {
+                        theme: "bootstrap-5",
+                        width: "100%",
+                        allowClear: !select.multiple,
+                        placeholder: select.dataset.placeholder || "Select",
+                        dropdownParent: $(modalElement),
+                    };
+                    if (select.classList.contains("quick-bom-creatable")) {
+                        options.tags = true;
+                        options.createTag = function (params) {
+                            const term = params.term.trim();
+                            return term ? { id: `__new__:${term}`, text: term, newTag: true } : null;
+                        };
+                        options.templateResult = function (item) {
+                            if (item.newTag) return $(`<span><i class="bi bi-plus-circle me-1"></i>Create “${escapeHtml(item.text)}”</span>`);
+                            return item.text;
+                        };
+                    }
+                    $(select).select2(options);
+                });
+            }
+
+            async function createMaster(url, field, value) {
+                const body = new FormData();
+                body.append(field, value);
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "",
+                    },
+                    body,
+                    credentials: "same-origin",
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    const firstError = Object.values(payload?.errors || {})[0]?.[0];
+                    throw new Error(firstError || payload?.message || `Unable to create ${value}.`);
+                }
+                return payload.data;
+            }
+
+            async function resolveNewOptions(select, url, field, labelField) {
+                const selected = Array.from(select.selectedOptions);
+                for (const option of selected) {
+                    if (!option.value.startsWith("__new__:")) continue;
+                    const title = option.value.slice(8).trim();
+                    const created = await createMaster(url, field, title);
+                    option.value = String(created.id);
+                    option.textContent = created[labelField] || title;
+                    option.dataset.select2Tag = "false";
+                }
+                if ($?.fn?.select2) $(select).trigger("change.select2");
+            }
+
+            function clearErrors() {
+                form.querySelectorAll(".is-invalid").forEach((field) => field.classList.remove("is-invalid"));
+                form.querySelectorAll(".select2-selection.is-invalid").forEach((field) => field.classList.remove("is-invalid"));
+                form.querySelectorAll("[data-error-for]").forEach((field) => {
+                    field.textContent = "";
+                    field.style.display = "";
+                });
+            }
+
+            function showError(name, message) {
+                const normalizedName = name.replace(/\.\d+$/, "");
+                const input = form.querySelector(`[name="${normalizedName}"], [name="${normalizedName}[]"]`);
+                if (input) {
+                    input.classList.add("is-invalid");
+                    input.nextElementSibling?.querySelector?.(".select2-selection")?.classList.add("is-invalid");
+                }
+                const feedback = form.querySelector(`[data-error-for="${normalizedName}"]`);
+                if (feedback) {
+                    feedback.textContent = message;
+                    feedback.style.display = "block";
+                }
+            }
+
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                clearErrors();
+
+                let valid = true;
+                if (!form.elements.product_name.value.trim()) { showError("product_name", "Please enter the BOM name."); valid = false; }
+                if (!form.elements["category_id[]"].selectedOptions.length) { showError("category_id", "Please select at least one Make."); valid = false; }
+                if (!valid) return;
+
+                submitButton.disabled = true;
+                submitButton.querySelector(".spinner-border")?.classList.remove("d-none");
+                submitButton.querySelector(".button-text").textContent = "Adding...";
+
+                try {
+                    await resolveNewOptions(form.elements["category_id[]"], config.makeStoreUrl, "name", "name");
+                    await resolveNewOptions(form.elements.technology_id, config.technologyStoreUrl, "title", "title");
+                    await resolveNewOptions(form.elements.warranty_id, config.warrantyStoreUrl, "title", "title");
+
+                    const formData = new FormData(form);
+                    formData.append("quick_bom", "1");
+
+                    const response = await fetch(config.storeUrl, {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                            "X-Requested-With": "XMLHttpRequest",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "",
+                        },
+                        body: formData,
+                        credentials: "same-origin",
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        Object.entries(payload?.errors || {}).forEach(([name, messages]) => showError(name, messages[0]));
+                        throw new Error(payload?.message || (response.status === 422 ? "Please correct the highlighted fields." : "Unable to add BOM."));
+                    }
+
+                    bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+                    form.reset();
+                    if ($?.fn?.select2) $(form).find(".quick-bom-select").val(null).trigger("change");
+                    notify(payload?.message || "BOM product created successfully.", "success");
+                    if (searchInput) {
+                        searchInput.value = "";
+                        fetchProducts(1);
+                    }
+                } catch (error) {
+                    notify(error.message || "Unable to add BOM.", "error");
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.querySelector(".spinner-border")?.classList.add("d-none");
+                    submitButton.querySelector(".button-text").textContent = "Add BOM";
+                }
+            });
+
+            modalElement.addEventListener("hidden.bs.modal", clearErrors);
+
+            const pageUrl = new URL(window.location.href);
+            if (pageUrl.searchParams.get("quick_bom") === "1") {
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                pageUrl.searchParams.delete("quick_bom");
+                window.history.replaceState({}, document.title, pageUrl.toString());
+            }
         }
 
         function renderRows(items, meta) {
