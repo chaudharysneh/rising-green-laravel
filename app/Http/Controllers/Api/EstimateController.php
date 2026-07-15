@@ -236,6 +236,7 @@ class EstimateController extends Controller
                 'attach_file' => $attachFile,
                 'quantity' => $quantity,
                 'price' => $price,
+                'price_mode' => $useBomPrice ? 'bom' : 'base',
                 'solar_structure_charges' => $solarStructureCharges,
                 'solar_meter_charges' => $solarMeterCharges,
                 'template_id' => $templateId,
@@ -305,7 +306,7 @@ class EstimateController extends Controller
     {
         $estimate = Estimate::findOrFail($id);
         $this->authorize('update', $estimate);
-        $useBomPrice = Setting::where('key', 'estimate_price_mode')->value('value') !== 'base';
+        $useBomPrice = $this->resolveEstimatePriceMode($estimate) === 'bom';
 
         if (($estimate->status ?? '') === 'approved') {
             return response()->json([
@@ -434,6 +435,7 @@ class EstimateController extends Controller
                 'type' => $type,
                 'quantity' => $quantity,
                 'price' => $price,
+                'price_mode' => $useBomPrice ? 'bom' : 'base',
                 'solar_structure_charges' => $solarStructureCharges,
                 'solar_meter_charges' => $solarMeterCharges,
                 'template_id' => $templateId,
@@ -850,6 +852,36 @@ class EstimateController extends Controller
                 'lines' => $lines,
             ]],
         ];
+    }
+
+    private function resolveEstimatePriceMode(Estimate $estimate): string
+    {
+        if (in_array($estimate->price_mode, ['base', 'bom'], true)) {
+            return $estimate->price_mode;
+        }
+
+        $breakdown = is_array($estimate->gst_breakdown)
+            ? $estimate->gst_breakdown
+            : (json_decode((string) $estimate->gst_breakdown, true) ?: []);
+
+        foreach (($breakdown['groups'] ?? []) as $group) {
+            $taxType = (string) ($group['tax_type'] ?? '');
+            if ($taxType === 'global_tax') {
+                return 'base';
+            }
+            if ($taxType === 'bom_selected_tax') {
+                return 'bom';
+            }
+        }
+
+        $products = is_array($estimate->product_name)
+            ? $estimate->product_name
+            : (json_decode((string) $estimate->product_name, true) ?: []);
+        $bomTotal = collect($products)->sum(function ($product) {
+            return (float) ($product['quantity'] ?? 0) * (float) ($product['price'] ?? 0);
+        });
+
+        return (float) $estimate->price > 0 && $bomTotal <= 0 ? 'base' : 'bom';
     }
 
     private function buildGstBreakdown(float $taxableAmount, bool $applyTaxes): array
