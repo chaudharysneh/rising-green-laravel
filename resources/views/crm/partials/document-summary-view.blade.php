@@ -206,7 +206,7 @@
         </tr>
         @if (!empty($summaryShowBomTaxes))
             <tr>
-                <td class="summary-cell"><strong>Taxes on Bill of Materials (BOM) Only</strong></td>
+                <td class="summary-cell"><strong>{{ !empty($summaryUsesGlobalTax) ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td>
                 <td class="summary-cell summary-cell-right">&nbsp;</td>
             </tr>
             @foreach ($summaryBreakupLines ?? [] as $line)
@@ -224,12 +224,12 @@
                 @endif
             @endforeach
             <tr>
-                <td class="summary-cell"><strong>Total Taxes on BOM</strong></td>
+                <td class="summary-cell"><strong>{{ !empty($summaryUsesGlobalTax) ? 'Total Global Tax' : 'Total Taxes on BOM' }}</strong></td>
                 <td class="summary-cell summary-cell-right"><strong>{{ number_format($summaryBomTaxTotal ?? 0, 2) }}</strong></td>
             </tr>
         @elseif (!empty($summaryShowGst) && ($summaryBomTaxTotal ?? 0) > 0)
             <tr>
-                <td class="summary-cell"><strong>Taxes on Bill of Materials (BOM) Only</strong></td>
+                <td class="summary-cell"><strong>{{ !empty($summaryUsesGlobalTax) ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td>
                 <td class="summary-cell summary-cell-right">&nbsp;</td>
             </tr>
             <tr>
@@ -237,7 +237,7 @@
                 <td class="summary-cell summary-cell-right">{{ number_format((float) ($summaryBomTaxTotal ?? 0), 2) }}</td>
             </tr>
             <tr>
-                <td class="summary-cell"><strong>Total Taxes on BOM</strong></td>
+                <td class="summary-cell"><strong>{{ !empty($summaryUsesGlobalTax) ? 'Total Global Tax' : 'Total Taxes on BOM' }}</strong></td>
                 <td class="summary-cell summary-cell-right"><strong>{{ number_format($summaryBomTaxTotal ?? 0, 2) }}</strong></td>
             </tr>
         @endif
@@ -254,7 +254,9 @@
             </tr>
         @endif
         @php
-            $summarySubtotalFormula = '(Base cost + BOM + BOM Taxes';
+            $summarySubtotalFormula = !empty($summaryUsesGlobalTax)
+                ? '(Base cost + Global Tax'
+                : '(Base cost + BOM + BOM Taxes';
             if (($summarySolarStructureCharges ?? 0) > 0) {
                 $summarySubtotalFormula .= ' + Solar Structure Charges';
             }

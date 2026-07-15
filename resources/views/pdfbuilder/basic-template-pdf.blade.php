@@ -60,8 +60,12 @@
         ? $doc->gst_breakdown
         : (json_decode((string) ($doc->gst_breakdown ?? ''), true) ?: []);
     $taxLines = [];
+    $usesGlobalTax = false;
     if (!empty($gstBreakdown['groups']) && is_array($gstBreakdown['groups'])) {
         foreach ($gstBreakdown['groups'] as $group) {
+            if ((string) ($group['tax_type'] ?? '') === 'global_tax') {
+                $usesGlobalTax = true;
+            }
             if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
                 continue;
             }
@@ -415,7 +419,7 @@
                     <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
                     <tr><td>Bill of Materials (BOM)</td><td>{!! $money($bomValue) !!}</td></tr>
                     @if ($gstValue > 0)
-                        <tr><td><strong>Taxes on Bill of Materials (BOM) Only</strong></td><td></td></tr>
+                        <tr><td><strong>{{ $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td><td></td></tr>
                         @foreach ($taxLines as $taxLine)
                             @php
                                 $taxRateText = is_numeric($taxLine['rate'] ?? null)
@@ -427,7 +431,7 @@
                                 <td>{!! $money($taxLine['amount']) !!}</td>
                             </tr>
                         @endforeach
-                        <tr><td><strong>Total Taxes on BOM</strong></td><td><strong>{!! $money($gstValue) !!}</strong></td></tr>
+                        <tr><td><strong>{{ $usesGlobalTax ? 'Total Global Tax' : 'Total Taxes on BOM' }}</strong></td><td><strong>{!! $money($gstValue) !!}</strong></td></tr>
                     @endif
                     @if ($solarStructureValue > 0)
                         <tr><td>Solar Structure Charges</td><td>{!! $money($solarStructureValue) !!}</td></tr>

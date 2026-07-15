@@ -81,9 +81,13 @@ $summaryQrImage = !empty($companyQrCodePath) ? normalize_pdf_image($companyQrCod
 $summaryGstRateText = is_numeric($summaryGstRate) ? rtrim(rtrim(number_format((float) $summaryGstRate, 2, '.', ''), '0'), '.') : '';
 $summaryShowGst = ((float) $summaryGstAmount > 0) || ((float) $summaryGstRate > 0);
 $summaryBreakupLines = [];
+$summaryUsesGlobalTax = false;
 
 if (!empty($summaryGstBreakdown['groups']) && is_array($summaryGstBreakdown['groups'])) {
     foreach ($summaryGstBreakdown['groups'] as $group) {
+        if ((string) ($group['tax_type'] ?? '') === 'global_tax') {
+            $summaryUsesGlobalTax = true;
+        }
         if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
             continue;
         }
@@ -255,7 +259,7 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
     <?php if ($summaryShowBomTaxes): ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Taxes on Bill of Materials (BOM) Only</strong></td>
+        <td style="<?= $summaryCellStyle ?>"><strong><?= $summaryUsesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' ?></strong></td>
         <td style="<?= $summaryRightCellStyle ?>">&nbsp;</td>
     </tr>
         <?php foreach ($summaryBreakupLines as $line): ?>
@@ -274,12 +278,12 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
         <?php endforeach; ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Total Taxes on BOM</strong></td>
+        <td style="<?= $summaryCellStyle ?>"><strong><?= $summaryUsesGlobalTax ? 'Total Global Tax' : 'Total Taxes on BOM' ?></strong></td>
         <td style="<?= $summaryRightCellStyle ?>"><strong><?= number_format($summaryBomTaxTotal, 2) ?></strong></td>
     </tr>
     <?php elseif ($summaryShowGst && $summaryBomTaxTotal > 0): ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Taxes on Bill of Materials (BOM) Only</strong></td>
+        <td style="<?= $summaryCellStyle ?>"><strong><?= $summaryUsesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' ?></strong></td>
         <td style="<?= $summaryRightCellStyle ?>">&nbsp;</td>
     </tr>
     <tr>
@@ -287,7 +291,7 @@ $summaryLendingCost = $summaryNetPayable;
         <td style="<?= $summaryRightCellStyle ?>"><?= number_format((float) $summaryBomTaxTotal, 2) ?></td>
     </tr>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Total Taxes on BOM</strong></td>
+        <td style="<?= $summaryCellStyle ?>"><strong><?= $summaryUsesGlobalTax ? 'Total Global Tax' : 'Total Taxes on BOM' ?></strong></td>
         <td style="<?= $summaryRightCellStyle ?>"><strong><?= number_format($summaryBomTaxTotal, 2) ?></strong></td>
     </tr>
     <?php endif; ?>
@@ -304,7 +308,7 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
     <?php endif; ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Invoice Subtotal</strong> <span style="font-style:italic;font-weight:normal;">(Base cost + BOM + BOM Taxes<?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
+        <td style="<?= $summaryCellStyle ?>"><strong>Invoice Subtotal</strong> <span style="font-style:italic;font-weight:normal;">(<?= $summaryUsesGlobalTax ? 'Base cost + Global Tax' : 'Base cost + BOM + BOM Taxes' ?><?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
         <td style="<?= $summaryRightCellStyle ?>"><strong><?= number_format($summaryInvoiceSubtotal, 2) ?></strong></td>
     </tr>
     <?php if ($summarySubsidy > 0): ?>
