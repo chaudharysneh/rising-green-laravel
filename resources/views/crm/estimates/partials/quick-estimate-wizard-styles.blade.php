@@ -25,6 +25,68 @@
         display: block !important;
     }
 
+    #quickEstimateModal .quick-price-mode-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .08);
+        padding: 5px 6px 5px 10px;
+    }
+
+    #quickEstimateModal .quick-price-mode-title {
+        color: rgba(255, 255, 255, .88);
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+        margin-right: 2px;
+    }
+
+    #quickEstimateModal .quick-price-mode-options {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 10px;
+        background: rgba(2, 6, 23, .35);
+    }
+
+    #quickEstimateModal .quick-price-mode-option {
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: rgba(255, 255, 255, .74);
+        min-height: 28px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    #quickEstimateModal .quick-price-mode-option:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, .1);
+    }
+
+    #quickEstimateModal .quick-price-mode-option.active {
+        color: #0f172a;
+        background: linear-gradient(135deg, #ffffff 0%, #bfdbfe 100%);
+        box-shadow: 0 4px 10px rgba(96, 165, 250, .18);
+    }
+
+    #quickEstimateModal .quick-price-mode-select {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+    }
+
     @media (min-width: 768px) {
         #quickEstimateModal .quick-comment-col,
         #quickEstimateModal .quick-totals-col {
@@ -85,6 +147,15 @@
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
             overflow-x: clip;
+        }
+
+        #quickEstimateModal .modal-header {
+            align-items: flex-start;
+            gap: .75rem;
+        }
+
+        #quickEstimateModal .quick-price-mode-card {
+            min-width: 100%;
         }
 
         #quickEstimateModal .quick-totals-card .totals-row > .input-small {

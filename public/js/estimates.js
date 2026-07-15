@@ -67,6 +67,26 @@
         return mode === 'base' ? 'base' : 'bom';
     }
 
+    function setDocumentPriceMode(mode) {
+        window.documentEstimatePriceMode = mode === 'base' ? 'base' : 'bom';
+    }
+
+    function syncPriceModeButtons(scope, mode, optionSelector, helpSelector) {
+        const activeMode = mode === 'base' ? 'base' : 'bom';
+        const root = scope || document;
+        root.querySelectorAll(optionSelector).forEach(function (button) {
+            const buttonMode = button.dataset.priceModeOption || button.dataset.quickPriceModeOption || '';
+            const isActive = buttonMode === activeMode;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+
+        const help = root.querySelector(helpSelector);
+        if (help) {
+            help.textContent = '';
+        }
+    }
+
     function getQuickSelectValue(el) {
         if (!el) {
             return '';
@@ -883,6 +903,78 @@
                 }
             };
 
+            const applyQuickEstimatePriceMode = function (mode) {
+                window.estimatePriceMode = mode === 'base' ? 'base' : 'bom';
+                const isBaseMode = window.estimatePriceMode === 'base';
+                const selector = document.getElementById('quick_estimate_price_mode');
+                if (selector) {
+                    selector.value = window.estimatePriceMode;
+                }
+                syncPriceModeButtons(modalEl || document, window.estimatePriceMode, '[data-quick-price-mode-option]', '[data-quick-price-mode-help]');
+                modalEl?.classList.toggle('quick-estimate-base-price-mode', isBaseMode);
+
+                document.querySelectorAll('#quickEstimateModal .quick-base-price-col, #quickEstimateModal .quick-global-tax-col').forEach(function (el) {
+                    el.classList.toggle('d-none', !isBaseMode);
+                });
+                document.querySelectorAll('#quickEstimateModal .quick-bom-money-col, #quickEstimateModal .quick-bom-tax-col').forEach(function (el) {
+                    el.classList.toggle('d-none', isBaseMode);
+                });
+                document.querySelectorAll('#quickEstimateModal .quick-totals-card .totals-row').forEach(function (row) {
+                    if (row.querySelector('#quick_apply_gst')) {
+                        row.classList.toggle('d-none', isBaseMode);
+                    }
+                });
+
+                const quickPrice = document.getElementById('quick_price');
+                if (quickPrice) {
+                    quickPrice.required = isBaseMode;
+                    if (isBaseMode) {
+                        quickPrice.value = quickPrice.dataset.previousBasePrice || quickPrice.value || '';
+                    } else {
+                        if (parseFloat(quickPrice.value || 0) > 0) {
+                            quickPrice.dataset.previousBasePrice = quickPrice.value;
+                        }
+                        quickPrice.value = '0';
+                    }
+                }
+
+                form.querySelectorAll('.quick-bom-row').forEach(function (row) {
+                    const selectCol = row.querySelector('.quick-bom-select-col');
+                    const makeCol = row.querySelector('.quick-bom-make-col');
+                    const qtyCol = row.querySelector('.quick-bom-qty-col');
+                    if (selectCol) {
+                        selectCol.classList.toggle('col-md-5', isBaseMode);
+                        selectCol.classList.toggle('col-md-3', !isBaseMode);
+                    }
+                    if (makeCol) {
+                        makeCol.classList.toggle('col-md-4', isBaseMode);
+                        makeCol.classList.toggle('col-md-2', !isBaseMode);
+                    }
+                    if (qtyCol) {
+                        qtyCol.classList.toggle('col-md-2', isBaseMode);
+                        qtyCol.classList.toggle('col-md-1', !isBaseMode);
+                    }
+
+                    const select = row.querySelector('.quick-bom-select');
+                    const option = select?.options[select.selectedIndex];
+                    const priceInput = row.querySelector('.quick-bom-price');
+                    const taxSelect = row.querySelector('.quick-bom-tax-rate');
+                    if (isBaseMode) {
+                        if (priceInput) priceInput.value = '0';
+                        if (taxSelect) taxSelect.value = '0';
+                    } else if (select?.value) {
+                        if (priceInput && parseFloat(priceInput.value || 0) <= 0) {
+                            priceInput.value = formatStepOneInputValue(option?.dataset?.price || 0);
+                        }
+                        if (taxSelect && option?.dataset?.taxRate !== undefined && parseFloat(taxSelect.value || 0) <= 0) {
+                            taxSelect.value = option.dataset.taxRate || '0';
+                        }
+                    }
+                });
+
+                calculateQuickEstimateTotals();
+            };
+
             const populateQuickBomMakeOptions = function (makeSelect, categories, selectedValue) {
                 if (!makeSelect) {
                     return;
@@ -1145,6 +1237,7 @@
                 }
 
                 resetQuickBomRows();
+                applyQuickEstimatePriceMode(window.estimatePriceMode);
 
                 const discountField = document.getElementById('quick_discount');
                 const subsidyField = document.getElementById('quick_subsidy_amount');
@@ -1201,6 +1294,23 @@
 
             document.getElementById('quick_global_tax_rate')?.addEventListener('change', calculateQuickEstimateTotals);
 
+            const quickPriceModeSelector = document.getElementById('quick_estimate_price_mode');
+            if (quickPriceModeSelector && quickPriceModeSelector.dataset.priceModeInit !== '1') {
+                quickPriceModeSelector.dataset.priceModeInit = '1';
+                quickPriceModeSelector.value = window.estimatePriceMode === 'base' ? 'base' : 'bom';
+                quickPriceModeSelector.addEventListener('change', function () {
+                    applyQuickEstimatePriceMode(this.value);
+                    clearQuickEstimateValidationState(form);
+                    updateQuickBomErrorVisibility(form);
+                });
+                document.querySelectorAll('#quickEstimateModal [data-quick-price-mode-option]').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        quickPriceModeSelector.value = this.dataset.quickPriceModeOption === 'base' ? 'base' : 'bom';
+                        quickPriceModeSelector.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                });
+            }
+
             const quickGstCheckbox = document.getElementById('quick_apply_gst');
             if (quickGstCheckbox) {
                 quickGstCheckbox.addEventListener('change', function () {
@@ -1215,6 +1325,7 @@
                     gstBox.style.display = quickGstCheckbox.checked ? 'block' : 'none';
                 }
             }
+            applyQuickEstimatePriceMode(window.estimatePriceMode);
 
             const fillQuickCommentFromTemplate = function (overwrite) {
                 const templateSelect = document.getElementById('quick_template_id');
@@ -1424,6 +1535,7 @@
                 formData.set('type', estimateType);
                 formData.set('quantity', String(quantity));
                 formData.set('price', String(price));
+                formData.set('price_mode', window.estimatePriceMode === 'base' ? 'base' : 'bom');
                 formData.set('template_id', templateId);
                 formData.set('solar_meter_charges', 'as_per_actual');
                 formData.set('estimate_date', new Date().toISOString().slice(0, 10));
@@ -1923,6 +2035,7 @@
         initQuickAddBom();
         initDocumentNameFromCustomer();
         initTemplateCommentAutofill();
+        initEstimatePriceModeSelector();
         applyEstimatePriceMode(form);
 
         const eventNs = config.eventNs || 'document';
@@ -1943,6 +2056,7 @@
             const bomProducts = collectBomData();
             const formData = new FormData(this);
             const totalTaxRate = getSelectedTaxBreakdown(null).totalRate;
+            formData.set('price_mode', getDocumentPriceMode());
             formData.set('products', JSON.stringify(bomProducts));
             formData.set('apply_gst', document.getElementById('apply_gst')?.checked ? '1' : '0');
             formData.set('gst', document.getElementById('apply_gst')?.checked ? totalTaxRate.toFixed(2) : '0');
@@ -2010,17 +2124,64 @@
 
     function applyEstimatePriceMode(form) {
         const mode = getDocumentPriceMode();
+        const selector = document.getElementById('estimate_price_mode_selector');
+        if (selector) {
+            selector.value = mode;
+        }
+        syncPriceModeButtons(document, mode, '[data-price-mode-option]', '[data-price-mode-help]');
+
+        form.querySelectorAll('[name="price"]').forEach(function (field) {
+            field.required = mode === 'base';
+        });
+        document.querySelectorAll('.estimate-base-price-col, .estimate-global-tax-col').forEach(function (el) {
+            el.classList.toggle('d-none', mode !== 'base');
+        });
+        document.querySelectorAll('.estimate-bom-money-col').forEach(function (el) {
+            el.classList.toggle('d-none', mode === 'base');
+        });
+        document.querySelectorAll('.estimate-charges-col').forEach(function (el) {
+            el.classList.toggle('col-md-4', mode === 'base');
+            el.classList.toggle('col-md-8', mode !== 'base');
+        });
+        document.querySelectorAll('#bomContainer .bom-row-grid').forEach(function (grid) {
+            grid.style.gridTemplateColumns = mode === 'base'
+                ? 'minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)'
+                : '';
+        });
+
         if (mode === 'bom') {
             const basePrice = form.querySelector('[name="price"]');
-            if (basePrice) basePrice.value = '0';
+            if (basePrice) {
+                if (parseFloat(basePrice.value || 0) > 0) {
+                    basePrice.dataset.previousBasePrice = basePrice.value;
+                }
+                basePrice.value = '0';
+            }
+            form.querySelectorAll('.product-select').forEach(function (select) {
+                const row = select.closest('.bom-row');
+                const option = select.options[select.selectedIndex];
+                const priceField = row?.querySelector('.product-price');
+                const taxField = row?.querySelector('.product-tax-rate');
+                if (priceField && select.value && parseFloat(priceField.value || 0) <= 0) {
+                    priceField.value = formatStepOneInputValue(option?.dataset?.price || 0);
+                }
+                if (taxField && select.value && option?.dataset?.taxRate !== undefined && parseFloat(taxField.value || 0) <= 0) {
+                    taxField.value = option.dataset.taxRate || '0';
+                }
+            });
             calculateTotals();
             return;
         }
 
         const savedPricing = window.estimateSavedPricing || {};
         const basePrice = form.querySelector('[name="price"]');
-        if (basePrice && savedPricing.basePrice !== undefined && savedPricing.basePrice !== null) {
-            basePrice.value = String(savedPricing.basePrice);
+        if (basePrice) {
+            const restoredBasePrice = basePrice.dataset.previousBasePrice
+                ?? savedPricing.basePrice
+                ?? '';
+            if (restoredBasePrice !== undefined && restoredBasePrice !== null && restoredBasePrice !== '') {
+                basePrice.value = String(restoredBasePrice);
+            }
         }
         const globalTaxRate = document.getElementById('global_tax_rate');
         if (globalTaxRate && savedPricing.globalTaxRate !== undefined && savedPricing.globalTaxRate !== null) {
@@ -2034,6 +2195,33 @@
             field.value = '0';
         });
         calculateTotals();
+    }
+
+    function initEstimatePriceModeSelector() {
+        const selector = document.getElementById('estimate_price_mode_selector');
+        const config = getActiveDocumentFormConfig();
+        const form = document.querySelector(config.formSelector);
+        if (!selector || !form || selector.dataset.priceModeInit === '1') {
+            return;
+        }
+
+        selector.dataset.priceModeInit = '1';
+        selector.value = getDocumentPriceMode();
+        syncPriceModeButtons(document, getDocumentPriceMode(), '[data-price-mode-option]', '[data-price-mode-help]');
+        selector.addEventListener('change', function () {
+            setDocumentPriceMode(this.value);
+            applyEstimatePriceMode(form);
+            hideProductsError();
+            form.querySelectorAll('.is-invalid').forEach(function (field) {
+                field.classList.remove('is-invalid');
+            });
+        });
+        document.querySelectorAll('[data-price-mode-option]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                selector.value = this.dataset.priceModeOption === 'base' ? 'base' : 'bom';
+                selector.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
     }
 
     function initDocumentNameFromCustomer() {

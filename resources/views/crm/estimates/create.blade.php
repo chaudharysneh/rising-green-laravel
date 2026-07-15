@@ -68,6 +68,71 @@
             display: block !important;
         }
 
+        .estimate-price-mode-card {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            border: 1px solid #dbe5f1;
+            border-radius: 8px;
+            background: #f8fbff;
+            padding: 5px 6px 5px 10px;
+        }
+
+        .estimate-price-mode-title {
+            color: #0f172a;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-right: 2px;
+        }
+
+        .estimate-price-mode-options {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 10px;
+            background: #eef4fb;
+        }
+
+        .estimate-price-mode-option {
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #475569;
+            min-height: 28px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+
+        .estimate-price-mode-option:hover {
+            color: #0b376d;
+            background: rgba(255, 255, 255, .72);
+        }
+
+        .estimate-price-mode-option.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, #0b376d 0%, #0d6efd 100%);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, .18);
+        }
+
+        .estimate-price-mode-option i {
+            font-size: 11px;
+        }
+
+        .estimate-price-mode-select {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+
         @media (max-width: 1199.98px) {
             .bom-row-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -208,9 +273,26 @@
                         <h1 class="h4 mb-1 fw-semibold">Add Estimate</h1>
                         <p class="text-muted small mb-0">Create a new estimate for your customer.</p>
                     </div>
-                    <a href="{{ route('estimates.index') }}" class="btn btn-dark-blue back-btn w-100 w-md-auto">
-                        <i class="fa-solid fa-angle-left pe-2"></i>Back
-                    </a>
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <div class="estimate-price-mode-card">
+                            <span class="estimate-price-mode-title fw-bold">Pricing Method</span>
+                            <div class="estimate-price-mode-options" role="group" aria-label="Pricing Method">
+                                <button type="button" class="estimate-price-mode-option" data-price-mode-option="base">
+                                    <i class="bi bi-cash-stack" aria-hidden="true"></i>Base Price
+                                </button>
+                                <button type="button" class="estimate-price-mode-option" data-price-mode-option="bom">
+                                    <i class="bi bi-boxes" aria-hidden="true"></i>BOM Price
+                                </button>
+                            </div>
+                            <select name="price_mode" id="estimate_price_mode_selector" form="estimateCreateForm" class="form-select form-select-sm estimate-price-mode-selector estimate-price-mode-select" aria-label="Pricing Method">
+                                <option value="bom" @selected($estimatePriceMode === 'bom')>Show BOM Price only</option>
+                                <option value="base" @selected($estimatePriceMode === 'base')>Show Base Price only</option>
+                            </select>
+                        </div>
+                        <a href="{{ route('estimates.index') }}" class="btn btn-dark-blue back-btn w-100 w-md-auto">
+                            <i class="fa-solid fa-angle-left pe-2"></i>Back
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="card-body p-3 p-md-4">
@@ -275,7 +357,7 @@
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col estimate-base-price-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
                                 value="{{ $estimatePriceMode === 'bom' ? 0 : old('price') }}" class="form-control @error('price') is-invalid @enderror"
@@ -321,7 +403,7 @@
 
                         <div class="col-12 create-step-1 active-step estimate-charges-date-group">
                             <div class="row g-3">
-                                <div class="col-12 {{ $estimatePriceMode === 'base' ? 'col-md-4' : 'col-md-8' }} estimate-charges-col">
+                                    <div class="col-12 {{ $estimatePriceMode === 'base' ? 'col-md-4' : 'col-md-8' }} estimate-charges-col">
                                     <label class="form-label fw-semibold">Charges</label>
                                     <div class="form-control d-flex align-items-center bg-light"
                                         style="min-height: 38px; padding: 0.375rem 0.75rem;">
@@ -335,8 +417,7 @@
                                     </div>
                                 </div>
 
-                                @if ($estimatePriceMode === 'base')
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-4 estimate-global-tax-col {{ $estimatePriceMode === 'base' ? '' : 'd-none' }}">
                                         <label class="form-label fw-semibold">Tax Rate (Global)</label>
                                         <select name="global_tax_rate" id="global_tax_rate" class="form-select">
                                             <option value="0" data-label="No Tax">No Tax</option>
@@ -345,7 +426,6 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                @endif
 
                                 <div class="col-12 col-md-4 d-none d-md-block estimate-created-date-col">
                                     <label class="form-label fw-semibold">Created Date</label>
@@ -379,7 +459,7 @@
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
-                                        <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
+                                            <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
                                             <div>
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
@@ -417,12 +497,12 @@
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="1" class="form-control" placeholder="Add Quantity">
                                             </div>
-                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
+                                            <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_price[]"
                                                     value="0" class="form-control product-price" placeholder="0">
                                             </div>
-                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
+                                            <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="product_tax_rate[]" class="form-select product-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
@@ -433,7 +513,7 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
+                                            <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Amount</label>
                                                 <input type="number" min="0" step="1" value="0"
                                                     class="form-control product-total" placeholder="0" readonly>
