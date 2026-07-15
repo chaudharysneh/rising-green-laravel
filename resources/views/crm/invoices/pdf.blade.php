@@ -391,8 +391,13 @@ if (!function_exists('base_url')) {
                     $discount = (float) ($invoice->discount ?? 0);
                     $subsidy = (float) ($invoice->subsidy_amount ?? 0);
                     $solarStructureCharges = (float) ($invoice->solar_structure_charges ?? 0);
-
-                    $gstAmount = $subtotal * ($gstRate / 100);
+                    $gstBreakdown = is_array($invoice->gst_breakdown ?? null)
+                        ? $invoice->gst_breakdown
+                        : (json_decode((string) ($invoice->gst_breakdown ?? ''), true) ?: []);
+                    $usesGlobalTax = collect($gstBreakdown['groups'] ?? [])->contains(fn ($group) => ($group['tax_type'] ?? '') === 'global_tax');
+                    $gstAmount = isset($invoice->gst_amount)
+                        ? (float) $invoice->gst_amount
+                        : $subtotal * ($gstRate / 100);
                     $totalPayable = $subtotal + $solarStructureCharges + $gstAmount - $discount;
                     $lendingCost = $totalPayable - $subsidy;
                 @endphp
@@ -411,7 +416,7 @@ if (!function_exists('base_url')) {
                 @if($gstRate > 0)
                 <tr>
                     <td style="border: 1px solid #333; background-color: #fff;"></td>
-                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">GST ({{ $gstRate }}%)</td>
+                    <td style="text-align: right; border: 1px solid #333; font-weight: normal; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ $usesGlobalTax ? 'Global Tax' : 'BOM Tax' }} ({{ $gstRate }}%)</td>
                     <td style="text-align: right; border: 1px solid #333; padding: 8px 12px; color: #333; font-family: sans-serif;">{{ number_format($gstAmount, 2) }}</td>
                 </tr>
                 @endif

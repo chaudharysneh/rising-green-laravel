@@ -417,7 +417,7 @@
                 <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
                 <tbody>
                     <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
-                    <tr><td>Bill of Materials (BOM)</td><td>{!! $money($bomValue) !!}</td></tr>
+                    <tr><td>Bill of Materials (BOM)</td><td>{!! $usesGlobalTax ? '--' : $money($bomValue) !!}</td></tr>
                     @if ($gstValue > 0)
                         <tr><td><strong>{{ $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td><td></td></tr>
                         @foreach ($taxLines as $taxLine)

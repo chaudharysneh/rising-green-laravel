@@ -356,6 +356,7 @@
                                             : json_decode($estimate->product_name, true);
                                         $total_quantity = 0;
                                         $grand_total_excluding_gst = 0.0;
+                                        $usesGlobalTax = !empty($documentSummary['summaryUsesGlobalTax']);
                                     @endphp
                                     @if (is_array($allproduct) && !empty($allproduct))
                                         @foreach ($allproduct as $item)
@@ -462,8 +463,8 @@
                                                 <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
-                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ number_format($price_val, 2) }}</td>
-                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ number_format($row_total, 2) }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ $usesGlobalTax ? '--' : number_format($price_val, 2) }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $usesGlobalTax ? '--' : number_format($row_total, 2) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
@@ -480,7 +481,7 @@
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">Total:</td>
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
                                                 <td style="text-align: center; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">—</td>
-                                                <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #4b9349 !important; color: #ffffff !important;">{{ number_format($grand_total_excluding_gst, 2) }}</td>
+                                                <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #4b9349 !important; color: #ffffff !important;">{{ $usesGlobalTax ? '--' : number_format($grand_total_excluding_gst, 2) }}</td>
                                             </tr>
                                         </tfoot>
                                     @endif
