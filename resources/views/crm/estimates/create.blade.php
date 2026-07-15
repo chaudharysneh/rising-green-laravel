@@ -321,7 +321,7 @@
 
                         <div class="col-12 create-step-1 active-step estimate-charges-date-group">
                             <div class="row g-3">
-                                <div class="col-12 col-md-8 estimate-charges-col">
+                                <div class="col-12 {{ $estimatePriceMode === 'base' ? 'col-md-4' : 'col-md-8' }} estimate-charges-col">
                                     <label class="form-label fw-semibold">Charges</label>
                                     <div class="form-control d-flex align-items-center bg-light"
                                         style="min-height: 38px; padding: 0.375rem 0.75rem;">
@@ -334,6 +334,18 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                @if ($estimatePriceMode === 'base')
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-semibold">Tax Rate (Global)</label>
+                                        <select name="global_tax_rate" id="global_tax_rate" class="form-select">
+                                            <option value="0" data-label="No Tax">No Tax</option>
+                                            @foreach ($bomTaxOptions as $taxOption)
+                                                <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}">{{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
 
                                 <div class="col-12 col-md-4 d-none d-md-block estimate-created-date-col">
                                     <label class="form-label fw-semibold">Created Date</label>
@@ -483,7 +495,7 @@
                                     <span id="subtotal_display" class="fw-bold text-dark">0.00</span>
                                 </div>
 
-                                <div class="totals-row align-items-center">
+                                <div class="totals-row align-items-center {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                     <div class="d-flex align-items-center gap-2">
                                         <label class="switch mb-0">
                                             <input type="checkbox" id="apply_gst" checked>

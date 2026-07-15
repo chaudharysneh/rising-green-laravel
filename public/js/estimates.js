@@ -741,6 +741,9 @@
 
             const getQuickEstimateTaxBreakdown = function (taxableAmount) {
                 const fieldsBox = document.getElementById('quick_gst_fields_box');
+                if (window.estimatePriceMode === 'base') {
+                    return getGlobalTaxBreakdown('quick_global_tax_rate', taxableAmount, fieldsBox);
+                }
                 const buckets = {};
                 let totalRate = 0;
                 let totalAmount = 0;
@@ -1191,6 +1194,8 @@
                 });
             });
 
+            document.getElementById('quick_global_tax_rate')?.addEventListener('change', calculateQuickEstimateTotals);
+
             const quickGstCheckbox = document.getElementById('quick_apply_gst');
             if (quickGstCheckbox) {
                 quickGstCheckbox.addEventListener('change', function () {
@@ -1404,7 +1409,9 @@
                 const customerName = customerOption?.dataset?.name || customerOption?.textContent?.trim() || 'Customer';
 
                 const totalTaxRate = getQuickEstimateTaxBreakdown(null).totalRate;
-                const applyGst = document.getElementById('quick_apply_gst')?.checked;
+                const applyGst = window.estimatePriceMode === 'base'
+                    ? totalTaxRate > 0
+                    : document.getElementById('quick_apply_gst')?.checked;
 
                 const formData = new FormData();
                 formData.set('customer_id', customerId);
@@ -1416,6 +1423,7 @@
                 formData.set('solar_meter_charges', 'as_per_actual');
                 formData.set('estimate_date', new Date().toISOString().slice(0, 10));
                 formData.set('products', JSON.stringify(products));
+                formData.set('global_tax_rate', document.getElementById('quick_global_tax_rate')?.value || '0');
                 formData.set('apply_gst', applyGst ? '1' : '0');
                 formData.set('gst', applyGst ? totalTaxRate.toFixed(2) : '0');
                 formData.set('total', document.getElementById('quick_subtotal')?.value || '0');
@@ -3168,6 +3176,9 @@
     function getSelectedTaxBreakdown(taxableAmount) {
         const rows = document.querySelectorAll('#bomContainer .bom-row');
         const fieldsBox = document.getElementById('gst_fields_box');
+        if (window.estimatePriceMode === 'base') {
+            return getGlobalTaxBreakdown('global_tax_rate', taxableAmount, fieldsBox);
+        }
         const buckets = {};
         let totalRate = 0;
         let totalAmount = 0;
@@ -3238,6 +3249,47 @@
         }
 
         return { totalRate, totalAmount };
+    }
+
+    function getGlobalTaxBreakdown(selectId, taxableAmount, fieldsBox) {
+        const select = document.getElementById(selectId);
+        const rate = parseFloat(select?.value || 0);
+        const shouldUpdateDisplay = taxableAmount !== null;
+        const taxable = parseFloat(taxableAmount || 0);
+        const selectedOption = select?.options[select.selectedIndex];
+        const label = (selectedOption?.dataset?.label || selectedOption?.textContent || 'GST').trim();
+        const lines = [];
+
+        if (rate > 0) {
+            if (label.toUpperCase().includes('CGST') && label.toUpperCase().includes('SGST')) {
+                const halfRate = rate / 2;
+                lines.push(
+                    { label: 'CGST', rate: halfRate, amount: (taxable * halfRate) / 100 },
+                    { label: 'SGST', rate: halfRate, amount: (taxable * halfRate) / 100 }
+                );
+            } else {
+                lines.push({
+                    label: label.toUpperCase().includes('IGST') ? 'IGST' : label,
+                    rate: rate,
+                    amount: (taxable * rate) / 100,
+                });
+            }
+        }
+
+        if (fieldsBox && shouldUpdateDisplay) {
+            fieldsBox.innerHTML = lines.length
+                ? lines.map(function (line) {
+                    const rateText = parseFloat(line.rate).toFixed(2).replace(/\.?0+$/, '');
+                    const amountText = parseFloat(line.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return '<div class="totals-row gst-tax-row"><span class="small">' + line.label + ' (' + rateText + '%):</span><span class="small gst-tax-amount">' + amountText + '</span></div>';
+                }).join('')
+                : '<div class="totals-row"><span class="small text-muted">No global tax selected.</span><span class="small">0.00</span></div>';
+        }
+
+        return {
+            totalRate: rate,
+            totalAmount: lines.reduce(function (sum, line) { return sum + line.amount; }, 0),
+        };
     }
 
     function calculateTotals() {
@@ -3469,6 +3521,7 @@
 
         const structureCheckbox = document.getElementById('solar_structure_charges_check');
         const gstCheckbox = document.getElementById('apply_gst');
+        document.getElementById('global_tax_rate')?.addEventListener('change', calculateTotals);
 
         if (structureCheckbox) {
             structureCheckbox.addEventListener('change', function () {
