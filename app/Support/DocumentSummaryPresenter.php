@@ -129,6 +129,7 @@ class DocumentSummaryPresenter
         $summaryGstAmount = null;
         $summaryGstBreakdown = [];
         $summaryBreakupLines = [];
+        $summaryUsesGlobalTax = false;
 
         if (isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '') {
             $summaryGstAmount = (float) $estdata->gst_amount;
@@ -167,6 +168,9 @@ class DocumentSummaryPresenter
 
         if (!empty($summaryGstBreakdown['groups']) && is_array($summaryGstBreakdown['groups'])) {
             foreach ($summaryGstBreakdown['groups'] as $group) {
+                if ((string) ($group['tax_type'] ?? '') === 'global_tax') {
+                    $summaryUsesGlobalTax = true;
+                }
                 if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
                     continue;
                 }
@@ -304,6 +308,7 @@ class DocumentSummaryPresenter
             'summaryBomTotal' => $summaryBomTotal,
             'summaryBreakupLines' => $summaryBreakupLines,
             'summaryShowBomTaxes' => $summaryShowBomTaxes,
+            'summaryUsesGlobalTax' => $summaryUsesGlobalTax,
             'summaryShowGst' => $summaryShowGst,
             'summaryGstRateText' => $summaryGstRateText,
             'summaryBomTaxTotal' => $summaryBomTaxTotal,
