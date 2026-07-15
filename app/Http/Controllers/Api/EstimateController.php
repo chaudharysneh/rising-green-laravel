@@ -203,7 +203,9 @@ class EstimateController extends Controller
             // Calculate subtotal and GST from the active tax settings.
             $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
+            $gstBreakdown = $useBomPrice
+                ? $this->buildProductGstBreakdown($products, (bool) $applyCharges)
+                : $this->buildGlobalTaxBreakdown($subtotal, (float) $request->input('global_tax_rate', 0));
             $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
             $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
@@ -407,7 +409,9 @@ class EstimateController extends Controller
             // Calculate subtotal and GST
             $basePrice = $price + $productsTotal;
             $subtotal = $basePrice + $solarStructureCharges;
-            $gstBreakdown = $this->buildProductGstBreakdown($products, (bool) $applyCharges);
+            $gstBreakdown = $useBomPrice
+                ? $this->buildProductGstBreakdown($products, (bool) $applyCharges)
+                : $this->buildGlobalTaxBreakdown($subtotal, (float) $request->input('global_tax_rate', 0));
             $gstPercent = $applyCharges ? $gstBreakdown['tax_rate'] : 0;
             $gstAmount = $applyCharges ? $gstBreakdown['gst_amount'] : 0;
 
@@ -799,6 +803,52 @@ class EstimateController extends Controller
                 'tax_type' => 'bom_selected_tax',
                 'lines' => $lines,
             ]] : [],
+        ];
+    }
+
+    private function buildGlobalTaxBreakdown(float $taxableAmount, float $rate): array
+    {
+        if ($rate <= 0 || $taxableAmount <= 0) {
+            return ['tax_rate' => 0, 'gst_amount' => 0, 'groups' => []];
+        }
+
+        $tax = Tax::active()->get()->first(function (Tax $tax) use ($rate) {
+            return abs((float) $tax->rate - $rate) < 0.001;
+        });
+
+        if (!$tax) {
+            return ['tax_rate' => 0, 'gst_amount' => 0, 'groups' => []];
+        }
+
+        $label = trim((string) $tax->name);
+        $upperLabel = strtoupper($label);
+        $lines = [];
+
+        if (str_contains($upperLabel, 'CGST') && str_contains($upperLabel, 'SGST')) {
+            $halfRate = $rate / 2;
+            foreach (['CGST', 'SGST'] as $splitLabel) {
+                $lines[] = [
+                    'label' => $splitLabel,
+                    'rate' => round($halfRate, 2),
+                    'amount' => round(($taxableAmount * $halfRate) / 100, 2),
+                ];
+            }
+        } else {
+            $lines[] = [
+                'label' => str_contains($upperLabel, 'IGST') ? 'IGST' : ($label ?: 'GST'),
+                'rate' => round($rate, 2),
+                'amount' => round(($taxableAmount * $rate) / 100, 2),
+            ];
+        }
+
+        return [
+            'tax_rate' => round($rate, 2),
+            'gst_amount' => round(array_sum(array_column($lines, 'amount')), 2),
+            'groups' => [[
+                'tax_type' => 'global_tax',
+                'taxable_amount' => round($taxableAmount, 2),
+                'lines' => $lines,
+            ]],
         ];
     }
 

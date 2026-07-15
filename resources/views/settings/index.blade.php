@@ -805,6 +805,9 @@
                                 </select>
                                 <div class="form-text mt-2">Base Price mode hides and excludes BOM pricing. BOM Price mode hides and excludes the estimate Base Price.</div>
                             </div>
+                            <div class="alert alert-info">
+                                <strong>Global Tax Rate:</strong> In Base Price mode, Add/Edit Estimate and Quick Estimate show one Global Tax Rate selector applied to the base price. In BOM Price mode, Global Tax Rate is hidden and taxes are taken only from each BOM row.
+                            </div>
                             <button type="submit" class="btn btn-dark-blue settings-submit-btn">Save Settings</button>
                         </form>
                     </div>
