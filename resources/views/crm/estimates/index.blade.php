@@ -51,9 +51,71 @@
             z-index: 99999 !important;
         }
 
-        #quickEstimateModal .d-flex:has(.is-invalid) ~ .invalid-feedback {
-            display: block !important;
-        }
+    #quickEstimateModal .d-flex:has(.is-invalid) ~ .invalid-feedback {
+        display: block !important;
+    }
+
+    #quickEstimateModal .quick-price-mode-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .08);
+        padding: 5px 6px 5px 10px;
+    }
+
+    #quickEstimateModal .quick-price-mode-title {
+        color: rgba(255, 255, 255, .88);
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+        margin-right: 2px;
+    }
+
+    #quickEstimateModal .quick-price-mode-options {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 10px;
+        background: rgba(2, 6, 23, .35);
+    }
+
+    #quickEstimateModal .quick-price-mode-option {
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: rgba(255, 255, 255, .74);
+        min-height: 28px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    #quickEstimateModal .quick-price-mode-option:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, .1);
+    }
+
+    #quickEstimateModal .quick-price-mode-option.active {
+        color: #0f172a;
+        background: linear-gradient(135deg, #ffffff 0%, #bfdbfe 100%);
+        box-shadow: 0 4px 10px rgba(96, 165, 250, .18);
+    }
+
+    #quickEstimateModal .quick-price-mode-select {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+    }
 
         @media (min-width: 768px) {
             #quickEstimateModal .quick-comment-col,
@@ -113,6 +175,15 @@
                 padding-left: 0.75rem !important;
                 padding-right: 0.75rem !important;
                 overflow-x: clip;
+            }
+
+            #quickEstimateModal .modal-header {
+                align-items: flex-start;
+                gap: .75rem;
+            }
+
+            #quickEstimateModal .quick-price-mode-card {
+                min-width: 100%;
             }
 
             #quickEstimateModal .modal-content {
@@ -266,7 +337,24 @@
                     <h5 class="modal-title fw-bold mb-0 text-white"><i class="bi bi-lightning-charge-fill me-2 text-white" aria-hidden="true"></i>Quick Estimate</h5>
                     <p class="small text-white-50 mb-0">Create a basic estimate with default/static settings.</p>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-start gap-3 ms-auto">
+                    <div class="quick-price-mode-card">
+                        <span class="quick-price-mode-title">Pricing Method</span>
+                        <div class="quick-price-mode-options" role="group" aria-label="Quick estimate pricing method">
+                            <button type="button" class="quick-price-mode-option" data-quick-price-mode-option="base">
+                                <i class="bi bi-cash-stack" aria-hidden="true"></i>Base Price
+                            </button>
+                            <button type="button" class="quick-price-mode-option" data-quick-price-mode-option="bom">
+                                <i class="bi bi-boxes" aria-hidden="true"></i>BOM Price
+                            </button>
+                        </div>
+                        <select name="price_mode" id="quick_estimate_price_mode" class="form-select form-select-sm quick-estimate-price-mode-selector quick-price-mode-select" aria-label="Pricing Method">
+                            <option value="bom" @selected($estimatePriceMode === 'bom')>Show BOM Price only</option>
+                            <option value="base" @selected($estimatePriceMode === 'base')>Show Base Price only</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
             
             <div class="modal-body p-4">
@@ -322,7 +410,7 @@
                                     <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
                                     <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
                                 </div>
-                                <div class="col-6 quick-step-field-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
+                                <div class="col-6 quick-step-field-col quick-base-price-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
                                     <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
                                     <input type="number" min="0" step="1" class="form-control" name="price" id="quick_price" value="{{ $estimatePriceMode === 'bom' ? 0 : '' }}" placeholder="Enter price" @required($estimatePriceMode === 'base')>
                                     <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
@@ -339,8 +427,7 @@
                             </select>
                             <div class="invalid-feedback" id="quick_template_id-error">Please select template.</div>
                         </div>
-                        @if ($estimatePriceMode === 'base')
-                            <div class="col-12 col-md-4 quick-step-1 active-step">
+                            <div class="col-12 col-md-4 quick-step-1 active-step quick-global-tax-col {{ $estimatePriceMode === 'base' ? '' : 'd-none' }}">
                                 <label class="form-label fw-semibold">Tax Rate (Global)</label>
                                 <select name="global_tax_rate" id="quick_global_tax_rate" class="form-select">
                                     <option value="0" data-label="No Tax">No Tax</option>
@@ -349,7 +436,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                        @endif
                         <div class="col-12 quick-step-2">
                             <label class="form-label fw-semibold">BOM Details <span class="text-danger">*</span></label>
                             <div class="border rounded-3 bg-light p-3">

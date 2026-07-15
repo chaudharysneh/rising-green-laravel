@@ -105,7 +105,11 @@ class EstimateController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Estimate::class);
-        $useBomPrice = Setting::where('key', 'estimate_price_mode')->value('value') !== 'base';
+        $requestedPriceMode = $request->input('price_mode');
+        $priceMode = in_array($requestedPriceMode, ['base', 'bom'], true)
+            ? $requestedPriceMode
+            : (Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom');
+        $useBomPrice = $priceMode === 'bom';
 
         // Strict validation matching reference code
         $validator = Validator::make($request->all(), [
@@ -236,7 +240,7 @@ class EstimateController extends Controller
                 'attach_file' => $attachFile,
                 'quantity' => $quantity,
                 'price' => $price,
-                'price_mode' => $useBomPrice ? 'bom' : 'base',
+                'price_mode' => $priceMode,
                 'solar_structure_charges' => $solarStructureCharges,
                 'solar_meter_charges' => $solarMeterCharges,
                 'template_id' => $templateId,
@@ -306,7 +310,11 @@ class EstimateController extends Controller
     {
         $estimate = Estimate::findOrFail($id);
         $this->authorize('update', $estimate);
-        $useBomPrice = $this->resolveEstimatePriceMode($estimate) === 'bom';
+        $requestedPriceMode = $request->input('price_mode');
+        $priceMode = in_array($requestedPriceMode, ['base', 'bom'], true)
+            ? $requestedPriceMode
+            : $this->resolveEstimatePriceMode($estimate);
+        $useBomPrice = $priceMode === 'bom';
 
         if (($estimate->status ?? '') === 'approved') {
             return response()->json([
@@ -435,7 +443,7 @@ class EstimateController extends Controller
                 'type' => $type,
                 'quantity' => $quantity,
                 'price' => $price,
-                'price_mode' => $useBomPrice ? 'bom' : 'base',
+                'price_mode' => $priceMode,
                 'solar_structure_charges' => $solarStructureCharges,
                 'solar_meter_charges' => $solarMeterCharges,
                 'template_id' => $templateId,
