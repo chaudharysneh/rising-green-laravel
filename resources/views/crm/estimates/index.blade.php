@@ -366,11 +366,10 @@
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-2 quick-bom-make-col">
-                                                <label class="form-label small fw-semibold">Make <span class="text-danger">*</span></label>
+                                                <label class="form-label small fw-semibold">Make</label>
                                                 <select class="form-select quick-bom-make-select" name="quick_bom_make[]" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
-                                                <div class="invalid-feedback quick-bom-make-error">Please select make.</div>
                                             </div>
                                             <div class="col-6 col-md-1 quick-bom-qty-col">
                                                 <label class="form-label small fw-semibold">Qty <span class="text-danger">*</span></label>
@@ -557,14 +556,13 @@
                         <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Make <span class="text-danger">*</span></label>
-                        <select class="form-select quick-bom-make-select" id="quick_bom_category_id" required>
+                        <label class="form-label fw-semibold">Make</label>
+                        <select class="form-select quick-bom-make-select" id="quick_bom_category_id">
                             <option value="">Select Make</option>
                             @foreach ($categories ?? [] as $category)
                                 <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
-                        <div class="invalid-feedback" id="quick_bom_category_id-error">Please select make</div>
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
@@ -694,4 +692,3 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
 @endpush
-

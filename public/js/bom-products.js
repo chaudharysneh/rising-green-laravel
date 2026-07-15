@@ -154,7 +154,6 @@
 
                 let valid = true;
                 if (!form.elements.product_name.value.trim()) { showError("product_name", "Please enter the BOM name."); valid = false; }
-                if (!form.elements["category_id[]"].selectedOptions.length) { showError("category_id", "Please select at least one Make."); valid = false; }
                 if (!valid) return;
 
                 submitButton.disabled = true;
