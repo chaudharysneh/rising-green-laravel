@@ -64,6 +64,14 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
+        $settingsTab = in_array($request->input('_settings_tab'), [
+            'integrations-main',
+            'financial-information',
+            'table-truncate',
+            'estimate-invoice-setting',
+        ], true) ? $request->input('_settings_tab') : null;
+        $settingsUrl = route('settings.index') . ($settingsTab ? '#' . $settingsTab : '');
+
         try {
             $this->persistSettings($request);
         } catch (ValidationException $e) {
@@ -74,7 +82,7 @@ class SettingController extends Controller
                     'errors' => $e->errors(),
                 ], 422);
             }
-            return back()->withErrors($e->errors())->withInput();
+            return redirect($settingsUrl)->withErrors($e->errors())->withInput();
         } catch (Throwable $e) {
             Log::error('Settings update failed', [
                 'route' => 'settings.update',
@@ -93,7 +101,7 @@ class SettingController extends Controller
                 ], 500);
             }
 
-            return back()->with('error', 'Settings save failed. Check logs for details.');
+            return redirect($settingsUrl)->with('error', 'Settings save failed. Check logs for details.');
         }
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -103,7 +111,7 @@ class SettingController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Settings saved successfully!');
+        return redirect($settingsUrl)->with('success', 'Settings saved successfully!');
     }
 
     public function apiIndex(): JsonResponse
@@ -185,6 +193,7 @@ class SettingController extends Controller
             'ifsc_code' => ['sometimes', 'nullable', 'string', 'max:255'],
             'branch_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'company_qr_code_path' => ['sometimes', 'nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,avif', 'max:51200'],
+            'estimate_price_mode' => ['sometimes', 'required', 'in:base,bom'],
         ]);
 
         foreach ($validated as $key => $value) {

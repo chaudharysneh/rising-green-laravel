@@ -416,6 +416,22 @@
     #quickEstimateModal .quick-bom-row .quick-remove-bom-row {
         min-width: 42px;
     }
+
+    /* When BOM pricing is disabled, let the remaining fields fill the row. */
+    #quickEstimateModal.quick-estimate-base-price-mode .quick-bom-row .quick-bom-select-col {
+        flex: 0 0 45%;
+        max-width: 45%;
+    }
+
+    #quickEstimateModal.quick-estimate-base-price-mode .quick-bom-row .quick-bom-make-col {
+        flex: 0 0 32%;
+        max-width: 32%;
+    }
+
+    #quickEstimateModal.quick-estimate-base-price-mode .quick-bom-row .quick-bom-qty-col {
+        flex: 0 0 14.666667%;
+        max-width: 14.666667%;
+    }
 }
 
 .estimate-avatar {

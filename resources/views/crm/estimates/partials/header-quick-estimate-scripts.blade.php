@@ -18,6 +18,7 @@
             storeUrl: @json(route('api.bom-products.store')),
             makeStoreUrl: @json(route('api.make.store'))
         };
+        window.estimatePriceMode = @json(\App\Models\Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom');
         window.crmUserPermissions = window.crmUserPermissions || {};
         window.crmUserPermissions.estimates = {
             view: @json(auth()->user()?->hasMatrixPermission('view_estimates')),

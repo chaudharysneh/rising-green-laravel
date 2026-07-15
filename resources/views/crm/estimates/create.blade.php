@@ -275,11 +275,11 @@
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>
                         </div>
 
-                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Price <span class="text-danger">*</span></label>
                             <input type="number" min="0" step="1" name="price" id="price"
-                                value="{{ old('price') }}" class="form-control @error('price') is-invalid @enderror"
-                                placeholder="Enter price" required>
+                                value="{{ $estimatePriceMode === 'bom' ? 0 : old('price') }}" class="form-control @error('price') is-invalid @enderror"
+                                placeholder="Enter price" @required($estimatePriceMode === 'base')>
                             <div class="invalid-feedback" id="price-error">Please enter valid price</div>
                         </div>
 
@@ -367,7 +367,7 @@
                             <div class="bom-section bg-light rounded-3 p-3 border">
                                 <div id="bomContainer">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
-                                        <div class="bom-row-grid">
+                                        <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
                                             <div>
                                                 <label class="form-label small fw-semibold">BOM <span
                                                         class="text-danger">*</span></label>
@@ -405,12 +405,12 @@
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="1" class="form-control" placeholder="Add Quantity">
                                             </div>
-                                            <div>
+                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_price[]"
                                                     value="0" class="form-control product-price" placeholder="0">
                                             </div>
-                                            <div>
+                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="product_tax_rate[]" class="form-select product-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
@@ -421,7 +421,7 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div>
+                                            <div class="{{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Amount</label>
                                                 <input type="number" min="0" step="1" value="0"
                                                     class="form-control product-total" placeholder="0" readonly>
@@ -643,6 +643,7 @@
             storeUrl: @json(route('api.bom-products.store')),
             makeStoreUrl: @json(route('api.make.store'))
         };
+        window.estimatePriceMode = @json($estimatePriceMode);
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

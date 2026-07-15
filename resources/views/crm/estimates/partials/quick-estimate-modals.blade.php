@@ -1,4 +1,5 @@
 @php
+    $estimatePriceMode = $estimatePriceMode ?? (\App\Models\Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom');
     $bomTaxOptions = collect($gstTaxes ?? [])->map(function ($tax) {
         $taxName = strtoupper((string) $tax->name);
         $label = (string) $tax->name;
@@ -14,7 +15,7 @@
         return (float) ($taxOption['rate'] ?? 0) > 0;
     })->values();
 @endphp
-<div class="modal fade" id="quickEstimateModal" aria-hidden="true" data-bs-focus="false">
+<div class="modal fade {{ $estimatePriceMode === 'base' ? 'quick-estimate-base-price-mode' : '' }}" id="quickEstimateModal" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <form id="quickEstimateForm" novalidate class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
@@ -78,9 +79,9 @@
                                     <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
                                     <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
                                 </div>
-                                <div class="col-6 quick-step-field-col">
+                                <div class="col-6 quick-step-field-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
                                     <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
-                                    <input type="number" min="1" step="1" class="form-control" name="price" id="quick_price" placeholder="Enter price" required>
+                                    <input type="number" min="0" step="1" class="form-control" name="price" id="quick_price" value="{{ $estimatePriceMode === 'bom' ? 0 : '' }}" placeholder="Enter price" @required($estimatePriceMode === 'base')>
                                     <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
                                 </div>
                             </div>
@@ -101,7 +102,7 @@
                                 <div id="quickBomRows" class="d-flex flex-column gap-2">
                                     <div class="quick-bom-row bg-white border rounded-3 p-2">
                                         <div class="row g-2 align-items-end">
-                                            <div class="col-12 col-md-3 quick-bom-select-col">
+                                            <div class="col-12 {{ $estimatePriceMode === 'base' ? 'col-md-5' : 'col-md-3' }} quick-bom-select-col">
                                                 <label class="form-label small fw-semibold">BOM <span class="text-danger">*</span></label>
                                                 <div class="d-flex align-items-start gap-2">
                                                     <select class="form-select quick-bom-select" name="quick_bom_id[]">
@@ -121,25 +122,25 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-2 quick-bom-make-col">
+                                            <div class="col-12 {{ $estimatePriceMode === 'base' ? 'col-md-4' : 'col-md-2' }} quick-bom-make-col">
                                                 <label class="form-label small fw-semibold">Make</label>
                                                 <select class="form-select quick-bom-make-select" name="quick_bom_make[]" disabled>
                                                     <option value="">Select Make</option>
                                                 </select>
                                             </div>
-                                            <div class="col-6 col-md-1 quick-bom-qty-col">
+                                            <div class="col-6 {{ $estimatePriceMode === 'base' ? 'col-md-2' : 'col-md-1' }} quick-bom-qty-col">
                                                 <label class="form-label small fw-semibold">Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="1" step="1" class="form-control quick-bom-qty" name="quick_bom_qty[]" value="1">
                                             </div>
-                                            <div class="col-6 col-md-2 quick-bom-money-col">
+                                            <div class="col-6 col-md-2 quick-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold">Unit Price</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-price" name="quick_bom_price[]" value="0">
                                             </div>
-                                            <div class="col-12 col-md-1 quick-bom-money-col quick-bom-amount-col">
+                                            <div class="col-12 col-md-1 quick-bom-money-col quick-bom-amount-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold">Amount</label>
                                                 <input type="number" min="0" step="1" class="form-control quick-bom-amount" value="0" readonly>
                                             </div>
-                                            <div class="col-12 col-md-2 quick-bom-tax-col">
+                                            <div class="col-12 col-md-2 quick-bom-tax-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
                                                 <label class="form-label small fw-semibold">Tax</label>
                                                 <select name="quick_bom_tax_rate[]" class="form-select quick-bom-tax-rate">
                                                     <option value="0" data-label="">No Tax</option>
@@ -281,4 +282,3 @@
         </div>
     </div>
 </div>
-
