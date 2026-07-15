@@ -145,7 +145,7 @@
             markQuickEstimateFieldInvalid(document.getElementById('quick_quantity'), true);
             isValid = false;
         }
-        if (!(price > 0)) {
+        if (window.estimatePriceMode !== 'bom' && !(price > 0)) {
             markQuickEstimateFieldInvalid(document.getElementById('quick_price'), true);
             isValid = false;
         }
@@ -189,7 +189,7 @@
                 markQuickEstimateFieldInvalid(quantityEl, true);
                 isValid = false;
             }
-            if (!(parseFloat(priceEl?.value || 0) > 0)) {
+            if (window.estimatePriceMode !== 'bom' && !(parseFloat(priceEl?.value || 0) > 0)) {
                 markQuickEstimateFieldInvalid(priceEl, true);
                 isValid = false;
             }
@@ -912,13 +912,15 @@
 
                 populateQuickBomMakeOptions(makeSelect, categories, preferredMake || makeSelect?.value || '');
                 if (priceInput) {
-                    priceInput.value = formatStepOneInputValue(option?.dataset?.price || 0);
+                    priceInput.value = window.estimatePriceMode === 'base'
+                        ? '0'
+                        : formatStepOneInputValue(option?.dataset?.price || 0);
                 }
                 if (qtyInput && !parseFloat(qtyInput.value || 0)) {
                     qtyInput.value = '1';
                 }
                 const taxSelect = row.querySelector('.quick-bom-tax-rate');
-                if (taxSelect && option && option.dataset.taxRate !== undefined) {
+                if (taxSelect && window.estimatePriceMode !== 'base' && option && option.dataset.taxRate !== undefined) {
                     const rawTaxRate = parseFloat(option.dataset.taxRate || 0);
                     let found = false;
                     for (let i = 0; i < taxSelect.options.length; i++) {
@@ -1106,6 +1108,11 @@
 
                 if (nameInput) {
                     nameInput.value = '';
+                }
+
+                const quickPrice = document.getElementById('quick_price');
+                if (quickPrice && window.estimatePriceMode === 'bom') {
+                    quickPrice.value = '0';
                 }
 
                 const commentField = document.getElementById('quick_estimate_comment');
@@ -1314,7 +1321,7 @@
 
                 const customerId = getQuickSelectValue(customerSelect);
                 const quantity = parseFloat(form.quantity.value || 0);
-                const price = parseFloat(form.price.value || 0);
+                const price = window.estimatePriceMode === 'bom' ? 0 : parseFloat(form.price.value || 0);
                 const templateId = getQuickSelectValue(document.getElementById('quick_template_id'));
                 const bomRows = Array.from(form.querySelectorAll('.quick-bom-row'));
                 const products = [];
@@ -1328,7 +1335,7 @@
                     markQuickEstimateFieldInvalid(document.getElementById('quick_quantity'), true);
                     hasError = true;
                 }
-                if (!(price > 0)) {
+                if (window.estimatePriceMode !== 'bom' && !(price > 0)) {
                     markQuickEstimateFieldInvalid(document.getElementById('quick_price'), true);
                     hasError = true;
                 }
@@ -1346,7 +1353,7 @@
                     const option = select?.options[select.selectedIndex];
                     const bomId = getQuickSelectValue(select);
                     const rowQty = parseFloat(row.querySelector('.quick-bom-qty')?.value || 0);
-                    const rowPrice = parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
+                    const rowPrice = window.estimatePriceMode === 'base' ? 0 : parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
                     const makeSelect = row.querySelector('.quick-bom-make-select');
 
                     if (!bomId) {
@@ -1372,7 +1379,7 @@
                         category_name: makeSelect?.value || option?.dataset?.make || '',
                         quantity: rowQty,
                         price: rowPrice,
-                        tax_rate: parseFloat(taxSelect?.value || 0),
+                        tax_rate: window.estimatePriceMode === 'base' ? 0 : parseFloat(taxSelect?.value || 0),
                         tax_label: taxOption?.dataset?.label || '',
                     });
                 });
@@ -1903,6 +1910,7 @@
         initQuickAddBom();
         initDocumentNameFromCustomer();
         initTemplateCommentAutofill();
+        applyEstimatePriceMode(form);
 
         const eventNs = config.eventNs || 'document';
         $('body').off('submit.' + eventNs).on('submit.' + eventNs, config.formSelector, function (e) {
@@ -1985,6 +1993,24 @@
             }
             $field.siblings('.invalid-feedback.ajax-error').remove();
         });
+    }
+
+    function applyEstimatePriceMode(form) {
+        const mode = window.estimatePriceMode === 'base' ? 'base' : 'bom';
+        if (mode === 'bom') {
+            const basePrice = form.querySelector('[name="price"]');
+            if (basePrice) basePrice.value = '0';
+            calculateTotals();
+            return;
+        }
+
+        form.querySelectorAll('.product-price').forEach(function (field) {
+            field.value = '0';
+        });
+        form.querySelectorAll('.product-tax-rate').forEach(function (field) {
+            field.value = '0';
+        });
+        calculateTotals();
     }
 
     function initDocumentNameFromCustomer() {
@@ -2693,7 +2719,7 @@
             isValid = false;
         }
 
-        if (!(price > 0)) {
+        if (window.estimatePriceMode !== 'bom' && !(price > 0)) {
             setFieldError($form, '[name="price"]', 'price-error', 'Please enter valid price');
             isValid = false;
         }
@@ -2830,10 +2856,13 @@
             ['[name="' + config.nameField + '"]', config.nameErrorId, 'Please enter ' + config.nameLabel, function ($field) { return !!($field.val() || '').trim(); }],
             ['[name="type"]', 'type-error', config.typeErrorMessage || 'Please select type', function ($field) { return !!($field.val() || '').trim(); }],
             ['[name="quantity"]', 'quantity-error', 'Please enter valid quantity (kW)', function () { return quantity > 0; }],
-            ['[name="price"]', 'price-error', 'Please enter valid price', function () { return price > 0; }],
             ['[name="solar_meter_charges"]', 'solar_meter_charges-error', 'Please select solar meter charges', function ($field) { return !!($field.val() || '').trim(); }],
             ['[name="template_id"]', 'template_id-error', 'Please select quotation template', function ($field) { return !!($field.val() || '').trim(); }],
         ];
+
+        if (window.estimatePriceMode !== 'bom') {
+            requiredFields.splice(4, 0, ['[name="price"]', 'price-error', 'Please enter valid price', function () { return price > 0; }]);
+        }
 
         if (config.requireCurrency) {
             requiredFields.splice(2, 0, [
@@ -2925,10 +2954,12 @@
             let labelText = 'Qty';
             if (option && this.value) {
                 if (priceInput) {
-                    priceInput.value = formatStepOneInputValue(option.dataset.price || 0);
+                    priceInput.value = window.estimatePriceMode === 'base'
+                        ? '0'
+                        : formatStepOneInputValue(option.dataset.price || 0);
                 }
                 const taxSelect = row.querySelector('.product-tax-rate');
-                if (taxSelect && option.dataset.taxRate !== undefined) {
+                if (taxSelect && window.estimatePriceMode !== 'base' && option.dataset.taxRate !== undefined) {
                     const rawTaxRate = parseFloat(option.dataset.taxRate || 0);
                     let found = false;
                     for (let i = 0; i < taxSelect.options.length; i++) {

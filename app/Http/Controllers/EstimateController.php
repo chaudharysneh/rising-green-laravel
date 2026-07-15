@@ -29,8 +29,9 @@ class EstimateController extends Controller
         $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
         $gstRate = (float) $gstTaxes->sum('rate');
         $subsidies = Subsidy::active()->get();
+        $estimatePriceMode = Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom';
 
-        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts', 'categories', 'gstTaxes', 'gstRate', 'subsidies'));
+        return view('crm.estimates.index', compact('customers', 'templates', 'bomProducts', 'categories', 'gstTaxes', 'gstRate', 'subsidies', 'estimatePriceMode'));
     }
 
     public function create()
@@ -51,8 +52,9 @@ class EstimateController extends Controller
         if ($gstRate <= 0) {
             $gstRate = 18;
         }
+        $estimatePriceMode = Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom';
 
-        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes'));
+        return view('crm.estimates.create', compact('customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes', 'estimatePriceMode'));
     }
 
     public function show(Estimate $estimate)
@@ -121,8 +123,9 @@ class EstimateController extends Controller
         if ($gstRate <= 0) {
             $gstRate = 18;
         }
+        $estimatePriceMode = Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom';
 // dd($estimate);
-        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes'));
+        return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes', 'estimatePriceMode'));
     }
 
     public function generate_estimate_pdf(Estimate $estimate)
@@ -326,6 +329,3 @@ class EstimateController extends Controller
             ->exists();
     }
 }
-
-
-

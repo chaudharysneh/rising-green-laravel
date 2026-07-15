@@ -8,6 +8,7 @@ use App\Models\Estimate;
 use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\PdfBuilderForm;
+use App\Models\Setting;
 use App\Models\Tax;
 use App\Models\Technology;
 use App\Models\Warranty;
@@ -104,6 +105,7 @@ class EstimateController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Estimate::class);
+        $useBomPrice = Setting::where('key', 'estimate_price_mode')->value('value') !== 'base';
 
         // Strict validation matching reference code
         $validator = Validator::make($request->all(), [
@@ -111,7 +113,7 @@ class EstimateController extends Controller
             'estimate_name' => 'required|string|min:1',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted',
             'quantity' => 'required|numeric|gt:0',
-            'price' => 'required|numeric|gt:0',
+            'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
             'template_id' => 'required|exists:pdf_builder_forms,id',
             'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope,included',
             'estimate_date' => 'nullable|date',
@@ -142,7 +144,7 @@ class EstimateController extends Controller
             $estimateName = $request->input('estimate_name');
             $type = $request->input('type');
             $quantity = (float) $request->input('quantity', 0);
-            $price = (float) $request->input('price', 0);
+            $price = $useBomPrice ? 0 : (float) $request->input('price', 0);
             $templateId = (int) $request->input('template_id', 0);
             $solarMeterCharges = $request->input('solar_meter_charges', '');
             $solarStructureCharges = (float) ($request->input('solar_structure_charges') ?? 0);
@@ -170,6 +172,13 @@ class EstimateController extends Controller
 
             // Parse products JSON (from BOM), with fallback to raw form arrays.
             $products = $this->normalizeEstimateProducts($request);
+            if (!$useBomPrice) {
+                $products = array_map(function (array $product) {
+                    $product['price'] = 0;
+                    $product['tax_rate'] = 0;
+                    return $product;
+                }, $products);
+            }
             $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected
@@ -294,6 +303,7 @@ class EstimateController extends Controller
     {
         $estimate = Estimate::findOrFail($id);
         $this->authorize('update', $estimate);
+        $useBomPrice = Setting::where('key', 'estimate_price_mode')->value('value') !== 'base';
 
         if (($estimate->status ?? '') === 'approved') {
             return response()->json([
@@ -308,7 +318,7 @@ class EstimateController extends Controller
             'estimate_name' => 'required|string|min:1',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted',
             'quantity' => 'required|numeric|gt:0',
-            'price' => 'required|numeric|gt:0',
+            'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
             'template_id' => 'required|exists:pdf_builder_forms,id',
             'solar_meter_charges' => 'required|in:as_per_actual,as_per_client_scope,included',
             'estimate_date' => 'nullable|date',
@@ -338,7 +348,7 @@ class EstimateController extends Controller
             $estimateName = $request->input('estimate_name');
             $type = $request->input('type');
             $quantity = (float) $request->input('quantity', 0);
-            $price = (float) $request->input('price', 0);
+            $price = $useBomPrice ? 0 : (float) $request->input('price', 0);
             $templateId = (int) $request->input('template_id', 0);
             $solarMeterCharges = $request->input('solar_meter_charges', '');
             $solarStructureCharges = (float) ($request->input('solar_structure_charges') ?? 0);
@@ -366,6 +376,13 @@ class EstimateController extends Controller
 
             // Parse products JSON, with fallback to raw form arrays.
             $products = $this->normalizeEstimateProducts($request);
+            if (!$useBomPrice) {
+                $products = array_map(function (array $product) {
+                    $product['price'] = 0;
+                    $product['tax_rate'] = 0;
+                    return $product;
+                }, $products);
+            }
             $productsTotal = $this->calculateProductsTotal($products);
 
             // Validate at least one product selected

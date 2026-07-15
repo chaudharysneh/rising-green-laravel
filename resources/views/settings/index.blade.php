@@ -37,6 +37,9 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#table-truncate" type="button" role="tab">Table Clear</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#estimate-invoice-setting" type="button" role="tab">Estimate/Invoice setting</button>
+                </li>
             </ul>
         </div>
 
@@ -786,6 +789,28 @@
                     </div>
                 </div>
             </div>
+            <div class="tab-pane fade" id="estimate-invoice-setting" role="tabpanel">
+                <div class="settings-panel">
+                    <div class="settings-panel-head">Estimate/Invoice setting</div>
+                    <div class="settings-panel-body">
+                        <form action="{{ route('settings.update') }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="_settings_tab" value="estimate-invoice-setting">
+                            <div class="mb-4">
+                                <label for="estimate_price_mode" class="form-label fw-semibold">Estimate Price Display</label>
+                                <select name="estimate_price_mode" id="estimate_price_mode" class="form-select" style="max-width: 420px;">
+                                    <option value="base" @selected(($settings['estimate_price_mode']->value ?? 'bom') === 'base')>Show Base Price only</option>
+                                    <option value="bom" @selected(($settings['estimate_price_mode']->value ?? 'bom') === 'bom')>Show BOM Price only</option>
+                                </select>
+                                <div class="form-text mt-2">Base Price mode hides and excludes BOM pricing. BOM Price mode hides and excludes the estimate Base Price.</div>
+                            </div>
+                            <button type="submit" class="btn btn-dark-blue settings-submit-btn">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
 <div class="tab-pane fade" id="table-truncate" role="tabpanel">
             <div class="settings-panel">
                 <div
