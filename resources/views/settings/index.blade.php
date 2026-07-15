@@ -798,17 +798,41 @@
                             @method('PUT')
                             <input type="hidden" name="_settings_tab" value="estimate-invoice-setting">
                             <div class="mb-4">
-                                <label for="estimate_price_mode" class="form-label fw-semibold">Estimate Price Display</label>
+                                <label for="estimate_price_mode" class="form-label fw-semibold">Pricing Method</label>
+                                <div class="text-muted small mb-2">Choose how the estimate total should be calculated.</div>
                                 <select name="estimate_price_mode" id="estimate_price_mode" class="form-select" style="max-width: 420px;">
                                     <option value="base" @selected(($settings['estimate_price_mode']->value ?? 'bom') === 'base')>Show Base Price only</option>
                                     <option value="bom" @selected(($settings['estimate_price_mode']->value ?? 'bom') === 'bom')>Show BOM Price only</option>
                                 </select>
-                                <div class="form-text mt-2">Base Price mode hides and excludes BOM pricing. BOM Price mode hides and excludes the estimate Base Price.</div>
                             </div>
-                            <div class="alert alert-info">
-                                <strong>Global Tax Rate:</strong> In Base Price mode, Add/Edit Estimate and Quick Estimate show one Global Tax Rate selector applied to the base price. In BOM Price mode, Global Tax Rate is hidden and taxes are taken only from each BOM row.
+                            <div class="pricing-guide mb-4">
+                                <div class="pricing-guide-title"><i class="bi bi-info-circle"></i><span>How pricing works</span></div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="pricing-mode-card pricing-mode-card-base h-100">
+                                            <div class="pricing-mode-heading"><span class="pricing-mode-icon"><i class="bi bi-cash-stack"></i></span><div><span class="pricing-mode-badge">Base Price</span><div class="pricing-mode-name">Show Base Price only</div></div></div>
+                                            <ul class="pricing-mode-list">
+                                                <li class="mb-1">The estimate total uses the Base Price.</li>
+                                                <li class="mb-1">You can select one Global Tax Rate.</li>
+                                                <li>BOM prices and BOM taxes are hidden.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pricing-mode-card pricing-mode-card-bom h-100">
+                                            <div class="pricing-mode-heading"><span class="pricing-mode-icon"><i class="bi bi-box-seam"></i></span><div><span class="pricing-mode-badge">BOM Price</span><div class="pricing-mode-name">Show BOM Price only</div></div></div>
+                                            <ul class="pricing-mode-list">
+                                                <li class="mb-1">The estimate total uses BOM item prices.</li>
+                                                <li class="mb-1">You can select a tax for each BOM item.</li>
+                                                <li>Base Price and Global Tax Rate are hidden.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-dark-blue settings-submit-btn">Save Settings</button>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-dark-blue settings-submit-btn">Save Settings</button>
+                            </div>
                         </form>
                     </div>
                 </div>
