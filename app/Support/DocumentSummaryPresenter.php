@@ -130,6 +130,7 @@ class DocumentSummaryPresenter
         $summaryGstBreakdown = [];
         $summaryBreakupLines = [];
         $summaryUsesGlobalTax = false;
+        $summaryHasSavedTaxScope = false;
 
         if (isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '') {
             $summaryGstAmount = (float) $estdata->gst_amount;
@@ -170,6 +171,9 @@ class DocumentSummaryPresenter
             foreach ($summaryGstBreakdown['groups'] as $group) {
                 if ((string) ($group['tax_type'] ?? '') === 'global_tax') {
                     $summaryUsesGlobalTax = true;
+                    $summaryHasSavedTaxScope = true;
+                } elseif ((string) ($group['tax_type'] ?? '') === 'bom_selected_tax') {
+                    $summaryHasSavedTaxScope = true;
                 }
                 if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
                     continue;
@@ -216,6 +220,10 @@ class DocumentSummaryPresenter
                     }
                 }
             }
+        }
+
+        if (!$summaryHasSavedTaxScope && $summaryBaseCost > 0 && $summaryBomTotal <= 0) {
+            $summaryUsesGlobalTax = true;
         }
 
         if (!empty($estdata->product_name)) {

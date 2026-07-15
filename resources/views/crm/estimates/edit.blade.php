@@ -205,6 +205,14 @@
         })->filter(function ($taxOption) {
             return (float) ($taxOption['rate'] ?? 0) > 0;
         })->values();
+
+        $savedGlobalTaxRate = (float) ($estimate->gst ?? 0);
+        $savedGstBreakdown = is_array($estimate->gst_breakdown)
+            ? $estimate->gst_breakdown
+            : (json_decode((string) $estimate->gst_breakdown, true) ?: []);
+        if ($estimatePriceMode === 'base' && isset($savedGstBreakdown['tax_rate'])) {
+            $savedGlobalTaxRate = (float) $savedGstBreakdown['tax_rate'];
+        }
     @endphp
 
     <div class="container-fluid p-0">
@@ -357,9 +365,9 @@
                                     <div class="col-12 col-md-4">
                                         <label class="form-label fw-semibold">Tax Rate (Global)</label>
                                         <select name="global_tax_rate" id="global_tax_rate" class="form-select">
-                                            <option value="0" data-label="No Tax" @selected((float) $estimate->gst <= 0)>No Tax</option>
+                                            <option value="0" data-label="No Tax" @selected($savedGlobalTaxRate <= 0)>No Tax</option>
                                             @foreach ($bomTaxOptions as $taxOption)
-                                                <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}" @selected(abs((float) $estimate->gst - (float) $taxOption['rate']) < 0.001)>{{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)</option>
+                                                <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}" @selected(abs($savedGlobalTaxRate - (float) $taxOption['rate']) < 0.001)>{{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -697,7 +705,12 @@
             storeUrl: @json(route('api.bom-products.store')),
             makeStoreUrl: @json(route('api.make.store'))
         };
-        window.estimatePriceMode = @json($estimatePriceMode);
+        window.documentEstimatePriceMode = @json($estimatePriceMode);
+        window.estimatePriceMode = window.documentEstimatePriceMode;
+        window.estimateSavedPricing = {
+            basePrice: @json((float) $estimate->price),
+            globalTaxRate: @json($savedGlobalTaxRate)
+        };
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

@@ -123,7 +123,7 @@ class EstimateController extends Controller
         if ($gstRate <= 0) {
             $gstRate = 18;
         }
-        $estimatePriceMode = Setting::where('key', 'estimate_price_mode')->value('value') === 'base' ? 'base' : 'bom';
+        $estimatePriceMode = $this->resolveEstimatePriceMode($estimate);
 // dd($estimate);
         return view('crm.estimates.edit', compact('estimate', 'customers', 'users', 'templates', 'bomProducts', 'categories', 'subsidies', 'gstRate', 'gstTaxes', 'estimatePriceMode'));
     }
@@ -287,6 +287,36 @@ class EstimateController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $fileName . '"',
         ]);
+    }
+
+    private function resolveEstimatePriceMode(Estimate $estimate): string
+    {
+        if (in_array($estimate->price_mode, ['base', 'bom'], true)) {
+            return $estimate->price_mode;
+        }
+
+        $breakdown = is_array($estimate->gst_breakdown)
+            ? $estimate->gst_breakdown
+            : (json_decode((string) $estimate->gst_breakdown, true) ?: []);
+
+        foreach (($breakdown['groups'] ?? []) as $group) {
+            $taxType = (string) ($group['tax_type'] ?? '');
+            if ($taxType === 'global_tax') {
+                return 'base';
+            }
+            if ($taxType === 'bom_selected_tax') {
+                return 'bom';
+            }
+        }
+
+        $products = is_array($estimate->product_name)
+            ? $estimate->product_name
+            : (json_decode((string) $estimate->product_name, true) ?: []);
+        $bomTotal = collect($products)->sum(function ($product) {
+            return (float) ($product['quantity'] ?? 0) * (float) ($product['price'] ?? 0);
+        });
+
+        return (float) $estimate->price > 0 && $bomTotal <= 0 ? 'base' : 'bom';
     }
 
     public function downloadCustomerDocument(Estimate $estimate, int $docIndex)

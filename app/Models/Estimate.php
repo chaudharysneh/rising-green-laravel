@@ -27,6 +27,7 @@ class Estimate extends Model
         'currency',
         'quantity',
         'price',
+        'price_mode',
         'solar_structure_charges',
         'solar_meter_charges',
         'total',
