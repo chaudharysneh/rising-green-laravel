@@ -254,7 +254,7 @@ class BomProductController extends ApiBaseController
         return [
             'user_id' => ['nullable', 'exists:users,id'],
             'product_name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'array'],
+            'category_id' => ['nullable', 'array'],
             'category_id.*' => ['exists:category,id'],
             'price' => $isQuickBom
                 ? ['nullable', 'numeric', 'min:0']
@@ -282,8 +282,7 @@ class BomProductController extends ApiBaseController
         // ✅ CHANGED: Only show messages for 4 required fields
         return [
             'product_name.required' => 'Please fill out the BOM name!',
-            'category_id.required' => 'Please select at least one Make!',
-            'category_id.array' => 'Please select at least one Make!',
+            'category_id.array' => 'Please select a valid Make!',
             'category_id.*.exists' => 'Please select a valid Make!',
             'price.required' => 'Please enter the price!',
             'price.numeric' => 'Price must be a valid number!',

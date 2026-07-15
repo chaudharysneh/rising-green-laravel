@@ -16,8 +16,8 @@
                         <div class="invalid-feedback" data-error-for="product_name"></div>
                     </div>
                     <div class="col-12">
-                        <label for="quick_category_id" class="form-label fw-semibold"><i class="bi bi-buildings me-2 text-muted"></i>Make <span class="text-danger">*</span></label>
-                        <select name="category_id[]" id="quick_category_id" class="form-select quick-bom-select quick-bom-creatable" multiple required data-placeholder="Search or create Make">
+                        <label for="quick_category_id" class="form-label fw-semibold"><i class="bi bi-buildings me-2 text-muted"></i>Make</label>
+                        <select name="category_id[]" id="quick_category_id" class="form-select quick-bom-select quick-bom-creatable" multiple data-placeholder="Search or create Make">
                             @foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach
                         </select>
                         <div class="invalid-feedback" data-error-for="category_id"></div>

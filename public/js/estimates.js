@@ -211,7 +211,6 @@
                 const qtyInput = row.querySelector('.quick-bom-qty');
                 const priceInput = row.querySelector('.quick-bom-price');
                 const makeSelect = row.querySelector('.quick-bom-make-select');
-                const makeError = row.querySelector('.quick-bom-make-error');
 
                 if (!bomId) {
                     return;
@@ -225,11 +224,6 @@
                 }
                 if (parseFloat(priceInput?.value || 0) < 0) {
                     markQuickEstimateFieldInvalid(priceInput, true);
-                    isValid = false;
-                }
-                if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
-                    markQuickEstimateFieldInvalid(makeSelect, true);
-                    makeError?.classList.add('d-block');
                     isValid = false;
                 }
             });
@@ -1354,7 +1348,6 @@
                     const rowQty = parseFloat(row.querySelector('.quick-bom-qty')?.value || 0);
                     const rowPrice = parseFloat(row.querySelector('.quick-bom-price')?.value || 0);
                     const makeSelect = row.querySelector('.quick-bom-make-select');
-                    const makeError = row.querySelector('.quick-bom-make-error');
 
                     if (!bomId) {
                         return;
@@ -1366,11 +1359,6 @@
                     }
                     if (rowPrice < 0) {
                         markQuickEstimateFieldInvalid(row.querySelector('.quick-bom-price'), true);
-                        hasError = true;
-                    }
-                    if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
-                        markQuickEstimateFieldInvalid(makeSelect, true);
-                        makeError?.classList.add('d-block');
                         hasError = true;
                     }
 
@@ -2151,17 +2139,11 @@
 
         saveBtn.addEventListener('click', function () {
             const name = (nameInput?.value || '').trim();
-            const makeValue = makeSelect?.value || '';
             const price = parseFloat(priceInput?.value || 0);
             let isValid = true;
 
             if (!name) {
                 showQuickBomFieldError(nameInput, 'Please enter BOM name');
-                isValid = false;
-            }
-
-            if (!makeValue) {
-                showQuickBomFieldError(makeSelect, 'Please select make');
                 isValid = false;
             }
 
@@ -2183,7 +2165,9 @@
                     const formData = new FormData();
                     formData.append('product_name', name);
                     formData.append('price', formatStepOneInputValue(price));
-                    formData.append('category_id[]', make.id);
+                    if (make?.id) {
+                        formData.append('category_id[]', make.id);
+                    }
 
                     return fetch(config.storeUrl, {
                         method: 'POST',
@@ -2249,7 +2233,15 @@
         }
 
         const modal = $('#quickAddBomModal');
-        $(makeSelect).select2({
+        const $makeSelect = $(makeSelect);
+
+        // This field may already have been initialized by the page-wide Select2
+        // setup. Reinitialize it so tagging (creating a new Make) is enabled.
+        if ($makeSelect.hasClass('select2-hidden-accessible')) {
+            $makeSelect.select2('destroy');
+        }
+
+        $makeSelect.select2({
             theme: 'bootstrap-5',
             width: '100%',
             dropdownParent: modal.length ? modal : $(document.body),
@@ -2266,6 +2258,9 @@
                     text: term,
                     newTag: true,
                 };
+            },
+            insertTag: function (data, tag) {
+                data.unshift(tag);
             },
             templateResult: function (data) {
                 if (data.newTag) {
@@ -2291,7 +2286,7 @@
 
         const makeName = selectedOption?.textContent?.trim() || selectedValue.trim();
         if (!makeName) {
-            return Promise.reject({ errors: { category_id: ['Please select make'] } });
+            return Promise.resolve(null);
         }
 
         if (!config.makeStoreUrl) {
@@ -2630,7 +2625,6 @@
             const makeSelect = row.querySelector('.product-make');
             const qtyInput = row.querySelector('input[name="product_qty[]"]');
             const priceInput = row.querySelector('.product-price');
-            const makeError = row.querySelector('.bom-make-error');
 
             if (!productSelect?.value) {
                 return;
@@ -2644,11 +2638,6 @@
             }
             if (parseFloat(priceInput?.value || 0) < 0) {
                 markEstimateBomFieldInvalid(priceInput, true);
-                isValid = false;
-            }
-            if (makeSelect && !makeSelect.disabled && makeSelect.options.length > 1 && !makeSelect.value) {
-                markEstimateBomFieldInvalid(makeSelect, true);
-                makeError?.classList.add('d-block');
                 isValid = false;
             }
         });

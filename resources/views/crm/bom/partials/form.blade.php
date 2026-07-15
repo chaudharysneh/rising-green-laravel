@@ -40,11 +40,11 @@
                     <div class="invalid-feedback d-block" id="product_name-error"></div>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Make <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-gear me-2"></i>Make</label>
                     <div class="position-relative">
                         <div class="d-flex align-items-center gap-2">
                             <div class="flex-grow-1 position-relative">
-                                <select name="category_id[]" id="category_id" class="form-select select2-searchable" multiple required data-placeholder="Select Make">
+                                <select name="category_id[]" id="category_id" class="form-select select2-searchable" multiple data-placeholder="Select Make">
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" @selected(in_array($category->id, old('category_id', $product?->categories?->pluck('id')->toArray() ?? [])))>{{ $category->name }}</option>
                                     @endforeach
