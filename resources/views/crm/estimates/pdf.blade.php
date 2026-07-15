@@ -376,6 +376,7 @@ $discount = (float) ($estdata->discount ?? 0);
 $subsidy = (float) ($estdata->subsidy_amount ?? 0);
 $solarStructureCharges = (float) ($estdata->solar_structure_charges ?? 0);
 $gstBreakupLines = [];
+$usesGlobalTax = false;
 
 // Calculate totals
 $gstAmount = (isset($estdata->gst_amount) && $estdata->gst_amount !== null && $estdata->gst_amount !== '')
@@ -390,6 +391,9 @@ if (!empty($estdata->gst_breakdown)) {
             $gstAmount = (float) $decodedGstBreakdown['gst_amount'];
         }
         foreach (($decodedGstBreakdown['groups'] ?? []) as $group) {
+            if (($group['tax_type'] ?? '') === 'global_tax') {
+                $usesGlobalTax = true;
+            }
             foreach (($group['lines'] ?? []) as $line) {
                 $lineLabel = trim((string) ($line['label'] ?? ''));
                 $lineAmount = (float) ($line['amount'] ?? 0);
@@ -479,6 +483,9 @@ $lendingCost = $totalPayable - $subsidy;
                     </tr>
                     <?php endif; ?>
                     <?php if (!empty($gstBreakupLines)): ?>
+                        <tr>
+                            <td colspan="3"><strong><?php echo $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)'; ?></strong></td>
+                        </tr>
                         <?php foreach ($gstBreakupLines as $gstLine): ?>
                             <?php $lineRate = is_numeric($gstLine['rate'] ?? null) ? rtrim(rtrim(number_format((float) $gstLine['rate'], 2, '.', ''), '0'), '.') : ''; ?>
                             <tr>

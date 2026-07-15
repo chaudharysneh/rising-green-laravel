@@ -202,7 +202,7 @@
         </tr>
         <tr>
             <td class="summary-cell">Bill of Materials (BOM)</td>
-            <td class="summary-cell summary-cell-right">{{ number_format($summaryBomTotal ?? 0, 2) }}</td>
+            <td class="summary-cell summary-cell-right">{{ !empty($summaryUsesGlobalTax) ? '--' : number_format($summaryBomTotal ?? 0, 2) }}</td>
         </tr>
         @if (!empty($summaryShowBomTaxes))
             <tr>

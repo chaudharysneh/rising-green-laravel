@@ -255,7 +255,7 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
     <tr>
         <td style="<?= $summaryCellStyle ?>">Bill of Materials (BOM)</td>
-        <td style="<?= $summaryRightCellStyle ?>"><?= number_format($summaryBomTotal, 2) ?></td>
+        <td style="<?= $summaryRightCellStyle ?>"><?= $summaryUsesGlobalTax ? '--' : number_format($summaryBomTotal, 2) ?></td>
     </tr>
     <?php if ($summaryShowBomTaxes): ?>
     <tr>
