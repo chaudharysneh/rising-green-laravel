@@ -377,6 +377,14 @@
                                                 }
 
                                                 $specifications = [];
+
+                                                $description_val = !empty($item['description']) 
+                                                    ? $item['description'] 
+                                                    : ($full_product_details && !empty($full_product_details['description']) ? $full_product_details['description'] : null);
+                                                if (!empty($description_val)) {
+                                                    $specifications[] = '<span style="color: #555; font-weight: bold;">Description:</span> ' . e($description_val);
+                                                }
+
                                                 $make_val = ltrim(trim($product_category_makes), ',');
                                                 if (!empty($make_val)) {
                                                     $specifications[] = '<span style="color: #555; font-weight: bold;">Make:</span> ' . e($make_val);

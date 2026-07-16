@@ -1,4 +1,57 @@
 @php
+if (!function_exists('normalize_pdf_image')) {
+    function normalize_pdf_image($path)
+    {
+        $path = trim((string) $path);
+        if ($path === '') return '';
+        if (strpos($path, 'data:image') === 0) return $path;
+        $cleanPath = $path;
+        if (preg_match('/^https?:\/\//i', $path)) {
+            $urlParts = parse_url($path);
+            $cleanPath = isset($urlParts['path']) ? ltrim($urlParts['path'], '/\\') : $path;
+        }
+        $cleanPath = preg_replace('#^(?:public|public_html|storage|app/public|storage/app/public)(?:/|\\\\)+#i', '', $cleanPath);
+        $cleanPath = ltrim($cleanPath, '/\\');
+        $candidates = [
+            $path,
+            storage_path('app/public/' . $cleanPath),
+            storage_path('app/' . $cleanPath),
+            public_path('storage/' . $cleanPath),
+            public_path($cleanPath),
+            base_path('public_html/storage/' . $cleanPath),
+            base_path('public_html/' . $cleanPath),
+            base_path('public/storage/' . $cleanPath),
+        ];
+        $filename = basename($cleanPath);
+        if ($filename !== '') {
+            $candidates[] = storage_path('app/public/bom-products/' . $filename);
+            $candidates[] = public_path('storage/bom-products/' . $filename);
+        }
+        foreach (array_unique($candidates) as $candidate) {
+            if ($candidate && @file_exists($candidate) && @is_file($candidate)) {
+                $imgData = @file_get_contents($candidate);
+                if ($imgData !== false) {
+                    $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
+                    $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                    return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+                }
+            }
+        }
+        $urlToTry = (preg_match('/^https?:\/\//i', $path)) ? $path : asset('storage/' . $cleanPath);
+        try {
+            $ctx = stream_context_create(['http' => ['timeout' => 5], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+            $imgData = @file_get_contents($urlToTry, false, $ctx);
+            if ($imgData !== false && strlen($imgData) > 0) {
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->buffer($imgData) ?: 'image/jpeg';
+                return 'data:' . $mime . ';base64,' . base64_encode($imgData);
+            }
+        } catch (\Throwable $e) {}
+        return $urlToTry;
+    }
+}
+@endphp
+@php
     $doc = $estimate ?? $estdata ?? null;
     $customer = $doc->customer ?? null;
     $preparedUser = $doc->user ?? $doc->creator ?? $profileUser ?? $user ?? null;
@@ -125,11 +178,31 @@
         if (!is_array($product)) {
             continue;
         }
+        $productImage = $product['image'] ?? $product['product_image'] ?? $product['photo'] ?? null;
+        if (empty($productImage) && !empty($product['product_id'])) {
+            $bomProduct = \App\Models\BomProduct::find($product['product_id']);
+            if ($bomProduct && !empty($bomProduct->image)) {
+                $productImage = $bomProduct->image;
+            }
+        }
+        
+        $productImagePath = null;
+        if (!empty($productImage)) {
+            $productImage = trim((string) $productImage);
+            if ($productImage !== '') {
+                $resolved = normalize_pdf_image($productImage);
+                if ($resolved && strpos($resolved, 'data:image') === 0) {
+                    $productImagePath = $resolved;
+                }
+            }
+        }
+
         $componentRows[] = [
             'type' => $valueOr($product['name'] ?? '', 'Selected BOM Component'),
             'make' => $valueOr($product['category_name'] ?? '', 'Approved Make'),
             'spec' => $valueOr($product['description'] ?? '', 'As per selected technical BOQ'),
             'warranty' => 'Standard OEM Warranty',
+            'image_path' => $productImagePath,
         ];
     }
     if (empty($componentRows)) {
@@ -400,12 +473,35 @@
                 <tbody>
                     @foreach ($componentRows as $component)
                         <tr>
-                            <td><strong>{{ $component['type'] }}</strong></td>
+                            <td style="vertical-align: middle;">
+                                @if (!empty($component['image_path']))
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="border:none; margin:0; padding:0; background:transparent;">
+                                        <tr>
+                                            <td style="border:none; padding:0; width:55px; vertical-align:middle; background:transparent;">
+                                                <img src="{{ $component['image_path'] }}" alt="{{ $component['type'] }}" style="width:45px; height:45px; object-fit:contain; border:1px solid #d5e0eb; padding:2px; background:#fff; display: block;">
+                                            </td>
+                                            <td style="border:none; padding:0 0 0 8px; vertical-align:middle; background:transparent;">
+                                                <strong>{{ $component['type'] }}</strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                @else
+                                    <strong>{{ $component['type'] }}</strong>
+                                @endif
+                            </td>
                             <td>{{ $component['make'] }}</td>
                             <td>{{ $component['spec'] }}</td>
                             <td>{{ $component['warranty'] }}</td>
                         </tr>
                     @endforeach
+                </tbody>
+            </table>
+            
+            <table class="data-table" style="margin-top: 20px;">
+                <tbody>
+                    <tr><td style="width: 50%;"><strong>System Capacity</strong></td><td>{{ $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : '--' }}</td></tr>
+                    <tr><td><strong>Estimate Type</strong></td><td>{{ $estimateType }}</td></tr>
+                    <tr><td><strong>Solar Meter Charges</strong></td><td>{{ $solarMeterCharges }}</td></tr>
                 </tbody>
             </table>
         </div>
@@ -439,18 +535,12 @@
                     @if ($discountValue > 0)
                         <tr><td>Discount</td><td>- {!! $money($discountValue) !!}</td></tr>
                     @endif
-                    <tr><td><strong>Invoice Subtotal</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
+                    <tr><td><strong>Consumer Net Payable</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
                     @if ($subsidyValue > 0)
                         <tr><td>Subsidy</td><td>- {!! $money($subsidyValue) !!}</td></tr>
                     @endif
                     <tr class="total-row"><td>Net Amount Payable</td><td>{!! $money($netInvestment) !!}</td></tr>
                 </tbody>
-            </table>
-            <table class="data-table">
-                <tbody>
-                    <tr><td><strong>System Capacity</strong></td><td>{{ $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : '--' }}</td></tr>
-                    <tr><td><strong>Estimate Type</strong></td><td>{{ $estimateType }}</td></tr>
-                    <tr><td><strong>Solar Meter Charges</strong></td><td>{{ $solarMeterCharges }}</td></tr>
                 </tbody>
             </table>
         </div>

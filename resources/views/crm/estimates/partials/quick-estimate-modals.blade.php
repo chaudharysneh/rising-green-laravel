@@ -143,7 +143,10 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-estimate-add-bom-btn" title="Add New BOM">
+                                                    <button type="button" class="btn btn-outline-primary edit-bom-link flex-shrink-0 d-none" style="width: 38px; height: 38px; padding: 0;" title="Edit selected BOM">
+                                                        <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-estimate-add-bom-btn" style="width: 38px; height: 38px; padding: 0;" title="Add New BOM">
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
                                                 </div>
@@ -218,6 +221,11 @@
                                 </div>
 
                                 <div class="totals-row">
+                                    <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal (Tax Incl.):</span>
+                                    <span id="quick_subtotal_tax_incl_display" class="fw-bold text-dark">0.00</span>
+                                </div>
+
+                                <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
                                     <input type="number" id="quick_discount" value="0" step="1" class="input-small">
                                 </div>
@@ -235,6 +243,7 @@
                                 </div>
                             </div>
                             <input type="hidden" id="quick_subtotal" value="0">
+                            <input type="hidden" id="quick_subtotal_tax_incl" value="0">
                             <input type="hidden" id="quick_final_total" value="0">
                             <input type="hidden" id="quick_gst" value="0">
                         </div>

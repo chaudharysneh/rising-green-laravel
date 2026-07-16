@@ -661,6 +661,14 @@ if (is_array($allproduct) && !empty($allproduct)) {
 
         // Build specification list
         $specifications = [];
+
+        $description_val = !empty($item['description']) 
+            ? $item['description'] 
+            : (!empty($full_product_details['description']) ? $full_product_details['description'] : null);
+        if (!empty($description_val)) {
+            $specifications[] = '<strong>Description: </strong>' . htmlspecialchars($description_val);
+        }
+
         if (!empty($product_category_makes)) {
             $specifications[] = '<strong>Make: </strong>' . htmlspecialchars($product_category_makes);
         }
