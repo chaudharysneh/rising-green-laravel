@@ -13,6 +13,7 @@
     function init() {
         initEstimatesIndex();
         initDocumentForm();
+        initEditBom();
     }
 
     function resolveDocumentFormConfig() {
@@ -888,11 +889,24 @@
                     ? getQuickEstimateTaxBreakdown(subtotal)
                     : getQuickEstimateTaxBreakdown(0);
                 const gstAmount = taxBreakdown.totalAmount;
+                const subtotalTaxIncl = subtotal + gstAmount;
                 const finalTotal = subtotal + gstAmount - discount - subsidy;
 
                 subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                
+                const subtotalTaxInclDisplay = document.getElementById('quick_subtotal_tax_incl_display');
+                if (subtotalTaxInclDisplay) {
+                    subtotalTaxInclDisplay.textContent = subtotalTaxIncl.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                
                 finalTotalDisplay.textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 subtotalField.value = subtotal.toFixed(2);
+                
+                const subtotalTaxInclField = document.getElementById('quick_subtotal_tax_incl');
+                if (subtotalTaxInclField) {
+                    subtotalTaxInclField.value = subtotalTaxIncl.toFixed(2);
+                }
+                
                 finalTotalField.value = finalTotal.toFixed(2);
 
                 const gstField = document.getElementById('quick_gst');
@@ -1062,6 +1076,15 @@
                     syncQuickBomRowFromSelection(row);
                     calculateQuickEstimateTotals();
                     updateQuickBomErrorVisibility(form);
+                    
+                    const editLink = row.querySelector('.edit-bom-link');
+                    if (editLink) {
+                        if (select.value) {
+                            editLink.classList.remove('d-none');
+                        } else {
+                            editLink.classList.add('d-none');
+                        }
+                    }
                 };
 
                 select?.addEventListener('change', onBomSelectionChange);
@@ -1123,6 +1146,12 @@
                 clone.querySelector('.quick-bom-qty').value = '1';
                 clone.querySelector('.quick-bom-price').value = '0';
                 clone.querySelector('.quick-bom-amount').value = '0';
+                
+                const editLink = clone.querySelector('.edit-bom-link');
+                if (editLink) {
+                    editLink.classList.add('d-none');
+                }
+                
                 quickBomRows.appendChild(clone);
                 attachQuickBomRowHandlers(clone);
                 updateQuickBomDeleteButtons();
@@ -1183,6 +1212,11 @@
                     }
                     if (taxSelect) {
                         taxSelect.value = '0';
+                    }
+                    
+                    const editLink = row.querySelector('.edit-bom-link');
+                    if (editLink) {
+                        editLink.classList.add('d-none');
                     }
                 });
 
@@ -2377,6 +2411,8 @@
         saveBtn.addEventListener('click', function () {
             const name = (nameInput?.value || '').trim();
             const price = parseFloat(priceInput?.value || 0);
+            const description = document.getElementById('quick_bom_description')?.value || '';
+            const taxRate = document.getElementById('quick_bom_tax_rate')?.value || '0';
             let isValid = true;
 
             if (!name) {
@@ -2402,6 +2438,10 @@
                     const formData = new FormData();
                     formData.append('product_name', name);
                     formData.append('price', formatStepOneInputValue(price));
+                    formData.append('description', description);
+                    if (taxRate !== '0') {
+                        formData.append('tax_rate', taxRate);
+                    }
                     if (make?.id) {
                         formData.append('category_id[]', make.id);
                     }
@@ -3766,5 +3806,300 @@
             autoCalculateSubsidy();
         }
         calculateTotals();
+    }
+
+    function initEditBom() {
+        if (!document.getElementById('editBomModal')) return;
+
+        // Toggle edit link visibility on BOM select
+        if (window.jQuery) {
+            window.jQuery(document).on('change', '.product-select', function() {
+                const row = this.closest('.bom-row');
+                if (row) {
+                    const editLink = row.querySelector('.edit-bom-link');
+                    if (editLink) {
+                        if (this.value) {
+                            editLink.classList.remove('d-none');
+                        } else {
+                            editLink.classList.add('d-none');
+                        }
+                    }
+                }
+            });
+
+            // Initialize existing rows
+            window.jQuery('.product-select').each(function() {
+                if (this.value) {
+                    const row = this.closest('.bom-row');
+                    if (row) {
+                        const editLink = row.querySelector('.edit-bom-link');
+                        if (editLink) editLink.classList.remove('d-none');
+                    }
+                }
+            });
+        }
+
+        // Open modal
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('.edit-bom-link');
+            if (link) {
+                e.preventDefault();
+                const row = link.closest('.bom-row') || link.closest('.quick-bom-row');
+                if (!row) return;
+
+                const select = row.querySelector('.product-select') || row.querySelector('.quick-bom-select');
+                if (!select || !select.value) {
+                    if (typeof window.showAlert === 'function') {
+                        window.showAlert('error', 'Please select a BOM first.');
+                    }
+                    return;
+                }
+
+                const option = select.options[select.selectedIndex];
+                if (!option) return;
+
+                const modalEl = document.getElementById('editBomModal');
+                if (!modalEl) return;
+
+                document.getElementById('edit_bom_id').value = select.value;
+                document.getElementById('edit_bom_name').value = option.dataset.name || '';
+                document.getElementById('edit_bom_description').value = option.dataset.desc || '';
+                
+                const priceInput = row.querySelector('.product-price') || row.querySelector('.quick-bom-price');
+                document.getElementById('edit_bom_price').value = priceInput ? priceInput.value : (option.dataset.price || '');
+                
+                const taxSelect = row.querySelector('.product-tax-rate') || row.querySelector('.quick-bom-tax-rate');
+                if (taxSelect) {
+                    document.getElementById('edit_bom_tax_rate').value = taxSelect.value;
+                } else {
+                    document.getElementById('edit_bom_tax_rate').value = option.dataset.taxRate || '0';
+                }
+
+                const makeSelect = row.querySelector('.product-make') || row.querySelector('.quick-bom-make-select');
+                const editMakeSelect = document.getElementById('edit_bom_category_id');
+                if (makeSelect && editMakeSelect) {
+                    editMakeSelect.value = makeSelect.value;
+                    if (window.jQuery && window.jQuery(editMakeSelect).hasClass('select2-hidden-accessible')) {
+                        window.jQuery(editMakeSelect).val(makeSelect.value).trigger('change');
+                    }
+                }
+
+                if (!row.id) {
+                    row.id = 'bom-row-' + Date.now() + Math.random().toString(36).substr(2, 9);
+                }
+                modalEl.dataset.activeRowId = row.id;
+
+                // Reset validation
+                document.getElementById('edit_bom_name').classList.remove('is-invalid');
+                document.getElementById('edit_bom_price').classList.remove('is-invalid');
+
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                
+                // Fix z-index if opened on top of another modal
+                setTimeout(() => {
+                    modalEl.style.zIndex = '1060';
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    if (backdrops.length > 1) {
+                        backdrops[backdrops.length - 1].style.zIndex = '1059';
+                    }
+                }, 100);
+            }
+        });
+
+        // Save modal
+        const saveEditBomBtn = document.getElementById('saveEditBomBtn');
+        if (saveEditBomBtn) {
+            saveEditBomBtn.addEventListener('click', function() {
+                const modalEl = document.getElementById('editBomModal');
+                const rowId = modalEl.dataset.activeRowId;
+                const row = document.getElementById(rowId);
+                
+                const bomId = document.getElementById('edit_bom_id').value;
+                const name = document.getElementById('edit_bom_name').value;
+                const description = document.getElementById('edit_bom_description').value;
+                const price = document.getElementById('edit_bom_price').value;
+                const taxRate = document.getElementById('edit_bom_tax_rate').value;
+                
+                const makeSelect = document.getElementById('edit_bom_category_id');
+                const categoryId = makeSelect.value;
+                const categoryName = makeSelect.options[makeSelect.selectedIndex]?.dataset?.name || '';
+                
+                const saveMode = document.querySelector('input[name="edit_bom_save_mode"]:checked').value;
+
+                let isValid = true;
+                if (!name.trim()) {
+                    document.getElementById('edit_bom_name').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('edit_bom_name').classList.remove('is-invalid');
+                }
+                if (price === '' || parseFloat(price) < 0) {
+                    document.getElementById('edit_bom_price').classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('edit_bom_price').classList.remove('is-invalid');
+                }
+
+                if (!isValid) return;
+
+                const saveSpinner = document.getElementById('saveEditBomSpinner');
+                
+                if (saveMode === 'master') {
+                    saveEditBomBtn.disabled = true;
+                    saveSpinner.classList.remove('d-none');
+                    
+                    const payload = {
+                        product_name: name,
+                        description: description,
+                        price: price,
+                        category_id: categoryId ? [categoryId] : []
+                    };
+
+                    fetch('/api/bom-products/' + bomId, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row);
+                            
+                            // Also update the original option in ALL BOM selects
+                            document.querySelectorAll('.product-select option[value="' + bomId + '"], .quick-bom-select option[value="' + bomId + '"]').forEach(opt => {
+                                opt.dataset.name = name;
+                                opt.dataset.desc = description;
+                                opt.dataset.price = price;
+                                if (categoryName) {
+                                    opt.dataset.categories = JSON.stringify([categoryName]);
+                                }
+                                opt.textContent = name;
+                            });
+                            // Re-trigger select2 if used
+                            if (window.jQuery) {
+                                window.jQuery('.product-select, .quick-bom-select').trigger('change.select2');
+                            }
+
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('success', 'Master BOM record updated successfully.');
+                            }
+                        } else {
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert('error', data.message || 'Failed to update BOM.');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        if (typeof window.showAlert === 'function') {
+                            window.showAlert('error', 'Network error occurred while updating BOM.');
+                        }
+                    })
+                    .finally(() => {
+                        saveEditBomBtn.disabled = false;
+                        saveSpinner.classList.add('d-none');
+                    });
+                } else {
+                    applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row);
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+            });
+        }
+
+        function applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row) {
+            if (!row) return;
+
+            const select = row.querySelector('.product-select') || row.querySelector('.quick-bom-select');
+            if (select) {
+                const option = select.querySelector('option[value="' + bomId + '"]');
+                if (option) {
+                    option.dataset.name = name;
+                    option.dataset.desc = description;
+                    option.dataset.price = price;
+                    if (categoryName) {
+                        option.dataset.categories = JSON.stringify([categoryName]);
+                    }
+                }
+            }
+
+            const priceInput = row.querySelector('.product-price') || row.querySelector('.quick-bom-price');
+            if (priceInput) priceInput.value = price;
+            
+            const taxSelect = row.querySelector('.product-tax-rate') || row.querySelector('.quick-bom-tax-rate');
+            if (taxSelect) taxSelect.value = taxRate;
+            
+            const makeSelect = row.querySelector('.product-make') || row.querySelector('.quick-bom-make-select');
+            if (makeSelect && categoryId) {
+                let option = makeSelect.querySelector('option[value="' + categoryId + '"]');
+                if (!option) {
+                    option = new Option(categoryName, categoryId, false, false);
+                    makeSelect.add(option);
+                }
+                makeSelect.value = categoryId;
+            }
+
+            if (priceInput) {
+                priceInput.dispatchEvent(new Event('input', {bubbles:true}));
+            }
+        }
+
+        // Intercept form submission to include products JSON
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.classList.contains('ajax-estimate-form')) {
+                const products = [];
+                form.querySelectorAll('.bom-row').forEach(row => {
+                    const select = row.querySelector('.product-select');
+                    const bomId = select ? select.value : '';
+                    if (!bomId) return;
+
+                    const option = select.options[select.selectedIndex];
+                    
+                    const makeSelect = row.querySelector('.product-make');
+                    const categoryName = makeSelect && makeSelect.options[makeSelect.selectedIndex] ? 
+                        (makeSelect.options[makeSelect.selectedIndex].dataset.name || makeSelect.options[makeSelect.selectedIndex].text) : '';
+                    
+                    const qtyInput = row.querySelector('input[name="product_qty[]"]');
+                    const priceInput = row.querySelector('.product-price');
+                    const taxSelect = row.querySelector('.product-tax-rate');
+                    const taxLabel = taxSelect && taxSelect.options[taxSelect.selectedIndex] ? taxSelect.options[taxSelect.selectedIndex].dataset.label : '';
+
+                    products.push({
+                        product_id: bomId,
+                        name: option.dataset.name || '',
+                        description: option.dataset.desc || '',
+                        category_name: categoryName,
+                        quantity: qtyInput ? parseFloat(qtyInput.value || 0) : 0,
+                        price: priceInput ? parseFloat(priceInput.value || 0) : 0,
+                        tax_rate: taxSelect ? parseFloat(taxSelect.value || 0) : 0,
+                        tax_label: taxLabel
+                    });
+                });
+
+                if (products.length > 0) {
+                    let hiddenInput = form.querySelector('input[name="products"]');
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'products';
+                        form.appendChild(hiddenInput);
+                    }
+                    hiddenInput.value = JSON.stringify(products);
+                }
+            }
+        });
+        document.getElementById('editBomModal')?.addEventListener('hidden.bs.modal', function () {
+            if (document.querySelectorAll('.modal.show').length > 0) {
+                document.body.classList.add('modal-open');
+            }
+        });
     }
 })();

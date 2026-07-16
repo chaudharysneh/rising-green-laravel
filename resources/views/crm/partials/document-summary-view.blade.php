@@ -267,7 +267,7 @@
         @endphp
         <tr>
             <td class="summary-cell">
-                <strong>Invoice Subtotal</strong>
+                <strong>Consumer Net Payable</strong>
                 <span style="font-style:italic;font-weight:normal;">{{ $summarySubtotalFormula }}</span>
             </td>
             <td class="summary-cell summary-cell-right"><strong>{{ number_format($summaryInvoiceSubtotal ?? 0, 2) }}</strong></td>

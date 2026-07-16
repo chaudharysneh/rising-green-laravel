@@ -308,7 +308,7 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
     <?php endif; ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Invoice Subtotal</strong> <span style="font-style:italic;font-weight:normal;">(<?= $summaryUsesGlobalTax ? 'Base cost + Global Tax' : 'Base cost + BOM + BOM Taxes' ?><?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
+        <td style="<?= $summaryCellStyle ?>"><strong>Consumer Net Payable</strong> <span style="font-style:italic;font-weight:normal;">(<?= $summaryUsesGlobalTax ? 'Base cost + Global Tax' : 'Base cost + BOM + BOM Taxes' ?><?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
         <td style="<?= $summaryRightCellStyle ?>"><strong><?= number_format($summaryInvoiceSubtotal, 2) ?></strong></td>
     </tr>
     <?php if ($summarySubsidy > 0): ?>

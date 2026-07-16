@@ -40,6 +40,10 @@
         $techSpecs = [];
         $warrantyValue = 'Standard OEM Warranty';
 
+        if (!empty($component['description'])) {
+            $techSpecs[] = '<strong>Description:</strong> ' . htmlspecialchars($component['description']);
+        }
+
         if ($qty !== '') {
             $techSpecs[] = '<strong>Qty:</strong> ' . $qty;
         }
