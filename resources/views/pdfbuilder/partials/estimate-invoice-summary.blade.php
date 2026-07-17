@@ -249,10 +249,12 @@ $summaryLendingCost = $summaryNetPayable;
         <td style="<?= $summaryHeaderCellStyle ?>width:68%;">Description</td>
         <td style="<?= $summaryHeaderCellStyle ?>width:32%;text-align:right;">Amount (<span style="font-family: DejaVu Sans, sans-serif;">&#8377;</span>)</td>
     </tr>
+    <?php if ($summaryUsesGlobalTax): ?>
     <tr>
         <td style="<?= $summaryCellStyle ?>">Base cost</td>
         <td style="<?= $summaryRightCellStyle ?>"><?= number_format($summaryBaseCost, 2) ?></td>
     </tr>
+    <?php endif; ?>
     <tr>
         <td style="<?= $summaryCellStyle ?>">Bill of Materials (BOM)</td>
         <td style="<?= $summaryRightCellStyle ?>"><?= $summaryUsesGlobalTax ? '--' : number_format($summaryBomTotal, 2) ?></td>
@@ -308,7 +310,7 @@ $summaryLendingCost = $summaryNetPayable;
     </tr>
     <?php endif; ?>
     <tr>
-        <td style="<?= $summaryCellStyle ?>"><strong>Consumer Net Payable</strong> <span style="font-style:italic;font-weight:normal;">(<?= $summaryUsesGlobalTax ? 'Base cost + Global Tax' : 'Base cost + BOM + BOM Taxes' ?><?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
+        <td style="<?= $summaryCellStyle ?>"><strong>Consumer Net Payable</strong> <span style="font-style:italic;font-weight:normal;">(<?= $summaryUsesGlobalTax ? 'Base cost + Global Tax' : 'BOM + BOM Taxes' ?><?= $summarySolarStructureCharges > 0 ? ' + Solar Structure Charges' : '' ?><?= $summaryDiscount > 0 ? ' - Discount' : '' ?>)</span></td>
         <td style="<?= $summaryRightCellStyle ?>"><strong><?= number_format($summaryInvoiceSubtotal, 2) ?></strong></td>
     </tr>
     <?php if ($summarySubsidy > 0): ?>
