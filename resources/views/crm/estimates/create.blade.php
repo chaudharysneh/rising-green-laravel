@@ -596,6 +596,11 @@
                                     </div>
                                 </div>
 
+                                <div class="totals-row border-top pt-2 mt-2">
+                                    <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal (Tax Incl.):</span>
+                                    <span id="subtotal_tax_incl_display" class="fw-bold text-dark">0.00</span>
+                                </div>
+
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon" style="font-size: 15px;"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Discount:</span>
                                     <input type="number" name="discount" id="discount" value="0" step="1" class="input-small">

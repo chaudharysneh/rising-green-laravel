@@ -3590,9 +3590,14 @@
             ? getSelectedTaxBreakdown(subtotal)
             : getSelectedTaxBreakdown(0);
         const gstAmount = taxBreakdown.totalAmount;
-        const finalTotal = subtotal + gstAmount - discount - subsidy;
+        const subtotalTaxIncl = subtotal + gstAmount;
+        const finalTotal = subtotalTaxIncl - discount - subsidy;
 
         subtotalDisplay.textContent = subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const subtotalTaxInclDisplay = document.getElementById('subtotal_tax_incl_display');
+        if (subtotalTaxInclDisplay) {
+            subtotalTaxInclDisplay.textContent = subtotalTaxIncl.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
         finalTotalDisplay.textContent = finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         subtotalField.value = subtotal.toFixed(2);
         finalTotalField.value = finalTotal.toFixed(2);
