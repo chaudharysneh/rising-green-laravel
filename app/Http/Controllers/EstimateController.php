@@ -358,4 +358,151 @@ class EstimateController extends Controller
             ->whereKey($estimate->customer_id)
             ->exists();
     }
+
+    public function generate_qt_000150_pdf(Estimate $estimate)
+    {
+        $estimate->load('customer', 'user');
+        $companySettings = Setting::pluck('value', 'key')->toArray();
+        $components = is_array($estimate->product_name) ? $estimate->product_name : json_decode($estimate->product_name ?? '[]', true);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfbuilder.qt-000150-pdf', [
+            'estimate' => $estimate,
+            'companySettings' => $companySettings,
+            'components' => $components,
+        ]);
+        
+        $pdf->setPaper('a4', 'portrait');
+        
+        $fileName = 'Quote-' . ($estimate->estimate_no ?: $estimate->estimate_id) . '.pdf';
+        return $pdf->stream($fileName);
+    }
+    
+    public function preview_qt_000150_pdf()
+    {
+        $companySettings = Setting::pluck('value', 'key')->toArray();
+        
+        // Dummy estimate data for preview
+        $estimate = new Estimate([
+            'estimate_no' => 'QT-000150',
+            'estimate_date' => now()->format('Y-m-d'),
+            'quantity' => '3.30',
+            'price' => 42000,
+            'solar_structure_charges' => 5000,
+            'gst_amount' => 6930,
+            'gst' => 18,
+            'subsidy_amount' => 18000
+        ]);
+        
+        $estimate->customer = new Customer([
+            'name' => 'SNEHBHAI',
+            'address' => 'Surat, Gujarat'
+        ]);
+        
+        $components = [
+            [
+                'type' => 'SOLAR PV MODULE',
+                'make' => 'ADANI,WAAREE,EXIDE,PREMIER,GOLDI,RAYZON',
+                'capacity' => '550/570/580/590/620/690',
+                'technology' => 'BIFACIAL / MONO BIFACIAL TOPCON NTYPE',
+                'warranty' => '10 MANUFACTURING +20 PERFORMANCE',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'SOLAR INVERTER',
+                'make' => 'PV-BLINK,VSOLE,SOLARYAAN,SUNGROW,GOODWE',
+                'capacity' => 'AS PER REQUIRMENT',
+                'technology' => 'ON GRIDE SOLAR SMART INVERTER',
+                'warranty' => '10 YEARS',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'STRUCTURE PIPE',
+                'make' => 'APOLLO,HINDUSTAR,ISCON,SURYA',
+                'specification' => 'HOT DIP GALVENIZED',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'DB COMBO',
+                'make' => 'L&T,HAVELLS,C&S',
+                'specification' => 'IP 65 TRIBOX MCB WITH SPD',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'AC CABLE',
+                'make' => 'HAVELLS STANDARD,POLYCAB,RR,KEI',
+                'specification' => '2.5MM 4MM 6MM COPPER FLEXIBLE',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'DC CABLE',
+                'make' => 'POLYCAB,APAR',
+                'specification' => '2.5MM 4MM 6MM EN TYPE1 TYPE 2',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'LA CABLE',
+                'make' => 'POLYFLEX,KENBERRY,ANAND',
+                'specification' => '16MM AL 25MM AL',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'PVC CONDUITE',
+                'make' => 'POLYCAB,PRECESION,PRESSFIT',
+                'specification' => '20MM 25MM 32MM UV PROTECTED',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'EARTHING AND LA ROD',
+                'make' => 'E LINK TRUEBLUE',
+                'specification' => '1.5MTR 17MM 25MM CU COATED',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'J BOLT',
+                'make' => 'AS PER ISI STANDARDS',
+                'specification' => 'M8 SS 304',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'SS TIE',
+                'make' => 'AS PER ISI STANDARDS',
+                'specification' => 'SS 304',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'LUG',
+                'make' => 'AS PER ISI STANDARDS',
+                'specification' => 'AS PER CABLE SIZE',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'MC4',
+                'make' => 'ELMAX',
+                'specification' => 'UV PROTECTED',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'MONO RAIL',
+                'make' => 'AS PER ISI STANDARDS',
+                'specification' => 'AS PER REQUIRMENT',
+                'image_path' => ''
+            ],
+            [
+                'type' => 'WALKWAY',
+                'make' => 'FRP MATERIAL',
+                'specification' => 'AS PER ISI STANDARDS',
+                'image_path' => ''
+            ]
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfbuilder.qt-000150-pdf', [
+            'estimate' => $estimate,
+            'companySettings' => $companySettings,
+            'components' => $components,
+        ]);
+        
+        $pdf->setPaper('a4', 'portrait');
+        
+        return $pdf->stream('QT-000150-Preview.pdf');
+    }
 }
