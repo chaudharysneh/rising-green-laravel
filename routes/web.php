@@ -482,6 +482,7 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
         Route::post('update/{id}', [PdfbuilderController::class, 'update'])->middleware('matrix_permission:edit_templates')->name('update');
         Route::get('view/{id}', [PdfbuilderController::class, 'view'])->middleware('matrix_permission:view_templates')->name('view');
         Route::get('stream/{id}', [PdfbuilderController::class, 'stream'])->middleware('matrix_permission:view_templates')->name('stream');
+        Route::get('view-qt-000150', [PdfbuilderController::class, 'viewQt000150'])->middleware('matrix_permission:view_templates')->name('view.qt000150');
         Route::post('delete/{id}', [PdfbuilderController::class, 'delete'])->middleware('matrix_permission:delete_templates')->name('delete');
     });
 

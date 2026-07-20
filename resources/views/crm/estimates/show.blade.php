@@ -313,6 +313,9 @@
             </div>
             <div class="card-body p-3 p-md-4">
                 <div class="quotation-block">
+                    @if(Str::lower(trim((string) ($estimate->template?->template_name ?? ''))) === 'solar proposal')
+                        <iframe src="{{ route('estimates.pdf', $estimate->estimate_id) }}" style="width: 100%; height: 1000px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                    @else
                     <div class="quotation-box">
                         @include('crm.partials.document-summary-view', ['documentSummary' => $documentSummary])
 
@@ -330,13 +333,10 @@
                                 <thead style="background-color: #4b9349; color: #fff;">
                                     <tr>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 12%; background-color: #4b9349 !important; color: #ffffff !important;">
-                                            Image</th>
-                                        <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 20%; background-color: #4b9349 !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 25%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Product Name</th>
                                         <th
-                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 38%; background-color: #4b9349 !important; color: #ffffff !important;">
+                                            style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: left; width: 45%; background-color: #4b9349 !important; color: #ffffff !important;">
                                             Specifications</th>
                                         <th
                                             style="padding: 12px 10px; font-weight: bold; font-size: 14px; border: 1px solid #333; text-align: center; width: 10%; background-color: #4b9349 !important; color: #ffffff !important;">
@@ -364,7 +364,6 @@
                                                 $product_id = $item['product_id'] ?? null;
                                                 $product_name_display = $item['name'] ?? 'Product name not found';
                                                 $product_name_display = ucwords(strtolower($product_name_display));
-                                                $product_image_display = $item['image'] ?? null;
                                                 $product_quantity = (int) ($item['quantity'] ?? 0);
                                                 $product_category_makes = $item['category_name'] ?? '';
 
@@ -456,18 +455,8 @@
                                                 } elseif ($full_product_details && !empty($full_product_details['meter'])) {
                                                     $qty_unit = '(mtr)';
                                                 }
-
-                                                $dummyBomImageUrl = url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'assets/img/logos/crmfavicon.png');
-                                                $productImageUrl = ($full_product_details && !empty($full_product_details['image']) && $product_id)
-                                                    ? route('bom-products.image', $product_id)
-                                                    : $dummyBomImageUrl;
                                             @endphp
                                             <tr>
-                                                <td style="padding: 12px 10px; border: 1px solid #333; text-align: center; vertical-align: middle;">
-                                                    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 4px; background-color: #fff; display: inline-block;">
-                                                        <img src="{{ $productImageUrl }}" alt="{{ $product_name_display }}" style="width: 80px; height: 80px; object-fit: contain;" onerror="this.onerror=null;this.src='{{ $dummyBomImageUrl }}';">
-                                                    </div>
-                                                </td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
@@ -477,14 +466,13 @@
                                         @endforeach
                                     @else
                                             <tr>
-                                                <td colspan="6" style="text-align: center; color: #666; padding: 20px; border: 1px solid #333;">No products added to this estimate</td>
+                                                <td colspan="5" style="text-align: center; color: #666; padding: 20px; border: 1px solid #333;">No products added to this estimate</td>
                                             </tr>
                                         @endif
                                     </tbody>
                                     @if (is_array($allproduct) && !empty($allproduct))
                                         <tfoot>
                                             <tr style="font-weight: bold;">
-                                                <td style="border: 1px solid #333; background-color: #fff;"></td>
                                                 <td style="border: 1px solid #333; background-color: #fff;"></td>
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">Total:</td>
                                                 <td style="text-align: right; padding: 10px 15px; border: 1px solid #333; font-size: 14px; background-color: #fff; color: #333;">{{ $total_quantity }}</td>
@@ -497,6 +485,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
 
             </div>

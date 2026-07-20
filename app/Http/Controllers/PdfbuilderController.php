@@ -827,4 +827,13 @@ class PdfbuilderController extends Controller
 
         return response()->json(['status' => true, 'message' => 'Template deleted successfully']);
     }
+
+    /**
+     * Special view for QT-000150 custom Blade template.
+     * Redirects to the estimate preview route which renders qt-000150-pdf.blade.php.
+     */
+    public function viewQt000150()
+    {
+        return redirect()->route('estimates.preview.qt-000150');
+    }
 }
