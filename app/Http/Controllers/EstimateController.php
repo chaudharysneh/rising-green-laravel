@@ -207,7 +207,9 @@ class EstimateController extends Controller
                 'after_blocks' => $form_data['after_blocks'] ?? [],
                 'companyInfo' => $template->company_information ?? [],
                 'timeLine' => $template->time_line ?? [],
-                'components' => $template->components ?? ($form_data['components'] ?? []),
+                'components' => Str::lower(trim((string) $template->template_name)) === 'solar proposal' 
+                    ? (is_array($estimate->product_name) ? $estimate->product_name : json_decode($estimate->product_name ?? '[]', true))
+                    : ($template->components ?? ($form_data['components'] ?? [])),
                 'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
                 'environment_impact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
                 'environmentImpact' => $template->environment_impact ?? ($form_data['environment_impact'] ?? []),
@@ -217,9 +219,14 @@ class EstimateController extends Controller
                 'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             ];
 
-            $pdfView = Str::lower(trim((string) $template->template_name)) === 'basic template'
-                ? 'pdfbuilder.basic-template-pdf'
-                : 'pdfbuilder.pdf';
+            $templateName = Str::lower(trim((string) $template->template_name));
+            if ($templateName === 'basic template') {
+                $pdfView = 'pdfbuilder.basic-template-pdf';
+            } elseif ($templateName === 'solar proposal') {
+                $pdfView = 'pdfbuilder.qt-000150-pdf';
+            } else {
+                $pdfView = 'pdfbuilder.pdf';
+            }
             $pdf = \PDF::loadView($pdfView, $pdfData);
             $pdf->setPaper('A4', 'portrait');
         } else {
@@ -390,7 +397,8 @@ class EstimateController extends Controller
             'solar_structure_charges' => 5000,
             'gst_amount' => 6930,
             'gst' => 18,
-            'subsidy_amount' => 18000
+            'subsidy_amount' => 18000,
+            'product_name' => '[]'
         ]);
         
         $estimate->customer = new Customer([
@@ -495,10 +503,19 @@ class EstimateController extends Controller
             ]
         ];
 
+        $user = auth()->user();
+        $settings = collect($companySettings);
+        $product_data = \App\Models\BomProduct::all()->toArray();
+        $technology_map = \App\Models\Technology::pluck('title', 'id')->toArray();
+        $warranty_map = \App\Models\Warranty::pluck('title', 'id')->toArray();
+
+        $quotation_html = view('crm.estimates.pdf', compact('estimate', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'))->render();
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfbuilder.qt-000150-pdf', [
             'estimate' => $estimate,
             'companySettings' => $companySettings,
             'components' => $components,
+            'quotation_html' => $quotation_html,
         ]);
         
         $pdf->setPaper('a4', 'portrait');

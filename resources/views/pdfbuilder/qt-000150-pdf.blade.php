@@ -310,144 +310,24 @@ if (!function_exists('normalize_pdf_image')) {
 <body>
 
     <!-- Page 1: Quote -->
-    <section class="page quote-page">
-        <div style="width: 100%; margin-bottom: 20px; display: table;">
-            <div style="display: table-cell; width: 60%; vertical-align: top;">
-                <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">{{ $companyName }}</div>
-                <div style="font-size: 11px; line-height: 1.3;">
-                    PM SURYAGHAR EMP NO. NPDG-164<br>
-                    316 SUNTRADE CENTER RAMNAGAR Surat Gujarat 395005<br>
-                    India<br>
-                    Surat Gujarat 395005<br>
-                    India<br>
-                    GSTIN 24ABBFR1974L1ZY<br>
-                    {{ $companyPhone }}<br>
-                    {{ $companyEmail }}
-                </div>
-            </div>
-            <div style="display: table-cell; width: 40%; vertical-align: top; text-align: right;">
-                <div style="font-size: 32px; font-weight: normal; margin-bottom: 5px; color: #000;">Quote</div>
-                <div style="font-size: 14px; font-weight: bold; color: #000;"># {{ $doc->estimate_no ?? 'QT-000150' }}</div>
-            </div>
-        </div>
-
-        <div style="width: 100%; margin-bottom: 20px; display: table;">
-            <div style="display: table-cell; width: 50%; vertical-align: top;">
-                <div style="font-size: 12px; color: #555; margin-bottom: 3px;">Bill To</div>
-                <div style="font-size: 13px; font-weight: bold;">{{ $clientName }}</div>
-            </div>
-            <div style="display: table-cell; width: 50%; vertical-align: top; text-align: right;">
-                <div style="font-size: 12px;">Quote Date : &nbsp;&nbsp;&nbsp;&nbsp; {{ $doc->estimate_date ? \Carbon\Carbon::parse($doc->estimate_date)->format('d/m/Y') : date('d/m/Y') }}</div>
-            </div>
-        </div>
-        
-        <div style="font-size: 12px; margin-bottom: 20px;">
-            Place Of Supply: Gujarat (24)
-        </div>
-
-        <table class="quote-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Item &amp; Description</th>
-                    <th class="right">HSN/SAC</th>
-                    <th class="right">Qty</th>
-                    <th class="right">Rate</th>
-                    <th class="right">CGST</th>
-                    <th class="right">SGST</th>
-                    <th class="right">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>
-                        SUPPLY AND INSTALLATION<br>
-                        <span style="color:#555; font-size:10px;">{{ $capacity }} SOLAR ROOFTOP SYSTEM</span>
-                    </td>
-                    <td class="right">854140</td>
-                    <td class="right">{{ number_format($qtyForCalc, 2) }}</td>
-                    <td class="right">{{ number_format($rate1, 2) }}</td>
-                    <td class="right">{{ number_format($gstValue/2, 2) }}<br><span style="font-size:9px;color:#555;">{{ $actualGstRate/2 }}%</span></td>
-                    <td class="right">{{ number_format($gstValue/2, 2) }}<br><span style="font-size:9px;color:#555;">{{ $actualGstRate/2 }}%</span></td>
-                    <td class="right">{{ number_format($baseSystemValue, 2) }}</td>
-                </tr>
-                @if($solarStructureValue > 0)
-                <tr>
-                    <td>2</td>
-                    <td>
-                        STRUCTURE FABRICATION WORK<br>
-                        <span style="color:#555; font-size:10px;">{{ $capacity }} SOLAR ROOFTOP SYSTEM</span>
-                    </td>
-                    <td class="right">998873</td>
-                    <td class="right">{{ number_format($qtyForCalc, 2) }}</td>
-                    <td class="right">{{ number_format($rate2, 2) }}</td>
-                    <td class="right">{{ number_format($solarStructureValue * 0.09, 2) }}<br><span style="font-size:9px;color:#555;">9%</span></td>
-                    <td class="right">{{ number_format($solarStructureValue * 0.09, 2) }}<br><span style="font-size:9px;color:#555;">9%</span></td>
-                    <td class="right">{{ number_format($solarStructureValue, 2) }}</td>
-                </tr>
-                @endif
-            </tbody>
-        </table>
-
-        <div style="width: 100%; display: table;">
-            <div style="display: table-cell; width: 50%;"></div>
-            <div style="display: table-cell; width: 50%;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <tr>
-                        <td style="padding: 5px; text-align: right; width: 70%;">Sub Total</td>
-                        <td style="padding: 5px; text-align: right; width: 30%;">{{ number_format($baseSystemValue + $solarStructureValue, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px; text-align: right;">CGST{{ $actualGstRate/2 + 0 }} ({{ $actualGstRate/2 + 0 }}%)</td>
-                        <td style="padding: 5px; text-align: right;">{{ number_format($gstValue/2, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px; text-align: right;">SGST{{ $actualGstRate/2 + 0 }} ({{ $actualGstRate/2 + 0 }}%)</td>
-                        <td style="padding: 5px; text-align: right;">{{ number_format($gstValue/2, 2) }}</td>
-                    </tr>
-                    @if($solarStructureValue > 0)
-                    <tr>
-                        <td style="padding: 5px; text-align: right;">CGST9 (9%)</td>
-                        <td style="padding: 5px; text-align: right;">{{ number_format($solarStructureValue * 0.09, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 5px; text-align: right;">SGST9 (9%)</td>
-                        <td style="padding: 5px; text-align: right;">{{ number_format($solarStructureValue * 0.09, 2) }}</td>
-                    </tr>
-                    @endif
-                    <tr>
-                        <td style="padding: 10px 5px; text-align: right; background-color: #f2f2f2; font-weight: bold; font-size: 13px;">Total</td>
-                        <td style="padding: 10px 5px; text-align: right; background-color: #f2f2f2; font-weight: bold; font-size: 13px;"><span style="font-family: 'DejaVu Sans', sans-serif;">&#8377;</span>{{ number_format($grossValue, 2) }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <div style="font-size: 12px; margin-top: 15px;">
-            Total In Words: <strong>Indian Rupee {{ numberToWords($grossValue) }} Only</strong>
-        </div>
-
-        <div style="margin-top: 30px; font-size: 11px;">
-            <div style="font-size: 14px; color: #333; margin-bottom: 10px;">Notes</div>
-            ALL BILL OF MATERIAL USED FOR INSTALLATION ARE AS PER PM SURYAGHAR GUIDLINE GOVERMENT CRITERIA AND AS PER ISI STANDER WITH AUTHENTIC CERTIFICATES<br><br>
-            DOCUMENTS LIST:<br>
-            ELECTRICITY BILL<br>
-            VERA BILL<br>
-            ADHARCARD<br>
-            PANCARD<br>
-            CANCELCHEQUE<br>
-            CONCENT LETTER (FOR COMMON TERRACE)
-        </div>
-
-        <div style="margin-top: 30px; font-size: 11px;">
-            <div style="font-size: 14px; color: #333; margin-bottom: 10px;">Terms &amp; Conditions</div>
-            - ESTIMATE VALID FOR 10DAYS ONLY<br>
-            - GEDA REGISTRATION FEES EXTRA AS PER ACTUAL (IF APPLICABLE)<br>
-            - METER CHARGES EXTRA AS PER ACTUAL DGVCL/TORRENT (IF APPLICABLE)<br>
-            - SUBSIDY IN CLIENT ACCOUNT {{ $plainNumber($subsidyValue, 0) }}/- <br>
-            - AVG MONTHLY SAVING {{ $monthlyGeneration }} UNITS GENERATION WHICH SAVES UP TO {{ $plainNumber($monthlyGeneration * 8, 0) }}/-
-        </div>
+    <section class="page quote-page" style="padding: 10px;">
+        <style>
+            /* Compress the standard layout to fit onto a single page */
+            .quotation-block .quotation-box { margin: 0 auto !important; padding: 5px 10px !important; border: none !important; box-shadow: none !important; }
+            .quotation-block .info-table, .quotation-block .quotation-table, .quotation-block .extra-info table { font-size: 11px !important; margin-bottom: 10px !important; }
+            .quotation-block .info-table th, .quotation-block .info-table td, .quotation-block .quotation-table th, .quotation-block .quotation-table td { padding: 3px 5px !important; line-height: 1.2 !important; }
+            .quotation-block .quotation-header { margin-bottom: 5px !important; }
+            .quotation-block .center-text { font-size: 14px !important; margin-bottom: 5px !important; }
+            .quotation-block hr { margin: 5px 0 !important; }
+            .quotation-block .flex-between { margin-bottom: 5px !important; }
+            .quotation-block img { max-height: 40px !important; width: auto !important; }
+        </style>
+        @php
+            // Override the default standard PDF colors with the requested #4b9349 color for this specific template
+            $custom_quotation = str_replace('#52866A', '#4b9349', $quotation_html);
+            $custom_quotation = str_replace('#19547B', '#4b9349', $custom_quotation);
+        @endphp
+        {!! $custom_quotation !!}
     </section>
 
     <!-- Page 2: Quote Signature -->
@@ -494,8 +374,8 @@ if (!function_exists('normalize_pdf_image')) {
                 Engineering single line diagram (SLD) layout: Solar PV Modules &rarr; DC Distribution Box (DCDB) &rarr; Smart Grid-Tied Inverter &rarr; AC Distribution Box (ACDB) &rarr; Bi-Directional Net Meter &rarr; Residential Load / Public Grid
             </div>
             
-            <div style="text-align: center;">
-                <img src="{{ normalize_pdf_image('images/template/residential _01.png') }}" alt="Solar Diagram" class="full-width-image">
+            <div style="text-align: center; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee; background-color: #fdfdfd;">
+                <img src="{{ normalize_pdf_image('images/template/solar_home_diagram_new.png') }}" alt="Solar Diagram" style="width: 80%; border-radius: 6px;">
             </div>
         </div>
         
@@ -548,8 +428,8 @@ if (!function_exists('normalize_pdf_image')) {
                 <li><strong>Reforestation Equivalence:</strong> Equal to the ecological impact of planting {{ $treesEquivalent }} mature trees.</li>
             </ul>
             
-            <div style="text-align: center;">
-                <img src="{{ normalize_pdf_image('images/template/solorrooftop_02.png') }}" alt="Carbon Emission Infographic" class="full-width-image">
+            <div style="text-align: center; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #eee; background-color: #fdfdfd; margin-top: 20px; max-width: 80%; margin-left: auto; margin-right: auto;">
+                <img src="{{ normalize_pdf_image('images/template/carbon_offset_nature_new.png') }}" alt="Carbon Emission Infographic" style="max-height: 260px; width: auto; border-radius: 6px;">
             </div>
         </div>
         
@@ -566,15 +446,15 @@ if (!function_exists('normalize_pdf_image')) {
             <p>As a fully authorized and certified empaneled solar vendor, we manage the entire national subsidy workflow framework for your project end-to-end:</p>
             
             <div style="background-color: #f0f7fb; padding: 20px; border: 1px solid #d4e8f6; border-radius: 5px; margin-bottom: 30px;">
-                <p><strong>1. Registration:</strong> We safely onboard your consumer credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
-                <p><strong>2. Technical Feasibility:</strong> The regional DISCOM (Electricity Board) reviews local grid capacity and issues a formal structural clearance approval.</p>
-                <p><strong>3. Execution &amp; Installation:</strong> Our engineering wing carries out code-compliant installation adhering precisely to MNRE quality guidelines.</p>
-                <p><strong>4. Net Metering Inspection:</strong> DISCOM engineers perform physical on-site verification, deploy the smart net meter, and commission the plant.</p>
-                <p><strong>5. Subsidy Disbursal:</strong> Post-commissioning, the sanctioned central government subsidy is electronically credited to your linked bank account within 30 business days.</p>
+                <p style="margin: 0 0 10px 0;"><strong>1. Registration:</strong> We safely onboard your consumer credentials directly onto the central government's PM-Surya Ghar National Portal.</p>
+                <p style="margin: 0 0 10px 0;"><strong>2. Technical Feasibility:</strong> The regional DISCOM reviews local grid capacity and issues a formal structural clearance approval.</p>
+                <p style="margin: 0 0 10px 0;"><strong>3. Execution &amp; Installation:</strong> Our engineering wing carries out code-compliant installation adhering precisely to MNRE quality guidelines.</p>
+                <p style="margin: 0 0 10px 0;"><strong>4. Net Metering Inspection:</strong> DISCOM engineers perform physical on-site verification, deploy the smart net meter, and commission the plant.</p>
+                <p style="margin: 0;"><strong>5. Subsidy Disbursal:</strong> Post-commissioning, the sanctioned central government subsidy is electronically credited to your linked bank account within 30 business days.</p>
             </div>
             
-            <div style="text-align: center;">
-                <img src="{{ normalize_pdf_image('images/template/free_electricity_03.png') }}" alt="6 Steps Infographic" class="full-width-image">
+            <div style="text-align: center; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #eee; background-color: #fdfdfd; max-width: 80%; margin-left: auto; margin-right: auto;">
+                <img src="{{ normalize_pdf_image('images/template/subsidy_process_new.png') }}" alt="Subsidy Process" style="max-height: 260px; width: auto; border-radius: 6px;">
             </div>
         </div>
         

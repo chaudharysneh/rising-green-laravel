@@ -35,10 +35,11 @@
                 const dateStr = createdDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
                 const timeStr = createdDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
-                const viewUrl = `/pdfbuilder/view/${template.id}`;
+                const isQtTemplate = String(template.template_name || '').trim().toLowerCase() === 'solar proposal';
+                const viewUrl = isQtTemplate ? `/pdfbuilder/view-qt-000150` : `/pdfbuilder/view/${template.id}`;
                 const editUrl = `/pdfbuilder/edit/${template.id}`;
                 const isStaticBasicTemplate = template.is_static_basic_template || String(template.template_name || '').trim().toLowerCase() === 'basic template';
-                const editAction = isStaticBasicTemplate ? '' : `<a href="${editUrl}" class="btn crm-action-btn btn-sm" title="Edit Template"><i class="bi bi-pencil"></i></a>`;
+                const editAction = (isStaticBasicTemplate || isQtTemplate) ? '' : `<a href="${editUrl}" class="btn crm-action-btn btn-sm" title="Edit Template"><i class="bi bi-pencil"></i></a>`;
 
                 return `
                 <tr class="template-row">
