@@ -202,7 +202,7 @@ $summaryLendingCost = $summaryNetPayable;
     <tr>
         <td width="45%" valign="top" align="left" style="<?= $summaryHeaderTextStyle ?>padding-bottom:8px;">
             <?php if (!empty($logoBase64)): ?>
-                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:160px;height:auto;">
+                <img src="<?= $logoBase64 ?>" alt="Company Logo" style="max-width:250px;max-height:100px;object-fit:contain;height:auto;">
             <?php else: ?>
                 <span style="color:#666;">Company Logo</span>
             <?php endif; ?>

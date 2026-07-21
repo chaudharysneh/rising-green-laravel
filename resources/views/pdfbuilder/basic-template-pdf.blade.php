@@ -216,6 +216,28 @@ if (!function_exists('normalize_pdf_image')) {
     }
     $proposalLabel = 'System Capacity: ' . ($capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : 'To be finalized');
     $notesContent = trim(strip_tags((string) ($doc->estimate_comment ?? $doc->comment ?? '')));
+    
+    $logoBase64 = null;
+    $companyLogoPath = $companySettings['company_logo_path'] ?? null;
+    if ($companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)) {
+        $logoData = \Illuminate\Support\Facades\Storage::disk('public')->get($companyLogoPath);
+        $logoBase64 = 'data:image/' . pathinfo($companyLogoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+    } elseif (!empty($companySettings['company_logo_path'])) {
+        $diskPath = storage_path('app/public/' . $companySettings['company_logo_path']);
+        if (file_exists($diskPath)) {
+            $logoData = file_get_contents($diskPath);
+            $logoBase64 = 'data:image/' . pathinfo($diskPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+    }
+    if (!$logoBase64 && !empty($preparedUser['company_logo'])) {
+        $legacyPath = public_path('assets/img/profile/' . $preparedUser['company_logo']);
+        if (file_exists($legacyPath)) {
+            $logoData = file_get_contents($legacyPath);
+            $logoBase64 = 'data:image/' . pathinfo($legacyPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        } else {
+            $logoBase64 = normalize_pdf_image('public/assets/img/profile/' . $preparedUser['company_logo']);
+        }
+    }
 @endphp
 <!doctype html>
 <html>
@@ -352,8 +374,19 @@ if (!function_exists('normalize_pdf_image')) {
 <body>
     <section class="page">
         <div class="cover-header">
-            <div class="cover-title">Rising Green Energy Proposal</div>
-            <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    @if (!empty($logoBase64))
+                    <td width="150" valign="middle" style="padding-right:20px;">
+                        <img src="{{ $logoBase64 }}" alt="Company Logo" style="max-width:150px;max-height:80px;object-fit:contain;background-color:#fff;padding:5px;border-radius:4px;">
+                    </td>
+                    @endif
+                    <td valign="middle">
+                        <div class="cover-title">Rising Green Energy Proposal</div>
+                        <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <div class="section">
