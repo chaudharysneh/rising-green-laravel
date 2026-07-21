@@ -387,7 +387,7 @@ if (!function_exists('normalize_pdf_image')) {
             <p>As energy costs continue to rise and environmental sustainability becomes a growing priority, rooftop solar photovoltaic (PV) systems offer an efficient, reliable, and cost-effective solution for meeting electricity demands. By harnessing clean and renewable solar energy, organizations and homeowners can significantly reduce electricity expenses, decrease dependence on conventional power sources, and contribute to a greener future.</p>
             <p>This proposal presents a comprehensive rooftop solar solution designed to maximize energy generation based on the available roof area and site conditions. The proposed system incorporates high-quality solar modules, advanced inverters, and industry-standard installation practices to ensure optimal performance, safety, and long-term reliability.</p>
             <p>In addition to reducing operational costs, the installation of a rooftop solar system supports environmental responsibility by lowering carbon emissions and promoting the use of renewable energy. With minimal maintenance requirements and a long service life, the proposed solar power system represents a sustainable investment that delivers both economic and environmental benefits for years to come.</p>
-            <div style="position: absolute; bottom: 70px; left: 40px;">
+            <div style="position: absolute; bottom: 70px; left: 56px; color: #1b365d;">
                 <p style="margin-bottom: 5px;">Best Regards,</p>
                 <p><strong>{{ $preparedName }}</strong><br>
                 {{ $companyName }} | {{ $companyPhone }} | {{ $companyEmail }}</p>
