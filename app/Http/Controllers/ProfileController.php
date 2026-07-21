@@ -199,9 +199,10 @@ class ProfileController extends Controller
             }
 
             $mimeType = (string) $value->getMimeType();
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/pjpeg', 'image/jfif'];
 
-            if (!str_starts_with($mimeType, 'image/')) {
-                $fail('Please upload a valid image file.');
+            if (!in_array($mimeType, $allowedMimes)) {
+                $fail('Please upload a valid JPG or PNG image file (WebP and SVG are not supported).');
             }
         };
 

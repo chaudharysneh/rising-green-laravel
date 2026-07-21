@@ -216,8 +216,10 @@ if (!isset($estdata) && isset($estimate)) {
         }
 
         .company-logo img {
-            max-width: 90px;
+            max-width: 300px;
+            max-height: 120px;
             display: block;
+            object-fit: contain;
         }
 
         .quotation-title {
@@ -289,12 +291,12 @@ if (!isset($estdata) && isset($estimate)) {
                     <tr>
                         <td class="company-logo">
                             <?php
-$company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_path'] : (isset($user['company_logo']) ? $user['company_logo'] : 'default_logo.jpg');
-$logo_path = public_path('assets/img/profile/' . $company_logo);
-if (!empty($company_logo) && $company_logo !== 'default_logo.jpg' && file_exists($logo_path)):
+                            $company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_path'] : null;
+                            $logoBase64 = normalize_pdf_image($company_logo);
+                            if (!empty($logoBase64)):
                             ?>
-                            <img src="<?php echo htmlspecialchars(base_url('public/assets/img/profile/' . $company_logo)); ?>"
-                                alt="" style="max-width: 300px; width: 50%; height: auto;">
+                            <img src="<?php echo $logoBase64; ?>"
+                                alt="Company Logo" style="max-width: 300px; max-height: 120px; object-fit: contain; height: auto;">
                             <?php endif; ?>
                         </td>
                         <td class="quotation-title">

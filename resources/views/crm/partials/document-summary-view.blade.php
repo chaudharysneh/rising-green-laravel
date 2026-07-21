@@ -148,11 +148,6 @@
     <table class="summary-top-row" style="margin-bottom:8px;">
         <tr>
             <td width="45%" valign="top" align="left" class="summary-company-text" style="padding-bottom:8px;">
-                @if (!empty($summaryLogoUrl))
-                    <img src="{{ $summaryLogoUrl }}" alt="Company Logo" style="max-width:160px;height:auto;" onerror="this.style.display='none';">
-                @else
-                    <span style="color:#666;">Company Logo</span>
-                @endif
             </td>
             <td width="55%" valign="top" align="right" class="summary-company-text" style="padding-bottom:8px;">
                 <strong style="font-size:16px;">{{ $summaryCompanyName ?? '--' }}</strong><br>

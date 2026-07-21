@@ -122,9 +122,9 @@
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label fw-semibold">Company Logo (Upload)</label>
-                                    <input type="file" name="company_logo_path" id="company-logo-input" accept="image/*" class="form-control @error('company_logo_path') is-invalid @enderror">
+                                    <input type="file" name="company_logo_path" id="company-logo-input" accept="image/jpeg,image/png,image/jpg" class="form-control @error('company_logo_path') is-invalid @enderror">
                                     @error('company_logo_path')<div class="profile-field-error">{{ $message }}</div>@enderror
-                                    <small class="text-muted">Any image file - max 50 MB.</small>
+                                    <small class="text-muted">JPG or PNG image - max 50 MB.</small>
                                 </div>
                                 <!-- <div class="col-md-6">
                                     <label class="form-label fw-semibold">QR Code (Upload)</label>
