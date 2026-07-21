@@ -331,7 +331,7 @@ if (!function_exists('normalize_pdf_image')) {
             font-size: 11px;
             text-align: left;
             padding: 7px 8px;
-            border: 1px solid #2d73b6;
+            border: 1px solid #ffffff;
         }
         .data-table td {
             padding: 7px 8px;
@@ -340,9 +340,9 @@ if (!function_exists('normalize_pdf_image')) {
         }
         .data-table tbody tr:nth-child(even) td { background: #f4f8fb; }
         .data-table .total-row td {
-            background: #fff1d8 !important;
-            border-color: #f2a51c;
-            color: #c44d00;
+            background: #e6f4ea !important;
+            border-color: #a5d6a7;
+            color: #000000 !important;
             font-weight: 700;
         }
         .quote-box {
@@ -507,21 +507,13 @@ if (!function_exists('normalize_pdf_image')) {
                 <tbody>
                     @foreach ($componentRows as $component)
                         <tr>
-                            <td style="vertical-align: middle;">
+                            <td style="vertical-align: middle; text-align: center;">
                                 @if (!empty($component['image_path']))
-                                    <table width="100%" cellpadding="0" cellspacing="0" style="border:none; margin:0; padding:0; background:transparent;">
-                                        <tr>
-                                            <td style="border:none; padding:0; width:55px; vertical-align:middle; background:transparent;">
-                                                <img src="{{ $component['image_path'] }}" alt="{{ $component['type'] }}" style="width:45px; height:45px; object-fit:contain; border:1px solid #d5e0eb; padding:2px; background:#fff; display: block;">
-                                            </td>
-                                            <td style="border:none; padding:0 0 0 8px; vertical-align:middle; background:transparent;">
-                                                <strong>{{ $component['type'] }}</strong>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                @else
-                                    <strong>{{ $component['type'] }}</strong>
+                                    <div style="margin-bottom: 5px;">
+                                        <img src="{{ $component['image_path'] }}" alt="{{ $component['type'] }}" style="max-width: 60px; max-height: 60px; object-fit: contain; border: 1px solid #d5e0eb; padding: 2px; background: #fff; display: inline-block;">
+                                    </div>
                                 @endif
+                                <div><strong>{{ $component['type'] }}</strong></div>
                             </td>
                             <td>{{ $component['make'] }}</td>
                             <td>{{ $component['spec'] }}</td>
@@ -545,8 +537,9 @@ if (!function_exists('normalize_pdf_image')) {
             <p>Commercial quote schedule valid for precisely 15 calendar days from document date of issue:</p>
             <table class="data-table">
                 <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
-                <tbody>
-                    <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
+                    @if (($doc->price_mode ?? '') !== 'bom' && ($usesGlobalTax || $baseSystemValue > 0))
+                        <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
+                    @endif
                     <tr><td>Bill of Materials (BOM)</td><td>{!! $usesGlobalTax ? '--' : $money($bomValue) !!}</td></tr>
                     @if ($gstValue > 0)
                         <tr><td><strong>{{ $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td><td></td></tr>
@@ -575,17 +568,18 @@ if (!function_exists('normalize_pdf_image')) {
                     @endif
                     <tr class="total-row"><td>Net Amount Payable</td><td>{!! $money($netInvestment) !!}</td></tr>
                 </tbody>
-                </tbody>
             </table>
+            @if ($subsidyValue > 0)
+                <p style="margin-top: 6px; margin-bottom: 4px; font-size: 11px; color: #555;"><strong>Note:</strong> Subsidy Amount to be credited in clients account.</p>
+            @endif
+            @if ($notesContent !== '')
+                <div style="margin-top: 8px; font-size: 11.5px; color: #333; background: #f8fbfe; border-left: 3px solid #14395f; padding: 8px 12px; border-radius: 3px;">
+                    <strong style="color: #14395f;">Note:</strong> {!! nl2br(e($notesContent)) !!}
+                </div>
+            @endif
         </div>
 
         @php $sectionNum = 12; @endphp
-        @if ($notesContent !== '')
-        <div class="section">
-            <h2 class="section-title">{{ $sectionNum++ }}. Notes</h2>
-            <p>{!! nl2br(e($notesContent)) !!}</p>
-        </div>
-        @endif
 
         <div class="section">
             <h2 class="section-title">{{ $sectionNum++ }}. Payment Terms</h2>

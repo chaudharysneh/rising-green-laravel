@@ -455,9 +455,32 @@
                                                 } elseif ($full_product_details && !empty($full_product_details['meter'])) {
                                                     $qty_unit = '(mtr)';
                                                 }
+
+                                                $product_image_raw = !empty($item['image']) 
+                                                    ? $item['image'] 
+                                                    : ($full_product_details['image'] ?? null);
+                                                $productImageUrl = null;
+                                                if (!empty($product_image_raw)) {
+                                                    if (str_starts_with($product_image_raw, 'http://') || str_starts_with($product_image_raw, 'https://') || str_starts_with($product_image_raw, 'data:image')) {
+                                                        $productImageUrl = $product_image_raw;
+                                                    } elseif ($product_id) {
+                                                        $productImageUrl = route('bom-products.image', $product_id);
+                                                    } else {
+                                                        $productImageUrl = asset('storage/' . ltrim($product_image_raw, '/'));
+                                                    }
+                                                } elseif ($product_id && $full_product_details) {
+                                                    $productImageUrl = route('bom-products.image', $product_id);
+                                                }
                                             @endphp
                                             <tr>
-                                                <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle;">{{ $product_name_display }}</td>
+                                                <td style="padding: 12px 10px; border: 1px solid #333; color: #333; font-weight: bold; vertical-align: middle; text-align: center;">
+                                                    @if (!empty($productImageUrl))
+                                                        <div style="margin-bottom: 8px;">
+                                                            <img src="{{ $productImageUrl }}" alt="{{ $product_name_display }}" style="max-width: 80px; max-height: 80px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; padding: 3px; background-color: #fff;" onerror="this.style.display='none';">
+                                                        </div>
+                                                    @endif
+                                                    <div>{{ $product_name_display }}</div>
+                                                </td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; font-size: 13px; line-height: 1.5; vertical-align: middle;">{!! $specifications_html !!}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; font-weight: bold; color: #333;">{{ $product_quantity }}{{ $qty_unit }}</td>
                                                 <td style="padding: 12px 10px; border: 1px solid #333; text-align: right; vertical-align: middle; color: #333;">{{ $usesGlobalTax ? '--' : number_format($price_val, 2) }}</td>
