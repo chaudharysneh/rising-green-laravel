@@ -290,6 +290,10 @@ if (!isset($estdata) && isset($estimate)) {
                 <table>
                     <tr>
                         <td class="company-logo">
+                            <?php $pdfLogoPath = $settings['company_logo_path'] ?? ($user['company_logo'] ?? ''); ?>
+                            <?php if ($pdfLogoPath): ?>
+                            <img src="<?php echo normalize_pdf_image($pdfLogoPath); ?>" alt="Company Logo" style="max-width:150px; max-height:80px; object-fit:contain; background-color:#fff; padding:5px; border-radius:4px;">
+                            <?php endif; ?>
                         </td>
                         <td class="quotation-title">
                             <div style="line-height:22px;color:#000">
