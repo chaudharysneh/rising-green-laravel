@@ -338,13 +338,13 @@ if (!function_exists('normalize_pdf_image')) {
         <style>
             /* Compress the standard layout to fit onto a single page */
             .quotation-block .quotation-box { margin: 0 auto !important; padding: 5px 10px !important; border: none !important; box-shadow: none !important; }
-            .quotation-block .info-table, .quotation-block .quotation-table, .quotation-block .extra-info table { font-size: 11px !important; margin-bottom: 10px !important; }
-            .quotation-block .info-table th, .quotation-block .info-table td, .quotation-block .quotation-table th, .quotation-block .quotation-table td { padding: 3px 5px !important; line-height: 1.2 !important; }
+            .quotation-block .info-table, .quotation-block .quotation-table, .quotation-block .extra-info table { font-size: 13px !important; margin-bottom: 8px !important; }
+            .quotation-block .info-table th, .quotation-block .info-table td, .quotation-block .quotation-table th, .quotation-block .quotation-table td { padding: 4px 6px !important; line-height: 1.25 !important; }
             .quotation-block .quotation-header { margin-bottom: 5px !important; }
             .quotation-block .center-text { font-size: 14px !important; margin-bottom: 5px !important; }
             .quotation-block hr { margin: 5px 0 !important; }
             .quotation-block .flex-between { margin-bottom: 5px !important; }
-            .quotation-block img { max-height: 40px !important; width: auto !important; }
+            .quotation-block img { max-height: 80px !important; max-width: 150px !important; width: auto !important; }
         </style>
         @php
             // Override the default standard PDF colors with the requested #1b365d color for this specific template
