@@ -273,7 +273,7 @@ if (!function_exists('normalize_pdf_image')) {
             border-bottom: 4px solid #f2a51c;
         }
         .cover-title {
-            font-size: 25px;
+            font-size: 20px;
             line-height: 1;
             font-weight: 700;
             letter-spacing: .2px;
@@ -376,15 +376,15 @@ if (!function_exists('normalize_pdf_image')) {
         <div class="cover-header">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                    @if (!empty($logoBase64))
-                    <td width="150" valign="middle" style="padding-right:20px;">
-                        <img src="{{ $logoBase64 }}" alt="Company Logo" style="max-width:150px;max-height:80px;object-fit:contain;background-color:#fff;padding:5px;border-radius:4px;">
-                    </td>
-                    @endif
                     <td valign="middle">
                         <div class="cover-title">Rising Green Energy Proposal</div>
                         <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
                     </td>
+                    @if (!empty($logoBase64))
+                    <td width="150" valign="middle" align="right" style="padding-left:20px;">
+                        <img src="{{ $logoBase64 }}" alt="Company Logo" style="max-width:150px;max-height:80px;object-fit:contain;background-color:#fff;padding:5px;border-radius:4px;">
+                    </td>
+                    @endif
                 </tr>
             </table>
         </div>

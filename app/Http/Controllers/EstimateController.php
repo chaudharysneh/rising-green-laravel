@@ -207,7 +207,7 @@ class EstimateController extends Controller
                 'after_blocks' => $form_data['after_blocks'] ?? [],
                 'companyInfo' => $template->company_information ?? [],
                 'timeLine' => $template->time_line ?? [],
-                'components' => Str::lower(trim((string) $template->template_name)) === 'solar proposal' 
+                'components' => (in_array(Str::lower(trim((string) $template->template_name)), ['solar proposal', 'ux template']) || Str::lower(trim((string) $estimate->type)) === 'ux template') 
                     ? (is_array($estimate->product_name) ? $estimate->product_name : json_decode($estimate->product_name ?? '[]', true))
                     : ($template->components ?? ($form_data['components'] ?? [])),
                 'payment_terms' => $template->payment_terms ?? ($form_data['payment_terms'] ?? []),
@@ -222,7 +222,7 @@ class EstimateController extends Controller
             $templateName = Str::lower(trim((string) $template->template_name));
             if ($templateName === 'basic template') {
                 $pdfView = 'pdfbuilder.basic-template-pdf';
-            } elseif ($templateName === 'solar proposal') {
+            } elseif (in_array($templateName, ['solar proposal', 'ux template']) || Str::lower(trim((string) $estimate->type)) === 'ux template') {
                 $pdfView = 'pdfbuilder.qt-000150-pdf';
             } else {
                 $pdfView = 'pdfbuilder.pdf';

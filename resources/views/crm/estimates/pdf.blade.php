@@ -251,7 +251,7 @@ if (!isset($estdata) && isset($estimate)) {
         .info-table th,
         .quotation-table th,
         .extra-info th {
-            background-color: #52866A;
+            background-color: #1b365d;
             color: #fff;
         }
 
@@ -290,14 +290,6 @@ if (!isset($estdata) && isset($estimate)) {
                 <table>
                     <tr>
                         <td class="company-logo">
-                            <?php
-                            $company_logo = isset($settings['company_logo_path']) ? $settings['company_logo_path'] : null;
-                            $logoBase64 = normalize_pdf_image($company_logo);
-                            if (!empty($logoBase64)):
-                            ?>
-                            <img src="<?php echo $logoBase64; ?>"
-                                alt="Company Logo" style="max-width: 300px; max-height: 120px; object-fit: contain; height: auto;">
-                            <?php endif; ?>
                         </td>
                         <td class="quotation-title">
                             <div style="line-height:22px;color:#000">
@@ -512,7 +504,7 @@ $lendingCost = $totalPayable - $subsidy;
                     <?php endif; ?>
                     <tr style="font-weight: bold; border-top: 2px solid #000;">
                         <td colspan="2">Customer Payable Amount</td>
-                        <td style="background-color: #52866A; color: #fff;">
+                        <td style="background-color: #1b365d; color: #fff;">
                             <?php echo number_format($totalPayable, 2); ?>
                         </td>
                     </tr>
@@ -523,7 +515,7 @@ $lendingCost = $totalPayable - $subsidy;
                     </tr>
                     <tr style="font-weight: bold;">
                         <td colspan="2">Lending Cost Of Customer</td>
-                        <td style="background-color: #52866A; color: #fff;">
+                        <td style="background-color: #1b365d; color: #fff;">
                             <?php    echo number_format($lendingCost, 2); ?>
                         </td>
                     </tr>
@@ -626,162 +618,7 @@ try {
 
             <!-- Page Break for BOM (Removed to fit on single page) -->
 
-            <!-- BOM Section -->
-            <div style="margin-top: 20px;">
-                <h2 style="text-align: center; color: #19547B; margin-bottom: 30px; text-decoration: underline;">
-                    BILL OF MATERIALS (BOM)
-                </h2>
 
-
-                <table class="quotation-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 10%; text-align: center;">Image</th>
-                            <th style="width: 20%;">Product Name</th>
-                            <th style="width: 40%;">Specifications</th>
-                            <th style="width: 10%; text-align: right;">Quantity</th>
-                            <th style="width: 10%; text-align: right;">Price</th>
-                            <th style="width: 10%; text-align: right;">Total (Excl. GST)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-$allproduct = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
-$total_quantity = 0;
-$grand_total_excluding_gst = 0.0;
-if (is_array($allproduct) && !empty($allproduct)) {
-    foreach ($allproduct as $item) {
-        $product_id = $item['product_id'] ?? null;
-        $product_name_display = $item['name'] ?? 'Product name not found';
-
-        // Capitalize first letter of each word
-        $product_name_display = ucwords(strtolower($product_name_display));
-
-        $product_quantity = (int) ($item['quantity'] ?? 0);
-        $product_category_makes = $item['category_name'] ?? '';
-
-        // Find product details from master list
-        $full_product_details = null;
-        foreach ($product_data as $prod_detail) {
-            if ($prod_detail['id'] == $product_id) {
-                $full_product_details = $prod_detail;
-                break;
-            }
-        }
-
-        // Build specification list
-        $specifications = [];
-
-        $description_val = !empty($item['description']) 
-            ? $item['description'] 
-            : (!empty($full_product_details['description']) ? $full_product_details['description'] : null);
-        if (!empty($description_val)) {
-            $specifications[] = '<strong>Description: </strong>' . htmlspecialchars($description_val);
-        }
-
-        if (!empty($product_category_makes)) {
-            $specifications[] = '<strong>Make: </strong>' . htmlspecialchars(ltrim(trim($product_category_makes), ','));
-        }
-        if (!empty($full_product_details['technology'])) {
-            $techArray = json_decode($full_product_details['technology'], true);
-            if (!is_array($techArray)) $techArray = [$full_product_details['technology']];
-            $techArray = array_filter($techArray, fn($v) => trim((string) $v) !== '');
-            if (!empty($techArray)) {
-                $techNames = array_map(fn($id) => $technology_map[$id] ?? $id, $techArray);
-                $specifications[] = '<strong>Technology: </strong>' . htmlspecialchars(implode(', ', $techNames));
-            }
-        }
-
-        if (!empty($full_product_details['warranty'])) {
-            $warArray = json_decode($full_product_details['warranty'], true);
-            if (!is_array($warArray)) $warArray = [$full_product_details['warranty']];
-            $warArray = array_filter($warArray, fn($v) => trim((string) $v) !== '');
-            if (!empty($warArray)) {
-                $warNames = array_map(fn($id) => $warranty_map[$id] ?? $id, $warArray);
-                $specifications[] = '<strong>Warranty: </strong>' . htmlspecialchars(implode(', ', $warNames));
-            }
-        }
-
-        if (!empty($full_product_details['capacity'])) {
-            $specifications[] = '<strong>Capacity: </strong>' . htmlspecialchars($full_product_details['capacity']);
-        }
-        
-        $selected_tax_rate = (float) ($item['tax_rate'] ?? 0);
-        $selected_tax_label = trim((string) ($item['tax_label'] ?? ''));
-        if ($selected_tax_rate > 0) {
-            if (str_contains(strtoupper($selected_tax_label), 'IGST')) {
-                $specifications[] = '<strong>GST: </strong> IGST ' . $selected_tax_rate . '%';
-            } else {
-                $half_rate = $selected_tax_rate / 2;
-                $specifications[] = '<strong>GST: </strong> (CGST ' . $half_rate . '% + SGST ' . $half_rate . '%)';
-            }
-        }
-
-        if (!empty($full_product_details['height'])) {
-            $specifications[] = '<strong>Height: </strong>' . htmlspecialchars($full_product_details['height']);
-        }
-        if (!empty($full_product_details['fitting_material'])) {
-            $specifications[] = '<strong>Fitting Material: </strong>' . htmlspecialchars($full_product_details['fitting_material']);
-        }
-        if (!empty($full_product_details['fitting_type'])) {
-            $specifications[] = '<strong>Fitting Type: </strong>' . htmlspecialchars($full_product_details['fitting_type']);
-        }
-        if (!empty($full_product_details['thickness'])) {
-            $specifications[] = '<strong>Thickness: </strong>' . htmlspecialchars($full_product_details['thickness']);
-        }
-        if (!empty($full_product_details['size_of_pipe'])) {
-            $specifications[] = '<strong>Size of Pipe: </strong>' . htmlspecialchars($full_product_details['size_of_pipe']);
-        }
-
-        $specifications_html = implode('<br>', $specifications);
-
-        $price_val = array_key_exists('price', $item)
-            ? (float) ($item['price'] ?? 0)
-            : ($full_product_details ? (float) ($full_product_details['price'] ?? 0) : 0.0);
-        $row_total = $price_val * $product_quantity;
-
-        $total_quantity += $product_quantity;
-        $grand_total_excluding_gst += $row_total;
-
-        $qty_unit = '';
-        if (!empty($full_product_details['nos'])) $qty_unit = '(nos)';
-        elseif (!empty($full_product_details['meter'])) $qty_unit = '(mtr)';
-                ?>
-                        <tr>
-                            <td style="text-align: center; vertical-align: middle;">
-                                <?php if (!empty($full_product_details['image'])): ?>
-                                    <img src="<?= htmlspecialchars(base_url('storage/app/public/bom-products/' . $full_product_details['image'])) ?>" 
-                                         alt="" style="max-height: 40px; width: auto;">
-                                <?php endif; ?>
-                            </td>
-                            <td style="vertical-align: middle;"><?= htmlspecialchars($product_name_display); ?></td>
-                            <td style="vertical-align: middle;"><?= $specifications_html; ?></td>
-                            <td style="text-align: right; vertical-align: middle;"><?= $product_quantity . $qty_unit; ?></td>
-                            <td style="text-align: right; vertical-align: middle;"><?= $usesGlobalTax ? '--' : number_format($price_val, 2); ?></td>
-                            <td style="text-align: right; font-weight: bold; vertical-align: middle;"><?= $usesGlobalTax ? '--' : number_format($row_total, 2); ?></td>
-                        </tr>
-                        <?php    }
-} else { ?>
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #666;">No products added to this estimate
-                            </td>
-                        </tr>
-                        <?php } ?>
-                    </tbody>
-                    <?php if (is_array($allproduct) && !empty($allproduct)): ?>
-                        <tfoot>
-                            <tr style="font-weight: bold; border-top: 2px solid #000;">
-                                <td colspan="2" style="border: none;"></td>
-                                <td style="text-align: right; border: none; padding-right: 15px;">Total:</td>
-                                <td style="text-align: right;"><?= $total_quantity; ?></td>
-                                <td style="text-align: center;">—</td>
-                                <td style="text-align: right; background-color: #52866A; color: #fff;"><?= $usesGlobalTax ? '--' : number_format($grand_total_excluding_gst, 2); ?></td>
-                            </tr>
-                        </tfoot>
-                    <?php endif; ?>
-                </table>
-
-            </div>
 
 
 
