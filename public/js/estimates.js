@@ -3752,7 +3752,7 @@
             // }
         } else if (type === 'common meter') {
             const rateCommon = rates['common_meter'] || 0;
-            calculatedSubsidy = rateCommon;
+            calculatedSubsidy = rateCommon * kw;
         } else {
             calculatedSubsidy = 0;
         }
