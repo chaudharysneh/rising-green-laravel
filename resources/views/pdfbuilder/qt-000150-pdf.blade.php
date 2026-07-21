@@ -389,8 +389,8 @@ if (!function_exists('normalize_pdf_image')) {
             <p>In addition to reducing operational costs, the installation of a rooftop solar system supports environmental responsibility by lowering carbon emissions and promoting the use of renewable energy. With minimal maintenance requirements and a long service life, the proposed solar power system represents a sustainable investment that delivers both economic and environmental benefits for years to come.</p>
             <div style="position: absolute; bottom: 70px; left: 56px; color: #1b365d;">
                 <p style="margin-bottom: 5px;">Best Regards,</p>
-                <p><strong>{{ $preparedName }}</strong><br>
-                {{ $companyName }} | {{ $companyPhone }} | {{ $companyEmail }}</p>
+                <p><strong>Abhijeetsinh Solanki</strong><br>
+                Rising Green Energy | 9913545352 | rgesolar@gmail.com</p>
             </div>
         </div>
         

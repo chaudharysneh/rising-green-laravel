@@ -392,18 +392,20 @@ class EstimateController extends Controller
         $estimate = new Estimate([
             'estimate_no' => 'QT-000150',
             'estimate_date' => now()->format('Y-m-d'),
-            'quantity' => '3.30',
-            'price' => 42000,
-            'solar_structure_charges' => 5000,
-            'gst_amount' => 6930,
-            'gst' => 18,
-            'subsidy_amount' => 18000,
+            'quantity' => 0,
+            'price' => 0,
+            'solar_structure_charges' => 0,
+            'gst_amount' => 0,
+            'gst' => 0,
+            'subsidy_amount' => 0,
             'product_name' => '[]'
         ]);
         
         $estimate->customer = new Customer([
-            'name' => 'SNEHBHAI',
-            'address' => 'Surat, Gujarat'
+            'name' => '[Customer Name]',
+            'address' => '[Customer Address]',
+            'email' => '[Customer Email]',
+            'phone' => '[Customer Contact]'
         ]);
         
         $components = [
