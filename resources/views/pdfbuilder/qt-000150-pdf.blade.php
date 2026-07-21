@@ -102,6 +102,7 @@ if (!function_exists('normalize_pdf_image')) {
     
     $capacityValue = (float) ($doc->quantity ?? 0);
     $capacity = $capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kWp' : 'as proposed';
+    $proposalLabel = 'System Capacity: ' . ($capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : 'To be finalized');
     
     $dailyGenerationValue = $capacityValue > 0 ? $capacityValue * 4.3 : 0;
     $monthlyGenerationValue = $dailyGenerationValue * 30;
@@ -128,6 +129,27 @@ if (!function_exists('normalize_pdf_image')) {
     $rate1 = $baseSystemValue / $qtyForCalc;
     $rate2 = $solarStructureValue / $qtyForCalc;
     $actualGstRate = $baseSystemValue > 0 ? round(($gstValue / $baseSystemValue) * 100, 1) : 0;
+    $logoBase64 = null;
+    $companyLogoPath = $companySettings['company_logo_path'] ?? null;
+    if ($companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)) {
+        $logoData = \Illuminate\Support\Facades\Storage::disk('public')->get($companyLogoPath);
+        $logoBase64 = 'data:image/' . pathinfo($companyLogoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+    } elseif (!empty($companySettings['company_logo_path'])) {
+        $diskPath = storage_path('app/public/' . $companySettings['company_logo_path']);
+        if (file_exists($diskPath)) {
+            $logoData = file_get_contents($diskPath);
+            $logoBase64 = 'data:image/' . pathinfo($diskPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+    }
+    if (!$logoBase64 && !empty($preparedUser['company_logo'])) {
+        $legacyPath = public_path('assets/img/profile/' . $preparedUser['company_logo']);
+        if (file_exists($legacyPath)) {
+            $logoData = file_get_contents($legacyPath);
+            $logoBase64 = 'data:image/' . pathinfo($legacyPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        } else {
+            $logoBase64 = normalize_pdf_image('public/assets/img/profile/' . $preparedUser['company_logo']);
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html>
@@ -159,12 +181,15 @@ if (!function_exists('normalize_pdf_image')) {
         .proposal-page {
             padding: 0;
         }
+        .no-header-page {
+            padding-top: 50px;
+        }
         
         /* Proposal Header */
         .prop-header {
             background-color: #1b365d;
             color: #ffffff;
-            padding: 30px 40px 20px 40px;
+            padding: 45px 56px 20px 56px;
             border-bottom: 4px solid #f39c12;
         }
         .prop-header h1 {
@@ -186,14 +211,14 @@ if (!function_exists('normalize_pdf_image')) {
             color: #1b365d;
             font-size: 18px;
             font-weight: bold;
-            margin: 15px 40px 10px 40px;
+            margin: 35px 56px 10px 56px;
             padding-left: 10px;
             border-left: 4px solid #f39c12;
         }
         
         /* Content Body */
         .content {
-            padding: 0 40px 10px 40px;
+            padding: 0 56px 10px 56px;
             text-align: justify;
         }
         .content p {
@@ -209,7 +234,7 @@ if (!function_exists('normalize_pdf_image')) {
             table-layout: fixed;
             word-wrap: break-word;
         }
-        .quote-table th { padding: 8px 5px; text-align: left; font-weight: normal; background-color: #333; color: #fff; border: 1px solid #333; }
+        .quote-table th { padding: 8px 5px; text-align: left; font-weight: normal; background-color: #1b365d; color: #fff; border: 1px solid #1b365d; }
         .quote-table td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; }
         .quote-table .right { text-align: right; }
         
@@ -225,15 +250,14 @@ if (!function_exists('normalize_pdf_image')) {
         /* Footer */
         .prop-footer {
             position: absolute;
-            bottom: 20px;
-            left: 40px;
-            right: 40px;
+            bottom: 60px;
+            left: 56px;
+            right: 56px;
             font-size: 10px;
             color: #888;
-            border-top: 1px solid #eee;
             padding-top: 10px;
             display: table;
-            width: calc(100% - 80px);
+            width: calc(100% - 112px);
         }
         
         ul {
@@ -323,23 +347,34 @@ if (!function_exists('normalize_pdf_image')) {
             .quotation-block img { max-height: 40px !important; width: auto !important; }
         </style>
         @php
-            // Override the default standard PDF colors with the requested #4b9349 color for this specific template
-            $custom_quotation = str_replace('#52866A', '#4b9349', $quotation_html);
-            $custom_quotation = str_replace('#19547B', '#4b9349', $custom_quotation);
+            // Override the default standard PDF colors with the requested #1b365d color for this specific template
+            $custom_quotation = str_replace('#52866A', '#1b365d', $quotation_html);
+            $custom_quotation = str_replace('#19547B', '#1b365d', $custom_quotation);
+            $custom_quotation = str_replace('#4b9349', '#1b365d', $custom_quotation);
         @endphp
         {!! $custom_quotation !!}
-    </section>
-
-    <!-- Page 2: Quote Signature -->
-    <section class="page quote-page">
-        <div style="margin-top: 50px; font-size: 12px;">
+        
+        <div style="position: absolute; bottom: 50px; left: 40px; font-size: 12px;">
             Authorized Signature _____________________________
         </div>
     </section>
 
     <!-- Page 3: Introduction -->
     <section class="page proposal-page">
-        <div class="prop-header" style="padding: 0; height: 15px;">
+        <div class="prop-header">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td valign="middle">
+                        <h1 style="margin: 0; font-size: 24px; text-transform: uppercase; font-weight: bold; color: #fff;">Rising Green Energy Proposal</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; font-style: italic; color: #e0e0e0;">Clean Energy. Guaranteed Savings. Sustainable Future.</p>
+                    </td>
+                    @if (!empty($logoBase64))
+                    <td width="150" valign="middle" align="right" style="padding-left:20px;">
+                        <img src="{{ $logoBase64 }}" alt="Company Logo" style="max-width:150px;max-height:80px;object-fit:contain;background-color:#fff;padding:5px;border-radius:4px;">
+                    </td>
+                    @endif
+                </tr>
+            </table>
         </div>
         
         <div class="section-title">1. Introduction Page</div>
@@ -360,13 +395,13 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 1 of 8</div>
         </div>
     </section>
 
     <!-- Page 4: Diagram & How it works -->
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         <div class="section-title">2. Technical Line Diagram Layout</div>
         <div class="content">
             <p>The layout below illustrates the seamless logical electrical connection map from production to grid export.</p>
@@ -391,13 +426,13 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 2 of 8</div>
         </div>
     </section>
 
     <!-- Page 5: Calculations -->
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         <div class="section-title">4. Generation Calculations</div>
         <div class="content">
             <p>Projected estimations are generated based on regional irradiance data for a premium proposed <strong>{{ $capacity }}</strong> system:</p>
@@ -434,13 +469,13 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 3 of 8</div>
         </div>
     </section>
 
     <!-- Page 6: PM Surya Ghar -->
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         <div class="section-title">7. PM-Surya Ghar: Muft Bijli Yojana Process</div>
         <div class="content">
             <p>As a fully authorized and certified empaneled solar vendor, we manage the entire national subsidy workflow framework for your project end-to-end:</p>
@@ -459,13 +494,13 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 4 of 8</div>
         </div>
     </section>
 
     <!-- Page 7: Terms -->
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         <div class="section-title">8. Return on Savings (ROI)</div>
         <div class="content">
             <p>A solar power system is a long-term investment designed to reduce dependence on conventional grid electricity and provide lasting value throughout its operating life.</p>
@@ -506,7 +541,7 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 5 of 8</div>
         </div>
     </section>
@@ -521,12 +556,12 @@ if (!function_exists('normalize_pdf_image')) {
     @endphp
     
     @forelse($componentChunks as $index => $chunk)
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         @if($index === 0)
         <div class="section-title">12. Material Make &amp; Specifications</div>
         @endif
         
-        <div class="content" style="margin-top: {{ $index === 0 ? '0' : '50px' }};">
+        <div class="content">
             @foreach($chunk as $comp)
             <div class="component-row">
                 <div class="comp-img">
@@ -568,18 +603,18 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page {{ $pageOffset + $index }} of 8</div>
         </div>
     </section>
     @empty
-    <section class="page proposal-page">
+    <section class="page proposal-page no-header-page">
         <div class="section-title">12. Material Make &amp; Specifications</div>
         <div class="content">
             <p>No components specified.</p>
         </div>
         <div class="prop-footer">
-            <div style="float: left;"></div>
+            <div style="float: left;">{{ $proposalLabel }}</div>
             <div style="float: right;">Page 6 of 8</div>
         </div>
     </section>
