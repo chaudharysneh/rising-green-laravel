@@ -215,6 +215,7 @@ if (!function_exists('normalize_pdf_image')) {
         ];
     }
     $proposalLabel = 'System Capacity: ' . ($capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : 'To be finalized');
+    $notesContent = trim(strip_tags((string) ($doc->estimate_comment ?? $doc->comment ?? '')));
 @endphp
 <!doctype html>
 <html>
@@ -545,8 +546,16 @@ if (!function_exists('normalize_pdf_image')) {
             </table>
         </div>
 
+        @php $sectionNum = 12; @endphp
+        @if ($notesContent !== '')
         <div class="section">
-            <h2 class="section-title">12. Payment Terms</h2>
+            <h2 class="section-title">{{ $sectionNum++ }}. Notes</h2>
+            <p>{!! nl2br(e($notesContent)) !!}</p>
+        </div>
+        @endif
+
+        <div class="section">
+            <h2 class="section-title">{{ $sectionNum++ }}. Payment Terms</h2>
             <ul>
                 <li><strong>30% Mobilization Advance:</strong> Booked to initiate legal DISCOM file log, architectural layouts, and factory component ordering.</li>
                 <li><strong>60% Component Delivery Milestone:</strong> Payable immediately upon the safe arrival of primary inventory (PV Modules &amp; Inverter) at the installation site.</li>
@@ -558,7 +567,7 @@ if (!function_exists('normalize_pdf_image')) {
 
     <section class="page">
         <div class="section">
-            <h2 class="section-title">13. Terms &amp; Conditions</h2>
+            <h2 class="section-title">{{ $sectionNum++ }}. Terms &amp; Conditions</h2>
             <ul>
                 <li><strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.</li>
                 <li><strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.</li>
@@ -567,12 +576,12 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
 
         <div class="section">
-            <h2 class="section-title">14. Disclaimer</h2>
+            <h2 class="section-title">{{ $sectionNum++ }}. Disclaimer</h2>
             <p>Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.</p>
         </div>
 
         <div class="section">
-            <h2 class="section-title">15. Client Testimonials</h2>
+            <h2 class="section-title">{{ $sectionNum++ }}. Client Testimonials</h2>
             <div class="quote-box">
                 "The complete migration process to solar with this team was entirely fluid. Our typical monthly operational electric bills fell right down from near &#8377;8,000 to basic minimal meter standing charges under &#8377;500! Clean installation and outstanding customer portal communication."
                 <span class="quote-author">- Rajesh K., Verified Residential Client</span>
