@@ -369,7 +369,6 @@
                                 <option value="industrial" @selected(old('type', $estimate->type) == 'industrial')>Industrial</option>
                                 <option value="common meter" @selected(old('type', $estimate->type) == 'common meter')>Common Meter</option>
                                 <option value="ground mounted" @selected(old('type', $estimate->type) == 'ground mounted')>Ground Mounted</option>
-                                <option value="ux template" @selected(old('type', $estimate->type) == 'ux template')>UX Template</option>
                             </select>
                             <div class="invalid-feedback" id="type-error">Please select estimate type</div>
                         </div>
@@ -1056,6 +1055,20 @@
             
             templateSelect.on('change', updateTemplateEditLink);
             updateTemplateEditLink();
+            
+            // Auto-select Quotation Template based on Estimate Type
+            $('#type').on('change', function() {
+                var selectedType = $(this).find('option:selected').text().trim().toLowerCase();
+                if (!selectedType || selectedType === 'select type') return;
+                
+                $('#template_id option').each(function() {
+                    var templateName = $(this).text().trim().toLowerCase();
+                    if (templateName === selectedType || templateName === selectedType + ' template') {
+                        $('#template_id').val($(this).val()).trigger('change');
+                        return false;
+                    }
+                });
+            });
         });
     </script>
 @endpush
