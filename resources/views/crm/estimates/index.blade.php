@@ -34,12 +34,19 @@
         }
 
         #addCustomerModal,
-        #quickAddBomModal {
+        #quickAddBomModal,
+        #editBomModal {
             z-index: 1065 !important;
         }
 
         body.modal-open .modal-backdrop.show ~ .modal-backdrop.show {
             z-index: 1060;
+        }
+
+        /* Ensure the backdrop for nested modals is raised above the parent modal */
+        #quickAddBomModal + .modal-backdrop,
+        #editBomModal + .modal-backdrop {
+            z-index: 1062 !important;
         }
 
         #quickEstimateModal .quick-bom-row .quick-bom-select-col {
@@ -136,13 +143,15 @@
 
         @media (max-width: 767.98px) {
             #addCustomerModal.modal,
-            #quickAddBomModal.modal {
+            #quickAddBomModal.modal,
+            #editBomModal.modal {
                 padding-left: 1.25rem !important;
                 padding-right: 1.25rem !important;
             }
 
             #addCustomerModal .modal-dialog,
             #quickAddBomModal .modal-dialog,
+            #editBomModal .modal-dialog,
             .quick-estimate-nested-modal {
                 margin: 1.5rem auto !important;
                 max-width: min(340px, calc(100vw - 2.5rem)) !important;
@@ -150,7 +159,8 @@
             }
 
             #addCustomerModal .modal-body,
-            #quickAddBomModal .modal-body {
+            #quickAddBomModal .modal-body,
+            #editBomModal .modal-body {
                 padding: 1rem;
             }
         }
@@ -403,19 +413,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-8 quick-step-1 active-step">
-                            <div class="row g-2">
-                                <div class="col-6 quick-step-field-col">
-                                    <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
-                                    <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
-                                    <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
-                                </div>
-                                <div class="col-6 quick-step-field-col quick-base-price-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
-                                    <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
-                                    <input type="number" min="0" step="1" class="form-control" name="price" id="quick_price" value="{{ $estimatePriceMode === 'bom' ? 0 : '' }}" placeholder="Enter price" @required($estimatePriceMode === 'base')>
-                                    <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
-                                </div>
-                            </div>
+                        <div class="col-12 col-md-4 quick-step-1 active-step">
+                            <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
+                            <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
+                            <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
+                        </div>
+                        <div class="col-12 col-md-4 quick-step-1 active-step quick-base-price-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
+                            <label class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" name="price" id="quick_price" value="{{ $estimatePriceMode === 'bom' ? 0 : '' }}" placeholder="Enter price" @required($estimatePriceMode === 'base')>
+                            <div class="invalid-feedback" id="quick_price-error">Please enter price.</div>
                         </div>
                         <div class="col-12 col-md-4 quick-step-1 active-step quick-template-select-wrap" id="quick_template_wrapper">
                             <label class="form-label fw-semibold">Quotation Template <span class="text-danger">*</span></label>
@@ -457,6 +463,9 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
+                                                    <button type="button" class="btn btn-outline-primary edit-bom-link flex-shrink-0 d-none" style="width: 38px; height: 38px; padding: 0;" title="Edit selected BOM">
+                                                        <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                                                    </button>
                                                     <button type="button" class="btn btn-dark-blue flex-shrink-0 quick-estimate-add-bom-btn" title="Add New BOM">
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
@@ -639,7 +648,7 @@
 
 <!-- Quick Add BOM Modal -->
 <div class="modal fade" id="quickAddBomModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable quick-estimate-nested-modal">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 640px;">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
                 <h5 class="modal-title fw-bold text-white">Add New BOM</h5>
@@ -647,30 +656,155 @@
             </div>
             <div class="modal-body p-4">
                 <form id="quickAddBomForm" novalidate>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="quick_bom_name" required>
-                        <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                    {{-- Row 1: BOM Name | Make --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quick_bom_name" required>
+                            <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Make</label>
+                            <select class="form-select quick-bom-make-select" id="quick_bom_category_id">
+                                <option value="">Select Make</option>
+                                @foreach ($categories ?? [] as $category)
+                                    <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Make</label>
-                        <select class="form-select quick-bom-make-select" id="quick_bom_category_id">
-                            <option value="">Select Make</option>
-                            @foreach ($categories ?? [] as $category)
-                                <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
-                            @endforeach
-                        </select>
+                    {{-- Row 2: Description | BOM Image --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="quick_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
+                            <input type="file" class="form-control" id="quick_bom_image" accept="image/jpeg,image/png,image/jpg" style="cursor:pointer;">
+                            <div class="form-text text-muted">Accepted: JPG, PNG, JPEG &mdash; Max 5MB</div>
+                            <div id="quick_bom_image_preview" class="mt-2" style="display:none;">
+                                <img src="" alt="BOM Image Preview" id="quick_bom_image_thumb"
+                                    style="max-height:80px; max-width:140px; border-radius:6px; border:1px solid #dee2e6; object-fit:contain; background:#f8f9fa; padding:3px;">
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-0">
-                        <label class="form-label fw-semibold">Unit Price <span class="text-danger">*</span></label>
-                        <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
-                        <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                    {{-- Row 3: Unit Price | Tax --}}
+                    <div class="row g-3 mb-0">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                            <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Tax</label>
+                            <select class="form-select" id="quick_bom_tax_rate">
+                                <option value="0" data-label="">No Tax</option>
+                                @foreach ($bomTaxOptions as $taxOption)
+                                    <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}">
+                                        {{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer border-top bg-light rounded-bottom-4">
                 <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-dark-blue" id="saveQuickBomBtn">Save BOM</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit BOM Details Modal -->
+<div class="modal fade" id="editBomModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 640px;">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 py-3 px-4" style="background-color: #121a33;">
+                <h5 class="modal-title fw-bold text-white">Edit BOM Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editBomForm" novalidate>
+                    <input type="hidden" id="edit_bom_id">
+                    {{-- Row 1: BOM Name | Make --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_bom_name" required>
+                            <div class="invalid-feedback" id="edit_bom_name-error">Please enter BOM name</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Make</label>
+                            <select class="form-select edit-bom-make-select" id="edit_bom_category_id">
+                                <option value="">Select Make</option>
+                                @foreach ($categories ?? [] as $category)
+                                    <option value="{{ $category->id }}" data-name="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    {{-- Row 2: Description | BOM Image --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="edit_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
+                            <input type="file" class="form-control" id="edit_bom_image" accept="image/jpeg,image/png,image/jpg" style="cursor:pointer;">
+                            <div class="form-text text-muted">Accepted: JPG, PNG, JPEG &mdash; Max 5MB</div>
+                            <div id="edit_bom_image_preview" class="mt-2" style="display:none;">
+                                <img src="" alt="BOM Image Preview" id="edit_bom_image_thumb"
+                                    style="max-height:80px; max-width:140px; border-radius:6px; border:1px solid #dee2e6; object-fit:contain; background:#f8f9fa; padding:3px;">
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Row 3: Unit Price | Tax --}}
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                            <input type="number" min="0" step="1" class="form-control" id="edit_bom_price" required>
+                            <div class="invalid-feedback" id="edit_bom_price-error">Please enter unit price</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Tax</label>
+                            <select class="form-select" id="edit_bom_tax_rate">
+                                <option value="0" data-label="">No Tax</option>
+                                @foreach ($bomTaxOptions as $taxOption)
+                                    <option value="{{ $taxOption['rate'] }}" data-label="{{ $taxOption['label'] }}">
+                                        {{ $taxOption['label'] }} ({{ rtrim(rtrim(number_format($taxOption['rate'], 2), '0'), '.') }}%)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    {{-- Save Options --}}
+                    <div class="p-3 bg-light rounded border border-info border-opacity-25">
+                        <label class="form-label fw-semibold text-dark mb-2">Save Options</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="edit_bom_save_mode" id="edit_bom_mode_estimate" value="estimate" checked>
+                            <label class="form-check-label text-secondary small" for="edit_bom_mode_estimate">
+                                Update for this estimate only
+                            </label>
+                        </div>
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="radio" name="edit_bom_save_mode" id="edit_bom_mode_master" value="master">
+                            <label class="form-check-label text-secondary small" for="edit_bom_mode_master">
+                                Also update master BOM record
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-dark-blue" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark-blue" id="saveEditBomBtn">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="saveEditBomSpinner"></span>
+                    Save Changes
+                </button>
             </div>
         </div>
     </div>
@@ -780,6 +914,40 @@
             $('#quickEstimateModal').on('hidden.bs.modal', function () {
                 currentStep = 1;
                 updateWizardUI();
+            });
+
+            // Auto-select Quotation Template when Estimate Type is changed
+            $('#quick_estimate_type').on('change', function () {
+                var selectedType = $(this).find('option:selected').text().trim().toLowerCase();
+                if (!selectedType || selectedType === 'select type') return;
+
+                var $templateSelect = $('#quick_template_id');
+                var matched = false;
+
+                $templateSelect.find('option').each(function () {
+                    var templateName = $(this).text().trim().toLowerCase();
+                    if (templateName === selectedType || templateName === selectedType + ' template') {
+                        $templateSelect.val($(this).val());
+                        // Trigger Select2 change if initialized
+                        if ($.fn.select2 && $templateSelect.hasClass('select2-hidden-accessible')) {
+                            $templateSelect.trigger('change.select2').trigger('change');
+                        } else {
+                            $templateSelect.trigger('change');
+                        }
+                        matched = true;
+                        return false; // break
+                    }
+                });
+
+                // If no match found, clear the template selection
+                if (!matched) {
+                    $templateSelect.val('');
+                    if ($.fn.select2 && $templateSelect.hasClass('select2-hidden-accessible')) {
+                        $templateSelect.trigger('change.select2').trigger('change');
+                    } else {
+                        $templateSelect.trigger('change');
+                    }
+                }
             });
 
             // Initial setup
