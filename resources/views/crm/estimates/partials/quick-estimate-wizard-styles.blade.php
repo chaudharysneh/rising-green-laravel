@@ -4,12 +4,19 @@
     }
 
     #addCustomerModal,
-    #quickAddBomModal {
+    #quickAddBomModal,
+    #editBomModal {
         z-index: 1065 !important;
     }
 
     body.modal-open .modal-backdrop.show ~ .modal-backdrop.show {
         z-index: 1060;
+    }
+
+    /* Ensure the 3rd+ backdrop (e.g. quickAddBomModal inside quickEstimateModal) is raised above all modals */
+    #quickAddBomModal + .modal-backdrop,
+    #editBomModal + .modal-backdrop {
+        z-index: 1062 !important;
     }
 
     #quickEstimateModal .quick-bom-row .quick-bom-select-col {
@@ -106,13 +113,15 @@
 
     @media (max-width: 767.98px) {
         #addCustomerModal.modal,
-        #quickAddBomModal.modal {
+        #quickAddBomModal.modal,
+        #editBomModal.modal {
             padding-left: 1.25rem !important;
             padding-right: 1.25rem !important;
         }
 
         #addCustomerModal .modal-dialog,
         #quickAddBomModal .modal-dialog,
+        #editBomModal .modal-dialog,
         .quick-estimate-nested-modal {
             margin: 1.5rem auto !important;
             max-width: min(340px, calc(100vw - 2.5rem)) !important;
@@ -120,7 +129,8 @@
         }
 
         #addCustomerModal .modal-body,
-        #quickAddBomModal .modal-body {
+        #quickAddBomModal .modal-body,
+        #editBomModal .modal-body {
             padding: 1rem;
         }
     }

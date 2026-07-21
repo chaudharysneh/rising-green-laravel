@@ -2304,7 +2304,7 @@
             }
         });
 
-        ['addCustomerModal', 'quickAddBomModal'].forEach(function (childId) {
+        ['addCustomerModal', 'quickAddBomModal', 'editBomModal'].forEach(function (childId) {
             const childEl = document.getElementById(childId);
             if (!childEl) {
                 return;
@@ -2312,6 +2312,14 @@
 
             childEl.addEventListener('show.bs.modal', function () {
                 quickEstimateNestedModalActive = true;
+            });
+            childEl.addEventListener('shown.bs.modal', function () {
+                // Raise the most-recently-added backdrop above the Quick Estimate modal
+                // so clicks inside this child modal are not swallowed by the parent backdrop.
+                var backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 0) {
+                    backdrops[backdrops.length - 1].style.zIndex = '1062';
+                }
             });
             childEl.addEventListener('hidden.bs.modal', function () {
                 quickEstimateNestedModalActive = false;
@@ -2356,6 +2364,40 @@
         const priceInput = document.getElementById('quick_bom_price');
 
         initQuickBomMakeSelect(makeSelect);
+
+        // BOM Image preview for Add New BOM modal
+        const bomImageInput = document.getElementById('quick_bom_image');
+        if (bomImageInput) {
+            bomImageInput.addEventListener('change', function () {
+                const file = this.files[0];
+                const preview = document.getElementById('quick_bom_image_preview');
+                const thumb = document.getElementById('quick_bom_image_thumb');
+                if (file) {
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/jfif', 'image/pjpeg'];
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    if (!allowedTypes.includes(file.type)) {
+                        if (typeof window.showAlert === 'function') window.showAlert('error', 'Only JPG, PNG, JPEG images are allowed.');
+                        this.value = '';
+                        if (preview) preview.style.display = 'none';
+                        return;
+                    }
+                    if (file.size > maxSize) {
+                        if (typeof window.showAlert === 'function') window.showAlert('error', 'Image must be under 5MB.');
+                        this.value = '';
+                        if (preview) preview.style.display = 'none';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (thumb) thumb.src = e.target.result;
+                        if (preview) preview.style.display = '';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    if (preview) preview.style.display = 'none';
+                }
+            });
+        }
 
         document.addEventListener('click', function (event) {
             const quickEstimateBtn = event.target.closest('.quick-estimate-add-bom-btn');
@@ -2426,6 +2468,12 @@
             }
 
             if (!isValid) {
+                // Scroll the first invalid field into view so the user sees the error
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus({ preventScroll: true });
+                }
                 return;
             }
 
@@ -2444,6 +2492,11 @@
                     }
                     if (make?.id) {
                         formData.append('category_id[]', make.id);
+                    }
+                    // Append BOM image if selected
+                    const bomImgInput = document.getElementById('quick_bom_image');
+                    if (bomImgInput && bomImgInput.files && bomImgInput.files[0]) {
+                        formData.append('image', bomImgInput.files[0]);
                     }
 
                     return fetch(config.storeUrl, {
@@ -2473,6 +2526,11 @@
 
                     addBomProductToEstimateRows(product, result.make);
                     form.reset();
+                    // Clear BOM image preview
+                    const imgPreview = document.getElementById('quick_bom_image_preview');
+                    const imgThumb = document.getElementById('quick_bom_image_thumb');
+                    if (imgPreview) imgPreview.style.display = 'none';
+                    if (imgThumb) imgThumb.src = '';
                     if ($.fn.select2 && $(makeSelect).hasClass('select2-hidden-accessible')) {
                         $(makeSelect).val(null).trigger('change');
                     }
@@ -4016,6 +4074,53 @@
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                 }
+            });
+        }
+
+        // BOM Image preview for Edit BOM Details modal
+        const editBomImageInput = document.getElementById('edit_bom_image');
+        if (editBomImageInput) {
+            editBomImageInput.addEventListener('change', function () {
+                const file = this.files[0];
+                const preview = document.getElementById('edit_bom_image_preview');
+                const thumb = document.getElementById('edit_bom_image_thumb');
+                if (file) {
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/jfif', 'image/pjpeg'];
+                    const maxSize = 5 * 1024 * 1024;
+                    if (!allowedTypes.includes(file.type)) {
+                        if (typeof window.showAlert === 'function') window.showAlert('error', 'Only JPG, PNG, JPEG images are allowed.');
+                        this.value = '';
+                        if (preview) preview.style.display = 'none';
+                        return;
+                    }
+                    if (file.size > maxSize) {
+                        if (typeof window.showAlert === 'function') window.showAlert('error', 'Image must be under 5MB.');
+                        this.value = '';
+                        if (preview) preview.style.display = 'none';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (thumb) thumb.src = e.target.result;
+                        if (preview) preview.style.display = '';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    if (preview) preview.style.display = 'none';
+                }
+            });
+        }
+
+        // Reset edit BOM image preview when modal closes
+        const editBomModalEl = document.getElementById('editBomModal');
+        if (editBomModalEl) {
+            editBomModalEl.addEventListener('hidden.bs.modal', function () {
+                const imgInput = document.getElementById('edit_bom_image');
+                const imgPreview = document.getElementById('edit_bom_image_preview');
+                const imgThumb = document.getElementById('edit_bom_image_thumb');
+                if (imgInput) imgInput.value = '';
+                if (imgPreview) imgPreview.style.display = 'none';
+                if (imgThumb) imgThumb.src = '';
             });
         }
 
