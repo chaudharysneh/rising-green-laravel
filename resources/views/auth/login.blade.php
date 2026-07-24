@@ -46,6 +46,8 @@
                             <form method="POST" action="{{ route('login.submit') }}" novalidate>
                                 @csrf
 
+
+
                                 <!-- Email -->
                                 <div class="mb-4">
                                     <label for="email" class="form-label fw-medium">Email Address</label>
@@ -95,6 +97,49 @@
                 </div>
             </div>
         </div>
+        
+        @if(session('expired_error'))
+            <div class="modal fade" id="loginExpiryModal" tabindex="-1" aria-labelledby="loginExpiryModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-0" style="background-color: #ff7d3e;">
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="loginExpiryModalLabel">
+                                <i class="fa-solid fa-circle-xmark me-2"></i>
+                                <span>Subscription Expired</span>
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-4 py-4 text-center">
+                            <p class="mb-3" style="font-size: 1.1rem;">
+                                Your <strong>{{ session('expired_error')['plan_name'] ?? 'Plan' }}</strong> subscription expired on <strong class="text-danger">{{ session('expired_error')['end_date'] ?? '' }}</strong>.
+                            </p>
+                            <p class="text-muted mb-4">
+                                Please renew your plan to continue using the platform.
+                            </p>
+                            
+                            <hr class="mt-4 mb-3 border-secondary border-opacity-25">
+                            <div class="mt-3">
+                                <p class="text-muted small fw-semibold mb-2">Need Help? Contact Us</p>
+                                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 gap-sm-4 text-muted small">
+                                    <a href="mailto:info@fableadtechnolabs.com" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-solid fa-envelope"></i> info@fableadtechnolabs.com
+                                    </a>
+                                    <a href="tel:+919824734531" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-solid fa-phone"></i> +91 98247 34531
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var loginExpiryModal = new bootstrap.Modal(document.getElementById('loginExpiryModal'));
+                    loginExpiryModal.show();
+                });
+            </script>
+        @endif
     </div>
 
     <style>
