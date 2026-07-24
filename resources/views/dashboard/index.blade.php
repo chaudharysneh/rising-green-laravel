@@ -13,6 +13,31 @@
                 optional(
                     $currentSubscriptionAssignment?->updated_at ?? $currentSubscriptionAssignment?->created_at,
                 )->format('d M Y') ?? '-';
+                
+            $hasStartDate = isset($currentSubscriptionAssignment->start_date);
+            $hasEndDate = isset($currentSubscriptionAssignment->end_date);
+            $hasAutoRenew = isset($currentSubscriptionAssignment->auto_renew);
+            
+            $planStartDate = ($hasStartDate && $currentSubscriptionAssignment->start_date) ? \Carbon\Carbon::parse($currentSubscriptionAssignment->start_date)->format('d M Y') : '-';
+            $planEndDateRaw = ($hasEndDate && $currentSubscriptionAssignment->end_date) ? \Carbon\Carbon::parse($currentSubscriptionAssignment->end_date)->startOfDay() : null;
+            $planEndDate = $planEndDateRaw ? $planEndDateRaw->format('d M Y') : '-';
+            
+            $autoRenew = ($hasAutoRenew && $currentSubscriptionAssignment->auto_renew) ? 'On' : 'Off';
+            $planRenewalDate = $planEndDateRaw ? $planEndDateRaw->format('d M Y') : '-';
+            
+            $daysRemainingRaw = $planEndDateRaw ? (int) \Carbon\Carbon::now()->startOfDay()->diffInDays($planEndDateRaw, false) : 0;
+            $daysRemaining = max(0, $daysRemainingRaw);
+            $isExpired = $planEndDateRaw && $daysRemainingRaw < 0;
+            
+            $hasPrice = isset($currentSubscriptionPlan->price);
+            $hasBillingCycle = isset($currentSubscriptionPlan->billing_cycle);
+            
+            $planPrice = ($hasPrice && $currentSubscriptionPlan->price) ? '₹' . number_format($currentSubscriptionPlan->price, 0) : 'Free';
+            $planBillingCycle = ($hasBillingCycle && $currentSubscriptionPlan->billing_cycle) ? ' / ' . $currentSubscriptionPlan->billing_cycle : '';
+            $priceDisplay = $planPrice . $planBillingCycle;
+            
+            $statusText = $isExpired ? 'Expired' : ($planEndDateRaw ? 'Active' : 'Inactive');
+            $statusColor = $isExpired ? 'text-danger' : ($planEndDateRaw ? 'text-success' : 'text-muted');
             $canViewCustomers =
                 $canViewCustomers ?? \App\Models\Customer::query()->visibleToUser($dashboardUser)->exists();
             $canViewFollowUps = $dashboardUser?->hasMatrixPermission('view_followups') ?? false;
@@ -383,60 +408,154 @@
 
         <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"
             aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 700px;">
                 <div class="modal-content border-0 shadow-lg">
-                    <div
-                        class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : 'plan-basic' }} border-0">
+                    <div class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : ($isExpired ? 'bg-danger text-white' : 'plan-basic') }} border-0">
                         <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
                             <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
                             <span id="dashboardPlanModalTitle">Your Subscription Plan</span>
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close {{ $isExpired ? 'btn-close-white' : '' }}" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body px-4 py-4">
                         <div class="text-center mb-4">
-                            <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : '' }}"
-                                id="dashboardPlanBadge">{{ $planName }}</div>
-                        </div>
-
-                        <div class="dashboard-plan-modal__details">
-                            <div class="dashboard-plan-modal__row">
-                                <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
-                                <span class="fw-semibold">Staff Limit:</span>
-                                <span id="dashboardPlanStaffLimit" class="text-muted">{{ $currentStaffCount ?? 0 }} /
-                                    {{ $planStaffLimit }} users</span>
-                            </div>
-                            <div class="dashboard-plan-modal__row">
-                                <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
-                                <span class="fw-semibold">Renewal Date:</span>
-                                <span id="dashboardPlanRenewalDate" class="text-muted">{{ $planRenewalDate }}</span>
-                            </div>
-                            <div class="dashboard-plan-modal__row">
-                                <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status"><i
-                                        class="fa-solid fa-circle-check"></i></span>
-                                <span class="fw-semibold">Status:</span>
-                                <span id="dashboardPlanStatus"
-                                    class="text-muted">{{ $currentSubscriptionPlan ? 'Active' : 'Not Assigned' }}</span>
+                            <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : ($isExpired ? 'bg-danger text-white' : '') }}" id="dashboardPlanBadge">
+                                {{ $planName }}
                             </div>
                         </div>
 
-                        <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
-                            @if ($currentSubscriptionPlan)
-                                Staff accounts are counted under your admin ID. When the plan limit is reached, new staff
-                                creation will be blocked automatically.
-                            @else
-                                No subscription plan is assigned to this admin account yet.
-                            @endif
-                        </p>
+                        <div class="row g-4 mb-4">
+                            <!-- Row 1 -->
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
+                                    <span class="fw-semibold">Staff Limit:</span>
+                                    <span id="dashboardPlanStaffLimit" class="text-muted ms-auto">{{ $currentStaffCount ?? 0 }} / {{ $planStaffLimit }} users</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-plus"></i></span>
+                                    <span class="fw-semibold">Start Date:</span>
+                                    <span class="text-muted ms-auto">{{ $planStartDate }}</span>
+                                </div>
+                            </div>
 
-                        <div class="text-center">
-                            <button type="button" class="btn dashboard-plan-modal__cta"
-                                id="dashboardPlanContactBtn">Contact Us</button>
+                            <!-- Row 2 -->
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
+                                    <span class="fw-semibold">Renewal Date:</span>
+                                    <span id="dashboardPlanRenewalDate" class="text-muted ms-auto">{{ $planRenewalDate }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon {{ $isExpired ? 'text-danger' : '' }}"><i class="fa-solid fa-calendar-xmark"></i></span>
+                                    <span class="fw-semibold {{ $isExpired ? 'text-danger' : '' }}">End Date:</span>
+                                    <span class="{{ $isExpired ? 'text-danger fw-bold' : 'text-muted' }} ms-auto">{{ $planEndDate }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status {{ $statusColor }}"><i class="fa-solid {{ $isExpired ? 'fa-circle-xmark' : 'fa-circle-check' }}"></i></span>
+                                    <span class="fw-semibold">Status:</span>
+                                    <span id="dashboardPlanStatus" class="fw-bold {{ $statusColor }} ms-auto">{{ $statusText }}</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="dashboard-plan-modal__row">
+                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-hourglass-half"></i></span>
+                                    <span class="fw-semibold">Days Left:</span>
+                                    <span class="text-muted ms-auto">{{ $daysRemaining }} days</span>
+                                </div>
+                            </div>
                         </div>
+
+                        @if($isExpired)
+                            <p class="dashboard-plan-modal__message text-center mt-4 mb-3 text-danger fw-bold" id="dashboardPlanMessage">
+                                Your plan has expired! Renew now to keep access.
+                            </p>
+                            <div class="text-center">
+                                <a href="{{ route('settings.index') }}" class="btn btn-danger dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Renew Now</a>
+                            </div>
+                        @else
+                            <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
+                                @if ($currentSubscriptionPlan)
+                                    Staff accounts are counted under your admin ID. When the plan limit is reached, new staff
+                                    creation will be blocked automatically.
+                                @else
+                                    No subscription plan is assigned to this admin account yet.
+                                @endif
+                            </p>
+                            <div class="text-center">
+                                <a href="{{ route('settings.index') }}" class="btn dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Contact Us</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
+
+        {{-- Expiry Warning / Expired Modal (Shows if 0 <= daysRemaining <= 30 OR already expired) --}}
+        @if($currentSubscriptionPlan && isset($daysRemaining) && ($daysRemaining <= 30 || $isExpired))
+            <div class="modal fade" id="expiryWarningModal" tabindex="-1" aria-labelledby="expiryWarningModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-0" style="background-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }};">
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="expiryWarningModalLabel">
+                                <i class="fa-solid {{ $isExpired ? 'fa-circle-xmark' : 'fa-triangle-exclamation' }} me-2"></i>
+                                <span>{{ $isExpired ? 'Subscription Expired' : 'Subscription Expiring Soon' }}</span>
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-4 py-4 text-center">
+                            <p class="mb-3" style="font-size: 1.1rem;">
+                                @if($isExpired)
+                                    Your <strong>{{ $planName }}</strong> subscription expired on <strong class="text-danger">{{ $planEndDate }}</strong>.
+                                @else
+                                    Your <strong>{{ $planName }}</strong> subscription is expiring in <strong class="text-danger">{{ $daysRemaining }} days</strong> on <strong>{{ $planEndDate }}</strong>.
+                                @endif
+                            </p>
+                            <p class="text-muted mb-4">
+                                @if($isExpired)
+                                    Please renew immediately to restore full access to your service.
+                                @else
+                                    Please renew your subscription to avoid any interruption in service.
+                                @endif
+                            </p>
+                            @if($isExpired)
+                                <div>
+                                    <a href="{{ route('settings.index') }}" class="btn fw-bold px-4 text-white" style="background-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }}; border-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }};">Renew Now</a>
+                                </div>
+                            @endif
+
+                            <hr class="mt-4 mb-3 border-secondary border-opacity-25">
+                            <div class="mt-3">
+                                <p class="text-muted small fw-semibold mb-2">Need Help? Contact Us</p>
+                                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 gap-sm-4 text-muted small">
+                                    <a href="mailto:info@fableadtechnolabs.com" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-solid fa-envelope"></i> info@fableadtechnolabs.com
+                                    </a>
+                                    <a href="tel:+919824734531" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-solid fa-phone"></i> +91 98247 34531
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var expiryWarningModal = new bootstrap.Modal(document.getElementById('expiryWarningModal'));
+                    expiryWarningModal.show();
+                });
+            </script>
+        @endif
     </div>
 @endsection
 
