@@ -503,45 +503,51 @@
         @if($currentSubscriptionPlan && isset($daysRemaining) && ($daysRemaining <= 30 || $isExpired))
             <div class="modal fade" id="expiryWarningModal" tabindex="-1" aria-labelledby="expiryWarningModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header border-0" style="background-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }};">
-                            <h5 class="modal-title fw-bold mb-0 text-white" id="expiryWarningModalLabel">
-                                <i class="fa-solid {{ $isExpired ? 'fa-circle-xmark' : 'fa-triangle-exclamation' }} me-2"></i>
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header border-bottom-0 pb-3 pt-3 px-4" style="background-color: #122137;">
+                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2 m-0 text-white" id="expiryWarningModalLabel" style="font-size: 1.15rem;">
+                                <i class="fa-solid {{ $isExpired ? 'fa-circle-xmark' : 'fa-triangle-exclamation' }} text-white"></i>
                                 <span>{{ $isExpired ? 'Subscription Expired' : 'Subscription Expiring Soon' }}</span>
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body px-4 py-4 text-center">
-                            <p class="mb-3" style="font-size: 1.1rem;">
+                        
+                        <div class="modal-body p-4">
+                            <p class="text-center text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.6;">
                                 @if($isExpired)
-                                    Your <strong>{{ $planName }}</strong> subscription expired on <strong class="text-danger">{{ $planEndDate }}</strong>.
+                                    Your subscription plan expired on <strong class="text-dark">{{ $planEndDate }}</strong>. Please renew it immediately to restore<br> full access to your service.
                                 @else
-                                    Your <strong>{{ $planName }}</strong> subscription is expiring in <strong class="text-danger">{{ $daysRemaining }} days</strong> on <strong>{{ $planEndDate }}</strong>.
+                                    Your subscription plan will expire in <strong class="text-dark">{{ $daysRemaining }} days</strong>. Please renew it to avoid<br> interruption in service.
                                 @endif
                             </p>
-                            <p class="text-muted mb-4">
-                                @if($isExpired)
-                                    Please renew immediately to restore full access to your service.
-                                @else
-                                    Please renew your subscription to avoid any interruption in service.
-                                @endif
-                            </p>
-                            @if($isExpired)
-                                <div>
-                                    <a href="{{ route('settings.index') }}" class="btn fw-bold px-4 text-white" style="background-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }}; border-color: {{ $isExpired ? '#dc3545' : '#ff7d3e' }};">Renew Now</a>
-                                </div>
-                            @endif
 
-                            <hr class="mt-4 mb-3 border-secondary border-opacity-25">
-                            <div class="mt-3">
-                                <p class="text-muted small fw-semibold mb-2">Need Help? Contact Us</p>
-                                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 gap-sm-4 text-muted small">
-                                    <a href="mailto:info@fableadtechnolabs.com" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
-                                        <i class="fa-solid fa-envelope"></i> info@fableadtechnolabs.com
-                                    </a>
-                                    <a href="tel:+919824734531" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
-                                        <i class="fa-solid fa-phone"></i> +91 98247 34531
-                                    </a>
+                            <div class="p-4 mx-auto mb-4 position-relative" style="background-color: #f8fafc; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); max-width: 90%;">
+                                <!-- Left Border accent -->
+                                <div class="position-absolute top-0 bottom-0 start-0" style="width: 6px; background-color: #34d399; border-top-left-radius: 12px; border-bottom-left-radius: 12px;"></div>
+                                
+                                <div class="d-flex justify-content-between mb-3 ms-2">
+                                    <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Plan:</span>
+                                    <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $planName ?? 'Basic Plan' }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3 ms-2">
+                                    <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Expires On:</span>
+                                    <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $planEndDate ?? '29 Jul 2026' }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between ms-2">
+                                    <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Days Remaining:</span>
+                                    <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $isExpired ? '0 days' : ($daysRemaining . ' days') }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mx-auto" style="max-width: 90%;">
+                                <h6 class="fw-bold mb-3" style="color: #f58220; font-size: 1.05rem;">Contact us to Renew:</h6>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-phone me-3 fs-5 text-secondary" style="color: #64748b !important;"></i>
+                                    <span class="fw-medium text-secondary" style="font-size: 0.95rem;">+91 98247 34531</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-envelope me-3 fs-5 text-secondary" style="color: #64748b !important;"></i>
+                                    <span class="fw-medium text-secondary" style="font-size: 0.95rem;">info@fableadtechnolabs.com</span>
                                 </div>
                             </div>
                         </div>

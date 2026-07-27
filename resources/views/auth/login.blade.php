@@ -101,32 +101,30 @@
         @if(session('expired_error'))
             <div class="modal fade" id="loginExpiryModal" tabindex="-1" aria-labelledby="loginExpiryModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header border-0" style="background-color: #ff7d3e;">
-                            <h5 class="modal-title fw-bold mb-0 text-white" id="loginExpiryModalLabel">
-                                <i class="fa-solid fa-circle-xmark me-2"></i>
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header border-bottom-0 pb-3 pt-3 px-4" style="background-color: #122137;">
+                            <h5 class="modal-title fw-bold d-flex align-items-center gap-2 m-0 text-white" id="loginExpiryModalLabel" style="font-size: 1.15rem;">
+                                <i class="fa-solid fa-circle-xmark text-white"></i>
                                 <span>Subscription Expired</span>
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body px-4 py-4 text-center">
-                            <p class="mb-3" style="font-size: 1.1rem;">
-                                Your <strong>{{ session('expired_error')['plan_name'] ?? 'Plan' }}</strong> subscription expired on <strong class="text-danger">{{ session('expired_error')['end_date'] ?? '' }}</strong>.
-                            </p>
-                            <p class="text-muted mb-4">
+                        
+                        <div class="modal-body p-4">
+                            <p class="text-center text-secondary mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                                Your <strong>{{ session('expired_error')['plan_name'] ?? 'Plan' }}</strong> subscription expired on <strong class="text-danger">{{ session('expired_error')['end_date'] ?? '' }}</strong>.<br>
                                 Please renew your plan to continue using the platform.
                             </p>
-                            
-                            <hr class="mt-4 mb-3 border-secondary border-opacity-25">
-                            <div class="mt-3">
-                                <p class="text-muted small fw-semibold mb-2">Need Help? Contact Us</p>
-                                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 gap-sm-4 text-muted small">
-                                    <a href="mailto:info@fableadtechnolabs.com" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
-                                        <i class="fa-solid fa-envelope"></i> info@fableadtechnolabs.com
-                                    </a>
-                                    <a href="tel:+919824734531" class="text-decoration-none text-muted d-flex align-items-center justify-content-center gap-2">
-                                        <i class="fa-solid fa-phone"></i> +91 98247 34531
-                                    </a>
+
+                            <div class="mx-auto" style="max-width: 90%;">
+                                <h6 class="fw-bold mb-3" style="color: #f58220; font-size: 1.05rem;">Need Help? Contact Us</h6>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa-solid fa-phone me-3 fs-5 text-secondary" style="color: #64748b !important;"></i>
+                                    <span class="fw-medium text-secondary" style="font-size: 0.95rem;">+91 98247 34531</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-envelope me-3 fs-5 text-secondary" style="color: #64748b !important;"></i>
+                                    <span class="fw-medium text-secondary" style="font-size: 0.95rem;">info@fableadtechnolabs.com</span>
                                 </div>
                             </div>
                         </div>
