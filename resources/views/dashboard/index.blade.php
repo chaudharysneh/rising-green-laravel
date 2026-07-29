@@ -409,91 +409,73 @@
         <div class="modal fade dashboard-plan-modal" id="dashboardPlanModal" tabindex="-1"
             aria-labelledby="dashboardPlanModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 700px;">
-                <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header dashboard-plan-modal__header {{ $isPremiumPlan ? 'plan-premium' : ($isExpired ? 'bg-danger text-white' : 'plan-basic') }} border-0">
-                        <h5 class="modal-title fw-bold mb-0" id="dashboardPlanModalLabel">
-                            <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }} me-2"></i>
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-bottom-0 pb-3 pt-3 px-4" style="background-color: #122137;">
+                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2 m-0 text-white" id="dashboardPlanModalLabel" style="font-size: 1.15rem;">
+                            <i class="fa-solid fa-crown text-white"></i>
                             <span id="dashboardPlanModalTitle">Your Subscription Plan</span>
                         </h5>
-                        <button type="button" class="btn-close {{ $isExpired ? 'btn-close-white' : '' }}" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body px-4 py-4">
-                        <div class="text-center mb-4">
-                            <div class="dashboard-plan-modal__pill {{ $isPremiumPlan ? 'dashboard-plan-modal__pill--premium' : ($isExpired ? 'bg-danger text-white' : '') }}" id="dashboardPlanBadge">
-                                {{ $planName }}
-                            </div>
-                        </div>
-
-                        <div class="row g-4 mb-4">
-                            <!-- Row 1 -->
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-users"></i></span>
-                                    <span class="fw-semibold">Staff Limit:</span>
-                                    <span id="dashboardPlanStaffLimit" class="text-muted ms-auto">{{ $currentStaffCount ?? 0 }} / {{ $planStaffLimit }} users</span>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-plus"></i></span>
-                                    <span class="fw-semibold">Start Date:</span>
-                                    <span class="text-muted ms-auto">{{ $planStartDate }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Row 2 -->
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-calendar-days"></i></span>
-                                    <span class="fw-semibold">Renewal Date:</span>
-                                    <span id="dashboardPlanRenewalDate" class="text-muted ms-auto">{{ $planRenewalDate }}</span>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon {{ $isExpired ? 'text-danger' : '' }}"><i class="fa-solid fa-calendar-xmark"></i></span>
-                                    <span class="fw-semibold {{ $isExpired ? 'text-danger' : '' }}">End Date:</span>
-                                    <span class="{{ $isExpired ? 'text-danger fw-bold' : 'text-muted' }} ms-auto">{{ $planEndDate }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Row 3 -->
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon dashboard-plan-modal__icon--status {{ $statusColor }}"><i class="fa-solid {{ $isExpired ? 'fa-circle-xmark' : 'fa-circle-check' }}"></i></span>
-                                    <span class="fw-semibold">Status:</span>
-                                    <span id="dashboardPlanStatus" class="fw-bold {{ $statusColor }} ms-auto">{{ $statusText }}</span>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="dashboard-plan-modal__row">
-                                    <span class="dashboard-plan-modal__icon"><i class="fa-solid fa-hourglass-half"></i></span>
-                                    <span class="fw-semibold">Days Left:</span>
-                                    <span class="text-muted ms-auto">{{ $daysRemaining }} days</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if($isExpired)
-                            <p class="dashboard-plan-modal__message text-center mt-4 mb-3 text-danger fw-bold" id="dashboardPlanMessage">
-                                Your plan has expired! Renew now to keep access.
-                            </p>
-                            <div class="text-center">
-                                <a href="{{ route('settings.index') }}" class="btn btn-danger dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Renew Now</a>
-                            </div>
-                        @else
-                            <p class="dashboard-plan-modal__message text-center mt-4 mb-3" id="dashboardPlanMessage">
+                    <div class="modal-body p-4">
+                        <div class="d-flex align-items-start mb-4 p-3 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                            <i class="fa-solid fa-circle-info mt-1 me-2" style="color: #64748b;"></i>
+                            <span style="color: #475569; font-size: 0.9rem;">
                                 @if ($currentSubscriptionPlan)
-                                    Staff accounts are counted under your admin ID. When the plan limit is reached, new staff
-                                    creation will be blocked automatically.
+                                    Staff accounts are counted under your admin ID. When the plan limit is reached, new staff creation will be blocked automatically.
                                 @else
                                     No subscription plan is assigned to this admin account yet.
                                 @endif
-                            </p>
-                            <div class="text-center">
-                                <a href="{{ route('settings.index') }}" class="btn dashboard-plan-modal__cta" id="dashboardPlanContactBtn">Contact Us</a>
+                            </span>
+                        </div>
+
+                        <div class="p-4 mb-4 position-relative" style="background-color: #f8fafc; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                            <!-- Left Border accent -->
+                            <div class="position-absolute top-0 bottom-0 start-0" style="width: 6px; background-color: #34d399; border-top-left-radius: 12px; border-bottom-left-radius: 12px;"></div>
+                            
+                            <div class="row gy-3 ms-2">
+                                <div class="col-md-6 pe-md-4">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Plan:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $planName }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Staff Limit:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $currentStaffCount ?? 0 }} / {{ $planStaffLimit }} users</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Status:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $statusText }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 ps-md-4">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Start Date:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $planStartDate }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">End Date:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $planEndDate }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-secondary fw-bold" style="font-size: 0.95rem;">Days Left:</span>
+                                        <span class="fw-bold" style="color: #ef4444; font-size: 0.95rem;">{{ $daysRemaining }} days</span>
+                                    </div>
+                                </div>
                             </div>
-                        @endif
+                        </div>
+
+                        <div>
+                            <h6 class="fw-bold mb-3" style="color: #f58220; font-size: 1.05rem;">Contact us to Renew:</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa-solid fa-phone me-3 fs-5" style="color: #64748b;"></i>
+                                <span class="fw-medium" style="color: #475569; font-size: 0.95rem;">+91 98247 34531</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-envelope me-3 fs-5" style="color: #64748b;"></i>
+                                <span class="fw-medium" style="color: #475569; font-size: 0.95rem;">info@fableadtechnolabs.com</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
