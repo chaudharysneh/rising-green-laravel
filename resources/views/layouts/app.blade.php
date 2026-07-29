@@ -654,9 +654,14 @@
                                         class="btn top-action-btn dashboard-plan-btn {{ $isPremiumPlan ? 'dashboard-plan-btn--premium' : 'dashboard-plan-btn--basic' }} active"
                                         data-plan-trigger="{{ $isPremiumPlan ? 'premium' : 'basic' }}"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#dashboardPlanModal">
+                                        data-bs-target="#dashboardPlanModal" style="padding: 0.4rem 1rem;">
                                         <i class="fa-solid {{ $isPremiumPlan ? 'fa-gem' : 'fa-crown' }}"></i>
-                                        <span>{{ $currentSubscriptionPlan->name }}</span>
+                                        <div class="d-flex flex-column align-items-start lh-1">
+                                            <span>{{ $currentSubscriptionPlan->name }}</span>
+                                            @if(isset($currentSubscriptionAssignment->end_date))
+                                                <small style="font-size: 0.65rem; font-weight: 500; opacity: 0.9; margin-top: 3px;">Expires: {{ \Carbon\Carbon::parse($currentSubscriptionAssignment->end_date)->format('d-m-Y') }}</small>
+                                            @endif
+                                        </div>
                                     </button>
                                 </div>
                             @endif
