@@ -29,7 +29,7 @@
                             <!-- Header -->
                             <div class="text-center mb-1">
                                 <img src="{{ asset('images/template/Fablead_CRM.jpg') }}" alt="Fablead CRM"
-                                    class="login-logo img-fluid mb-2"
+                                    class="login-logo img-fluid mb-3"
                                     onerror="this.onerror=null;this.src='{{ url('public/images/template/Fablead_CRM.jpg') }}';">
                                 <p class="text-muted mb-0" style="font-size: 1rem;">Welcome to Fablead CRM, Empowering your
                                     solar business with a smart, all-in-one CRM.</p>
@@ -88,7 +88,7 @@
                                 </div>
                             </form>
 
-                            <footer class="mt-3 text-center text-muted" style="font-size: 0.8rem; font-weight: 500;">
+                            <footer class="mt-3 text-center text-muted" style="font-size: 0.9rem; font-weight: 500;">
                                 &copy; {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer" class="text-muted">Fablead Developers Technolab</a>
                             </footer>
 
@@ -175,6 +175,37 @@
         .login-page .form-control {
             border-radius: 12px;
             border: 2px solid #e2e8f0;
+        }
+
+        @media (min-width: 992px) {
+            .login-page .login-card-body {
+                padding: 36px 40px;
+            }
+
+            .login-page .login-heading {
+                margin-block: 10px;
+            }
+
+            .login-page form > .mb-3 {
+                margin-bottom: 14px !important;
+            }
+
+            .login-page .form-label {
+                margin-bottom: 10px;
+                font-size: 1.0625rem;
+            }
+
+            .login-page .form-control,
+            .login-page .login-submit {
+                height: 52px;
+                min-height: 52px;
+                padding: 12px 18px;
+                font-size: 1.0625rem;
+            }
+
+            .login-page footer {
+                margin-top: 24px !important;
+            }
         }
 
         @media (max-width: 575.98px) {
