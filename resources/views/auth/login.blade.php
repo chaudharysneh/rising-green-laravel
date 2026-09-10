@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="min-vh-100 d-flex align-items-center position-relative overflow-hidden"
+    <div class="login-page min-vh-100 d-flex align-items-center position-relative overflow-hidden"
         style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
 
         <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 1; opacity: 0.85;">
@@ -24,18 +24,18 @@
             <div class="row justify-content-center">
                 <div class="col-lg-5 col-md-7">
                     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                        <div class="card-body p-5 p-lg-5 py-lg-4">
+                        <div class="card-body login-card-body">
 
                             <!-- Header -->
                             <div class="text-center mb-1">
-                                <img src="{{ asset('images/template/Fablead logo.jpg') }}" alt="Fablead CRM"
-                                    style="max-width:200px;" class="img-fluid mb-2"
-                                    onerror="this.onerror=null;this.src='{{ url('public/images/template/Fablead logo.jpg') }}';">
+                                <img src="{{ asset('images/template/Fablead_CRM.jpg') }}" alt="Fablead CRM"
+                                    class="login-logo img-fluid mb-2"
+                                    onerror="this.onerror=null;this.src='{{ url('public/images/template/Fablead_CRM.jpg') }}';">
                                 <p class="text-muted mb-0" style="font-size: 1rem;">Welcome to Fablead CRM, Empowering your
                                     solar business with a smart, all-in-one CRM.</p>
                             </div>
 
-                            <div class="my-4">
+                            <div class="login-heading">
                                 <div class="d-flex align-items-center gap-2">
                                     <hr class="flex-grow-1 border-1 border-secondary">
                                     <span class="fs-3 px-1 text-dark-blue">Login</span>
@@ -49,7 +49,7 @@
 
 
                                 <!-- Email -->
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <label for="email" class="form-label fw-medium">Email Address</label>
                                     <input id="email" type="email"
                                         class="form-control form-control-lg @error('email') is-invalid @enderror"
@@ -60,7 +60,7 @@
                                 </div>
 
                                 <!-- Password -->
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <label for="password" class="form-label fw-medium">Password</label>
                                     <div class="position-relative">
                                         <input id="password" type="password"
@@ -82,13 +82,13 @@
 
                                 <!-- Login Button -->
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-lg fw-semibold text-white"
+                                    <button type="submit" class="login-submit btn btn-lg fw-semibold text-white"
                                         style="background: linear-gradient(135deg, #2b3a69, #182244); border: none;">Sign
                                         In</button>
                                 </div>
                             </form>
 
-                            <footer class="mt-4 text-center text-muted" style="font-size: 0.8rem;">
+                            <footer class="mt-3 text-center text-muted" style="font-size: 0.8rem; font-weight: 500;">
                                 &copy; {{ date('Y') }} Copyright - <a href="https://www.fableadtechnolabs.com/" target="_blank" rel="noopener noreferrer" class="text-muted">Fablead Developers Technolab</a>
                             </footer>
 
@@ -141,14 +141,66 @@
     </div>
 
     <style>
-        .card {
+        .login-page {
+            padding-block: 16px;
+        }
+
+        .login-card-body {
+            padding: 24px 32px;
+        }
+
+        .login-logo {
+            max-width: 200px;
+        }
+
+        .login-heading {
+            margin-block: 16px;
+        }
+
+        .login-page .card {
             border-radius: 20px !important;
         }
 
-        .form-control {
+        .login-page .form-control,
+        .login-page .login-submit {
+            box-sizing: border-box;
+            width: 100%;
+            height: 48px;
+            min-height: 48px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .login-page .form-control {
             border-radius: 12px;
             border: 2px solid #e2e8f0;
-            padding: 14px 18px;
+        }
+
+        @media (max-width: 575.98px) {
+            .login-page > .container {
+                padding-inline: 8px;
+            }
+
+            .login-page > .container > .row {
+                --bs-gutter-x: 0;
+            }
+
+            .login-card-body {
+                padding: 25px 20px;
+            }
+
+            .login-logo {
+                max-width: 160px;
+            }
+
+            .login-heading {
+                margin-block: 12px;
+            }
+
+            .login-page .form-label {
+                margin-bottom: 6px;
+            }
         }
 
         .form-control:focus {
