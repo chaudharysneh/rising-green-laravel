@@ -47,9 +47,9 @@
                                     </select>
                                 </div>
                                 @can('estimates.create')
-                                    <button type="button" class="btn btn-dark-blue flex-shrink-0" id="taskQuickEstimateBtn" title="Quick Estimate">
+                                    {{-- <button type="button" class="btn btn-dark-blue flex-shrink-0" id="taskQuickEstimateBtn" title="Quick Estimate">
                                         <i class="bi bi-plus-lg"></i>
-                                    </button>
+                                    </button> --}}
                                 @endcan
                             </div>
                             <div class="invalid-feedback d-block" id="estimate_id-error">{{ $errors->first('estimate_id') }}</div>
