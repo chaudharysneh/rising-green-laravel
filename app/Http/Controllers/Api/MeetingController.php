@@ -76,7 +76,8 @@ class MeetingController extends ApiBaseController
                   ->where('created_by', '!=', $user->id);
         }
 
-        $meetings = $query->paginate(10);
+        \App\Support\ListFilters::apply($query, $request, ['customer_id', 'assigned_user_id', 'meeting_type', 'status'], ['scheduled_at'], []);
+        $meetings = $query->paginate($request->integer('per_page', 10));
 
         // Check if this is an AJAX request
         if ($request->ajax() || $request->wantsJson()) {

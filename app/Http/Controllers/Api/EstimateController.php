@@ -71,6 +71,7 @@ class EstimateController extends Controller
                       ->where('created_by', '!=', $user->id);
             }
 
+        \App\Support\ListFilters::apply($query, $request, ['type', 'status'], ['estimate_date'], ['estimate_no']);
             $perPage = $request->input('per_page', 10);
             $estimates = $query->orderBy('estimate_id', 'desc')->paginate($perPage)->withQueryString();
 

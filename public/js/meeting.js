@@ -1,4 +1,4 @@
-﻿const API_CONFIG = {
+const API_CONFIG = {
     meetings: "/api/meetings",
     customers: "/api/meetings/customers",
     users: "/api/meetings/users",
@@ -186,6 +186,7 @@ const MeetingTable = {
     },
 
     load(page = 1) {
+        if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(page => this.load(page), 'meetingsSearch'); }
         let search = $("#meetingsSearch").val();
 
         // Show loading state
@@ -197,6 +198,7 @@ const MeetingTable = {
             data: { 
                 page, 
                 search,
+                ...window.moduleListFilters.values(),
                 filter: this.currentFilter // Add filter parameter
             },
             dataType: "json",

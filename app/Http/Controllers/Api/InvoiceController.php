@@ -69,6 +69,7 @@ class InvoiceController extends ApiBaseController
                 ->where('created_by', '!=', $user->id);
         }
 
+        \App\Support\ListFilters::apply($query, $request, ['type', 'status'], ['invoice_date', 'due_date'], ['invoice_no']);
         $invoices = $query
             ->orderByRaw("
                 CASE
@@ -79,7 +80,7 @@ class InvoiceController extends ApiBaseController
             ")
             ->orderBy('invoice_date', 'desc')
             ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->paginate($request->integer('per_page', 10));
 
         return response()->json([
             'success' => true,
