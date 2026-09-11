@@ -217,6 +217,12 @@ if (!function_exists('normalize_pdf_image')) {
     $proposalLabel = 'System Capacity: ' . ($capacityValue > 0 ? $plainNumber($capacityValue, 1) . ' kW' : 'To be finalized');
     $notesContent = trim(strip_tags((string) ($doc->estimate_comment ?? $doc->comment ?? '')));
     
+    $smallLogoBase64 = null;
+    $smallLogoPath = $companySettings['sidebar_icon_path'] ?? \App\Models\Setting::where('key', 'sidebar_icon_path')->value('value');
+    $publicDisk = \Illuminate\Support\Facades\Storage::disk('public');
+    if ($smallLogoPath && $publicDisk->exists($smallLogoPath)) {
+        $smallLogoBase64 = 'data:' . ($publicDisk->mimeType($smallLogoPath) ?: 'image/png') . ';base64,' . base64_encode($publicDisk->get($smallLogoPath));
+    }
     $logoBase64 = null;
     $companyLogoPath = $companySettings['company_logo_path'] ?? null;
     if ($companyLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyLogoPath)) {
@@ -267,21 +273,21 @@ if (!function_exists('normalize_pdf_image')) {
         .page:last-child { page-break-after: auto; }
         .cover-header {
             margin: -14mm -15mm 9mm;
-            padding: 13mm 15mm 10mm;
-            background: #183d66;
+            padding: 9mm 15mm;
+            background: #0b2d48;
             color: #fff;
             border-bottom: 4px solid #f2a51c;
         }
         .cover-title {
-            font-size: 20px;
-            line-height: 1;
+            font-size: 16px;
+            line-height: 1.2;
             font-weight: 700;
-            letter-spacing: .2px;
+            letter-spacing: .2px; white-space: nowrap;
             text-transform: uppercase;
             margin-bottom: 7px;
         }
         .cover-subtitle {
-            font-size: 10.5px;
+            font-size: 10px; white-space: nowrap;
             font-style: italic;
             color: #eef5ff;
         }
@@ -374,20 +380,17 @@ if (!function_exists('normalize_pdf_image')) {
 <body>
     <section class="page">
         <div class="cover-header">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                    <td valign="middle">
-                        <div class="cover-title">Rising Green Energy Proposal</div>
-                        <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
-                    </td>
-                    @if (!empty($logoBase64))
-                    <td width="150" valign="middle" align="right" style="padding-left:20px;">
-                        <img src="{{ $logoBase64 }}" alt="Company Logo" style="max-width:150px;max-height:80px;object-fit:contain;background-color:#fff;padding:5px;border-radius:4px;">
-                    </td>
-                    @endif
-                </tr>
-            </table>
-        </div>
+            <div style="position:relative;width:480px;height:80px;margin:0 auto;">
+                @if ($smallLogoBase64)
+                    <div style="position:absolute;left:-10px;top:7px;width:90px;height:90px;text-align:center;">
+                        <img src="{{ $smallLogoBase64 }}" alt="Company Logo (Small)" style="display:block;max-width:90px;max-height:90px;margin:0 auto;">
+                    </div>
+                @endif
+                <div style="position:absolute;left:{{ $smallLogoBase64 ? '92px' : '0' }};top:22px;right:0;{{ $smallLogoBase64 ? 'border-left:1px solid #9aabb8;padding-left:12px;' : '' }}">
+                    <div class="cover-title">{{ $companyName }} Proposal</div>
+                    <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
+                </div>
+            </div>     </div>
 
         <div class="section">
             <h2 class="section-title">1. Introduction Page</h2>
