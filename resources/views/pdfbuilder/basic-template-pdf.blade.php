@@ -273,7 +273,7 @@ if (!function_exists('normalize_pdf_image')) {
         .page:last-child { page-break-after: auto; }
         .cover-header {
             margin: -14mm -15mm 9mm;
-            padding: 9mm 15mm;
+            padding: 4mm 15mm 9mm;
             background: #0b2d48;
             color: #fff;
             border-bottom: 4px solid #f2a51c;
@@ -380,7 +380,7 @@ if (!function_exists('normalize_pdf_image')) {
 <body>
     <section class="page">
         <div class="cover-header">
-            <div style="position:relative;width:480px;height:80px;margin:0 auto;">
+            <div style="position:relative;left:12px;width:480px;height:70px;margin:0 auto;">
                 @if ($smallLogoBase64)
                     <div style="position:absolute;left:-10px;top:7px;width:90px;height:90px;text-align:center;">
                         <img src="{{ $smallLogoBase64 }}" alt="Company Logo (Small)" style="display:block;max-width:90px;max-height:90px;margin:0 auto;">
