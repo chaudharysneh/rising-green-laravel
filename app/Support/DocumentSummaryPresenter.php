@@ -109,6 +109,17 @@ class DocumentSummaryPresenter
         string $documentDate,
         string $quantity
     ): array {
+        // Older invoices contain JSON strings encoded again by their array casts.
+        // Normalize both storage formats before using the shared estimate calculations.
+        $estdata = clone $estdata;
+        foreach (['product_name', 'gst_breakdown'] as $field) {
+            $value = $estdata->{$field} ?? [];
+            for ($depth = 0; $depth < 2 && is_string($value); $depth++) {
+                $value = json_decode($value, true);
+            }
+            $estdata->{$field} = is_array($value) ? $value : [];
+        }
+
         $summaryProducts = !empty($estdata->product_name)
             ? (is_array($estdata->product_name) ? $estdata->product_name : (is_string($estdata->product_name) ? json_decode($estdata->product_name, true) : []))
             : [];
