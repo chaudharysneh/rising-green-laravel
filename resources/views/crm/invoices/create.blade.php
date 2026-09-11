@@ -181,7 +181,7 @@
 
                         <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
-                            <input type="number" min="0" step="1" name="quantity" id="quantity"
+                            <input type="number" min="0" step="0.01" name="quantity" id="quantity"
                                 value="{{ old('quantity') }}" class="form-control @error('quantity') is-invalid @enderror"
                                 placeholder="Enter kW" required>
                             <div class="invalid-feedback" id="quantity-error">Please enter valid quantity (kW)</div>

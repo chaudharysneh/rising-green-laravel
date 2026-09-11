@@ -54,7 +54,7 @@ class Estimate extends Model
     protected $casts = [
         'estimate_date' => 'date',
         'valid_until' => 'date',
-        'quantity' => 'integer',
+        'quantity' => 'decimal:2',
         'price' => 'float',
         'solar_structure_charges' => 'float',
         'total' => 'float',
