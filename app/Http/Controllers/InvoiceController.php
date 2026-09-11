@@ -173,6 +173,11 @@ class InvoiceController extends Controller
             'social_instagram',
             'social_facebook',
             'social_linkedin',
+            'bank_name',
+            'account_name',
+            'account_number',
+            'ifsc_code',
+            'branch_name',
         ])->pluck('value', 'key');
 
         // Get all products for BOM specifications
@@ -192,8 +197,7 @@ class InvoiceController extends Controller
             $warranty_map[$war->id] = $war->title;
         }
 
-        // Render the invoice details HTML
-        $quotation_html = view('crm.invoices.pdf', compact('invoice', 'user', 'settings', 'product_data', 'technology_map', 'warranty_map'))->render();
+        $quotation_html = '';
 
         // Get the selected template or default to the first one (aligned with EstimateController)
         $template = null;
@@ -201,7 +205,7 @@ class InvoiceController extends Controller
             $template = PdfBuilderForm::find($invoice->template_id);
         }
         if (!$template) {
-            $template = PdfBuilderForm::first();
+            $template = PdfBuilderForm::first() ?? new PdfBuilderForm();
         }
 
         // Inject an alias for estimate_date so the template can render invoice_date instead of today's date
@@ -215,6 +219,7 @@ class InvoiceController extends Controller
             // Prepare data for the new template wrapper
             // Pass $invoice AS the 'estimate' key, and set 'estimate_no' as the invoice no so pdf.blade.php handles it correctly
             $pdfData = [
+                'invoiceOnly' => true,
                 'estimate' => $invoice,
                 'estimate_no' => $invoice->invoice_no,
                 'companySettings' => $settings,
@@ -241,9 +246,7 @@ class InvoiceController extends Controller
                 'estimateCommentSection' => $form_data['estimate_comment'] ?? [],
             ];
 
-            $pdfView = Str::lower(trim((string) $template->template_name)) === 'basic template'
-                ? 'pdfbuilder.basic-template-pdf'
-                : 'pdfbuilder.pdf';
+            $pdfView = 'pdfbuilder.pdf';
             $pdf = Pdf::loadView($pdfView, $pdfData);
             $pdf->setPaper('A4', 'portrait');
         } else {
@@ -251,62 +254,8 @@ class InvoiceController extends Controller
             $pdf->setPaper('A4', 'portrait');
         }
 
-        // Save Dompdf output as temp PDF
-        $tmpMain = tempnam(sys_get_temp_dir(), 'main_pdf_');
-        file_put_contents($tmpMain, $pdf->output());
-
-        // Now merge with customer uploaded docs
-        $mergedPdf = new \setasign\Fpdi\Fpdi();
-
-        // Add Dompdf file
-        $pageCount = $mergedPdf->setSourceFile($tmpMain);
-        for ($page = 1; $page <= $pageCount; $page++) {
-            $tpl = $mergedPdf->importPage($page);
-            $size = $mergedPdf->getTemplateSize($tpl);
-            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $mergedPdf->useTemplate($tpl);
-        }
-
-        // Add each customer doc (if PDF/Image)
-        $customer_docs = is_array($invoice->customer_docs) ? $invoice->customer_docs : json_decode($invoice->customer_docs ?? '[]', true);
-        $customer_docs = is_array($customer_docs) ? $customer_docs : [];
-        foreach ($customer_docs as $doc) {
-            $path = is_array($doc) ? ($doc['path'] ?? null) : $doc;
-            if ($path && Storage::disk('public')->exists($path)) {
-                $filePath = Storage::disk('public')->path($path);
-                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-
-                if ($ext === 'pdf') {
-                    try {
-                        $count = $mergedPdf->setSourceFile($filePath);
-                        for ($p = 1; $p <= $count; $p++) {
-                            $tpl = $mergedPdf->importPage($p);
-                            $size = $mergedPdf->getTemplateSize($tpl);
-                            $mergedPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                            $mergedPdf->useTemplate($tpl);
-                        }
-                    } catch (\Exception $e) {
-                        \Log::error("Failed to merge PDF customer doc {$path}: " . $e->getMessage());
-                    }
-                } elseif (in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                    try {
-                        // Convert image to a page
-                        $mergedPdf->AddPage();
-                        $mergedPdf->Image($filePath, 10, 10, 190, 270, strtoupper($ext === 'jpg' ? 'jpeg' : $ext));
-                    } catch (\Exception $e) {
-                        \Log::error("Failed to merge image customer doc {$path}: " . $e->getMessage());
-                    }
-                }
-            }
-        }
-
-        // Clean up temp file
-        if (file_exists($tmpMain)) {
-            @unlink($tmpMain);
-        }
-
         $filename = 'invoice-' . ($invoice->invoice_no ?: $invoice->id) . '.pdf';
-        return response($mergedPdf->Output('S'), 200, [
+        return response($pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);

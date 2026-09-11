@@ -207,6 +207,14 @@ $summaryInvoiceSubtotal = $summaryBaseCost + $summaryBomTotal + $summaryBomTaxTo
 $summaryNetPayable = $summaryInvoiceSubtotal - $summarySubsidy;
 $summaryTotalPayable = $summaryInvoiceSubtotal;
 $summaryLendingCost = $summaryNetPayable;
+if (!empty($invoiceOnly)) {
+    extract(\App\Support\DocumentSummaryPresenter::fromEstdata(
+        $estdata,
+        $companySettings instanceof \Illuminate\Support\Collection ? $companySettings->all() : (array) $companySettings,
+        (string) $quantity,
+        ['document_no' => $estimate_no ?? $estdata->invoice_no ?? '--']
+    ));
+}
 ?>
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:0;margin-bottom:8px;border-collapse:collapse;">

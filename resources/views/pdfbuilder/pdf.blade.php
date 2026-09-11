@@ -438,6 +438,15 @@ if ($passedEstimate) {
     foreach ($attrs as $key => $val) {
         $estdata->$key = $val;
     }
+    if (!empty($invoiceOnly)) {
+        foreach (['product_name', 'gst_breakdown'] as $field) {
+            $value = $estdata->{$field} ?? [];
+            for ($depth = 0; $depth < 2 && is_string($value); $depth++) {
+                $value = json_decode($value, true);
+            }
+            $estdata->{$field} = is_array($value) ? $value : [];
+        }
+    }
 
     // Add aliases needed by this template for Customer details
     if (isset($passedEstimate->customer)) {
@@ -1388,6 +1397,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
 </head>
 
 <body>
+    @if (empty($invoiceOnly))
 
     <!-- ✅ FIRST PAGE -->
     <div class="<?= $_pageClass('p1') ?>" style="position: relative; height: 100%; min-height: 842px; overflow: hidden;">
@@ -2882,10 +2892,11 @@ if (isset($after_blocks) && is_array($after_blocks)) {
 
 
     <!-- ================= END PAGE 5 ================= -->
+    @endif
 
     <?php
     $__components = isset($components) && is_array($components) ? $components : [];
-    $__componentsActive = $_isActive($__components);
+    $__componentsActive = !empty($invoiceOnly) || $_isActive($__components);
     ?>
     <?php if ($__componentsActive): ?>
     <?php
@@ -3161,6 +3172,10 @@ if (isset($after_blocks) && is_array($after_blocks)) {
         }
     }
     
+    if (!empty($invoiceOnly)) {
+        $componentsPages = [['layout' => 'table', 'rows' => $componentsList]];
+        $componentsPageClass = 'page';
+    }
     $componentsPageTotal = count($componentsPages);
     ?>
     <?php endif; ?>
@@ -3233,6 +3248,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
     <!-- ================= END PAGE 6 ================= -->
     <?php endif; ?>
 
+    @if (empty($invoiceOnly))
     <?php if ($__paymentTermsActive0): ?>
     <!-- ================= PAGE 7 : PAYMENT TERMS ================= -->
     <?php
@@ -3832,6 +3848,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
     <!-- ================= END PAGE 9 ================= -->
     <?php endif; ?>
 
+    @endif
 </body>
 
 </html>
