@@ -482,7 +482,7 @@
                         <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
                             <div class="bom-section bg-light rounded-3 p-3 border">
-                                <div id="bomContainer">
+                                <div id="bomContainer" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;margin-bottom:12px;">
                                     @foreach ($selectedProducts as $index => $selectedProduct)
                                         @php
                                             $selectedBom = $bomProducts->firstWhere('id', $selectedProduct['product_id'] ?? null);

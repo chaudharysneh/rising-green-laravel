@@ -457,7 +457,7 @@
                         <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
                             <div class="bom-section bg-light rounded-3 p-3 border">
-                                <div id="bomContainer">
+                                <div id="bomContainer" data-prefill-all="true" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;margin-bottom:12px;">
                                     <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
                                             <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
                                             <div>

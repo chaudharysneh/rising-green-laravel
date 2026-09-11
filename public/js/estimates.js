@@ -3242,6 +3242,7 @@
         }
 
         bomHandlersInitialized = true;
+        let prefillingBomRows = false;
 
         // Hydrate initial rows
         container.querySelectorAll('.bom-row').forEach(function (row) {
@@ -3261,7 +3262,7 @@
             const priceInput = row.querySelector('.product-price');
             const qtyInput = row.querySelector('input[name="product_qty[]"]');
 
-            if (this.value && !validateTopFieldsBeforeBom(true)) {
+            if (this.value && !prefillingBomRows && !validateTopFieldsBeforeBom(true)) {
                 this.value = '';
                 if ($.fn.select2 && $(this).hasClass('select2-hidden-accessible')) {
                     $(this).trigger('change.select2');
@@ -3350,6 +3351,11 @@
                 row.remove();
                 toggleBomError(false);
                 calculateTotals();
+            } else if (container.dataset.prefillAll === 'true') {
+                $(row.querySelector('.product-select')).val('').trigger('change');
+                row.querySelector('.product-price').value = '0';
+                row.querySelector('.product-tax-rate').value = '0';
+                calculateTotals();
             }
         });
 
@@ -3402,6 +3408,25 @@
 
             container.appendChild(newRow);
         });
+
+        if (container.dataset.prefillAll === 'true') {
+            const firstRow = container.querySelector('.bom-row');
+            const template = firstRow.cloneNode(true);
+            const productIds = Array.from(firstRow.querySelector('.product-select').options)
+                .map(option => option.value).filter(Boolean);
+            prefillingBomRows = true;
+            productIds.forEach(function (id, index) {
+                const row = index === 0 ? firstRow : template.cloneNode(true);
+                if (index > 0) container.appendChild(row);
+                row.querySelector('.delete-bom-row').style.display = 'block';
+                row.querySelector('.delete-bom-row').setAttribute('aria-label', 'Remove BOM item');
+                $(row.querySelector('.product-select')).val(id).trigger('change');
+                const make = row.querySelector('.product-make');
+                if (make.options.length > 1) make.selectedIndex = 1;
+            });
+            prefillingBomRows = false;
+            calculateTotals();
+        }
     }
 
     function attachBomRowHandlers(row) {
