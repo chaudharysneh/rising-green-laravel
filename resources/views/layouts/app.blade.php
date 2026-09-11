@@ -942,24 +942,8 @@
                 </header>
 
                 <!-- Page Content -->
-                <main class="p-4 p-lg-4 mb-4 mb-lg-0">
-                    @unless(request()->routeIs('dashboard'))
-                        <div class="mb-3 d-flex justify-content-between align-items-center">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb mb-0">
-                                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"
-                                            class="text-muted text-decoration-none">Home</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page">@yield('page_title', 'Dashboard')
-                                    </li>
-                                </ol>
-                            </nav>
-                            <div class="d-flex align-items-center gap-3">
-                                @yield('page_actions')
-                            </div>
-                        </div>
-                    @else
-                        @yield('page_actions')
-                    @endunless
+                <main class="p-3 p-lg-3 mb-4 mb-lg-0">
+                    @yield('page_actions')
                     @if(session('success'))
                         <script>
                             document.addEventListener('DOMContentLoaded', function () {

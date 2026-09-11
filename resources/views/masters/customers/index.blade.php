@@ -40,7 +40,7 @@
             <div class="d-flex align-items-center gap-2"><label for="customerPerPage" class="text-muted small text-nowrap">Show per page:</label><select id="customerPerPage" class="form-select form-select-sm" style="width:88px;">@foreach([10,25,50,100] as $size)<option value="{{ $size }}">{{ $size }}</option>@endforeach</select></div>
         </div>
         <div id="customerFilters" class="collapse show">
-            <div class="row g-3 mt-3 p-3 border rounded-4" style="background-color:var(--bs-tertiary-bg, #f8fafc);">
+            <div class="row gx-3 gy-3 gy-xl-0 mt-3 p-3 border rounded-4" style="background-color:var(--bs-tertiary-bg, #f8fafc);">
                 <div class="col-md-6 col-xl-3"><label for="customerDateRange" class="form-label fw-semibold">From - To</label><div class="input-group"><span class="input-group-text"><i class="bi bi-calendar"></i></span><input id="customerDateRange" class="form-control" placeholder="Select date range" autocomplete="off"></div></div>
                 <div class="col-md-6 col-xl-3"><label for="customerStatus" class="form-label fw-semibold">Status</label><select id="customerStatus" class="form-select"><option value="">All statuses</option><option value="1">Active</option><option value="0">Inactive</option></select></div>
                 <div class="col-md-6 col-xl-3"><label for="customerType" class="form-label fw-semibold">Customer Type</label><select id="customerType" class="form-select"><option value="">All types</option>@foreach(['Individual','Corporate','Government','NGO'] as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></div>
