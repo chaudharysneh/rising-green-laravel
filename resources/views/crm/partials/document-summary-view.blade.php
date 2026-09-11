@@ -165,8 +165,8 @@
 
     <table class="summary-meta-row" style="margin-bottom:8px;">
         <tr>
-            <td width="33%" align="left" class="summary-meta">Estimate no.: #{{ $summaryEstimateNo ?? '--' }}</td>
-            <td width="34%" align="center" class="summary-meta" style="text-decoration:underline;">ESTIMATION</td>
+            <td width="33%" align="left" class="summary-meta">{{ isset($invoice) ? 'Invoice' : 'Estimate' }} no.: #{{ $summaryEstimateNo ?? '--' }}</td>
+            <td width="34%" align="center" class="summary-meta" style="text-decoration:underline;">{{ isset($invoice) ? 'INVOICE' : 'ESTIMATION' }}</td>
             <td width="33%" align="right" class="summary-meta">Date: {{ $summaryDate ?? '--' }}</td>
         </tr>
     </table>
@@ -297,7 +297,7 @@
             <td class="summary-cell">{{ $quantity ?? '0' }} kW</td>
         </tr>
         <tr>
-            <td class="summary-header-cell">Estimate Type</td>
+            <td class="summary-header-cell">{{ isset($invoice) ? 'Invoice Type' : 'Estimate Type' }}</td>
             <td class="summary-cell">{{ $summaryEstimateTypeLabel ?? '--' }}</td>
         </tr>
         <tr>

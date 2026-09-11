@@ -5,6 +5,11 @@
 @section('content')
     <div class="container-fluid p-0 dashboard-page">
         @php
+            $formatDashboardAmount = static function ($value) {
+                [$whole, $decimal] = explode('.', number_format((float) $value, 2, '.', ''));
+                $whole = preg_replace('/\B(?=(\d{2})*\d{3}(?!\d))/', ',', $whole);
+                return $whole . '.' . $decimal;
+            };
             $dashboardUser = auth()->user();
             $planName = $currentSubscriptionPlan?->name ?? 'No Plan Assigned';
             $isPremiumPlan = str_contains(strtolower($planName), 'premium');
@@ -151,7 +156,7 @@
                                 <div>
                                     <p class="estimate-overview-label mb-1">Total Estimate Value</p>
                                     <h3 class="estimate-overview-value mb-0">
-                                        ₹{{ number_format((float) ($estimateStats['total_value'] ?? 0), 2) }}</h3>
+                                        ₹{{ $formatDashboardAmount($estimateStats['total_value'] ?? 0) }}</h3>
                                 </div>
                                 <div class="estimate-overview-icon">
                                     <i class="bi bi-file-earmark-text-fill"></i>
@@ -208,7 +213,7 @@
                                     </div>
                                     <div class="text-end flex-shrink-0">
                                         <div class="fw-bold text-dark">
-                                            ₹{{ number_format((float) $latestEstimate->amount, 2) }}</div>
+                                            ₹{{ $formatDashboardAmount($latestEstimate->amount) }}</div>
                                         <span
                                             class="badge-status {{ strtolower((string) $latestEstimate->status) }}">{{ strtoupper((string) ($latestEstimate->status ?: 'pending')) }}</span>
                                     </div>
