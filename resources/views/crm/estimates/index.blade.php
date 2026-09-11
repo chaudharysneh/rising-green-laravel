@@ -265,9 +265,9 @@
                 </div>
                 <div class="d-flex flex-row gap-2 estimate-header-actions w-100 w-md-auto">
                     @can('estimates.create')
-                        <button type="button" class="btn btn-outline-dark-blue flex-fill flex-md-grow-0" data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
+                        {{-- <button type="button" class="btn btn-outline-dark-blue flex-fill flex-md-grow-0" data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
                             <i class="bi bi-lightning-charge me-1"></i>Quick Estimate
-                        </button>
+                        </button> --}}
                         <a href="{{ route('estimates.create') }}" class="btn btn-dark-blue flex-fill flex-md-grow-0">
                             <i class="bi bi-plus-lg me-1"></i>Add Estimate
                         </a>

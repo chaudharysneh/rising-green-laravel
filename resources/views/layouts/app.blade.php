@@ -794,11 +794,11 @@
                                                 </a>
                                             </li>    
                                         <li>
-                                                <button type="button" class="dropdown-item"
+                                                {{-- <button type="button" class="dropdown-item"
                                                     data-bs-toggle="modal" data-bs-target="#quickEstimateModal">
                                                     <i class="bi bi-lightning-charge"></i>
                                                     <span>Quick Estimate</span>
-                                                </button>
+                                                </button> --}}
                                             </li>
                                         @if (auth()->user()?->hasMatrixPermission('create_bom'))
                                             <li>
@@ -882,12 +882,12 @@
                             </button>
 
                             @if ($showTopEstimatesButton && auth()->user()?->hasMatrixPermission('create_estimates'))
-                                <button type="button"
+                                {{-- <button type="button"
                                     class="notification-btn quick-estimate-header-btn d-lg-none"
                                     data-bs-toggle="modal" data-bs-target="#quickEstimateModal"
                                     title="Quick Estimate" aria-label="Quick Estimate">
                                     <i class="bi bi-lightning-charge"></i>
-                                </button>
+                                </button> --}}
                             @endif
                             </div>
 
