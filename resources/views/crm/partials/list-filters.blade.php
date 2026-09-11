@@ -15,6 +15,8 @@
             <label for="filter-{{ $key }}" class="form-label fw-semibold">{{ $field['label'] }}</label>
             @if($field['kind'] === 'date')
                 <div class="input-group"><span class="input-group-text"><i class="bi bi-calendar"></i></span><input id="filter-{{ $key }}" data-list-date="{{ $key }}" class="form-control" placeholder="From - To"></div>
+            @elseif($field['kind'] === 'range')
+                <div class="d-flex gap-2"><input id="filter-{{ $key }}" data-list-filter="{{ $key }}_min" type="number" min="0" step="0.01" class="form-control" placeholder="Min" aria-label="Minimum {{ $field['label'] }}"><input data-list-filter="{{ $key }}_max" type="number" min="0" step="0.01" class="form-control" placeholder="Max" aria-label="Maximum {{ $field['label'] }}"></div>
             @elseif($field['kind'] === 'text')
                 <input id="filter-{{ $key }}" data-list-filter="{{ $key }}" class="form-control" placeholder="{{ $field['placeholder'] }}">
             @else

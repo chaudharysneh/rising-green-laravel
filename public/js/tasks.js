@@ -677,7 +677,12 @@
         }
 
         function fetchTasks(page = 1) {
+            if (window.moduleListFilters && !window.moduleListFilters.bound) {
+                window.moduleListFilters.bound = true;
+                window.moduleListFilters.bind(fetchTasks, 'tasksSearch');
+            }
             let url = `/api/tasks?page=${page}`;
+            url += '&' + new URLSearchParams(window.moduleListFilters?.values() || {}).toString();
 
             if (searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;

@@ -207,8 +207,13 @@
         }
 
         function fetchProducts(page) {
+            if (window.moduleListFilters && !window.moduleListFilters.bound) {
+                window.moduleListFilters.bound = true;
+                window.moduleListFilters.bind(fetchProducts, 'productsSearch');
+            }
             const url = new URL(PRODUCT_API_BASE, window.location.origin);
             url.searchParams.set('page', page || 1);
+            Object.entries(window.moduleListFilters?.values() || {}).forEach(([key, value]) => url.searchParams.set(key, value));
 
             if (searchInput.value.trim()) {
                 url.searchParams.set('search', searchInput.value.trim());

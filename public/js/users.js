@@ -472,7 +472,12 @@
         }
 
         function fetchUsers(page = 1) {
+            if (window.moduleListFilters && !window.moduleListFilters.bound) {
+                window.moduleListFilters.bound = true;
+                window.moduleListFilters.bind(fetchUsers, 'usersSearch');
+            }
             let url = `/api/users?page=${page}`;
+            url += '&' + new URLSearchParams(window.moduleListFilters?.values() || {}).toString();
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
             }
