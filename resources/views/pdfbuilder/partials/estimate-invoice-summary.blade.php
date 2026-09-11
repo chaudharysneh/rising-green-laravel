@@ -82,11 +82,15 @@ $summaryGstRateText = is_numeric($summaryGstRate) ? rtrim(rtrim(number_format((f
 $summaryShowGst = ((float) $summaryGstAmount > 0) || ((float) $summaryGstRate > 0);
 $summaryBreakupLines = [];
 $summaryUsesGlobalTax = false;
+$summaryHasSavedTaxScope = false;
 
 if (!empty($summaryGstBreakdown['groups']) && is_array($summaryGstBreakdown['groups'])) {
     foreach ($summaryGstBreakdown['groups'] as $group) {
         if ((string) ($group['tax_type'] ?? '') === 'global_tax') {
             $summaryUsesGlobalTax = true;
+            $summaryHasSavedTaxScope = true;
+        } elseif ((string) ($group['tax_type'] ?? '') === 'bom_selected_tax') {
+            $summaryHasSavedTaxScope = true;
         }
         if ((string) ($group['tax_type'] ?? '') === 'gst_percent') {
             continue;
@@ -107,6 +111,13 @@ if (!empty($summaryGstBreakdown['groups']) && is_array($summaryGstBreakdown['gro
             ];
         }
     }
+}
+
+if (!$summaryHasSavedTaxScope && $summaryBaseCost > 0 && $summaryBomTotal <= 0) {
+    $summaryUsesGlobalTax = true;
+}
+if (in_array($estdata->price_mode ?? null, ['base', 'bom'], true)) {
+    $summaryUsesGlobalTax = $estdata->price_mode === 'base';
 }
 
 if (empty($summaryBreakupLines) && $estdata && !empty($estdata->product_name)) {
@@ -254,11 +265,12 @@ $summaryLendingCost = $summaryNetPayable;
         <td style="<?= $summaryCellStyle ?>">Base cost</td>
         <td style="<?= $summaryRightCellStyle ?>"><?= number_format($summaryBaseCost, 2) ?></td>
     </tr>
-    <?php endif; ?>
+    <?php else: ?>
     <tr>
         <td style="<?= $summaryCellStyle ?>">Bill of Materials (BOM)</td>
         <td style="<?= $summaryRightCellStyle ?>"><?= $summaryUsesGlobalTax ? '--' : number_format($summaryBomTotal, 2) ?></td>
     </tr>
+    <?php endif; ?>
     <?php if ($summaryShowBomTaxes): ?>
     <tr>
         <td style="<?= $summaryCellStyle ?>"><strong><?= $summaryUsesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' ?></strong></td>
