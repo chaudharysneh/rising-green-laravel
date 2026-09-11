@@ -20,6 +20,14 @@ class LeadController extends ApiBaseController
         $search = $request->get('search');
         $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
         $user = auth()->user();
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'status' => ['nullable', 'in:new,qualified,working,ready_to_close,won,lost'],
+            'lead_source_id' => ['nullable', 'integer'],
+            'created_by' => ['nullable', 'integer'],
+            'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
+        ]);
 
         $leads = Lead::with(['leadSource', 'stage', 'assignedUser', 'creator'])
             ->when($search, function ($query) use ($search) {
@@ -41,8 +49,13 @@ class LeadController extends ApiBaseController
                 $query->where('assigned_user_id', $user->id)
                       ->where('created_by', '!=', $user->id);
             })
+            ->when($request->filled('date_from'), fn ($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when($request->filled('date_to'), fn ($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $filters['status']))
+            ->when($request->filled('lead_source_id'), fn ($q) => $q->where('lead_source_id', $filters['lead_source_id']))
+            ->when($request->filled('created_by'), fn ($q) => $q->where('created_by', $filters['created_by']))
             ->latest()
-            ->paginate(10)
+            ->paginate($filters['per_page'] ?? 10)
             ->withQueryString();
 
         return response()->json([

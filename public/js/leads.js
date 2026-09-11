@@ -14,6 +14,21 @@
 
         const paginationContainer = document.getElementById("leadsPagination");
         const searchInput = document.getElementById("leadsSearch");
+        const leadFilters = {
+            status: document.getElementById('leadStatusFilter'),
+            lead_source_id: document.getElementById('leadSourceFilter'),
+            created_by: document.getElementById('leadCreatorFilter'),
+            per_page: document.getElementById('leadPerPage'),
+        };
+        const dateRange = window.flatpickr('#leadDateRange', {
+            mode: 'range', dateFormat: 'Y-m-d', altInput: true, altFormat: 'd M Y',
+            onChange: function (dates) { if (dates.length === 2 || dates.length === 0) fetchLeads(1); }
+        });
+        Object.values(leadFilters).forEach(field => field.addEventListener('change', () => fetchLeads(1)));
+        document.getElementById('clearLeadFilters').addEventListener('click', function () {
+            ['status', 'lead_source_id', 'created_by'].forEach(key => leadFilters[key].value = '');
+            searchInput.value = ''; dateRange.clear(false); fetchLeads(1);
+        });
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
         
         // Get filter from URL parameter or default to 'created_by_me'
@@ -342,6 +357,12 @@
 
         function fetchLeads(page = 1) {
             let url = `/api/leads?page=${page}`;
+            Object.entries(leadFilters).forEach(([key, field]) => {
+                if (field.value !== '') url += `&${key}=${encodeURIComponent(field.value)}`;
+            });
+            if (dateRange.selectedDates.length === 2) {
+                url += `&date_from=${dateRange.formatDate(dateRange.selectedDates[0], 'Y-m-d')}&date_to=${dateRange.formatDate(dateRange.selectedDates[1], 'Y-m-d')}`;
+            }
 
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;

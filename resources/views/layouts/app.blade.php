@@ -942,7 +942,7 @@
                 </header>
 
                 <!-- Page Content -->
-                <main class="p-3 p-lg-3 mb-4 mb-lg-0">
+                <main class="crm-page-content p-3 p-lg-3 mb-4 mb-lg-0">
                     @yield('page_actions')
                     @if(session('success'))
                         <script>
