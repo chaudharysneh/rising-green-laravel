@@ -66,7 +66,8 @@ class FollowUpController extends ApiBaseController
                   ->where('created_by', '!=', $user->id);
         }
 
-        $followUps = $query->latest('follow_up_at')->paginate(10);
+        \App\Support\ListFilters::apply($query, $request, ['assigned_user_id', 'status'], ['created_at', 'follow_up_at'], []);
+        $followUps = $query->latest('follow_up_at')->paginate($request->integer('per_page', 10));
 
         return response()->json([
             'success' => true,

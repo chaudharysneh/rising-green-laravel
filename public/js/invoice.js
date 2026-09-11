@@ -296,7 +296,9 @@
         });
 
         function fetchInvoices(page = 1) {
+            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchInvoices, 'invoiceSearch'); }
             let url = `/api/invoices?page=${page}`;
+            url += '&' + new URLSearchParams(window.moduleListFilters.values()).toString();
             if (searchInput && searchInput.value.trim()) url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
             
             // Add filter parameter for staff users

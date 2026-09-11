@@ -25,13 +25,7 @@
                     @endcan
                 </div>
             </div>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <h6 class="fw-bold mb-0">Active Follow Ups</h6>
-                <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
-                    <span class="input-group-text crm-search-icon border-0"><i class="bi bi-search"></i></span>
-                    <input type="text" id="followUpSearch" class="form-control crm-search-input border-0" placeholder="Search follow ups..." name="search" value="{{ request('search') }}">
-                </div>
-            </div>
+            @include('crm.partials.module-filter-config', ['module' => 'followups', 'searchId' => 'followUpSearch', 'placeholder' => 'Search follow ups...'])
         </div>
         <div class="card-body p-0">
             @if(!auth()->user()->isAdmin())
@@ -111,5 +105,5 @@
         }
     };
     </script>
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/followup.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/followup.js') }}?v={{ filemtime(public_path('js/followup.js')) }}"></script>
 @endpush

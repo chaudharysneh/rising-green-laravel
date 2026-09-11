@@ -25,8 +25,15 @@ class BomProductController extends ApiBaseController
                         ->orWhereHas('warranty', fn ($related) => $related->where('title', 'like', "%{$search}%"));
                 });
             })
+            ->tap(function ($query) use ($request) {
+                \App\Support\ListFilters::apply($query, $request, ['technology_id', 'warranty_id'], ['created_at']);
+                $request->validate(['category_id' => ['nullable', 'integer']]);
+                if ($request->filled('category_id')) {
+                    $query->whereHas('categories', fn ($q) => $q->whereKey($request->integer('category_id')));
+                }
+            })
             ->latest()
-            ->paginate(10)
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString();
 
         return response()->json([
