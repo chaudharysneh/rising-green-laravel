@@ -17,7 +17,7 @@
             gap: 12px;
         }
         .report-filter-label { color: #1f3b63; font-weight: 500; margin-bottom: 0; }
-        
+
         [data-theme="dark"] .report-filter-label {
             color: #ffffff;
             font-weight: 500;
@@ -61,15 +61,21 @@
     </style>
 @endpush
 
+@php
+    if (count($chartData ?? []) === 0) {
+        $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        $chartData = array_fill(0, 12, 0);
+    }
+@endphp
 @section('content')
     <div class="container-fluid p-0">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 pt-4 px-4">
                 <div class="row g-4">
-                    <div class="col-12 col-lg-2">
-                        <h4 class="fw-bold mb-0">Lead</h4>
+                    <div class="col-12 col-lg-auto">
+                        <h4 class="fw-bold mb-0 text-nowrap">Leads Report</h4>
                     </div>
-                    <div class="col-12 col-lg-10 d-flex justify-content-end">
+                    <div class="col-12 col-lg d-flex justify-content-end">
                         <form action="" method="GET" class="report-filter-panel">
                             <div class="report-filter-row">
                                 <label class="report-filter-label">Year:</label>
@@ -102,26 +108,7 @@
         </div>
 
         <div class="card border-0 shadow-sm overflow-hidden">
-            <div class="card-header border-bottom-0 py-3 px-4">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                    <div>
-                        <h4 class="fw-bold mb-0">Lead Report</h4>
-                        <p class="text-muted small mb-0">View all leads.</p>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ route('reports.leads_report.export') }}" class="btn btn-outline-dark-blue">
-                            <i class="fa-solid fa-download me-1"></i>Export
-                        </a>
-                    </div>
-                </div>
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <h6 class="fw-bold mb-0">Active Leads</h6>
-                    <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
-                        <span class="input-group-text crm-search-icon border-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control crm-search-input border-0" placeholder="Search leads..." id="leadsReportSearch">
-                    </div>
-                </div>
-            </div>
+            <div class="px-4 py-3">@include('crm.partials.report-filters', ['module'=>'leads'])</div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="leadsReportTable">
@@ -137,7 +124,7 @@
                                 <th class="text-center d-md-none" style="width: 80px;">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="leadsReportBody"></tbody>
+                        <tbody id="leadsReportBody"><tr><td colspan="8" class="text-center text-muted py-5">No data available</td></tr></tbody>
                     </table>
                 </div>
                 <div class="card-footer border-top-0 py-4 px-4" id="leadsReportPagination"></div>
@@ -172,8 +159,10 @@
             }
 
             function fetchLeadsReport(page = 1) {
+                if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchLeadsReport, 'leadsReportSearch'); }
+
                 const url = new URL("{{ route('reports.leads') }}", window.location.origin);
-                url.searchParams.set('page', page);
+                url.searchParams.set('page', page); Object.entries(window.moduleListFilters.values()).forEach(([key,value]) => url.searchParams.set(key,value));
                 url.searchParams.set('year', $('select[name="year"]').val() || '');
                 url.searchParams.set('from_date', $('input[name="from_date"]').val() || '');
                 url.searchParams.set('to_date', $('input[name="to_date"]').val() || '');
@@ -191,14 +180,14 @@
 
             function renderRows(items, meta) {
                 if (!items || !items.length) {
-                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div><p class="text-muted">No leads found.</p></td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div><p class="text-muted">No data available</p></td></tr>';
                     return;
                 }
 
                 tableBody.innerHTML = items.map(function (lead, index) {
                     const isConverted = Boolean(lead.is_converted);
                     const sourceText = lead.lead_source?.name || lead.leadSource?.name || '-';
-                    const createdBy = lead.assigned_user?.name || lead.assignedUser?.name || '-';
+                    const createdBy = lead.creator?.name || '-';
                     const srNo = meta && meta.from ? meta.from + index : index + 1;
                     const statusHtml = `<span class="badge ${statusBadge(lead.status)} rounded-pill px-3">${formatStatus(lead.status)}</span>`;
                     return `
@@ -256,5 +245,4 @@
         });
     </script>
 @endpush
-
 

@@ -60,24 +60,27 @@
     </style>
 @endpush
 
+@php
+    if (count($chartData ?? []) === 0) {
+        $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        $chartData = array_fill(0, 12, 0);
+    }
+@endphp
 @section('content')
 <div class="container-fluid p-0">
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
             <div class="row g-4">
-                <div class="col-12 col-lg-2"><h4 class="fw-bold mb-0">Followups Overview</h4></div>
-                <div class="col-12 col-lg-10 d-flex justify-content-end"><form action="" method="GET" class="report-filter-panel"><div class="report-filter-row"><label class="report-filter-label">Year:</label><select name="year" class="form-select report-filter-control">@foreach($years as $y)<option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>@endforeach</select></div><div class="report-filter-row"><label class="report-filter-label">From Date:</label><input type="date" name="from_date" value="{{ $from_date }}" class="form-control report-filter-control" placeholder="DD-MM"></div><div class="report-filter-row"><label class="report-filter-label">To Date:</label><input type="date" name="to_date" value="{{ $to_date }}" class="form-control report-filter-control" placeholder="DD-MM"></div><div class="d-flex justify-content-start"><a href="{{ route('reports.followups') }}" class="btn btn-dark-blue report-reset-btn">Reset</a></div></form></div>
+                <div class="col-12 col-lg-auto"><h4 class="fw-bold mb-0 text-nowrap">Followups Report</h4></div>
+                <div class="col-12 col-lg d-flex justify-content-end"><form action="" method="GET" class="report-filter-panel"><div class="report-filter-row"><label class="report-filter-label">Year:</label><select name="year" class="form-select report-filter-control">@foreach($years as $y)<option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>@endforeach</select></div><div class="report-filter-row"><label class="report-filter-label">From Date:</label><input type="date" name="from_date" value="{{ $from_date }}" class="form-control report-filter-control" placeholder="DD-MM"></div><div class="report-filter-row"><label class="report-filter-label">To Date:</label><input type="date" name="to_date" value="{{ $to_date }}" class="form-control report-filter-control" placeholder="DD-MM"></div><div class="d-flex justify-content-start"><a href="{{ route('reports.followups') }}" class="btn btn-dark-blue report-reset-btn">Reset</a></div></form></div>
             </div>
         </div>
         <div class="card-body px-4 pb-4"><div class="chart-container" style="position: relative; height:350px; width:100%"><canvas id="followupsChart"></canvas></div></div>
     </div>
 
     <div class="card border-0 shadow-sm overflow-hidden">
-        <div class="card-header border-bottom-0 py-3 px-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3"><div><h4 class="fw-bold mb-0">Followups Report</h4><p class="text-muted small mb-0">View all followups.</p></div><div class="d-flex flex-wrap gap-2"><a href="{{ route('reports.followups_report.export', request()->all()) }}" class="btn btn-outline-dark-blue"><i class="fa-solid fa-download me-1"></i>Export</a></div></div>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><h6 class="fw-bold mb-0">Active Followups</h6><div class="input-group input-group-sm" style="max-width: 300px; width: 100%;"><span class="input-group-text crm-search-icon border-0"><i class="bi bi-search"></i></span><input type="text" id="followupsReportSearch" class="form-control crm-search-input border-0" placeholder="Search follow ups..."></div></div>
-        </div>
-        <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 responsive-table"><thead><tr><th class="ps-4">Purpose & Target</th><th class="text-start">Follow Up At</th><th class="d-none d-md-table-cell">Priority</th><th class="d-none d-md-table-cell">Staff</th><th class="d-none d-md-table-cell">Status</th><th class="text-end pe-4 d-none d-md-table-cell" style="width: 120px;">Actions</th><th class="text-center d-md-none" style="width: 80px;">Action</th></tr></thead><tbody id="followupsReportBody"></tbody></table></div><div id="followupsReportPagination" class="px-4 pb-3 pt-0"></div></div>
+        <div class="px-4 py-3">@include('crm.partials.report-filters', ['module'=>'followups'])</div>
+            <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0 responsive-table"><thead><tr><th class="ps-4">Purpose & Target</th><th class="text-start">Follow Up At</th><th class="d-none d-md-table-cell">Priority</th><th class="d-none d-md-table-cell">Staff</th><th class="d-none d-md-table-cell">Status</th><th class="text-end pe-4 d-none d-md-table-cell" style="width: 120px;">Actions</th><th class="text-center d-md-none" style="width: 80px;">Action</th></tr></thead><tbody id="followupsReportBody"><tr><td colspan="7" class="text-center text-muted py-5">No data available</td></tr></tbody></table></div><div id="followupsReportPagination" class="px-4 pb-3 pt-0"></div></div>
     </div>
 </div>
 @endsection
@@ -91,13 +94,15 @@ $(document).ready(function () {
     const searchInput = document.getElementById('followupsReportSearch');
 
     function fetchFollowupsReport(page = 1) {
+                if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchFollowupsReport, 'followupsReportSearch'); }
+
         const url = new URL("{{ route('reports.followups') }}", window.location.origin);
-        url.searchParams.set('page', page); url.searchParams.set('year', $('select[name="year"]').val() || ''); url.searchParams.set('from_date', $('input[name="from_date"]').val() || ''); url.searchParams.set('to_date', $('input[name="to_date"]').val() || ''); if (searchInput.value.trim()) url.searchParams.set('search', searchInput.value.trim());
+        url.searchParams.set('page', page); Object.entries(window.moduleListFilters.values()).forEach(([key,value]) => url.searchParams.set(key,value)); url.searchParams.set('year', $('select[name="year"]').val() || ''); url.searchParams.set('from_date', $('input[name="from_date"]').val() || ''); url.searchParams.set('to_date', $('input[name="to_date"]').val() || ''); if (searchInput.value.trim()) url.searchParams.set('search', searchInput.value.trim());
         $.ajax({ url: url.toString(), type: 'GET', dataType: 'json', headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' }, beforeSend: function () { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>'; }, success: function (res) { if (res.success && res.data) { renderRows(res.data.data || []); renderPagination(res.data); } }, error: function () { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5">Error loading follow-ups</td></tr>'; paginationContainer.innerHTML = ''; } });
     }
 
     function renderRows(items) {
-        if (!items || !items.length) { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-telephone-outbound display-1 opacity-25"></i></div><p class="text-muted">No follow ups found.</p></td></tr>'; return; }
+        if (!items || !items.length) { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-telephone-outbound display-1 opacity-25"></i></div><p class="text-muted">No data available</p></td></tr>'; return; }
         tableBody.innerHTML = items.map(function (followUp) {
             const entity = followUp.lead || followUp.customer; const entityType = followUp.lead ? 'Lead' : 'Customer'; const initial = entity?.name ? entity.name.substring(0, 1).toUpperCase() : '?'; const followDate = followUp.follow_up_at ? new Date(followUp.follow_up_at) : null; const date = followDate ? followDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'; const time = followDate ? followDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''; const priorityClass = { low: 'bg-info', medium: 'bg-primary', high: 'bg-danger' }[followUp.priority] || 'bg-secondary'; const statusClass = { pending: 'bg-warning text-dark', resheduled: 'bg-info', completed: 'bg-success', cancelled: 'bg-danger' }[followUp.status] || 'bg-secondary'; const priorityHtml = `<span class="badge ${priorityClass} px-3 py-2 rounded-pill text-capitalize">${followUp.priority ?? '-'}</span>`; const statusHtml = `<span class="badge ${statusClass} px-3 py-2 rounded-pill text-capitalize">${followUp.status ?? '-'}</span>`;
             return `

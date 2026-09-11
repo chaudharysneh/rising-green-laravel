@@ -19,6 +19,35 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    private function applyReportFilters($query, Request $request, string $module): void
+    {
+        [$exact, $dates] = match ($module) {
+            'customers' => [['is_active', 'type'], ['created_at']],
+            'leads' => [['status', 'lead_source_id', 'lead_stage_id', 'created_by', 'assigned_user_id'], ['created_at']],
+            'deals' => [['customer_id', 'created_by', 'status_id'], []],
+            'tasks' => [['assigned_user_id', 'task_type', 'status'], ['due_date']],
+            'followups' => [['assigned_user_id', 'status'], ['created_at', 'follow_up_at']],
+        };
+        \App\Support\ListFilters::apply($query, $request, $exact, $dates);
+
+        if ($module === 'deals') {
+            $request->validate(['amount_min' => ['nullable', 'numeric', 'min:0'], 'amount_max' => ['nullable', 'numeric', 'min:0']]);
+            if ($request->filled('amount_min')) $query->where('amount', '>=', $request->input('amount_min'));
+            if ($request->filled('amount_max')) $query->where('amount', '<=', $request->input('amount_max'));
+        }
+        if ($module === 'tasks') {
+            $request->validate(['customer_id' => ['nullable', 'integer', 'min:1']]);
+            if ($request->filled('customer_id')) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('customer', fn ($customer) => $customer->whereKey($request->integer('customer_id')))
+                        ->orWhere(function ($fallback) use ($request) {
+                            $fallback->whereDoesntHave('customer')->whereHas('project', fn ($project) => $project->where('customer_id', $request->integer('customer_id')));
+                        });
+                });
+            }
+        }
+    }
+
     public function index()
     {
         $stats = [
@@ -143,7 +172,8 @@ class ReportController extends Controller
                 $query->whereYear('created_at', $year);
             }
 
-            $customers = $query->paginate(10)->appends($request->query());
+            $this->applyReportFilters($query, $request, 'customers');
+            $customers = $query->paginate($request->integer('per_page', 10))->appends($request->query());
 
             return response()->json([
                 'success' => true,
@@ -200,7 +230,7 @@ class ReportController extends Controller
 
         // ── DataTable AJAX response ──────────────────────────────
         if ($request->ajax()) {
-            $query = Lead::with(['leadSource', 'assignedUser'])->latest();
+            $query = Lead::with(['leadSource', 'assignedUser', 'creator'])->latest();
 
             if ($search !== '') {
                 $query->where(function ($q) use ($search) {
@@ -227,7 +257,8 @@ class ReportController extends Controller
                 $query->whereYear('created_at', $year);
             }
 
-            $leads = $query->paginate(10)->appends($request->query());
+            $this->applyReportFilters($query, $request, 'leads');
+            $leads = $query->paginate($request->integer('per_page', 10))->appends($request->query());
 
             return response()->json([
                 'success' => true,
@@ -371,7 +402,8 @@ class ReportController extends Controller
                 $query->whereYear('created_at', $year);
             }
 
-            $deals = $query->paginate(10)->appends($request->query());
+            $this->applyReportFilters($query, $request, 'deals');
+            $deals = $query->paginate($request->integer('per_page', 10))->appends($request->query());
 
             return response()->json([
                 'success' => true,
@@ -649,7 +681,8 @@ class ReportController extends Controller
                 $query->whereYear('created_at', $year);
             }
 
-            $tasks = $query->paginate(10)->appends($request->query());
+            $this->applyReportFilters($query, $request, 'tasks');
+            $tasks = $query->paginate($request->integer('per_page', 10))->appends($request->query());
 
             return response()->json([
                 'success' => true,
@@ -757,7 +790,8 @@ class ReportController extends Controller
                 $query->whereYear('created_at', $year);
             }
 
-            $followups = $query->paginate(10)->appends($request->query());
+            $this->applyReportFilters($query, $request, 'followups');
+            $followups = $query->paginate($request->integer('per_page', 10))->appends($request->query());
 
             return response()->json([
                 'success' => true,
