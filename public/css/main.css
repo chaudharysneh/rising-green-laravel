@@ -578,7 +578,7 @@
 }
 
 @media (max-width: 991.98px) {
-    main.p-4.p-lg-4.mb-5 {
+    .crm-page-content {
         margin-bottom: 85px !important;
     }
 

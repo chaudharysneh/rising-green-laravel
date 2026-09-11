@@ -15,7 +15,9 @@ class LeadController extends Controller
 {
     public function index()
     {
-        return view('crm.leads.index');
+        $sources = LeadSource::orderBy('name')->get();
+        $creators = User::whereIn('id', Lead::select('created_by'))->orderBy('name')->get(['id', 'name']);
+        return view('crm.leads.index', compact('sources', 'creators'));
     }
 
     // public function create()
@@ -216,4 +218,3 @@ class LeadController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 }
-

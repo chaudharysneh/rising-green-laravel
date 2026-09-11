@@ -25,11 +25,23 @@
                     </div>
                 </div>
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <h6 class="fw-bold mb-0">Active Enquiries</h6>
-                    <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
+                    <div class="d-flex flex-nowrap gap-2 align-items-center" style="width:100%;max-width:450px;min-width:0;">
+                    <div class="input-group input-group-sm" style="max-width:330px;flex:1;min-width:0;">
                         <span class="input-group-text crm-search-icon border-0"><i class="bi bi-search"></i></span>
                         <input type="text" class="form-control crm-search-input border-0" placeholder="Search leads..."
                             id="leadsSearch" value="{{ request('search') }}">
+                    </div>
+                    <button class="btn btn-outline-dark-blue flex-shrink-0 text-nowrap" type="button" data-bs-toggle="collapse" data-bs-target="#leadFilters" aria-expanded="true" aria-controls="leadFilters"><i class="fa-solid fa-filter me-1"></i>Filters</button>
+                    </div>
+                    <div class="d-flex align-items-center gap-2"><label for="leadPerPage" class="text-muted small text-nowrap">Show per page:</label><select id="leadPerPage" class="form-select form-select-sm" style="width:88px;">@foreach([10,25,50,100] as $size)<option value="{{ $size }}">{{ $size }}</option>@endforeach</select></div>
+                </div>
+                <div id="leadFilters" class="collapse show">
+                    <div class="row gx-3 gy-3 gy-xl-0 mt-3 p-3 border rounded-4" style="background-color:var(--bs-tertiary-bg, #f8fafc);">
+                        <div class="col-md-6 col-xl"><label for="leadDateRange" class="form-label fw-semibold">Created At</label><div class="input-group"><span class="input-group-text"><i class="bi bi-calendar"></i></span><input id="leadDateRange" class="form-control" placeholder="From - To" autocomplete="off"></div></div>
+                        <div class="col-md-6 col-xl"><label for="leadStatusFilter" class="form-label fw-semibold">Status</label><select id="leadStatusFilter" class="form-select"><option value="">All statuses</option>@foreach(['new','qualified','working','ready_to_close','won','lost'] as $status)<option value="{{ $status }}">{{ ucwords(str_replace('_', ' ', $status)) }}</option>@endforeach</select></div>
+                        <div class="col-md-6 col-xl"><label for="leadSourceFilter" class="form-label fw-semibold">Lead Source</label><select id="leadSourceFilter" class="form-select"><option value="">All sources</option>@foreach($sources as $source)<option value="{{ $source->id }}">{{ $source->name }}</option>@endforeach</select></div>
+                        <div class="col-md-6 col-xl"><label for="leadCreatorFilter" class="form-label fw-semibold">Created By</label><select id="leadCreatorFilter" class="form-select"><option value="">All creators</option>@foreach($creators as $creator)<option value="{{ $creator->id }}">{{ $creator->name }}</option>@endforeach</select></div>
+                        <div class="col-md-6 col-xl d-flex align-items-end"><button type="button" id="clearLeadFilters" class="btn btn-dark-blue w-100"><i class="fa-solid fa-rotate-left me-1"></i>Clear</button></div>
                     </div>
                 </div>
             </div>
