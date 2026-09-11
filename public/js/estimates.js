@@ -442,7 +442,21 @@
                     const estimateId = button.dataset.id;
                     const currentStatus = button.dataset.status;
                     const nextStatus = currentStatus === 'approved' ? 'pending' : 'approved';
-                    updateEstimateStatus(estimateId, nextStatus, button);
+                    Swal.fire({
+                        title: nextStatus === 'approved' ? 'Approve estimate?' : 'Mark estimate as pending?',
+                        text: nextStatus === 'approved'
+                            ? 'Are you sure you want to change this estimate from Pending to Approved?'
+                            : 'Are you sure you want to change this estimate from Approved to Pending?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: nextStatus === 'approved' ? 'Yes, approve' : 'Yes, mark as pending',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#0b2438',
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            updateEstimateStatus(estimateId, nextStatus, button);
+                        }
+                    });
                 });
             });
         }

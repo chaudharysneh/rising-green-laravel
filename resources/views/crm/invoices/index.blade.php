@@ -3,6 +3,36 @@
 @section('page_title', 'Invoices')
 
 @section('content')
+    <style>
+        .invoice-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            min-height: 32px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .invoice-status-paid,
+        .invoice-status-paid:hover,
+        .invoice-status-paid:focus {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .invoice-status-unpaid,
+        .invoice-status-unpaid:hover,
+        .invoice-status-unpaid:focus {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .invoice-status-cancelled,
+        .invoice-status-cancelled:hover,
+        .invoice-status-cancelled:focus {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
     <div class="container-fluid p-0">
         <div class="card border-0 shadow-sm overflow-hidden">
             <div class="card-header border-bottom-0 py-3 px-4">

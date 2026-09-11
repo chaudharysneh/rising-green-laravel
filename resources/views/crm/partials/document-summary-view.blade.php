@@ -148,6 +148,9 @@
     <table class="summary-top-row" style="margin-bottom:8px;">
         <tr>
             <td width="45%" valign="top" align="left" class="summary-company-text" style="padding-bottom:8px;">
+                @if (!empty($summaryLogoUrl))
+                    <img src="{{ $summaryLogoUrl }}" alt="Company Logo" style="display:block;width:250px;max-width:100%;height:auto;max-height:90px;object-fit:contain;object-position:left center;">
+                @endif
             </td>
             <td width="55%" valign="top" align="right" class="summary-company-text" style="padding-bottom:8px;">
                 <strong style="font-size:16px;">{{ $summaryCompanyName ?? '--' }}</strong><br>
