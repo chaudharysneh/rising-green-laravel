@@ -306,17 +306,28 @@
         </tr>
     </table>
 
+    @php
+        $summaryHasBank = trim((string) ($summaryBankName ?? '')) !== '' || !empty($summaryBankFields);
+        $summaryHasQr = !empty($summaryQrUrl);
+        $summaryCommentWidth = $summaryHasBank ? ($summaryHasQr ? 35 : 50) : ($summaryHasQr ? 75 : 100);
+        $summaryBankWidth = $summaryHasQr ? 40 : 50;
+    @endphp
     <table class="summary-footer-table" style="margin-top:8px;margin-bottom:8px;">
         <thead>
             <tr>
-                <th class="summary-footer-header" style="width:35%;">Comment</th>
-                <th class="summary-footer-header" style="width:40%;">Bank Details</th>
+                <th class="summary-footer-header" style="width:{{ $summaryCommentWidth }}%;">Comment</th>
+                @if ($summaryHasBank)
+                <th class="summary-footer-header" style="width:{{ $summaryBankWidth }}%;">Bank Details</th>
+                @endif
+                @if ($summaryHasQr)
                 <th class="summary-footer-header" style="width:25%;">QR Code</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td class="summary-footer-cell">{!! nl2br(e($summaryEstimateComment ?: '--')) !!}</td>
+                @if ($summaryHasBank)
                 <td class="summary-footer-cell">
                     @if (($summaryBankName ?? '') !== '' || !empty($summaryBankFields))
                         <table class="summary-bank-box">
@@ -340,6 +351,8 @@
                         <span style="font-size:13px;color:#888;font-style:italic;">No bank details available.</span>
                     @endif
                 </td>
+                @endif
+                @if ($summaryHasQr)
                 <td class="summary-footer-cell" style="text-align:center;">
                     @if (!empty($summaryQrUrl))
                         <img src="{{ $summaryQrUrl }}" alt="QR Code" class="summary-qr-img">
@@ -347,6 +360,7 @@
                         No QR code available.
                     @endif
                 </td>
+                @endif
             </tr>
         </tbody>
     </table>

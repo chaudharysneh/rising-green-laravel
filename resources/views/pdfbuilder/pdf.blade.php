@@ -2903,6 +2903,10 @@ if (isset($after_blocks) && is_array($after_blocks)) {
     $components = isset($components) && is_array($components) ? $components : [];
     $componentsActive = (int) ($components['active'] ?? 1);
     $componentsTitle = trim((string) ($components['title'] ?? ''));
+    $componentsDocumentType = strtolower(trim((string) ($estdata->type ?? '')));
+    if (in_array($componentsDocumentType, ['residential', 'commercial', 'industrial'], true)) {
+        $componentsTitle = ucfirst($componentsDocumentType) . ' Solar System Components';
+    }
     $componentsDescRaw = (string) ($components['description'] ?? '');
     $componentsDesc = sanitize_pdf_rich_html($componentsDescRaw);
     

@@ -215,6 +215,10 @@ if (!empty($invoiceOnly)) {
         ['document_no' => $estimate_no ?? $estdata->invoice_no ?? '--']
     ));
 }
+$summaryHasBank = trim((string) $summaryBankName) !== '' || !empty($summaryBankFields);
+$summaryHasQr = !empty($summaryQrImage) && str_starts_with($summaryQrImage, 'data:image/');
+$summaryCommentWidth = $summaryHasBank ? ($summaryHasQr ? 35 : 50) : ($summaryHasQr ? 75 : 100);
+$summaryBankWidth = $summaryHasQr ? 40 : 50;
 ?>
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:0;margin-bottom:8px;border-collapse:collapse;">
@@ -369,12 +373,17 @@ if (!empty($invoiceOnly)) {
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-top:5px;margin-bottom:8px;border-collapse:collapse;page-break-inside:avoid;">
     <tr style="page-break-inside:avoid;">
-        <td style="<?= $summaryFooterHeaderCellStyle ?>width:35%;">Comment</td>
-        <td style="<?= $summaryFooterHeaderCellStyle ?>width:40%;">Bank Details</td>
+        <td style="<?= $summaryFooterHeaderCellStyle ?>width:<?= $summaryCommentWidth ?>%;">Comment</td>
+        <?php if ($summaryHasBank): ?>
+        <td style="<?= $summaryFooterHeaderCellStyle ?>width:<?= $summaryBankWidth ?>%;">Bank Details</td>
+        <?php endif; ?>
+        <?php if ($summaryHasQr): ?>
         <td style="<?= $summaryFooterHeaderCellStyle ?>width:25%;">QR Code</td>
+        <?php endif; ?>
     </tr>
     <tr style="page-break-inside:avoid;">
         <td style="<?= $summaryFooterCellStyle ?>"><?= nl2br(esc($summaryEstimateComment ?: '--')) ?></td>
+        <?php if ($summaryHasBank): ?>
         <td style="<?= $summaryFooterCellStyle ?>padding:4px 6px;">
             <?php if ($summaryBankName !== '' || !empty($summaryBankFields)): ?>
             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background-color:#f6fbf6;border:1px solid #cfe5cf;font-family:'DejaVu Sans',sans-serif;">
@@ -401,6 +410,8 @@ if (!empty($invoiceOnly)) {
             <span style="font-size:13px;font-family:'DejaVu Sans',sans-serif;color:#888;font-style:italic;">No bank details available.</span>
             <?php endif; ?>
         </td>
+        <?php endif; ?>
+        <?php if ($summaryHasQr): ?>
         <td style="<?= $summaryFooterCellStyle ?>text-align:center;">
             <?php if (!empty($summaryQrImage)): ?>
                 <img src="<?= $summaryQrImage ?>" alt="QR Code" style="max-width:58px;max-height:58px;">
@@ -408,6 +419,7 @@ if (!empty($invoiceOnly)) {
                 No QR code available.
             <?php endif; ?>
         </td>
+        <?php endif; ?>
     </tr>
 </table>
 </div>
