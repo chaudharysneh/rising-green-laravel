@@ -19,7 +19,8 @@ class SupportTicketController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $bookings = Booking::orderBy('booking_no')->get();
 
-        return view('crm.tickets.create', compact('customers', 'bookings'));
+        $users = auth()->user()->isAdmin() ? \App\Models\User::orderBy('name')->get() : collect([auth()->user()]);
+        return view('crm.tickets.create', compact('customers', 'bookings', 'users'));
     }
 
     public function show(SupportTicket $ticket)
@@ -35,7 +36,8 @@ class SupportTicketController extends Controller
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $bookings = Booking::orderBy('booking_no')->get();
 
-        return view('crm.tickets.edit', compact('ticket', 'customers', 'bookings'));
+        $users = auth()->user()->isAdmin() ? \App\Models\User::orderBy('name')->get() : collect([auth()->user()]);
+        return view('crm.tickets.edit', compact('ticket', 'customers', 'bookings', 'users'));
     }
 
     public function export(Request $request)

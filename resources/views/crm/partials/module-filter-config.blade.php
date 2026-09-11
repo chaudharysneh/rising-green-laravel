@@ -6,6 +6,13 @@
     $staff = fn () => \App\Models\User::orderBy('name')->pluck('name', 'id');
     $types = $labels(['residential', 'commercial', 'industrial']);
     $fields = match ($module) {
+        'tickets' => [
+            'customer_id' => $select('Customer', 'All customers', \App\Models\Customer::visibleTo(auth()->user())->orderBy('name')->pluck('name','id')),
+            'assigned_user_id' => $select('Assigned To', 'All assignees', $staff()),
+            'priority' => $select('Priority', 'All priorities', $labels(['Low','Medium','High'])),
+            'status' => $select('Status', 'All statuses', $labels(['Open','In Progress','Resolved','Closed'])),
+            'created_at' => $date('Created At'),
+        ],
         'products' => [
             'category_id' => $select('Category', 'All category', \App\Models\Categories::orderBy('name')->pluck('name','id')),
             'quantity' => $text('Qty', 'Search qty'), 'created_at' => $date('Created At'),

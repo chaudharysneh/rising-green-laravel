@@ -33,7 +33,7 @@
                     <div id="formErrors" class="alert alert-danger d-none"></div>
 
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
                             <label for="customer_id" class="form-label d-flex align-items-center gap-2 fw-semibold">
                                 <i class="fa-solid fa-user"></i> Customer <span class="text-danger">*</span>
                             </label>
@@ -45,7 +45,7 @@
                                             <option value="{{ $customer->id }}" data-email="{{ $customer->email }}"
                                                 data-phone="{{ $customer->phone }}"
                                                 {{ old('customer_id', $ticket->customer_id) == $customer->id ? 'selected' : '' }}>
-                                                {{ $customer->name }} ({{ $customer->email }})
+                                                {{ $customer->name }}{{ $customer->phone ? ' (' . $customer->phone . ')' : '' }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -57,6 +57,7 @@
                             <div class="invalid-feedback" id="customer_id-error"></div>
                         </div>
 
+                        @include('crm.tickets.assigned-field')
                         <div class="col-md-6">
                             <label for="ticket_name" class="form-label d-flex align-items-center gap-2 fw-semibold">
                                 <i class="fa-solid fa-ticket"></i> Ticket Name <span class="text-danger">*</span>
@@ -68,9 +69,9 @@
 
                         <div class="col-md-6">
                             <label for="description" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-align-left"></i> Ticket Description <span class="text-danger">*</span>
+                                <i class="fa-solid fa-align-left"></i> Ticket Description
                             </label>
-                            <textarea name="description" id="description" rows="1" class="form-control" required>{{ old('description', $ticket->description) }}</textarea>
+                            <textarea name="description" id="description" rows="1" class="form-control">{{ old('description', $ticket->description) }}</textarea>
                             <div class="invalid-feedback" id="description-error"></div>
                         </div>
 
@@ -177,7 +178,7 @@
             const validationMessages = {
                 'customer_id': 'Customer name is required',
                 'ticket_name': 'Ticket name is required',
-                'description': 'Ticket description is required',
+                
                 'priority': 'Priority is required',
                 'status': 'Status is required'
             };
@@ -186,7 +187,7 @@
                 const errorDiv = document.getElementById(`${field.name}-error`);
                 if (!errorDiv) return;
 
-                if (!field.value.trim()) {
+                if (field.required && !field.value.trim()) {
                     field.classList.add('is-invalid');
                     if (field.tomselect) {
                         field.nextElementSibling.classList.add('is-invalid');
@@ -211,7 +212,7 @@
 
             form.addEventListener('submit', function(e) {
                 let isValid = true;
-                ['customer_id', 'ticket_name', 'description', 'priority', 'status'].forEach(fieldName => {
+                ['customer_id', 'ticket_name', 'priority', 'status'].forEach(fieldName => {
                     const field = form.querySelector(`[name="${fieldName}"]`);
                     if (field && !validateField(field)) {
                         isValid = false;
@@ -271,7 +272,7 @@
                     },
                     success: function(res) {
                         if (res.success && res.data) {
-                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            let newOption = new Option(res.data.name + (res.data.phone ? ' (' + res.data.phone + ')' : ''), res.data.id, true, true);
                             $(newOption).attr('data-email', res.data.email || '');
                             $(newOption).attr('data-phone', res.data.phone || '');
                             $('#customer_id').append(newOption).trigger('change');

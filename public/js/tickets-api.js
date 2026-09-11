@@ -93,13 +93,10 @@
         }
 
         return date
-            .toLocaleString("en-GB", {
+            .toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
             })
             .replace(",", "");
     }
@@ -202,20 +199,11 @@
                     const priorityText = escapeHtml(ticket.priority || "-").toUpperCase();
                     const statusText = escapeHtml(ticket.status || "-").toUpperCase();
                     const createdAt = escapeHtml(formatDateTime(ticket.created_at));
-                    const rowNumber =
-                        (meta?.from ? meta.from + index : null) ||
-                        ticket.row_number ||
-                        ticket.sr_no ||
-                        ticket.serial_no ||
-                        index + 1;
+                    const assignedName = escapeHtml(ticket.assigned_user?.name || "Unassigned");
 
                     return `
                         <tr>
-                            <td class="ps-4 text-nowrap text-center" style="min-width: 90px;">
-                                <span class="text-muted small fw-medium">${rowNumber}</span>
-                            </td>
-                            <td class="text-nowrap d-none d-md-table-cell text-center" data-label="Customer Name">${ticket.customer?.name || "-"}</td>
-                            <td data-label="Ticket Name" class="text-center">${ticket.ticket_name || "-"}</td>
+                            <td data-label="Ticket Name" class="ps-4 text-center">${ticketName}</td><td class="d-none d-md-table-cell text-center" data-label="Customer">${customerName}</td><td class="d-none d-md-table-cell text-center" data-label="Assigned To">${assignedName}</td>
                             <td class="d-none d-md-table-cell text-center">
                                 <span class="badge crm-status-pill rounded-pill ${priorityBadge(ticket.priority)}">${priorityText}</span>
                             </td>
@@ -248,7 +236,7 @@
                                     <div class="row g-3">
                                         <div class="col-12 d-flex justify-content-between align-items-center gap-3">
                                             <div class="expand-label"><i class="fa-solid fa-user"></i> Customer :</div>
-                                            <div class="expand-value text-end">${customerName}</div>
+                                            <div class="expand-value text-end">${customerName}</div></div><div class="col-12 d-flex justify-content-between align-items-center gap-3"><div class="expand-label">Assigned To :</div><div class="expand-value text-end">${assignedName}</div>
                                         </div>
                                         <div class="col-12 d-flex justify-content-between align-items-center gap-3">
                                             <div class="expand-label"><i class="fa-solid fa-flag"></i> Priority :</div>
@@ -306,8 +294,9 @@
         }
 
         function fetchTickets(page = 1) {
+            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchTickets, 'ticketsSearch'); }
             const apiUrl = new URL("/api/tickets", window.location.origin);
-            apiUrl.searchParams.set("page", page);
+            apiUrl.searchParams.set("page", page); Object.entries(window.moduleListFilters.values()).forEach(([key,value]) => apiUrl.searchParams.set(key,value));
 
             if (searchInput.value.trim()) {
                 apiUrl.searchParams.set("search", searchInput.value.trim());

@@ -87,6 +87,7 @@
 
             </div>
         </div>
+        @include('crm.partials.status-history-table', ['histories' => $ticket->statusHistories])
     </div>
 @endsection
 

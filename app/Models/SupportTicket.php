@@ -13,6 +13,7 @@ class SupportTicket extends Model
 
     protected $fillable = [
         'customer_id',
+        'assigned_user_id',
         'ticket_name',
         'priority',
         'status',
@@ -25,6 +26,11 @@ class SupportTicket extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
     public function booking()
