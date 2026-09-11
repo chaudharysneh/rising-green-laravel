@@ -8,11 +8,8 @@
             <th width="25%" style="padding:14px 16px; font-weight:bold; font-size:14px; color:#fff; text-align:left; font-family:'Montserrat',sans-serif; border: 1px solid #3d7a3b;">
                 Approved Brand / Make
             </th>
-            <th width="35%" style="padding:14px 16px; font-weight:bold; font-size:14px; color:#fff; text-align:left; font-family:'Montserrat',sans-serif; border: 1px solid #3d7a3b;">
+            <th width="53%" style="padding:14px 16px; font-weight:bold; font-size:14px; color:#fff; text-align:left; font-family:'Montserrat',sans-serif; border: 1px solid #3d7a3b;">
                 Technical Specification
-            </th>
-            <th width="18%" style="padding:14px 16px; font-weight:bold; font-size:14px; color:#fff; text-align:left; font-family:'Montserrat',sans-serif; border: 1px solid #3d7a3b;">
-                Warranty Terms
             </th>
         </tr>
     </thead>
@@ -36,9 +33,9 @@
             }
         }
 
-        // Extract Tech Specs (anything except Make and Warranty) and Warranty
+        // Keep the primary details first, followed by comma-separated specifications.
         $techSpecs = [];
-        $warrantyValue = 'Standard OEM Warranty';
+        $additionalSpecs = [];
 
         if (!empty($component['description'])) {
             $techSpecs[] = '<strong>Description:</strong> ' . htmlspecialchars($component['description']);
@@ -62,10 +59,10 @@
                     if (empty($make)) {
                         $make = $v;
                     }
-                } elseif (strtolower($k) === 'warranty') {
-                    $warrantyValue = $v;
-                } else {
+                } elseif (strtolower($k) === 'type') {
                     $techSpecs[] = '<strong>' . htmlspecialchars($k) . ':</strong> ' . $v;
+                } else {
+                    $additionalSpecs[] = '<strong>' . htmlspecialchars($k) . ':</strong> ' . $v;
                 }
             }
         } else {
@@ -75,6 +72,9 @@
             }
         }
 
+        if (!empty($additionalSpecs)) {
+            $techSpecs[] = '(' . implode(', ', $additionalSpecs) . ')';
+        }
         $techSpecsHtml = !empty($techSpecs) ? implode('<br>', $techSpecs) : '—';
         $rowBg = '#ffffff';
         $componentRowIndex++;
@@ -93,9 +93,6 @@
         </td>
         <td style="padding:12px 14px; font-size:14px; color:#222; line-height:1.45; border:1px solid #dfe9df; font-family:'DejaVu Sans',sans-serif; vertical-align:top;">
             <?= $techSpecsHtml ?>
-        </td>
-        <td style="padding:12px 14px; font-size:14px; color:#222; border:1px solid #dfe9df; font-family:'DejaVu Sans',sans-serif; vertical-align:top;">
-            <?= esc($warrantyValue) ?>
         </td>
     </tr>
     <?php endforeach; ?>
