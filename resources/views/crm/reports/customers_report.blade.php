@@ -69,16 +69,22 @@
     </style>
 @endpush
 
+@php
+    if (count($chartData ?? []) === 0) {
+        $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        $chartData = array_fill(0, 12, 0);
+    }
+@endphp
 @section('content')
     <div class="container-fluid p-0">
 
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 pt-4 px-4">
                 <div class="row align-items-center g-3">
-                    <div class="col-12 col-lg-2">
-                        <h4 class="fw-bold mb-0">Customer</h4>
+                    <div class="col-12 col-lg-auto">
+                        <h4 class="fw-bold mb-0 text-nowrap">Customers Report</h4>
                     </div>
-                    <div class="col-12 col-lg-10 d-flex justify-content-end">
+                    <div class="col-12 col-lg d-flex justify-content-end">
                         <form action="" method="GET" class="report-filter-panel justify-content-lg-end">
                             <div class="report-filter-row">
                                 <label class="report-filter-label">Year:</label>
@@ -98,7 +104,7 @@
                                 <input type="date" name="to_date" value="{{ $to_date }}" class="form-control report-filter-control"
                                     placeholder="DD-MM">
                             </div>
-                            
+
                             <div class="d-flex align-items-center gap-2">
                                 <a href="{{ route('reports.customers') }}" class="btn btn-dark-blue report-reset-btn">
                                     Reset
@@ -117,28 +123,7 @@
         </div>
 
         <div class="card border-0 shadow-sm overflow-hidden">
-            <div class="card-header bg-white border-bottom-0 p-4">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                    <div>
-                        <h4 class="fw-bold mb-0">Customer Report</h4>
-                        <p class="text-muted small mb-0">View all customers.</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('masters.customers.export') }}" class="btn btn-outline-dark-blue">
-                            <i class="fa-solid fa-download me-1"></i>Export
-                        </a>
-                    </div>
-                </div>
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <h6 class="fw-bold mb-0">Active Customers</h6>
-                    <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
-                        <span class="input-group-text crm-search-icon border-0"><i class="bi bi-search"></i></span>
-                        <input type="text" id="customerReportSearch" class="form-control crm-search-input border-0"
-                            placeholder="Search customers...">
-                    </div>
-                </div>
-            </div>
-
+            <div class="px-4 py-3">@include('crm.partials.report-filters', ['module'=>'customers'])</div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table id="customersReport" class="table table-hover align-middle mb-0">
@@ -154,7 +139,7 @@
                                 <th class="text-center d-md-none" style="width: 80px;">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="customersReportBody"></tbody>
+                        <tbody id="customersReportBody"><tr><td colspan="8" class="text-center text-muted py-5">No data available</td></tr></tbody>
                     </table>
                 </div>
                 <div id="customerReportPagination" class="card-footer border-top-0 py-4 px-4"></div>
@@ -169,7 +154,7 @@
         $(document).ready(function () {
             const tableBody = document.getElementById('customersReportBody');
             const paginationContainer = document.getElementById('customerReportPagination');
-            const searchInput = document.getElementById('customerReportSearch');
+            const searchInput = document.getElementById('customersReportSearch');
 
             function escapeHtml(value) {
                 if (value === null || value === undefined) {
@@ -190,7 +175,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-5">
                                 <div class="text-muted mb-3"><i class="bi bi-people display-1 opacity-25"></i></div>
-                                <p class="text-muted">No customers found.</p>
+                                <p class="text-muted">No data available</p>
                             </td>
                         </tr>`;
                     return;
@@ -338,8 +323,11 @@
             }
 
             function fetchCustomersReport(page = 1) {
+                if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchCustomersReport, 'customersReportSearch'); }
+
                 const url = new URL("{{ route('reports.customers') }}", window.location.origin);
                 url.searchParams.set("page", page);
+                Object.entries(window.moduleListFilters.values()).forEach(([key,value]) => url.searchParams.set(key,value));
                 url.searchParams.set("year", $('select[name="year"]').val() || "");
                 url.searchParams.set("from_date", $('input[name="from_date"]').val() || "");
                 url.searchParams.set("to_date", $('input[name="to_date"]').val() || "");
@@ -394,7 +382,7 @@
 
             // Chart initialization
             const ctx = document.getElementById('customerChart').getContext('2d');
-            
+
             // Create gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(59, 183, 187, 0.2)');
@@ -501,5 +489,4 @@
         });
     </script>
 @endpush
-
 

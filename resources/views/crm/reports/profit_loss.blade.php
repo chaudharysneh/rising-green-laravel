@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center">
         <div>
             <h1 class="h3 mb-0 text-gray-800">Profit & Loss Report</h1>
             <p class="text-muted small">Detailed financial breakdown per booking.</p>

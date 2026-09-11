@@ -60,13 +60,19 @@
     </style>
 @endpush
 
+@php
+    if (count($chartData ?? []) === 0) {
+        $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        $chartData = array_fill(0, 12, 0);
+    }
+@endphp
 @section('content')
 <div class="container-fluid p-0">
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
             <div class="row g-4">
-                <div class="col-12 col-lg-2"><h4 class="fw-bold mb-0">Project</h4></div>
-                <div class="col-12 col-lg-10 d-flex justify-content-end">
+                <div class="col-12 col-lg-auto"><h4 class="fw-bold mb-0 text-nowrap">Projects Report</h4></div>
+                <div class="col-12 col-lg d-flex justify-content-end">
                     <form action="" method="GET" class="report-filter-panel">
                         <div class="report-filter-row"><label class="report-filter-label">Year:</label><select name="year" class="form-select report-filter-control">@foreach($years as $y)<option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>@endforeach</select></div>
                         <div class="report-filter-row"><label class="report-filter-label">From Date:</label><input type="date" name="from_date" value="{{ $from_date }}" class="form-control report-filter-control" placeholder="DD-MM"></div>
@@ -81,7 +87,7 @@
 
     <div class="card border-0 shadow-sm overflow-hidden">
         <div class="card-header border-bottom-0 py-3 px-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div><h4 class="fw-bold mb-0">Projects Report</h4><p class="text-muted small mb-0">View all projects.</p></div>
                 <div class="d-flex flex-wrap gap-2"><a href="{{ route('reports.projects_report.export') }}" class="btn btn-outline-dark-blue"><i class="fa-solid fa-download me-1"></i>Export</a></div>
             </div>
@@ -94,7 +100,7 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 responsive-table" id="projectsReportTable">
                     <thead><tr><th class="ps-4" style="width: 80px;">Sr.No</th><th>Project Information</th><th class="d-none d-md-table-cell">Customer</th><th class="d-none d-md-table-cell">Status</th><th class="text-start d-none d-md-table-cell">Timeline</th><th class="text-end pe-4 d-none d-md-table-cell" style="width: 120px;">Actions</th><th class="text-center d-md-none" style="width: 80px;">Action</th></tr></thead>
-                    <tbody id="projectsReportBody"></tbody>
+                    <tbody id="projectsReportBody"><tr><td colspan="7" class="text-center text-muted py-5">No data available</td></tr></tbody>
                 </table>
             </div>
             <div id="projectsReportPagination" class="card-footer border-top-0 py-4 px-4"></div>
@@ -122,7 +128,7 @@ $(document).ready(function () {
     }
 
     function renderRows(items, meta) {
-        if (!items || !items.length) { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div><p class="text-muted">No projects found.</p></td></tr>'; return; }
+        if (!items || !items.length) { tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div><p class="text-muted">No data available</p></td></tr>'; return; }
         tableBody.innerHTML = items.map(function (project, index) {
             const startDate = project.start_date ? new Date(project.start_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
             const endDate = project.end_date ? new Date(project.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
