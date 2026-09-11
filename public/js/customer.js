@@ -214,6 +214,18 @@
 
         let timer;
         const searchInput = document.getElementById("customerSearch");
+        const statusFilter = document.getElementById('customerStatus');
+        const typeFilter = document.getElementById('customerType');
+        const perPage = document.getElementById('customerPerPage');
+        const dateRange = window.flatpickr('#customerDateRange', {
+            mode: 'range', dateFormat: 'Y-m-d', altInput: true, altFormat: 'd M Y',
+            onChange: function (dates) { if (dates.length === 2 || dates.length === 0) fetchCustomers(1); }
+        });
+        [statusFilter, typeFilter, perPage].forEach(field => field.addEventListener('change', () => fetchCustomers(1)));
+        document.getElementById('clearCustomerFilters').addEventListener('click', function () {
+            statusFilter.value = ''; typeFilter.value = ''; searchInput.value = '';
+            clearTimeout(timer); dateRange.clear(false); fetchCustomers(1);
+        });
         if (searchInput) {
             searchInput.addEventListener("input", () => {
                 clearTimeout(timer);
@@ -224,6 +236,10 @@
         // ✅ FETCH API
         function fetchCustomers(page = 1) {
             let url = `/api/customers?page=${page}`;
+            url += `&per_page=${perPage.value}&is_active=${statusFilter.value}&type=${encodeURIComponent(typeFilter.value)}`;
+            if (dateRange.selectedDates.length === 2) {
+                url += `&date_from=${dateRange.formatDate(dateRange.selectedDates[0], 'Y-m-d')}&date_to=${dateRange.formatDate(dateRange.selectedDates[1], 'Y-m-d')}`;
+            }
 
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
