@@ -196,11 +196,12 @@
                 <td class="summary-cell">Base cost</td>
                 <td class="summary-cell summary-cell-right">{{ number_format($summaryBaseCost ?? 0, 2) }}</td>
             </tr>
-        @endif
+        @else
         <tr>
             <td class="summary-cell">Bill of Materials (BOM)</td>
             <td class="summary-cell summary-cell-right">{{ !empty($summaryUsesGlobalTax) ? '--' : number_format($summaryBomTotal ?? 0, 2) }}</td>
         </tr>
+        @endif
         @if (!empty($summaryShowBomTaxes))
             <tr>
                 <td class="summary-cell"><strong>{{ !empty($summaryUsesGlobalTax) ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td>

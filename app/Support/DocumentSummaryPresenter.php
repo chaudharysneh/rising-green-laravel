@@ -225,6 +225,9 @@ class DocumentSummaryPresenter
         if (!$summaryHasSavedTaxScope && $summaryBaseCost > 0 && $summaryBomTotal <= 0) {
             $summaryUsesGlobalTax = true;
         }
+        if (in_array($estdata->price_mode ?? null, ['base', 'bom'], true)) {
+            $summaryUsesGlobalTax = $estdata->price_mode === 'base';
+        }
 
         if (!empty($estdata->product_name)) {
             $summaryItems = is_array($estdata->product_name) ? $estdata->product_name : json_decode($estdata->product_name, true);
