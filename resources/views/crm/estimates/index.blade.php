@@ -415,7 +415,7 @@
                         </div>
                         <div class="col-12 col-md-4 quick-step-1 active-step">
                             <label class="form-label fw-semibold">Quantity (kW) <span class="text-danger">*</span></label>
-                            <input type="number" min="1" step="1" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
+                            <input type="number" min="0.01" step="0.01" class="form-control" name="quantity" id="quick_quantity" placeholder="Enter kW" required>
                             <div class="invalid-feedback" id="quick_quantity-error">Please enter quantity.</div>
                         </div>
                         <div class="col-12 col-md-4 quick-step-1 active-step quick-base-price-col {{ $estimatePriceMode === 'bom' ? 'd-none' : '' }}">
