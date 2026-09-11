@@ -6,6 +6,29 @@
     $staff = fn () => \App\Models\User::orderBy('name')->pluck('name', 'id');
     $types = $labels(['residential', 'commercial', 'industrial']);
     $fields = match ($module) {
+        'products' => [
+            'category_id' => $select('Category', 'All category', \App\Models\Categories::orderBy('name')->pluck('name','id')),
+            'quantity' => $text('Qty', 'Search qty'), 'created_at' => $date('Created At'),
+        ],
+        'deals' => [
+            'customer_id' => $select('Customer Name', 'All customer name', \App\Models\Customer::orderBy('name')->pluck('name','id')),
+            'creator_name' => $text('Created By', 'Search created by'),
+            'amount' => ['label' => 'Estimate Amount', 'kind' => 'range'],
+            'status_id' => $select('Status', 'All status', \App\Models\Status::orderBy('name')->pluck('name','id')),
+        ],
+        'tasks' => [
+            'customer_id' => $select('Customer Name', 'All customer name', \App\Models\Customer::orderBy('name')->pluck('name','id')),
+            'assigned_user_id' => $select('Staff Name', 'All staff name', $staff()),
+            'task_type' => $select('Task Type', 'All task type', ['Normal task'=>'Normal task','Site visit'=>'Site visit']),
+            'status' => $select('Status', 'All status', $labels(['pending','in_progress','completed'])),
+            'due_date' => $date('Due Date'),
+        ],
+        'users' => [
+            'role_id' => $select('Role', 'All roles', \Spatie\Permission\Models\Role::whereNotIn('name',['admin','super-admin'])->orderBy('name')->pluck('name','id')),
+            'job_title' => $select('Job Title', 'All job titles', \App\Models\User::whereNotNull('job_title')->where('job_title','!=','')->distinct()->orderBy('job_title')->pluck('job_title','job_title')),
+            'is_active' => $select('Status', 'All statuses', ['1'=>'Active','0'=>'Inactive']),
+            'created_at' => $date('Created At'),
+        ],
         'followups' => [
             'assigned_user_id' => $select('Staff', 'All staff', $staff()),
             'created_at' => $date('Created At'), 'follow_up_at' => $date('Follow Up Date'),

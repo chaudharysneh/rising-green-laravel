@@ -54,7 +54,16 @@ class DealController extends ApiBaseController
                   ->where('created_by', '!=', $user->id);
         }
 
-        $deals = $query->latest()->paginate(10);
+        \App\Support\ListFilters::apply($query, $request, ['customer_id','status_id'], []);
+        $request->validate([
+            'creator_name' => ['nullable','string','max:100'],
+            'amount_min' => ['nullable','numeric','min:0'],
+            'amount_max' => ['nullable','numeric','min:0'],
+        ]);
+        if ($request->filled('creator_name')) $query->whereHas('creator', fn ($q) => $q->where('name','like','%' . $request->input('creator_name') . '%'));
+        if ($request->filled('amount_min')) $query->where('amount','>=',$request->input('amount_min'));
+        if ($request->filled('amount_max')) $query->where('amount','<=',$request->input('amount_max'));
+        $deals = $query->latest()->paginate($request->integer('per_page',10));
 
         return response()->json([
             'success' => true,

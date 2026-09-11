@@ -65,8 +65,20 @@ class TaskController extends ApiBaseController
                             ->orWhere('user_id', '!=', $user->id);
                       });
             })
+            ->tap(function ($query) use ($request) {
+                \App\Support\ListFilters::apply($query,$request,['assigned_user_id','task_type','status'],['due_date']);
+                $request->validate(['customer_id'=>['nullable','integer']]);
+                if ($request->filled('customer_id')) {
+                    $query->where(function ($q) use ($request) {
+                        $q->whereHas('customer', fn ($c) => $c->whereKey($request->integer('customer_id')))
+                            ->orWhere(function ($fallback) use ($request) {
+                                $fallback->whereDoesntHave('customer')->whereHas('project', fn ($p) => $p->where('customer_id',$request->integer('customer_id')));
+                            });
+                    });
+                }
+            })
             ->latest()
-            ->paginate(10)
+            ->paginate($request->integer('per_page',10))
             ->withQueryString();
 
         $tasks->getCollection()->transform(function (Task $task) {

@@ -18,10 +18,11 @@ class ProductController extends ApiBaseController
         $perPage = max(1, min((int) $request->get('per_page', 10), 100));
 
         $products = Product::with(['category', 'creator'])
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%")
+            ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query->where('name', 'like', "%{$search}%")
                 ->orWhere('serial_no', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")
-                ->orWhereHas('category', fn ($q) => $q->where('name', 'like', "%{$search}%")))
+                ->orWhereHas('category', fn ($q) => $q->where('name', 'like', "%{$search}%"))))
+            ->tap(fn ($query) => \App\Support\ListFilters::apply($query, $request, ['category_id','quantity'], ['created_at']))
             ->latest()
             ->paginate($perPage)
             ->appends($request->query());

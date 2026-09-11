@@ -390,9 +390,13 @@
         };
 
         const fetchDeals = (url = null) => {
+            if (window.moduleListFilters && !window.moduleListFilters.bound) {
+                window.moduleListFilters.bound = true;
+                window.moduleListFilters.bind(() => fetchDeals(), 'dealsSearch');
+            }
             let apiUrl = url || "/api/deals";
 
-            const params = new URLSearchParams();
+            const params = new URLSearchParams(window.moduleListFilters?.values() || {});
             if (searchInput.value.trim()) {
                 params.set("search", searchInput.value.trim());
             }

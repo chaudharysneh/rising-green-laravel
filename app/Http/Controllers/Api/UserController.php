@@ -94,8 +94,13 @@ class UserController extends ApiBaseController
                         ->orWhere('address', 'like', "%{$search}%");
                 });
             })
+            ->tap(function ($query) use ($request) {
+                \App\Support\ListFilters::apply($query,$request,['job_title','is_active'],['created_at']);
+                $request->validate(['role_id'=>['nullable','integer']]);
+                if ($request->filled('role_id')) $query->whereHas('roles', fn ($q) => $q->whereKey($request->integer('role_id')));
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate($request->integer('per_page',10));
 
         return response()->json([
             'success' => true,
