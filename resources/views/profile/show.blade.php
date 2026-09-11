@@ -27,6 +27,11 @@
         ? route('profile.company_logo.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyLogoPath)
         : $defaultLogo;
 
+    $sidebarIconPath = $settings['sidebar_icon_path'] ?? null;
+    $sidebarIconUrl = $sidebarIconPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($sidebarIconPath)
+        ? route('profile.sidebar_icon.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($sidebarIconPath)
+        : null;
+
     $companyQrCodePath = $settings['company_qr_code_path'] ?? null;
     $companyQrCodeUrl = $companyQrCodePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($companyQrCodePath)
         ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($companyQrCodePath)
@@ -127,8 +132,14 @@
                                     <small class="text-muted">JPG or PNG image - max 50 MB.</small>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Sidebar Icon (Upload)</label>
+                                    <label for="sidebar-icon-input" class="form-label fw-semibold">Company Logo (Small)</label>
+                                    <div class="d-flex align-items-center gap-2">
                                     <input type="file" name="sidebar_icon_path" id="sidebar-icon-input" accept="image/jpeg,image/png,image/jpg" class="form-control @error('sidebar_icon_path') is-invalid @enderror">
+                                        <div class="border rounded d-flex align-items-center justify-content-center flex-shrink-0 bg-white" style="width:45px;height:45px;padding:4px;" aria-label="Small company logo preview">
+                                            <img src="{{ $sidebarIconUrl ?: '' }}" alt="Company Logo (Small)" id="sidebar-icon-preview" class="{{ $sidebarIconUrl ? '' : 'd-none' }}" style="width:100%;height:100%;object-fit:contain;">
+                                            <i id="sidebar-icon-placeholder" class="bi bi-image text-muted {{ $sidebarIconUrl ? 'd-none' : '' }}" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
                                     @error('sidebar_icon_path')<div class="profile-field-error">{{ $message }}</div>@enderror
                                     <small class="text-muted">Any image file - max 50 MB. (Used for small sidebar icon)</small>
                                 </div>

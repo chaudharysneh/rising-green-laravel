@@ -8,6 +8,7 @@
     function initProfilePage() {
         bindPreview("avatar-input", "avatar-preview");
         bindPreview("company-logo-input", "company-logo-preview");
+        bindPreview("sidebar-icon-input", "sidebar-icon-preview", "sidebar-icon-placeholder");
         bindPreview("company-qr-input", "qr-preview", "qr-placeholder");
         bindProfileForm();
         bindPasswordForm();

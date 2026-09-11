@@ -243,7 +243,7 @@ class ProfileController extends Controller
             'company_address.required' => 'Address is required!',
             'avatar.max' => 'Profile image must not be larger than 50 MB.',
             'company_logo_path.max' => 'Company logo must not be larger than 50 MB.',
-            'sidebar_icon_path.max' => 'Sidebar icon must not be larger than 50 MB.',
+            'sidebar_icon_path.max' => 'Company logo (small) must not be larger than 50 MB.',
             'company_qr_code_path.max' => 'QR Code must not be larger than 50 MB.',
         ]);
 
@@ -329,6 +329,7 @@ class ProfileController extends Controller
             'company_address',
             'company_tax_id',
             'company_logo_path',
+            'sidebar_icon_path',
             'company_qr_code_path',
             'social_instagram',
             'social_facebook',
