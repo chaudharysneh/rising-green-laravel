@@ -708,6 +708,7 @@
                                     auth()->user()?->hasMatrixPermission('create_estimates');
                             @endphp
 
+                            {{-- Navbar Inventory dropdown temporarily hidden.
                             @if ($showTopInventoryMenu)
                                 <div class="dropdown d-none d-lg-block">
                                     <button class="btn top-action-btn old-crm-nav-btn" type="button"
@@ -745,6 +746,7 @@
                                 </div>
                             @endif
 
+                            --}}
                             @if ($showTopCrmMenu)
                                 <div class="dropdown d-none d-lg-block">
                                     <button class="btn top-action-btn old-crm-nav-btn" type="button"

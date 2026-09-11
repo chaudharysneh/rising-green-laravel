@@ -29,11 +29,22 @@
             </div>
         </div>
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <h6 class="fw-bold mb-0">Active Customers</h6>
-            <div class="input-group input-group-sm" style="max-width: 300px; width: 100%;">
+            <div class="d-flex flex-nowrap gap-2 align-items-center" style="width:100%;max-width:450px;min-width:0;">
+            <div class="input-group input-group-sm" style="max-width: 330px; flex:1; min-width:0;">
                 <span class="input-group-text crm-search-icon border-0"><i class="fa-solid fa-search"></i></span>
                 <input type="text" id="customerSearch" class="form-control crm-search-input border-0"
                     placeholder="Search customers..." name="search" value="{{ request('search') }}">
+            </div>
+            <button class="btn btn-outline-dark-blue flex-shrink-0 text-nowrap" type="button" data-bs-toggle="collapse" data-bs-target="#customerFilters" aria-expanded="true" aria-controls="customerFilters"><i class="fa-solid fa-filter me-1"></i>Filters</button>
+            </div>
+            <div class="d-flex align-items-center gap-2"><label for="customerPerPage" class="text-muted small text-nowrap">Show per page:</label><select id="customerPerPage" class="form-select form-select-sm" style="width:88px;">@foreach([10,25,50,100] as $size)<option value="{{ $size }}">{{ $size }}</option>@endforeach</select></div>
+        </div>
+        <div id="customerFilters" class="collapse show">
+            <div class="row g-3 mt-3 p-3 border rounded-4" style="background-color:var(--bs-tertiary-bg, #f8fafc);">
+                <div class="col-md-6 col-xl-3"><label for="customerDateRange" class="form-label fw-semibold">From - To</label><div class="input-group"><span class="input-group-text"><i class="bi bi-calendar"></i></span><input id="customerDateRange" class="form-control" placeholder="Select date range" autocomplete="off"></div></div>
+                <div class="col-md-6 col-xl-3"><label for="customerStatus" class="form-label fw-semibold">Status</label><select id="customerStatus" class="form-select"><option value="">All statuses</option><option value="1">Active</option><option value="0">Inactive</option></select></div>
+                <div class="col-md-6 col-xl-3"><label for="customerType" class="form-label fw-semibold">Customer Type</label><select id="customerType" class="form-select"><option value="">All types</option>@foreach(['Individual','Corporate','Government','NGO'] as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></div>
+                <div class="col-md-6 col-xl-3 d-flex align-items-end"><button type="button" id="clearCustomerFilters" class="btn btn-dark-blue w-100"><i class="fa-solid fa-rotate-left me-1"></i>Clear</button></div>
             </div>
         </div>
     </div>

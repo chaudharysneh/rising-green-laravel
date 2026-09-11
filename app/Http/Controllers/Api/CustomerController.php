@@ -34,7 +34,18 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->latest()->paginate(10);
+        $filters = $request->validate([
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'is_active' => ['nullable', 'boolean'],
+            'type' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'in:10,25,50,100'],
+        ]);
+        if ($request->filled('date_from')) $query->whereDate('created_at', '>=', $filters['date_from']);
+        if ($request->filled('date_to')) $query->whereDate('created_at', '<=', $filters['date_to']);
+        if ($request->filled('is_active')) $query->where('is_active', $filters['is_active']);
+        if ($request->filled('type')) $query->where('type', $filters['type']);
+        $customers = $query->latest()->paginate($filters['per_page'] ?? 10);
         $isAdmin = auth()->user()?->isAdmin() ?? false;
         $authId = auth()->id();
 
