@@ -243,8 +243,8 @@ $summaryBankWidth = $summaryHasQr ? 40 : 50;
 
 <table width="98%" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:8px;border-collapse:collapse;">
     <tr>
-        <td width="33%" align="left" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;">Estimate no.: #<?= esc($summaryEstimateNo) ?></td>
-        <td width="34%" align="center" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;text-decoration:underline;">ESTIMATION</td>
+        <td width="33%" align="left" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;"><?= !empty($isInvoice) ? 'Invoice' : 'Estimate' ?> no.: #<?= esc($summaryEstimateNo) ?></td>
+        <td width="34%" align="center" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;text-decoration:underline;"><?= !empty($isInvoice) ? 'INVOICE' : 'ESTIMATION' ?></td>
         <td width="33%" align="right" style="<?= $summaryEstimationHeaderTextStyle ?>font-weight:bold;">Date: <?= esc($summaryDate) ?></td>
     </tr>
 </table>
@@ -362,7 +362,7 @@ $summaryBankWidth = $summaryHasQr ? 40 : 50;
         <td style="<?= $summaryCellStyle ?>"><?= esc($quantity) ?> kW</td>
     </tr>
     <tr>
-        <td style="<?= $summaryHeaderCellStyle ?>">Estimate Type</td>
+        <td style="<?= $summaryHeaderCellStyle ?>"><?= !empty($isInvoice) ? 'Invoice Type' : 'Estimate Type' ?></td>
         <td style="<?= $summaryCellStyle ?>"><?= esc($summaryEstimateTypeLabel) ?></td>
     </tr>
     <tr>
