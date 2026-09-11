@@ -70,6 +70,7 @@ class InvoiceController extends ApiBaseController
         }
 
         \App\Support\ListFilters::apply($query, $request, ['type', 'status'], ['invoice_date', 'due_date'], ['invoice_no']);
+        $summary = (clone $query)->reorder()->selectRaw("COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) AS paid_amount, COALESCE(SUM(CASE WHEN status IN ('unpaid', 'pending') THEN amount ELSE 0 END), 0) AS pending_amount")->toBase()->first();
         $invoices = $query
             ->orderByRaw("
                 CASE
@@ -85,6 +86,7 @@ class InvoiceController extends ApiBaseController
         return response()->json([
             'success' => true,
             'message' => 'Invoices retrieved successfully',
+            'summary' => $summary,
             'data' => $invoices,
         ], 200);
     }

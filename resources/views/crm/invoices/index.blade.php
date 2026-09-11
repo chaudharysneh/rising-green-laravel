@@ -54,6 +54,21 @@
                         @endcan
                     </div>
                 </div>
+                <div class="row g-3 mb-4" aria-live="polite">
+                    @foreach(['paid' => ['Paid Amount', 'bi-check-circle', '#15803d', '#dcfce7', 'Invoices marked as paid'], 'pending' => ['Pending Amount', 'bi-clock-history', '#b45309', '#fef3c7', 'Unpaid and pending invoices']] as $key => $card)
+                        <div class="col-12 col-md-6">
+                            <div class="border rounded-4 p-3 h-100 d-flex align-items-center gap-3" style="border-left:4px solid {{ $card[2] }} !important;">
+                                <span class="rounded-3 d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:{{ $card[3] }};color:{{ $card[2] }};"><i class="bi {{ $card[1] }} fs-4"></i></span>
+                                <div class="min-width-0">
+                                    <div class="text-muted small fw-semibold">{{ $card[0] }}</div>
+                                    <div id="invoice-{{ $key }}-amount" class="fs-3 fw-bold" style="overflow-wrap:anywhere;">—</div>
+                                    <div class="text-muted small">{{ $card[4] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                    <div class="col-12 mt-2"><small class="text-muted">Totals for all matching invoices, across every page.</small></div>
+                </div>
                 @include('crm.partials.module-filter-config', ['module' => 'invoices', 'searchId' => 'invoiceSearch', 'placeholder' => 'Search invoices...'])
             </div>
             <div class="card-body p-0">

@@ -313,15 +313,19 @@
                 headers: { "X-Requested-With": "XMLHttpRequest" },
                 beforeSend: function () {
                     tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
+                    ['paid', 'pending'].forEach(key => { document.getElementById(`invoice-${key}-amount`).textContent = '…'; });
                 },
                 success: function (res) {
                     if (res.success && res.data) {
                         renderRows(res.data.data || [], res.data);
                         renderPagination(res.data);
+                        const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 });
+                        ['paid', 'pending'].forEach(key => { document.getElementById(`invoice-${key}-amount`).textContent = money.format(Number(res.summary?.[`${key}_amount`] || 0)); });
                     }
                 },
                 error: function () {
                     tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5">Error loading invoices</td></tr>`;
+                    ['paid', 'pending'].forEach(key => { document.getElementById(`invoice-${key}-amount`).textContent = 'Unavailable'; });
                 },
             });
         }
