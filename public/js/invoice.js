@@ -134,9 +134,9 @@
                 const customer = invoice.customer;
                 const invDate = invoice.invoice_date ? new Date(invoice.invoice_date) : null;
                 const dueDate = invoice.due_date ? new Date(invoice.due_date) : null;
-                const statusName = (invoice.status || 'unpaid').charAt(0).toUpperCase() + (invoice.status || 'unpaid').slice(1);
+                const statusName = (invoice.status || 'unpaid').toUpperCase();
                 
-                const statusBadgeClass = invoice.status === 'paid' ? 'bg-success text-white' : (invoice.status === 'cancelled' ? 'bg-danger text-white' : 'bg-warning text-dark');
+                const statusBadgeClass = 'invoice-status-badge ' + (invoice.status === 'paid' ? 'invoice-status-paid' : (invoice.status === 'cancelled' ? 'invoice-status-cancelled' : 'invoice-status-unpaid'));
                 const rowNumber = (meta.from || 0) + index;
 
                 return `
@@ -237,7 +237,7 @@
             });
         }
 
-        $(document).on('click', '.change-status-btn', function (e) {
+        $(document).on('click', '.change-status-btn', async function (e) {
             e.preventDefault();
             const $btn = $(this);
             const invoiceId = $btn.data('id');
@@ -245,6 +245,16 @@
             
             // Toggle between paid and unpaid
             const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+            const result = await Swal.fire({
+                title: `Mark invoice as ${newStatus.toUpperCase()}?`,
+                text: `Are you sure you want to change this invoice to ${newStatus.toUpperCase()}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: `Yes, mark as ${newStatus.toUpperCase()}`,
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0b2438',
+            });
+            if (!result.isConfirmed) return;
             
             const originalHtml = $btn.html();
             $btn.html('<span class="spinner-border spinner-border-sm"></span>').prop('disabled', true);
@@ -255,16 +265,16 @@
                 data: { status: newStatus, _token: csrfToken },
                 success: function (res) {
                     if (res.success) {
-                        const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                        const label = newStatus.toUpperCase();
                         $btn.text(label)
                             .data('current-status', newStatus)
-                            .removeClass('bg-success bg-warning bg-danger text-white text-dark')
-                            .addClass(newStatus === 'paid' ? 'bg-success text-white' : 'bg-warning text-dark')
+                            .removeClass('invoice-status-paid invoice-status-unpaid invoice-status-cancelled')
+                            .addClass(newStatus === 'paid' ? 'invoice-status-paid' : 'invoice-status-unpaid')
                             .prop('disabled', false);
                         
                         // Update edit button visibility
                         const $row = $btn.closest('tr');
-                        const $editBtn = $row.find('a[title="Edit"]');
+                        const $editBtn = $row.find('a[title="Edit"], button[title="Cannot edit paid invoice"]');
                         if (newStatus === 'paid') {
                             $editBtn.replaceWith('<button class="btn crm-action-btn btn-sm" disabled title="Cannot edit paid invoice"><i class="bi bi-pencil"></i></button>');
                         } else {
@@ -273,6 +283,9 @@
                         }
                         
                         showToast(res.message || 'Status updated', 'success');
+                    } else {
+                        $btn.html(originalHtml).prop('disabled', false);
+                        showToast(res.message || 'Update failed', 'error');
                     }
                 },
                 error: function (xhr) {
