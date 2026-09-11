@@ -24,7 +24,7 @@
                     <div id="formErrors" class="alert alert-danger d-none"></div>
 
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
                             <label for="customer_id" class="form-label d-flex align-items-center gap-2 fw-semibold">
                                 <i class="fa-solid fa-user"></i> Customer <span class="text-danger">*</span>
                             </label>
@@ -34,9 +34,9 @@
                                         <option value="">-- Search Customer --</option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->id }}" data-email="{{ $customer->email }}"
-                                                data-phone="{{ $customer->phone }}"
+                                                data-phone="{{ $customer->phone }}" data-name="{{ $customer->name }}"
                                                 {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
-                                                {{ $customer->name }} ({{ $customer->email }})
+                                                {{ $customer->name }}{{ $customer->phone ? ' (' . $customer->phone . ')' : '' }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -48,6 +48,7 @@
                             </div>
                         </div>
 
+                        @include('crm.tickets.assigned-field')
                         <div class="col-md-6">
                             <label for="ticket_name" class="form-label d-flex align-items-center gap-2 fw-semibold">
                                 <i class="fa-solid fa-ticket"></i> Ticket Name <span class="text-danger">*</span>
@@ -59,9 +60,9 @@
 
                         <div class="col-md-6">
                             <label for="description" class="form-label d-flex align-items-center gap-2 fw-semibold">
-                                <i class="fa-solid fa-align-left"></i> Ticket Description <span class="text-danger">*</span>
+                                <i class="fa-solid fa-align-left"></i> Ticket Description
                             </label>
-                            <textarea name="description" id="description" rows="1" class="form-control" placeholder="Enter ticket description" required>{{ old('description') }}</textarea>
+                            <textarea name="description" id="description" rows="1" class="form-control" placeholder="Enter ticket description">{{ old('description') }}</textarea>
                             <div class="invalid-feedback" id="description-error"></div>
                         </div>
 
@@ -71,10 +72,10 @@
                             </label>
                             <select name="priority" id="priority" class="form-select" required>
                                 <option value="">Select Priority</option>
-                                <option value="Low" {{ old('priority') == 'Low' ? 'selected' : '' }}>Low</option>
-                                <option value="Medium" {{ old('priority') == 'Medium' ? 'selected' : '' }}>Medium
+                                <option value="Low" {{ old('priority', 'Medium') == 'Low' ? 'selected' : '' }}>Low</option>
+                                <option value="Medium" {{ old('priority', 'Medium') == 'Medium' ? 'selected' : '' }}>Medium
                                 </option>
-                                <option value="High" {{ old('priority') == 'High' ? 'selected' : '' }}>High</option>
+                                <option value="High" {{ old('priority', 'Medium') == 'High' ? 'selected' : '' }}>High</option>
                             </select>
                             <div class="invalid-feedback" id="priority-error"></div>
                         </div>
@@ -86,7 +87,7 @@
                             <select name="status" id="status" class="form-select" required>
                                 <option value="">Select Status</option>
                                 @foreach (['Open', 'In Progress', 'Resolved', 'Closed'] as $status)
-                                    <option value="{{ $status }}" {{ old('status') == $status ? 'selected' : '' }}>
+                                    <option value="{{ $status }}" {{ old('status', 'Open') == $status ? 'selected' : '' }}>
                                         {{ $status }}
                                     </option>
                                 @endforeach
@@ -165,7 +166,7 @@
             const validationMessages = {
                 'customer_id': 'Customer name is required',
                 'ticket_name': 'Ticket name is required',
-                'description': 'Ticket description is required',
+                
                 'priority': 'Priority is required',
                 'status': 'Status is required'
             };
@@ -174,7 +175,7 @@
                 const errorDiv = document.getElementById(`${field.name}-error`);
                 if (!errorDiv) return;
 
-                if (!field.value.trim()) {
+                if (field.required && !field.value.trim()) {
                     field.classList.add('is-invalid');
                     if (field.tomselect) {
                         field.nextElementSibling.classList.add('is-invalid');
@@ -199,7 +200,7 @@
 
             form.addEventListener('submit', function(e) {
                 let isValid = true;
-                ['customer_id', 'ticket_name', 'description', 'priority', 'status'].forEach(fieldName => {
+                ['customer_id', 'ticket_name', 'priority', 'status'].forEach(fieldName => {
                     const field = form.querySelector(`[name="${fieldName}"]`);
                     if (field && !validateField(field)) {
                         isValid = false;
@@ -223,7 +224,20 @@
                 theme: 'bootstrap-5',
                 width: '100%'
             });
-            $('#customer_id').on('change', function() { validateField(this); });
+            const ticketNameInput = document.getElementById('ticket_name');
+            let generatedTicketName = '';
+            function updateTicketName() {
+                const option = document.getElementById('customer_id').selectedOptions[0];
+                const customerName = option?.dataset.name || option?.textContent.trim().replace(/\s*\([^)]*\)$/, '') || '';
+                const nextName = option?.value ? `Ticket - ${customerName}` : '';
+                if (!ticketNameInput.value.trim() || ticketNameInput.value === generatedTicketName) {
+                    ticketNameInput.value = nextName;
+                    if (nextName) validateField(ticketNameInput);
+                }
+                generatedTicketName = nextName;
+            }
+            $('#customer_id').on('change', function() { validateField(this); updateTicketName(); });
+            updateTicketName();
 
             // Quick Add Customer logic
             $('#saveQuickCustomerBtn').click(function() {
@@ -259,7 +273,8 @@
                     },
                     success: function(res) {
                         if (res.success && res.data) {
-                            let newOption = new Option(res.data.name, res.data.id, true, true);
+                            let newOption = new Option(res.data.name + (res.data.phone ? ' (' + res.data.phone + ')' : ''), res.data.id, true, true);
+                            $(newOption).attr('data-name', res.data.name);
                             $(newOption).attr('data-email', res.data.email || '');
                             $(newOption).attr('data-phone', res.data.phone || '');
                             $('#customer_id').append(newOption).trigger('change');

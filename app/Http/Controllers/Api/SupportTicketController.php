@@ -30,7 +30,7 @@ class SupportTicketController extends ApiBaseController
         $filter = $request->get('filter'); // 'created_by_me' or 'assigned_to_me'
         $user = auth()->user();
 
-        $tickets = SupportTicket::with(['customer', 'creator'])
+        $tickets = SupportTicket::with(['customer', 'creator', 'assignedUser'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('ticket_name', 'like', "%{$search}%")
@@ -51,10 +51,9 @@ class SupportTicketController extends ApiBaseController
                 // All records I created
                 $query->where('created_by', $user->id);
             })
-            // Note: Tickets don't have assigned_user_id, so assigned_to_me filter is not applicable
-            // Staff users will only see tickets they created
+            ->tap(fn ($query) => \App\Support\ListFilters::apply($query, $request, ['customer_id', 'assigned_user_id', 'priority', 'status'], ['created_at']))
             ->latest()
-            ->paginate(10)
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString();
 
         $tickets->getCollection()->transform(function (SupportTicket $ticket, int $index) use ($tickets) {
@@ -72,6 +71,7 @@ class SupportTicketController extends ApiBaseController
 
     public function store(Request $request)
     {
+        $request->mergeIfMissing(['priority' => 'Medium', 'status' => 'Open']);
         $validator = Validator::make($request->all(), $this->rules(), $this->messages());
 
         if ($validator->fails()) {
@@ -84,10 +84,10 @@ class SupportTicketController extends ApiBaseController
         $data = $validator->validated();
         $this->ensureVisibleCustomer((int) $data['customer_id']);
         $data['created_by'] = auth()->id();
+        if (!auth()->user()->isAdmin()) $data['assigned_user_id'] = auth()->id();
         $data['updated_by'] = auth()->id();
 
         $ticket = SupportTicket::create($data);
-        $historyEntry = $this->recordStatusHistory($ticket, $data['status'] ?? null, $data['status_comment'] ?? null);
         $ticket->load(['customer', 'creator']);
         app(\App\Services\UserLogService::class)->created($ticket, 'Created a Ticket ' . ($ticket->ticket_name ?: ('ID ' . $ticket->id)));
 
@@ -98,7 +98,7 @@ class SupportTicketController extends ApiBaseController
             'success' => true,
             'message' => 'Ticket created successfully.',
             'data' => $ticket,
-            'history_entry' => $this->serializeHistoryEntry($historyEntry),
+            'history_entry' => null,
             'redirect' => route('tickets.index'),
         ], 201);
     }
@@ -130,6 +130,7 @@ class SupportTicketController extends ApiBaseController
         $this->ensureVisibleCustomer((int) $data['customer_id']);
         $data['updated_by'] = auth()->id();
 
+        if (!auth()->user()->isAdmin()) unset($data['assigned_user_id']);
         $ticket->update($data);
         if (
             (array_key_exists('status', $data) && $data['status'] !== $originalStatus)
@@ -272,10 +273,11 @@ class SupportTicketController extends ApiBaseController
     {
         return [
             'customer_id' => ['required', 'exists:customers,id'],
+            'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'ticket_name' => ['required', 'string', 'max:255'],
             'priority' => ['required', 'in:Low,Medium,High'],
             'status' => ['required', 'in:Open,In Progress,Resolved,Closed'],
-            'description' => ['required', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'status_comment' => ['nullable', 'string', 'max:2000'],
         ];
     }
