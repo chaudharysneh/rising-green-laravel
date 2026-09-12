@@ -17,6 +17,9 @@
                                 <i class="bi bi-pencil me-1"></i>Edit
                             </a>
                         @endcan
+                        <a href="{{ route('deals.pdf', $deal->id) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-file-pdf me-1"></i>PDF
+                        </a>
                         <a href="{{ route('deals.index') }}" class="btn btn-dark-blue flex-grow-1 flex-md-grow-0">
                             <i class="fa-solid fa-angle-left pe-1"></i>
                             <span>Back</span>

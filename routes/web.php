@@ -146,6 +146,7 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
 
     Route::resource('deals', DealController::class)->except(['store', 'update', 'destroy'])->middleware('matrix_permission:view_deals');
     Route::get('deals-export', [DealController::class, 'export'])->middleware('matrix_permission:view_deals')->name('deals.export');
+    Route::get('deals/{id}/pdf', [DealController::class, 'pdf'])->middleware('matrix_permission:view_deals')->name('deals.pdf');
     Route::get('/pipeline', [PipelineController::class, 'index'])->middleware('matrix_permission:view_pipeline')->name('pipeline.index');
     Route::get('pipeline-export', [PipelineController::class, 'export'])->middleware('matrix_permission:view_pipeline')->name('pipeline.export');
     Route::get('/pipeline/create', [DealController::class, 'pipelineCreate'])->middleware('matrix_permission:create_pipeline')->name('pipeline.create');
