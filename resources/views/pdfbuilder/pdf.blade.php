@@ -3144,38 +3144,12 @@ if (isset($after_blocks) && is_array($after_blocks)) {
         ];
     }
     
-    $componentsIntroLength = pdf_rich_html_plain_length($componentsActive === 1 && $componentsDescRaw !== '' ? $componentsDescRaw : 'High-quality components from trusted Tier-1 OEMs, selected for performance, safety, and long-term ROI.');
-    $componentsRowCount = count($componentsData);
     $componentsPageClass = $_pageClass('p6');
     $componentsList = array_values($componentsData);
-    $componentsContinuationRowsPerPage = 4;
-    $componentsPages = [];
-    
-    if ($componentsRowCount === 0) {
-        $componentsPages[] = ['layout' => 'combined', 'rows' => []];
-    } elseif ($componentsRowCount <= 4) {
-        if ($componentsIntroLength > 420) {
-            $componentsPages[] = ['layout' => 'intro_block'];
-            $componentsPages[] = ['layout' => 'table', 'rows' => $componentsList];
-        } else {
-            $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
-        }
-    } else {
-        $firstPageRowCount = $componentsIntroLength > 420 ? 3 : 4;
-    
-        if ($firstPageRowCount >= $componentsRowCount) {
-            $componentsPages[] = ['layout' => 'combined', 'rows' => $componentsList];
-        } else {
-            $componentsPages[] = [
-                'layout' => 'combined',
-                'rows' => array_slice($componentsList, 0, $firstPageRowCount),
-            ];
-            foreach (array_chunk(array_slice($componentsList, $firstPageRowCount), $componentsContinuationRowsPerPage) ?: [] as $componentsChunkRows) {
-                $componentsPages[] = ['layout' => 'table', 'rows' => $componentsChunkRows];
-            }
-        }
-    }
-    
+    // Let the PDF renderer fill each page according to actual row heights.
+    // A fixed row count leaves large gaps for products with short specifications.
+    $componentsPages = [['layout' => 'combined', 'rows' => $componentsList]];
+
     if (!empty($invoiceOnly)) {
         $componentsPages = [['layout' => 'table', 'rows' => $componentsList]];
         $componentsPageClass = 'page';
