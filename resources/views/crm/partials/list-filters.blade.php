@@ -33,5 +33,5 @@
     </div>
 </div>
 @push('scripts')
-<script src="{{ asset('js/list-filters.js') }}?v={{ filemtime(public_path('js/list-filters.js')) }}"></script>
+<script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/list-filters.js') }}?v={{ filemtime(public_path('js/list-filters.js')) }}"></script>
 @endpush

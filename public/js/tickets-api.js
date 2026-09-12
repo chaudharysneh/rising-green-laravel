@@ -294,9 +294,9 @@
         }
 
         function fetchTickets(page = 1) {
-            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchTickets, 'ticketsSearch'); }
+            if (window.moduleListFilters && !window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchTickets, 'ticketsSearch'); }
             const apiUrl = new URL("/api/tickets", window.location.origin);
-            apiUrl.searchParams.set("page", page); Object.entries(window.moduleListFilters.values()).forEach(([key,value]) => apiUrl.searchParams.set(key,value));
+            apiUrl.searchParams.set("page", page); Object.entries((window.moduleListFilters?.values() || {})).forEach(([key,value]) => apiUrl.searchParams.set(key,value));
 
             if (searchInput.value.trim()) {
                 apiUrl.searchParams.set("search", searchInput.value.trim());

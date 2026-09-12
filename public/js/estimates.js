@@ -1986,10 +1986,10 @@
         }
 
         function fetchEstimates(page) {
-            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchEstimates, 'estimatesSearch'); }
+            if (window.moduleListFilters && !window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchEstimates, 'estimatesSearch'); }
             const url = new URL('/api/estimates', window.location.origin);
             url.searchParams.set('page', page || 1);
-            Object.entries(window.moduleListFilters.values()).forEach(([key, value]) => url.searchParams.set(key, value));
+            Object.entries((window.moduleListFilters?.values() || {})).forEach(([key, value]) => url.searchParams.set(key, value));
 
             if (searchInput.value.trim()) {
                 url.searchParams.set('search', searchInput.value.trim());

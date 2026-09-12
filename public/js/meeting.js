@@ -186,7 +186,7 @@ const MeetingTable = {
     },
 
     load(page = 1) {
-        if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(page => this.load(page), 'meetingsSearch'); }
+        if (window.moduleListFilters && !window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(page => this.load(page), 'meetingsSearch'); }
         let search = $("#meetingsSearch").val();
 
         // Show loading state
@@ -198,7 +198,7 @@ const MeetingTable = {
             data: { 
                 page, 
                 search,
-                ...window.moduleListFilters.values(),
+                ...(window.moduleListFilters?.values() || {}),
                 filter: this.currentFilter // Add filter parameter
             },
             dataType: "json",

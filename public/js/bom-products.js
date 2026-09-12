@@ -344,8 +344,8 @@
         }
 
         async function fetchProducts(page = 1) {
-            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchProducts, 'bomProductsSearch'); }
-            const params = new URLSearchParams({ page, ...window.moduleListFilters.values() });
+            if (window.moduleListFilters && !window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchProducts, 'bomProductsSearch'); }
+            const params = new URLSearchParams({ page, ...(window.moduleListFilters?.values() || {}) });
             if (searchInput.value.trim()) params.set("search", searchInput.value.trim());
 
             tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
