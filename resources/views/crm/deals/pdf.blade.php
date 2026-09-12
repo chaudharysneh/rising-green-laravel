@@ -23,6 +23,10 @@
 <style>
 @page { margin:28px 30px; }
 body { font-family:'DejaVu Sans',sans-serif; font-size:11.5px; color:#27373c; margin:0; line-height:1.45; }
+/* Fixed frames do not take document space, so they never create a blank page.
+   Dompdf repeats fixed elements when actual content continues onto another page. */
+.page-frame { position:fixed; top:0; right:0; bottom:0; left:0; border:2px solid #4b9349; }
+.pdf-frame { padding:5px 10px; }
 table { width:100%; border-collapse:collapse; } td { vertical-align:top; }
 .brand { border-bottom:1px solid #cbdccf; margin-bottom:12px; } .brand td { padding-bottom:14px; vertical-align:middle; }
 .company { font-size:18px; color:#24643b; font-weight:bold; } .muted { color:#63756b; font-size:9px; }
@@ -41,18 +45,18 @@ h1 { font-size:21px; margin:8px 0 12px; } h2 { font-size:12.5px; color:#286340; 
 .products td { padding:5px 7px; border:1px solid #d5dfda; } .products tr { page-break-inside:avoid; }
 .products .total-row td { background:#e4efe6; font-weight:bold; color:#245c37; }
 .right { text-align:right; } .total { background:#e4efe6; color:#245c37; font-weight:bold; font-size:12px; }
-.bottom { margin-top:16px; page-break-inside:avoid; border-collapse:separate; border-spacing:10px 0; margin-left:-10px; width:calc(100% + 10px); }
-.payment-card { background:#fbfdfb; border:1px solid #d6e5db; padding:13px 14px; }
-.payment-card h2 { color:#1f633c; font-size:13px; margin:0 0 9px; padding-bottom:7px; border-bottom:2px solid #dbece0; }
-.payment-card .details td { padding:4px 0; }
+.bottom { margin-top:10px; page-break-inside:avoid; border-collapse:separate; border-spacing:8px 0; margin-left:-8px; width:calc(100% + 8px); }
+.payment-card { background:#fbfdfb; border:1px solid #d6e5db; padding:9px 11px; }
+.payment-card h2 { color:#1f633c; font-size:13px; margin:0 0 6px; padding-bottom:5px; border-bottom:2px solid #dbece0; }
+.payment-card .details td { padding:2px 0; }
 .payment-card .details .label { color:#63756b; width:42%; }
-.amount-summary td { padding:6px 0; border-bottom:1px solid #e4eee7; }
-.amount-summary .deal-total td { background:#e3f2e8; color:#175d35; font-size:13px; font-weight:bold; padding:8px; border-bottom:0; }
+.amount-summary td { padding:4px 0; border-bottom:1px solid #e4eee7; }
+.amount-summary .deal-total td { background:#e3f2e8; color:#175d35; font-size:13px; font-weight:bold; padding:6px; border-bottom:0; }
 .qr-card { text-align:center; background:#f3faf5; border:1px dashed #9fc5aa; padding:12px; }
 .qr-card img { display:block; max-width:76px; max-height:76px; margin:0 auto 5px; }
 .qr-card .muted { color:#2b6d45; font-weight:bold; }
 .signature { text-align:right; margin-top:14px; } .signature-line { margin:35px 0 4px auto; border-top:1px solid #687a70; width:145px; }
-</style></head><body>
+</style></head><body><div class="page-frame"></div><div class="pdf-frame">
 <table class="brand"><tr><td style="width:42%">@if(!empty($images['company_logo_path']))<img src="{{ $images['company_logo_path'] }}" style="max-width:220px;max-height:65px;">@else<span class="company">{{ $company }}</span>@endif</td><td class="right"><div class="company">{{ mb_strtoupper($company) }}</div><div class="muted">{{ $settings['company_address'] ?? '' }}</div><div class="muted">{{ $settings['phone'] ?? '' }} @if(!empty($settings['email'])) | {{ $settings['email'] }} @endif</div></td></tr></table>
 <table class="section party-info"><tbody><tr>
     <td>
@@ -64,7 +68,7 @@ h1 { font-size:21px; margin:8px 0 12px; } h2 { font-size:12.5px; color:#286340; 
         </table>
     </td>
     <td class="info-divider">
-        <h2>Quotation Info:</h2>
+        <h2>Deal Info:</h2>
         <table class="details">
             @foreach($infoFields as $label => $value)
                 <tr><td class="label">{{ $label }} :</td><td class="value">{{ $value }}</td></tr>
@@ -195,5 +199,4 @@ h1 { font-size:21px; margin:8px 0 12px; } h2 { font-size:12.5px; color:#286340; 
 </tr></table>
 @if($estimate?->comment)<div class="section"><strong>Remarks:</strong><br>{!! nl2br(e($estimate->comment)) !!}</div>@endif
 <div class="signature">For, {{ $company }}<div class="signature-line"></div><span class="muted">Authorized Signatory</span></div>
-</body></html>
-
+</div></body></html>
