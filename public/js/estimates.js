@@ -3244,6 +3244,29 @@
         }
 
         bomHandlersInitialized = true;
+        const bomSearch = document.getElementById('estimateBomSearch');
+        if (bomSearch) {
+            let searchTimer;
+            const filterBomRows = () => {
+                const query = bomSearch.value.trim().toLocaleLowerCase();
+                let matches = 0;
+                container.querySelectorAll('.bom-row').forEach(row => {
+                    const select = row.querySelector('.product-select');
+                    const option = select?.selectedOptions[0];
+                    const name = select?.value ? (option?.dataset.name || option?.textContent || '') : '';
+                    const visible = !query || name.toLocaleLowerCase().includes(query);
+                    row.classList.toggle('d-none', !visible);
+                    if (visible) matches++;
+                });
+                document.getElementById('estimateBomSearchEmpty')?.classList.toggle('d-none', !query || matches > 0);
+            };
+            bomSearch.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => { filterBomRows(); container.scrollTop = 0; }, 120);
+            });
+            $(container).on('change', '.product-select', filterBomRows);
+            new MutationObserver(filterBomRows).observe(container, { childList: true, subtree: true, characterData: true });
+        }
         let prefillingBomRows = false;
 
         // Hydrate initial rows

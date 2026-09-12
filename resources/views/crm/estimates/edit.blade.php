@@ -482,6 +482,12 @@
                         <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
                             <div class="bom-section bg-light rounded-3 p-3 border">
+                                <label for="estimateBomSearch" class="form-label small fw-semibold">Search BOM</label>
+                                <div class="input-group mb-3" style="max-width:480px;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="search" id="estimateBomSearch" class="form-control" placeholder="Search BOM by name..." autocomplete="off" aria-controls="bomContainer">
+                                </div>
+                                <div id="estimateBomSearchEmpty" class="text-muted text-center py-3 d-none" role="status">No matching BOMs found.</div>
                                 <div id="bomContainer" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;margin-bottom:12px;">
                                     @foreach ($selectedProducts as $index => $selectedProduct)
                                         @php
