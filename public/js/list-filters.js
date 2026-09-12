@@ -15,20 +15,24 @@ window.moduleListFilters = {
     },
     bind(reload, searchId) {
         let timer;
-        document.querySelectorAll('[data-list-date]').forEach(field => flatpickr(field, {
+        document.querySelectorAll('[data-list-date]').forEach(field => {
+            if (typeof window.flatpickr !== 'function') return;
+            flatpickr(field, {
             mode: 'range', dateFormat: 'Y-m-d', altInput: true, altFormat: 'd M Y',
             onChange(dates) { if (dates.length !== 1) reload(1); }
-        }));
+            });
+        });
         document.querySelectorAll('[data-list-filter]').forEach(field => {
             field.addEventListener(field.tagName === 'SELECT' ? 'change' : 'input', () => {
                 clearTimeout(timer); timer = setTimeout(() => reload(1), field.tagName === 'SELECT' ? 0 : 350);
             });
         });
-        document.getElementById('moduleFiltersClear').addEventListener('click', () => {
+        document.getElementById('moduleFiltersClear')?.addEventListener('click', () => {
             clearTimeout(timer);
             document.querySelectorAll('[data-list-filter]').forEach(field => { if (field.dataset.listFilter !== 'per_page') field.value = ''; });
-            document.querySelectorAll('[data-list-date]').forEach(field => field._flatpickr.clear(false));
-            document.getElementById(searchId).value = '';
+            document.querySelectorAll('[data-list-date]').forEach(field => { if (field._flatpickr) field._flatpickr.clear(false); else field.value = ''; });
+            const search = document.getElementById(searchId);
+            if (search) search.value = '';
             reload(1);
         });
     }

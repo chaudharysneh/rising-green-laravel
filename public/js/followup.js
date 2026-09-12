@@ -262,9 +262,9 @@
         }
 
         function fetchFollowUps(page = 1) {
-            if (!window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchFollowUps, 'followUpSearch'); }
+            if (window.moduleListFilters && !window.moduleListFilters.bound) { window.moduleListFilters.bound = true; window.moduleListFilters.bind(fetchFollowUps, 'followUpSearch'); }
             let url = `/api/follow-ups?page=${page}`;
-            url += '&' + new URLSearchParams(window.moduleListFilters.values()).toString();
+            url += '&' + new URLSearchParams((window.moduleListFilters?.values() || {})).toString();
 
             if (searchInput && searchInput.value.trim()) {
                 url += `&search=${encodeURIComponent(searchInput.value.trim())}`;
