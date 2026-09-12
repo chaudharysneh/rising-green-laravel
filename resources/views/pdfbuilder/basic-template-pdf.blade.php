@@ -271,6 +271,7 @@ if (!function_exists('normalize_pdf_image')) {
             overflow: visible;
         }
         .page:last-child { page-break-after: auto; }
+        .commercial-section { page-break-inside: avoid; }
         .cover-header {
             margin: -14mm -15mm 9mm;
             padding: 4mm 15mm 9mm;
@@ -421,7 +422,7 @@ if (!function_exists('normalize_pdf_image')) {
                 <li><strong>Property Appreciation:</strong> Green-certified residential buildings equipped with fixed solar infrastructure command higher market resale values.</li>
             </ul>
         </div>
-        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 1 of 5</span></div>
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 1 of 6</span></div>
     </section>
 
     <section class="page">
@@ -457,7 +458,7 @@ if (!function_exists('normalize_pdf_image')) {
                 <li><strong>Projected Annual Generation:</strong> <strong>{{ $annualGeneration }} Units/year</strong></li>
             </ul>
         </div>
-        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 2 of 5</span></div>
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 2 of 6</span></div>
     </section>
 
     <section class="page">
@@ -495,7 +496,7 @@ if (!function_exists('normalize_pdf_image')) {
                 <li>Two recent passport-size color photographs</li>
             </ul>
         </div>
-        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 3 of 5</span></div>
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 3 of 6</span></div>
     </section>
 
     <section class="page">
@@ -535,11 +536,16 @@ if (!function_exists('normalize_pdf_image')) {
             </table>
         </div>
 
-        <div class="section">
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 4 of 6</span></div>
+    </section>
+
+    <section class="page">
+        <div class="section commercial-section">
             <h2 class="section-title">11. Price Quote &amp; Commercials</h2>
             <p>Commercial quote schedule valid for precisely 15 calendar days from document date of issue:</p>
             <table class="data-table">
                 <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
+                <tbody>
                     @if (($doc->price_mode ?? '') !== 'bom' && ($usesGlobalTax || $baseSystemValue > 0))
                         <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
                     @endif
@@ -582,6 +588,10 @@ if (!function_exists('normalize_pdf_image')) {
             @endif
         </div>
 
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 5 of 6</span></div>
+    </section>
+
+    <section class="page">
         @php $sectionNum = 12; @endphp
 
         <div class="section">
@@ -592,10 +602,6 @@ if (!function_exists('normalize_pdf_image')) {
                 <li><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
             </ul>
         </div>
-        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 4 of 5</span></div>
-    </section>
-
-    <section class="page">
         <div class="section">
             <h2 class="section-title">{{ $sectionNum++ }}. Terms &amp; Conditions</h2>
             <ul>
@@ -621,7 +627,7 @@ if (!function_exists('normalize_pdf_image')) {
                 <span class="quote-author">- Sunita Sharma, Verified Residential Client</span>
             </div>
         </div>
-        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 5 of 5</span></div>
+        <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 6 of 6</span></div>
     </section>
 </body>
 </html>
