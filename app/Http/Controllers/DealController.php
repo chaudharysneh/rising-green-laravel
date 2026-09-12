@@ -111,6 +111,25 @@ class DealController extends Controller
         return view('crm.deals.show', compact('deal'));
     }
 
+    public function pdf(string $id)
+    {
+        $deal = Deal::with(['customer', 'estimate', 'currency', 'status', 'stage', 'assignedUser', 'creator', 'owner'])->findOrFail($id);
+        $this->authorize('view', $deal);
+        $settings = \App\Models\Setting::pluck('value', 'key');
+        $images = [];
+        foreach (['company_logo_path', 'sidebar_icon_path', 'company_qr_code_path'] as $key) {
+            $path = $settings[$key] ?? null;
+            if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                $images[$key] = 'data:' . $disk->mimeType($path) . ';base64,' . base64_encode($disk->get($path));
+            }
+        }
+        $images['company_logo_path'] = $images['company_logo_path'] ?? $images['sidebar_icon_path'] ?? null;
+
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView('crm.deals.pdf', compact('deal', 'settings', 'images'))
+            ->setPaper('a4', 'portrait')->stream('deal-' . $deal->id . '.pdf');
+    }
+
     public function export(Request $request)
     {
         $fileName = 'deals_' . date('Y-m-d_H-i-s') . '.csv';
@@ -210,4 +229,3 @@ class DealController extends Controller
         ];
     }
 }
-
