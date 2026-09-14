@@ -193,6 +193,8 @@ class SettingController extends Controller
             'ifsc_code' => ['sometimes', 'nullable', 'string', 'max:255'],
             'branch_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'company_qr_code_path' => ['sometimes', 'nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,avif', 'max:51200'],
+            'show_bank_details' => ['sometimes', 'boolean'],
+            'show_company_qr_code' => ['sometimes', 'boolean'],
             'estimate_price_mode' => ['sometimes', 'required', 'in:base,bom'],
         ]);
 

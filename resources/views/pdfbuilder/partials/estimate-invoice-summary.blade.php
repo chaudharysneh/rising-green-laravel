@@ -215,8 +215,10 @@ if (!empty($invoiceOnly)) {
         ['document_no' => $estimate_no ?? $estdata->invoice_no ?? '--']
     ));
 }
-$summaryHasBank = trim((string) $summaryBankName) !== '' || !empty($summaryBankFields);
-$summaryHasQr = !empty($summaryQrImage) && str_starts_with($summaryQrImage, 'data:image/');
+$summaryShowBankDetails = (string) ($companySettings['show_bank_details'] ?? '1') !== '0';
+$summaryShowCompanyQrCode = (string) ($companySettings['show_company_qr_code'] ?? '1') !== '0';
+$summaryHasBank = $summaryShowBankDetails && (trim((string) $summaryBankName) !== '' || !empty($summaryBankFields));
+$summaryHasQr = $summaryShowCompanyQrCode && !empty($summaryQrImage) && str_starts_with($summaryQrImage, 'data:image/');
 $summaryCommentWidth = $summaryHasBank ? ($summaryHasQr ? 35 : 50) : ($summaryHasQr ? 75 : 100);
 $summaryBankWidth = $summaryHasQr ? 40 : 50;
 ?>

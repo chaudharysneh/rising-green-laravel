@@ -313,6 +313,10 @@ class DocumentSummaryPresenter
             ['label' => 'Branch', 'value' => $companySettings['branch_name'] ?? ''],
         ], fn ($field) => trim((string) ($field['value'] ?? '')) !== ''));
 
+        // Missing settings are treated as enabled so existing documents retain their current layout.
+        $summaryShowBankDetails = (string) ($companySettings['show_bank_details'] ?? '1') !== '0';
+        $summaryShowCompanyQrCode = (string) ($companySettings['show_company_qr_code'] ?? '1') !== '0';
+
         return [
             'estdata' => $estdata,
             'quantity' => $quantity,
@@ -326,6 +330,8 @@ class DocumentSummaryPresenter
             'summaryEstimateComment' => $estdata->estimate_comment ?? ($estdata->comment ?? '--'),
             'summaryBankName' => trim((string) ($companySettings['bank_name'] ?? '')),
             'summaryBankFields' => $summaryBankFields,
+            'summaryShowBankDetails' => $summaryShowBankDetails,
+            'summaryShowCompanyQrCode' => $summaryShowCompanyQrCode,
             'summaryBaseCost' => $summaryBaseCost,
             'summaryBomTotal' => $summaryBomTotal,
             'summaryBreakupLines' => $summaryBreakupLines,

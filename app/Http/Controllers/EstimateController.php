@@ -154,6 +154,8 @@ class EstimateController extends Controller
                 'account_number',
                 'ifsc_code',
                 'branch_name',
+                'show_bank_details',
+                'show_company_qr_code',
         ])->pluck('value', 'key');
 
         // Get all products for BOM specifications
