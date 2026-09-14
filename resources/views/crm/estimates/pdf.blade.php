@@ -564,15 +564,21 @@ try {
 } catch (\Throwable $e) {
     $bank = null;
 }
+$showBankDetails = (string) ($settings['show_bank_details'] ?? '1') !== '0';
+$showCompanyQrCode = (string) ($settings['show_company_qr_code'] ?? '1') !== '0';
             ?>
 
             <!-- Comment + Bank Details Table -->
             <table class="info-table" style="margin-top:15px;">
                 <thead>
                     <tr>
-                        <th style="width: 35%;">Comment</th>
-                        <th style="width: 40%;">Bank Details</th>
+                        <th style="width: {{ $showBankDetails ? ($showCompanyQrCode ? 35 : 50) : ($showCompanyQrCode ? 75 : 100) }}%;">Comment</th>
+                        <?php if ($showBankDetails): ?>
+                        <th style="width: {{ $showCompanyQrCode ? 40 : 50 }}%;">Bank Details</th>
+                        <?php endif; ?>
+                        <?php if ($showCompanyQrCode): ?>
                         <th style="width: 25%;">QR Code</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -582,6 +588,7 @@ try {
                             <?php echo nl2br(htmlspecialchars($estdata->estimate_comment ?? ($estdata->comment ?? '--'))); ?>
                         </td>
 
+                        <?php if ($showBankDetails): ?>
                         <!-- Bank Details Column -->
                         <td style="vertical-align: top; background: #fafafa;">
                             <?php if ($bank): ?>
@@ -604,6 +611,8 @@ try {
                             <div style="color:#666;">No bank details available.</div>
                             <?php endif; ?>
                         </td>
+                        <?php endif; ?>
+                        <?php if ($showCompanyQrCode): ?>
                         <td style="vertical-align: top; background: #fafafa; text-align:center;">
                             <?php if (!empty($user['qr_code'])): ?>
                             <img src="<?php    echo htmlspecialchars(base_url('public/assets/img/profile/' . $user['qr_code'])); ?>"
@@ -613,6 +622,7 @@ try {
                             <div style="color:#666;">No QR code available.</div>
                             <?php endif; ?>
                         </td>
+                        <?php endif; ?>
                     </tr>
                 </tbody>
             </table>

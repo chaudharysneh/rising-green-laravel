@@ -307,8 +307,8 @@
     </table>
 
     @php
-        $summaryHasBank = trim((string) ($summaryBankName ?? '')) !== '' || !empty($summaryBankFields);
-        $summaryHasQr = !empty($summaryQrUrl);
+        $summaryHasBank = ($summaryShowBankDetails ?? true) && (trim((string) ($summaryBankName ?? '')) !== '' || !empty($summaryBankFields));
+        $summaryHasQr = ($summaryShowCompanyQrCode ?? true) && !empty($summaryQrUrl);
         $summaryCommentWidth = $summaryHasBank ? ($summaryHasQr ? 35 : 50) : ($summaryHasQr ? 75 : 100);
         $summaryBankWidth = $summaryHasQr ? 40 : 50;
     @endphp

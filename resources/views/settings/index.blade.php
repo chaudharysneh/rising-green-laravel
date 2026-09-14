@@ -713,6 +713,25 @@
                     @method('PUT')
                     
                             <div class="row g-3">
+                                @php
+                                    // Keep existing documents unchanged until an administrator explicitly turns a section off.
+                                    $showBankDetails = old('show_bank_details', $settings['show_bank_details']->value ?? '1') === '1';
+                                    $showCompanyQrCode = old('show_company_qr_code', $settings['show_company_qr_code']->value ?? '1') === '1';
+                                @endphp
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-1">
+                                        <input type="hidden" name="show_bank_details" value="0">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="show_bank_details" value="1" id="show_bank_details" @checked($showBankDetails)>
+                                        <label class="form-check-label fw-semibold" for="show_bank_details">Show bank details on estimates and PDFs</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-1">
+                                        <input type="hidden" name="show_company_qr_code" value="0">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="show_company_qr_code" value="1" id="show_company_qr_code" @checked($showCompanyQrCode)>
+                                        <label class="form-check-label fw-semibold" for="show_company_qr_code">Show QR code on estimates and PDFs</label>
+                                    </div>
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Bank Name</label>
                                     <input type="text" name="bank_name" id="bank_name" class="form-control"
