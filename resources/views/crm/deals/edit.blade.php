@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="card-body p-3 p-md-4">
-                <form method="POST" action="/api/deals/{{ $deal->id }}" id="dealForm" class="needs-validation ajax-deal-form js-status-comment-form" novalidate>
+                <form method="POST" action="/api/deals/{{ $deal->id }}" id="dealForm" class="needs-validation ajax-deal-form js-status-comment-form" enctype="multipart/form-data" novalidate>
                     @csrf
                     @method('PUT')
                     @php
@@ -122,6 +122,26 @@
                             </select>
                             <div class="invalid-feedback" id="status_id-error"></div>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Signature (Optional)</label>
+                            @php
+                                $hasCurrentSignature = ($deal->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($deal->signature_path))
+                                    || !empty($defaultSignatureUrl);
+                                $currentSignatureUrl = $hasCurrentSignature
+                                    ? route('deals.signature.image', $deal)
+                                    : null;
+                            @endphp
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="flex-grow-1">
+                                    <input type="file" name="signature_path" id="signature_path" accept="image/*" class="form-control" data-default-signature-url="{{ $currentSignatureUrl ?? '' }}">
+                                    <small class="text-muted">@if($deal->signature_path) Uploading a new image replaces this deal's current signature. @else Leave blank to use the default signature from Settings. @endif</small>
+                                </div>
+                                <div class="border rounded bg-light px-2 py-1" style="width:160px; min-height:62px;">
+                                    <img id="signature-preview" src="{{ $currentSignatureUrl ?? '' }}" alt="Signature preview" class="{{ $currentSignatureUrl ? '' : 'd-none' }}" style="display:block; width:100%; height:52px; object-fit:contain; object-position:left center;">
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" id="signature_path-error"></div>
+                        </div>
 
                         <input type="hidden" name="assigned_user_id" value="{{ old('assigned_user_id', $deal->assigned_user_id ?: auth()->id()) }}">
                         <input type="hidden" name="title" id="title" value="{{ old('title', $deal->title) }}">
@@ -205,7 +225,7 @@
         @include('crm.estimates.partials.quick-estimate-scripts')
         <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
     @endcan
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}?v={{ filemtime(public_path('js/deal.js')) }}"></script>
     <script>
         $(document).ready(function() {
             $('#customer_id').select2({
@@ -306,5 +326,3 @@
         });
     </script>
 @endpush
-
-

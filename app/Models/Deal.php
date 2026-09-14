@@ -32,6 +32,7 @@ class Deal extends Model
         'assigned_user_id',
         'user_id',
         'created_by',
+        'signature_path',
     ];
 
     protected $casts = [

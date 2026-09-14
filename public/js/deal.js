@@ -979,4 +979,24 @@ $(document).ready(function () {
         }
         $(`#${$(this).attr("id")}-error`).html("");
     });
+
+    $("#signature_path").on("change", function () {
+        const preview = document.getElementById("signature-preview");
+        if (!preview) return;
+
+        const file = this.files && this.files[0];
+        if (!file) {
+            const defaultUrl = this.dataset.defaultSignatureUrl || "";
+            preview.src = defaultUrl;
+            preview.classList.toggle("d-none", !defaultUrl);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            preview.src = event.target.result;
+            preview.classList.remove("d-none");
+        };
+        reader.readAsDataURL(file);
+    });
 });

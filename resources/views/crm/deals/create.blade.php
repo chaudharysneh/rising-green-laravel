@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="card-body p-3 p-md-4">
-                <form method="POST" action="/api/deals" id="dealForm" class="needs-validation ajax-deal-form" novalidate>
+                <form method="POST" action="/api/deals" id="dealForm" class="needs-validation ajax-deal-form" enctype="multipart/form-data" novalidate>
                     @csrf
                     @php
                         $statusOrder = ['Pending', 'In-Process', 'Paused', 'Lost', 'Won/Confirm'];
@@ -123,6 +123,19 @@
                             </select>
                             <div class="invalid-feedback d-block" id="status_id-error"></div>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Signature (Optional)</label>
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="flex-grow-1">
+                                    <input type="file" name="signature_path" id="signature_path" accept="image/*" class="form-control" data-default-signature-url="{{ $defaultSignatureUrl ?? '' }}">
+                                    <small class="text-muted">Leave blank to use the default signature from Settings.</small>
+                                </div>
+                                <div class="border rounded bg-light px-2 py-1" style="width:160px; min-height:62px;">
+                                    <img id="signature-preview" src="{{ $defaultSignatureUrl ?? '' }}" alt="Signature preview" class="{{ $defaultSignatureUrl ? '' : 'd-none' }}" style="display:block; width:100%; height:52px; object-fit:contain; object-position:left center;">
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" id="signature_path-error"></div>
+                        </div>
                             <input type="hidden" name="assigned_user_id" value="{{ old('assigned_user_id', auth()->id()) }}">
                             <input type="hidden" name="title" id="title" value="{{ old('title') }}">
                             <input type="hidden" name="probability" value="{{ old('probability', 0) }}">
@@ -204,7 +217,7 @@
         @include('crm.estimates.partials.quick-estimate-scripts')
         <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/estimates.js') }}?v={{ filemtime(public_path('js/estimates.js')) }}"></script>
     @endcan
-    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}"></script>
+    <script src="{{ url((env('PUBLIC_PATH') ? rtrim(env('PUBLIC_PATH'), '/') . '/' : '') . 'js/deal.js') }}?v={{ filemtime(public_path('js/deal.js')) }}"></script>
     <script>
         $(document).ready(function() {
             $('#customer_id').select2({
@@ -305,5 +318,3 @@
         });
     </script>
 @endpush
-
-

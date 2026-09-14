@@ -12,6 +12,8 @@
     $preparedName = $preparedBy?->name ?: $company . ' Team';
     $preparedTitle = $preparedBy?->job_title ?: 'Authorized Representative';
     $contact = implode(' | ', array_filter([$settings['phone'] ?? null, $settings['email'] ?? null]));
+    $showSignature = (string) ($settings['show_company_signature'] ?? '1') !== '0';
+    $signatureImage = $images['deal_signature_path'] ?? $images['company_signature_path'] ?? null;
 @endphp
 <!doctype html>
 <html>
@@ -82,6 +84,9 @@
 
         <div class="signature">
             <p>Best regards,</p>
+            @if ($showSignature && $signatureImage)
+                <img src="{{ $signatureImage }}" alt="Signature" style="display:block; max-width:150px; max-height:55px; margin:0 0 6px; object-fit:contain; object-position:left center;">
+            @endif
             <div class="signature-name">{{ $preparedName }}</div>
             <div>{{ $preparedTitle }}</div>
             <div>{{ $company }}</div>

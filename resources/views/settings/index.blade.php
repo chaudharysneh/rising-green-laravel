@@ -718,40 +718,57 @@
                                     $showBankDetails = old('show_bank_details', $settings['show_bank_details']->value ?? '1') === '1';
                                     $showCompanyQrCode = old('show_company_qr_code', $settings['show_company_qr_code']->value ?? '1') === '1';
                                 @endphp
-                                <div class="col-md-6">
-                                    <div class="form-check form-switch mt-1">
-                                        <input type="hidden" name="show_bank_details" value="0">
-                                        <input class="form-check-input" type="checkbox" role="switch" name="show_bank_details" value="1" id="show_bank_details" @checked($showBankDetails)>
-                                        <label class="form-check-label fw-semibold" for="show_bank_details">Show bank details on estimates and PDFs</label>
+                                <div class="col-12">
+                                    <div class="bank-display-options">
+                                        <div class="bank-display-option-wrap">
+                                            <input type="hidden" name="show_bank_details" value="0">
+                                            <input class="form-check-input" type="checkbox" role="switch" name="show_bank_details" value="1" id="show_bank_details" @checked($showBankDetails)>
+                                            <label class="bank-display-option" for="show_bank_details">
+                                                <span class="bank-display-option-icon"><i class="bi bi-bank"></i></span>
+                                                <span class="bank-display-option-copy"><strong>Bank details</strong><small>Show on estimates and PDFs</small></span>
+                                                <span class="bank-display-option-switch" aria-hidden="true"></span>
+                                            </label>
+                                        </div>
+                                        <div class="bank-display-option-wrap">
+                                            <input type="hidden" name="show_company_qr_code" value="0">
+                                            <input class="form-check-input" type="checkbox" role="switch" name="show_company_qr_code" value="1" id="show_company_qr_code" @checked($showCompanyQrCode)>
+                                            <label class="bank-display-option" for="show_company_qr_code">
+                                                <span class="bank-display-option-icon"><i class="bi bi-qr-code"></i></span>
+                                                <span class="bank-display-option-copy"><strong>QR code</strong><small>Show on estimates and PDFs</small></span>
+                                                <span class="bank-display-option-switch" aria-hidden="true"></span>
+                                            </label>
+                                        </div>
+                                        <div class="bank-display-option-wrap">
+                                            <input type="hidden" name="show_company_signature" value="0">
+                                            <input class="form-check-input" type="checkbox" role="switch" name="show_company_signature" value="1" id="show_company_signature" @checked(old('show_company_signature', $settings['show_company_signature']->value ?? '1') === '1')>
+                                            <label class="bank-display-option" for="show_company_signature">
+                                                <span class="bank-display-option-icon"><i class="bi bi-pen"></i></span>
+                                                <span class="bank-display-option-copy"><strong>Signature</strong><small>Show on deal PDFs</small></span>
+                                                <span class="bank-display-option-switch" aria-hidden="true"></span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-check form-switch mt-1">
-                                        <input type="hidden" name="show_company_qr_code" value="0">
-                                        <input class="form-check-input" type="checkbox" role="switch" name="show_company_qr_code" value="1" id="show_company_qr_code" @checked($showCompanyQrCode)>
-                                        <label class="form-check-label fw-semibold" for="show_company_qr_code">Show QR code on estimates and PDFs</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label fw-semibold">Bank Name</label>
                                     <input type="text" name="bank_name" id="bank_name" class="form-control"
                                         value="{{ old('bank_name', $settings['bank_name']->value ?? '') }}"
                                         placeholder="Enter bank name">
                                     <div class="invalid-feedback" id="bank_name-error"></div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Account Name</label>
-                                    <input type="text" name="account_name" id="account_name" class="form-control"
-                                        value="{{ old('account_name', $settings['account_name']->value ?? '') }}"
-                                        placeholder="Enter account holder name">
-                                    <div class="invalid-feedback" id="account_name-error"></div>
-                                </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label fw-semibold">Account Number</label>
                                     <input type="text" name="account_number" id="account_number" class="form-control"
                                         value="{{ old('account_number', $settings['account_number']->value ?? '') }}"
                                         placeholder="Enter account number">
                                     <div class="invalid-feedback" id="account_number-error"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Account Name</label>
+                                    <input type="text" name="account_name" id="account_name" class="form-control"
+                                        value="{{ old('account_name', $settings['account_name']->value ?? '') }}"
+                                        placeholder="Enter account holder name">
+                                    <div class="invalid-feedback" id="account_name-error"></div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">IFSC Code</label>
@@ -764,6 +781,10 @@
                                     $qrPath = $settings['company_qr_code_path']->value ?? null;
                                     $companyQrCodeUrl = $qrPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrPath)
                                         ? route('profile.company_qr_code.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($qrPath)
+                                        : null;
+                                    $signaturePath = $settings['company_signature_path']->value ?? null;
+                                    $companySignatureUrl = $signaturePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($signaturePath)
+                                        ? route('profile.company_signature.image') . '?v=' . \Illuminate\Support\Facades\Storage::disk('public')->lastModified($signaturePath)
                                         : null;
                                 @endphp
                                 <div class="col-md-6">
@@ -788,6 +809,21 @@
                                                     <i class="bi bi-qr-code"></i>
                                                 </div>
                                             @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Default Signature (Upload)</label>
+                                    <div class="d-flex align-items-start gap-2">
+                                        <div class="flex-grow-1">
+                                            <input type="file" name="company_signature_path" id="company-signature-input" accept="image/*" class="form-control">
+                                            <small class="text-muted d-block mt-1">Used in deal PDFs unless a deal-specific signature is uploaded. Any image file - max 50 MB.</small>
+                                        </div>
+                                        <div class="profile-signature-preview-container flex-shrink-0">
+                                            <img src="{{ $companySignatureUrl ?: '' }}" alt="Signature preview" class="profile-signature-mini {{ $companySignatureUrl ? '' : 'd-none' }}" id="company-signature-preview">
+                                            <div class="profile-signature-mini-placeholder d-flex align-items-center justify-content-center {{ $companySignatureUrl ? 'd-none' : '' }}" id="company-signature-placeholder">
+                                                <i class="bi bi-pen"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1845,6 +1881,25 @@
                                 bankQrPlaceholder.classList.add('d-none');
                             }
                         }
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+
+            // Default Signature Preview
+            const companySignatureInput = document.getElementById('company-signature-input');
+            const companySignaturePreview = document.getElementById('company-signature-preview');
+            const companySignaturePlaceholder = document.getElementById('company-signature-placeholder');
+
+            if (companySignatureInput) {
+                companySignatureInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            companySignaturePreview.src = e.target.result;
+                            companySignaturePreview.classList.remove('d-none');
+                            companySignaturePlaceholder.classList.add('d-none');
+                        };
                         reader.readAsDataURL(this.files[0]);
                     }
                 });
