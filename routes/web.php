@@ -147,6 +147,7 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::resource('deals', DealController::class)->except(['store', 'update', 'destroy'])->middleware('matrix_permission:view_deals');
     Route::get('deals-export', [DealController::class, 'export'])->middleware('matrix_permission:view_deals')->name('deals.export');
     Route::get('deals/{id}/pdf', [DealController::class, 'pdf'])->middleware('matrix_permission:view_deals')->name('deals.pdf');
+    Route::get('deals/{id}/signature-image', [DealController::class, 'signatureImage'])->middleware('matrix_permission:view_deals')->name('deals.signature.image');
     Route::get('/pipeline', [PipelineController::class, 'index'])->middleware('matrix_permission:view_pipeline')->name('pipeline.index');
     Route::get('pipeline-export', [PipelineController::class, 'export'])->middleware('matrix_permission:view_pipeline')->name('pipeline.export');
     Route::get('/pipeline/create', [DealController::class, 'pipelineCreate'])->middleware('matrix_permission:create_pipeline')->name('pipeline.create');
@@ -334,6 +335,7 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/profile/company-logo-image', [ProfileController::class, 'companyLogoImage'])->name('profile.company_logo.image');
     Route::get('/profile/sidebar-icon-image', [ProfileController::class, 'sidebarIconImage'])->name('profile.sidebar_icon.image');
     Route::get('/profile/company-qr-code-image', [ProfileController::class, 'companyQrCodeImage'])->name('profile.company_qr_code.image');
+    Route::get('/profile/company-signature-image', [ProfileController::class, 'companySignatureImage'])->name('profile.company_signature.image');
 
     // Users & Roles
     Route::resource('users', UserController::class)->except(['store', 'update', 'destroy'])->middleware('main_admin');

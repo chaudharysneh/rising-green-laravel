@@ -141,6 +141,17 @@ class ProfileController extends Controller
         return Response::file(Storage::disk('public')->path($path));
     }
 
+    public function companySignatureImage()
+    {
+        $path = Setting::query()->where('key', 'company_signature_path')->value('value');
+
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Response::file(Storage::disk('public')->path($path));
+    }
+
     public function update(Request $request)
     {
         $user = Auth::user();

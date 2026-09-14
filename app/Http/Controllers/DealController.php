@@ -18,6 +18,7 @@ use App\Models\Subsidy;
 use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class DealController extends Controller
 {
@@ -74,7 +75,8 @@ class DealController extends Controller
 
         return view('crm.deals.create', array_merge(
             compact('customers', 'estimates', 'statuses', 'stages', 'users'),
-            $this->quickEstimateFormData()
+            $this->quickEstimateFormData(),
+            ['defaultSignatureUrl' => $this->defaultCompanySignatureUrl()]
         ));
     }
 
@@ -98,7 +100,8 @@ class DealController extends Controller
             : User::where('id', auth()->id())->orderBy('name')->get();
         return view('crm.deals.edit', array_merge(
             compact('deal', 'customers', 'estimates', 'statuses', 'stages', 'users'),
-            $this->quickEstimateFormData()
+            $this->quickEstimateFormData(),
+            ['defaultSignatureUrl' => $this->defaultCompanySignatureUrl()]
         ));
     }
 
@@ -117,17 +120,36 @@ class DealController extends Controller
         $this->authorize('view', $deal);
         $settings = \App\Models\Setting::pluck('value', 'key');
         $images = [];
-        foreach (['company_logo_path', 'sidebar_icon_path', 'company_qr_code_path'] as $key) {
+        foreach (['company_logo_path', 'sidebar_icon_path', 'company_qr_code_path', 'company_signature_path'] as $key) {
             $path = $settings[$key] ?? null;
             if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
                 $disk = \Illuminate\Support\Facades\Storage::disk('public');
                 $images[$key] = 'data:' . $disk->mimeType($path) . ';base64,' . base64_encode($disk->get($path));
             }
         }
+        if ($deal->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($deal->signature_path)) {
+            $disk = \Illuminate\Support\Facades\Storage::disk('public');
+            $images['deal_signature_path'] = 'data:' . $disk->mimeType($deal->signature_path) . ';base64,' . base64_encode($disk->get($deal->signature_path));
+        }
         $images['company_logo_path'] = $images['company_logo_path'] ?? $images['sidebar_icon_path'] ?? null;
 
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('crm.deals.pdf', compact('deal', 'settings', 'images'))
             ->setPaper('a4', 'portrait')->stream('deal-' . $deal->id . '.pdf');
+    }
+
+    public function signatureImage(string $id)
+    {
+        $deal = Deal::findOrFail($id);
+        $this->authorize('view', $deal);
+
+        $path = $deal->signature_path
+            ?: \App\Models\Setting::query()->where('key', 'company_signature_path')->value('value');
+
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('public')->path($path));
     }
 
     public function export(Request $request)
@@ -227,5 +249,16 @@ class DealController extends Controller
             'gstTaxes' => Tax::active()->orderBy('name')->orderBy('rate')->get(),
             'subsidies' => Subsidy::active()->get(),
         ];
+    }
+
+    private function defaultCompanySignatureUrl(): ?string
+    {
+        $path = \App\Models\Setting::query()
+            ->where('key', 'company_signature_path')
+            ->value('value');
+
+        return $path && Storage::disk('public')->exists($path)
+            ? route('profile.company_signature.image') . '?v=' . Storage::disk('public')->lastModified($path)
+            : null;
     }
 }

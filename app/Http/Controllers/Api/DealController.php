@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -172,6 +173,7 @@ class DealController extends ApiBaseController
                 Rule::exists('statuses', 'id')->where('type', 'deal'),
             ],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'signature_path' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,avif', 'max:51200'],
         ];
 
         if (Schema::hasColumn('deals', 'probability')) {
@@ -202,6 +204,9 @@ class DealController extends ApiBaseController
         }
 
         $data = $validator->validated();
+        if ($request->hasFile('signature_path')) {
+            $data['signature_path'] = $request->file('signature_path')->store('deals/signatures', 'public');
+        }
         $data = $this->prepareDealData($data);
         $this->ensureVisibleCustomer((int) $data['customer_id']);
         $this->ensureAssignableUser((int) $data['assigned_user_id']);
@@ -222,7 +227,6 @@ class DealController extends ApiBaseController
 
         try {
             $deal = Deal::create($data);
-            $historyEntry = $this->recordStatusHistory($deal, $data['status_id'] ?? null, $data['status_comment'] ?? null);
             app(\App\Services\UserLogService::class)->created($deal);
             $this->ensureCustomerForWonDeal($deal);
             $this->createAutoTaskForDeal($deal);
@@ -234,7 +238,7 @@ class DealController extends ApiBaseController
                 'success' => true,
                 'message' => 'Deal created successfully!',
                 'data' => $deal->fresh(['customer', 'currency', 'status', 'assignedUser', 'stage', 'creator']),
-                'history_entry' => $this->serializeHistoryEntry($historyEntry),
+                'history_entry' => null,
                 'redirect' => route('deals.index'),
             ], 201);
         } catch (\Exception $e) {
@@ -278,6 +282,7 @@ class DealController extends ApiBaseController
                 Rule::exists('statuses', 'id')->where('type', 'deal'),
             ],
             'assigned_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'signature_path' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,svg,webp,avif', 'max:51200'],
         ];
 
         if (Schema::hasColumn('deals', 'probability')) {
@@ -308,6 +313,12 @@ class DealController extends ApiBaseController
         }
 
         $data = $validator->validated();
+        if ($request->hasFile('signature_path')) {
+            if ($deal->signature_path && Storage::disk('public')->exists($deal->signature_path)) {
+                Storage::disk('public')->delete($deal->signature_path);
+            }
+            $data['signature_path'] = $request->file('signature_path')->store('deals/signatures', 'public');
+        }
         $data = $this->prepareDealData($data, $deal);
         $this->ensureVisibleCustomer((int) $data['customer_id']);
         $this->ensureAssignableUser((int) $data['assigned_user_id']);
