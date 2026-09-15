@@ -275,11 +275,12 @@ if (!function_exists('normalize_pdf_image')) {
         .cover-header {
             margin: -14mm -15mm 9mm;
             padding: 4mm 15mm 9mm;
-            background: #0b2d48;
-            color: #fff;
+            background: #fff;
+            color: #4b8b24;
             border-bottom: 4px solid #f2a51c;
         }
         .cover-title {
+            color: #4b8b24;
             font-size: 16px;
             line-height: 1.2;
             font-weight: 700;
@@ -290,7 +291,7 @@ if (!function_exists('normalize_pdf_image')) {
         .cover-subtitle {
             font-size: 10px; white-space: nowrap;
             font-style: italic;
-            color: #eef5ff;
+            color: #f4c400;
         }
         .section {
             margin: 0 0 14px;
@@ -389,7 +390,20 @@ if (!function_exists('normalize_pdf_image')) {
                 @endif
                 <div style="position:absolute;left:{{ $smallLogoBase64 ? '92px' : '0' }};top:22px;right:0;{{ $smallLogoBase64 ? 'border-left:1px solid #9aabb8;padding-left:12px;' : '' }}">
                     <div class="cover-title">{{ $companyName }} Proposal</div>
-                    <div class="cover-subtitle">Clean Energy. Guaranteed Savings. Sustainable Future.</div>
+                    @php
+                        // Use individual text colors so the gradient survives Dompdf rendering.
+                        $tagline = 'Clean Energy. Guaranteed Savings. Sustainable Future.';
+                        $taglineLetters = str_split($tagline);
+                        $taglineStart = [244, 196, 0];
+                        $taglineEnd = [239, 125, 0];
+                    @endphp
+                    <div class="cover-subtitle">@foreach ($taglineLetters as $index => $letter)@php
+                        $position = $index / (count($taglineLetters) - 1);
+                        $letterColor = sprintf('#%02x%02x%02x',
+                            (int) round($taglineStart[0] + ($taglineEnd[0] - $taglineStart[0]) * $position),
+                            (int) round($taglineStart[1] + ($taglineEnd[1] - $taglineStart[1]) * $position),
+                            (int) round($taglineStart[2] + ($taglineEnd[2] - $taglineStart[2]) * $position));
+                    @endphp<span style="color: {{ $letterColor }};">{{ $letter }}</span>@endforeach</div>
                 </div>
             </div>     </div>
 
