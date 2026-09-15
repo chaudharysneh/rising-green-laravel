@@ -115,11 +115,20 @@
             });
         }
 
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderRows(items, meta) {
             if (!items || items.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center py-5">
+                        <td colspan="9" class="text-center py-5">
                             <div class="text-muted mb-3">
                                 <i class="bi bi-file-earmark-text display-1 opacity-25"></i>
                             </div>
@@ -146,6 +155,7 @@
                         <div class="fw-bold text-dark">${customer?.name ?? 'Unknown'}</div>
                         <div class="text-muted small d-none d-md-block">${customer?.email ?? ''}</div>
                     </td>
+                    <td class="text-start" data-label="Invoice Name">${escapeHtml(invoice.invoice_name || '-')}</td>
                     <td class="text-center d-none d-md-table-cell" data-label="Invoice No">
                         <span class="badge bg-soft-info text-info rounded-pill px-3">#${invoice.invoice_no ?? '-'}</span>
                     </td>
@@ -312,7 +322,7 @@
                 dataType: "json",
                 headers: { "X-Requested-With": "XMLHttpRequest" },
                 beforeSend: function () {
-                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
                     ['paid', 'pending'].forEach(key => { document.getElementById(`invoice-${key}-amount`).textContent = '…'; });
                 },
                 success: function (res) {
@@ -324,7 +334,7 @@
                     }
                 },
                 error: function () {
-                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5">Error loading invoices</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5">Error loading invoices</td></tr>`;
                     ['paid', 'pending'].forEach(key => { document.getElementById(`invoice-${key}-amount`).textContent = 'Unavailable'; });
                 },
             });

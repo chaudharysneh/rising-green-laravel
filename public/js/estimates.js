@@ -1854,7 +1854,7 @@
             if (!items || !items.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="8" class="text-center py-5">
                             <div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div>
                             <p class="text-muted">No estimates found.</p>
                             ${permissions.create ? '<a href="/estimates/create" class="btn btn-dark-blue btn-sm rounded-pill px-4">Add Your First Estimate</a>' : ''}
@@ -1894,6 +1894,7 @@
                         <td data-label="Customer Name">
                             <div class="fw-bold small text-dark">${customerName}</div>
                         </td>
+                        <td data-label="Estimate Name">${escapeHtml(estimate.estimate_name || '-')}</td>
                         <td class="d-none d-md-table-cell" data-label="Estimate No">${estimateNo}</td>
                         <td class="d-none d-md-table-cell" data-label="Estimate Date">${estimateDate}</td>
                         <td class="d-none d-md-table-cell" data-label="Status">${statusBadge}</td>
@@ -2010,7 +2011,7 @@
                 beforeSend: function () {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="spinner-border text-primary"></div>
                             </td>
                         </tr>`;
@@ -2022,7 +2023,7 @@
                     }
                 },
                 error: function () {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-5">Error loading estimates</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-5">Error loading estimates</td></tr>';
                     paginationContainer.innerHTML = '';
                 },
             });

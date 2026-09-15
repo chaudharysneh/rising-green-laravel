@@ -300,6 +300,7 @@
                         <tr>
                             <th class="ps-4">Sr.No</th>
                             <th>Customer Name</th>
+                            <th>Estimate Name</th>
                             <th class="d-none d-md-table-cell">Estimate No</th>
                             <th class="d-none d-md-table-cell">Estimate Date</th>
                             <th class="d-none d-md-table-cell">Status</th>
