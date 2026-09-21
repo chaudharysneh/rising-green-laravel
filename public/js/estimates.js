@@ -3301,6 +3301,8 @@
             row.querySelector('.bom-make-error')?.classList.remove('d-block');
             
             const option = this.querySelector('option[value="' + this.value + '"]');
+            const description = row.querySelector('.product-description');
+            if (description) description.value = this.value ? (option?.dataset.desc || '') : '';
             let labelText = 'Qty';
             if (option && this.value) {
                 if (priceInput) {
@@ -3409,11 +3411,14 @@
             }
 
             const newRow = firstRow.cloneNode(true);
+            const description = newRow.querySelector('.product-description');
+            if (description) description.value = '';
             clearEstimateBomRowValidation(newRow);
             newRow.querySelectorAll('input, select').forEach(function (el) {
                 if (el.tagName === 'SELECT') {
                     el.value = el.classList.contains('product-tax-rate') ? '0' : '';
                     if (el.classList.contains('product-make')) {
+                        el.closest('div').hidden = false;
                         el.innerHTML = '<option value="">Select Make</option>';
                         el.disabled = true;
                         el.dataset.selected = '';
@@ -3471,8 +3476,16 @@
 
     function populateMakeOptions(productSelect, makeSelect, selectedValue) {
         const selectedOption = productSelect.options[productSelect.selectedIndex];
+        const productName = (selectedOption?.dataset.name || selectedOption?.textContent || '').trim().toUpperCase();
+        const hideMake = ['SUPPLY AND INSTALLATION', 'STRUCTURE FABRICATION WORK'].includes(productName);
+        makeSelect.closest('div').hidden = hideMake;
         const categories = selectedOption?.dataset?.categories;
         makeSelect.innerHTML = '<option value="">Select Make</option>';
+
+        if (hideMake) {
+            makeSelect.disabled = true;
+            return;
+        }
 
         if (!categories) {
             makeSelect.disabled = true;
@@ -3524,7 +3537,7 @@
                 products.push({
                     product_id: productSelect.value,
                     name: option.dataset.name || '',
-                    description: option.dataset.desc || '',
+                    description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
                     category_name: makeSelect?.value || '',
                     quantity: parseFloat(qtyInput?.value || 0),
                     price: itemPrice,
@@ -4250,7 +4263,7 @@
                     products.push({
                         product_id: bomId,
                         name: option.dataset.name || '',
-                        description: option.dataset.desc || '',
+                        description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
                         category_name: categoryName,
                         quantity: qtyInput ? parseFloat(qtyInput.value || 0) : 0,
                         price: priceInput ? parseFloat(priceInput.value || 0) : 0,

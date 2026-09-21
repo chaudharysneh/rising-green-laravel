@@ -24,7 +24,9 @@ class EstimateController extends Controller
     {
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $bomProducts = BomProduct::with('categories')
+            ->orderByRaw("CASE UPPER(TRIM(product_name)) WHEN 'SUPPLY AND INSTALLATION' THEN 0 WHEN 'STRUCTURE FABRICATION WORK' THEN 1 ELSE 2 END")
+            ->orderBy('product_name')->get();
         $categories = Category::orderBy('name')->get();
         $gstTaxes = Tax::active()->orderBy('name')->orderBy('rate')->get();
         $gstRate = (float) $gstTaxes->sum('rate');
@@ -38,7 +40,9 @@ class EstimateController extends Controller
     {
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $bomProducts = BomProduct::with('categories')
+            ->orderByRaw("CASE UPPER(TRIM(product_name)) WHEN 'SUPPLY AND INSTALLATION' THEN 0 WHEN 'STRUCTURE FABRICATION WORK' THEN 1 ELSE 2 END")
+            ->orderBy('product_name')->get();
         $categories = Category::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {
@@ -109,7 +113,9 @@ class EstimateController extends Controller
 
         $customers = Customer::visibleTo(auth()->user())->orderBy('name')->get();
         $templates = PdfBuilderForm::orderBy('template_name')->get();
-        $bomProducts = BomProduct::with('categories')->orderBy('product_name')->get();
+        $bomProducts = BomProduct::with('categories')
+            ->orderByRaw("CASE UPPER(TRIM(product_name)) WHEN 'SUPPLY AND INSTALLATION' THEN 0 WHEN 'STRUCTURE FABRICATION WORK' THEN 1 ELSE 2 END")
+            ->orderBy('product_name')->get();
         $categories = Category::orderBy('name')->get();
 
         if (auth()->user()->isAdmin()) {

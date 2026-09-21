@@ -989,6 +989,7 @@ class EstimateController extends Controller
 
         $serviceIds = (array) $request->input('service', []);
         $makes = (array) $request->input('product_make', []);
+        $descriptions = (array) $request->input('product_description', []);
         $quantities = (array) $request->input('product_qty', []);
         $prices = (array) $request->input('product_price', []);
         $taxRates = (array) $request->input('product_tax_rate', []);
@@ -1013,7 +1014,7 @@ class EstimateController extends Controller
             $normalized[] = [
                 'product_id' => (string) $serviceId,
                 'name' => (string) ($product->product_name ?? ''),
-                'description' => (string) ($product->description ?? ''),
+                'description' => (string) ($descriptions[$index] ?? $product->description ?? ''),
                 'category_name' => (string) ($makes[$index] ?? ''),
                 'quantity' => (float) ($quantities[$index] ?? 0),
                 'price' => array_key_exists($index, $prices)

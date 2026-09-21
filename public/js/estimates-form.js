@@ -266,7 +266,7 @@
                 products.push({
                     product_id: productSelect.value,
                     name: option.dataset.name || '',
-                    description: option.dataset.desc || '',
+                    description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
                     category_name: makeSelect?.value || '',
                     quantity: parseFloat(qtyInput?.value || 0),
                     price: parseFloat(option.dataset.price || 0)
