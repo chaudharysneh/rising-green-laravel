@@ -360,6 +360,18 @@
                         </div>
 
                         <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
+                            <label for="reference_no" class="form-label fw-semibold">Reference#</label>
+                            <input type="text" name="reference_no" id="reference_no" maxlength="255"
+                                value="{{ old('reference_no', $estimate->reference_no) }}"
+                                class="form-control @error('reference_no') is-invalid @enderror">
+                            <div class="invalid-feedback" id="reference_no-error">
+                                @error('reference_no')
+                                    {{ $message }}
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-4 create-step-1 active-step estimate-form-field-col">
                             <label class="form-label fw-semibold">Estimate Type <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror"
                                 required>
