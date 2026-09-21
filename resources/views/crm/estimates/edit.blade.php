@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <style>
+        #bomContainer .bom-qty-unit { font-size: 10px; font-weight: 400; }
         .bom-row-grid {
             display: grid;
             grid-template-columns: minmax(220px, 1.45fr) minmax(145px, 1fr) minmax(90px, .65fr) minmax(120px, .8fr) minmax(130px, .9fr) minmax(145px, 1fr) 42px;
@@ -20,11 +21,17 @@
             min-width: 0;
         }
 
-        .bom-row-grid .form-label {
-            font-size: 10px;
+        #bomContainer .bom-row-grid label.form-label {
+            font-size: 14px !important;
+            font-weight: 500 !important;
             line-height: 1.2;
             margin-bottom: 6px;
             white-space: nowrap;
+        }
+
+        #bomContainer .bom-row-grid label.form-label i,
+        #bomContainer .bom-row-grid label.form-label .crm-label-icon {
+            display: none !important;
         }
 
         .bom-row-grid .form-control,
@@ -554,7 +561,7 @@
                                                         class="form-control" placeholder="Add Quantity">
                                                 </div>
                                                 <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
-                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Rate <span class="text-danger">*</span></label>
                                                     <input type="number" min="0" step="1" name="product_price[]"
                                                         value="{{ round((float) $selectedUnitPrice) }}"
                                                         class="form-control product-price" placeholder="0">
@@ -571,7 +578,7 @@
                                                     </select>
                                                 </div>
                                                 <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
-                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Total Amount</label>
+                                                    <label class="form-label small fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Amount</label>
                                                     <input type="number" min="0" step="1"
                                                         value="{{ round((float) $selectedQuantity * (float) $selectedUnitPrice) }}"
                                                         class="form-control product-total" placeholder="0" readonly>
@@ -739,7 +746,7 @@
                         {{-- Row 3: Unit Price | Tax --}}
                         <div class="row g-3 mb-0">
                             <div class="col-6">
-                                <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Rate <span class="text-danger">*</span></label>
                                 <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
                                 <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
                             </div>

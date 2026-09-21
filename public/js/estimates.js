@@ -3331,9 +3331,9 @@
                 const hasNos = nos && String(nos).trim() !== '' && String(nos).toLowerCase() !== 'null';
                 
                 if (hasMeter) {
-                    labelText = 'Qty(meter)';
+                    labelText = 'Qty <small class="bom-qty-unit">(mt)</small>';
                 } else if (hasNos) {
-                    labelText = 'Qty(nos)';
+                    labelText = 'Qty <small class="bom-qty-unit">(nos)</small>';
                 }
             }
             
@@ -3343,7 +3343,7 @@
                 if (icon) {
                     label.innerHTML = '';
                     label.appendChild(icon);
-                    label.appendChild(document.createTextNode(' ' + labelText));
+                    label.insertAdjacentHTML('beforeend', ' ' + labelText);
                     label.insertAdjacentHTML('beforeend', ' <span class="text-danger">*</span>');
                 } else {
                     label.innerHTML = labelText + ' <span class="text-danger">*</span>';
