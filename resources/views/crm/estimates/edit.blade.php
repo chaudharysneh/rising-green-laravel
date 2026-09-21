@@ -597,26 +597,6 @@
                         </div>
 
                         <div class="col-lg-6 create-step-3">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Design File</label>
-                                <input type="file" name="attach_file" id="attach_file"
-                                    class="form-control @error('attach_file') is-invalid @enderror"
-                                    accept=".pdf,.doc,.docx,.xls,.xlsx">
-                                <div class="invalid-feedback" id="attach_file-error">
-                                    @error('attach_file')
-                                        {{ $message }}
-                                    @enderror
-                                </div>
-
-                                @if ($estimate->attach_file)
-                                    <div class="mt-2 small">
-                                        <a href="{{ Storage::url($estimate->attach_file) }}" target="_blank"
-                                            class="text-primary fw-medium"><i class="bi bi-file-earmark-check me-1"></i>View
-                                            existing file</a>
-                                    </div>
-                                @endif
-                            </div>
-
                             <div>
                                 <label class="form-label fw-semibold w-100 d-flex align-items-center gap-2 mb-1">
                                     <span>Comment</span>
@@ -633,10 +613,11 @@
                                     @enderror
                                 </div>
                             </div>
+                            @include('crm.estimates.partials.terms-conditions-form')
                         </div>
 
                         <div class="col-lg-6 create-step-3">
-                            <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
+                            <div class="totals-card rounded-3 d-flex flex-column">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
                                     <span id="subtotal_display" class="fw-bold text-dark">0.00</span>
@@ -1078,6 +1059,9 @@
             $('#type').on('change', function() {
                 var selectedType = $(this).find('option:selected').text().trim().toLowerCase();
                 if (!selectedType || selectedType === 'select type') return;
+                if (!['residential', 'commercial', 'industrial', 'common meter'].includes(selectedType)) {
+                    selectedType = 'basic';
+                }
                 
                 $('#template_id option').each(function() {
                     var templateName = $(this).text().trim().toLowerCase();

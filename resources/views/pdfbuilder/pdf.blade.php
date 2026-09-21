@@ -3831,6 +3831,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
     <?php endif; ?>
 
     @endif
+    @include('crm.estimates.partials.terms-conditions-pdf')
 </body>
 
 </html>

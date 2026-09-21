@@ -383,7 +383,7 @@
                             <select name="solar_meter_charges" id="solar_meter_select"
                                 class="form-select @error('solar_meter_charges') is-invalid @enderror" required>
                                 <option value="">Select</option>
-                                <option value="as_per_actual" @selected(old('solar_meter_charges') == 'as_per_actual')>As per Actual</option>
+                                <option value="as_per_actual" @selected(old('solar_meter_charges', 'as_per_actual') == 'as_per_actual')>As per Actual</option>
                                 <option value="as_per_client_scope" @selected(old('solar_meter_charges') == 'as_per_client_scope')>As per client scope</option>
                                 <option value="included" @selected(old('solar_meter_charges') == 'included')>Included</option>
                             </select>
@@ -560,18 +560,6 @@
                         </div>
 
                         <div class="col-lg-6 create-step-3">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Design File</label>
-                                <input type="file" name="attach_file" id="attach_file"
-                                    class="form-control @error('attach_file') is-invalid @enderror"
-                                    accept=".pdf,.doc,.docx,.xls,.xlsx">
-                                <div class="invalid-feedback">
-                                    @error('attach_file')
-                                        {{ $message }}
-                                    @enderror
-                                </div>
-                            </div>
-
                             <div>
                                 <label class="form-label fw-semibold w-100 d-flex align-items-center gap-2 mb-1">
                                     <span>Comment</span>
@@ -588,10 +576,11 @@
                                     @enderror
                                 </div>
                             </div>
+                            @include('crm.estimates.partials.terms-conditions-form')
                         </div>
 
                         <div class="col-lg-6 create-step-3">
-                            <div class="totals-card rounded-3 h-100 d-flex flex-column justify-content-center">
+                            <div class="totals-card rounded-3 d-flex flex-column">
                                 <div class="totals-row">
                                     <span class="fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Subtotal:</span>
                                     <span id="subtotal_display" class="fw-bold text-dark">0.00</span>
@@ -995,6 +984,9 @@
             $('#type').on('change', function() {
                 var selectedType = $(this).find('option:selected').text().trim().toLowerCase();
                 if (!selectedType || selectedType === 'select type') return;
+                if (!['residential', 'commercial', 'industrial', 'common meter'].includes(selectedType)) {
+                    selectedType = 'basic';
+                }
                 
                 $('#template_id option').each(function() {
                     var templateName = $(this).text().trim().toLowerCase();
