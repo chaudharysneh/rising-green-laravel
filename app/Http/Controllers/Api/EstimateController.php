@@ -116,6 +116,7 @@ class EstimateController extends Controller
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'estimate_name' => 'required|string|min:1',
+            'reference_no' => 'nullable|string|max:255',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -235,6 +236,7 @@ class EstimateController extends Controller
                 'user_id' => $userId,
                 'product_id' => $request->input('product_id'),
                 'estimate_no' => $estimateNo,
+                'reference_no' => $request->input('reference_no'),
                 'estimate_date' => $estimateDate,
                 'estimate_name' => $estimateName,
                 'type' => $type,
@@ -328,6 +330,7 @@ class EstimateController extends Controller
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'estimate_name' => 'required|string|min:1',
+            'reference_no' => 'nullable|string|max:255',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -462,6 +465,10 @@ class EstimateController extends Controller
 
             if (!empty($attachFile)) {
                 $updateData['attach_file'] = $attachFile;
+            }
+
+            if ($request->exists('reference_no')) {
+                $updateData['reference_no'] = $request->input('reference_no');
             }
 
             $estimate->update($updateData);
