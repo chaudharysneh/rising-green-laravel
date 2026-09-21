@@ -3411,6 +3411,7 @@
             }
 
             const newRow = firstRow.cloneNode(true);
+            newRow.classList.remove('bom-without-make');
             const description = newRow.querySelector('.product-description');
             if (description) description.value = '';
             clearEstimateBomRowValidation(newRow);
@@ -3479,6 +3480,7 @@
         const productName = (selectedOption?.dataset.name || selectedOption?.textContent || '').trim().toUpperCase();
         const hideMake = ['SUPPLY AND INSTALLATION', 'STRUCTURE FABRICATION WORK'].includes(productName);
         makeSelect.closest('div').hidden = hideMake;
+        productSelect.closest('.bom-row')?.classList.toggle('bom-without-make', hideMake);
         const categories = selectedOption?.dataset?.categories;
         makeSelect.innerHTML = '<option value="">Select Make</option>';
 

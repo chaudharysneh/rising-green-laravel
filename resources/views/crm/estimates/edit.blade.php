@@ -244,6 +244,12 @@
         #bomContainer .bom-row-grid > div:nth-child(5) { grid-column: 5; grid-row: 2; }
         #bomContainer .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
         .bom-section { margin-inline: -8px; }
+        @media (min-width: 768px) {
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(3) { grid-column: 4; grid-row: 1; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(4) { grid-column: 5 / 7; grid-row: 1; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(5) { grid-column: 4 / 6; grid-row: 2; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
+        }
         #bomContainer { padding-top: 14px; padding-right: 14px !important; }
         #bomContainer .bom-row { position: relative; overflow: visible; }
         #bomContainer .bom-row-grid > .bom-action-cell {
@@ -271,6 +277,10 @@
             background-color: var(--bs-danger, #dc3545);
         }
         #bomContainer .select2-selection__rendered { white-space: normal; overflow-wrap: anywhere; }
+        #bomContainer .product-select,
+        #bomContainer .product-select + .select2-container .select2-selection__rendered {
+            font-weight: 600 !important;
+        }
         @media (max-width: 767px) {
             #bomContainer .bom-row-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
             #bomContainer .bom-row-grid > div:nth-child(n) { grid-column: auto; grid-row: auto; }
