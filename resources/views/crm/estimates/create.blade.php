@@ -232,6 +232,52 @@
                 display: none !important;
             }
         }
+        #bomContainer .bom-row-grid {
+            grid-template-columns: repeat(3, minmax(0, .85fr)) minmax(0, 1fr) minmax(190px, 1.7fr) minmax(0, 1fr) !important;
+            align-items: start;
+            gap: 16px;
+        }
+        #bomContainer .bom-row-grid > div:nth-child(1) { grid-column: 1 / 4; grid-row: 1 / 3; }
+        #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 4 / 6; grid-row: 1; }
+        #bomContainer .bom-row-grid > div:nth-child(3) { grid-column: 6; grid-row: 1; }
+        #bomContainer .bom-row-grid > div:nth-child(4) { grid-column: 4; grid-row: 2; }
+        #bomContainer .bom-row-grid > div:nth-child(5) { grid-column: 5; grid-row: 2; }
+        #bomContainer .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
+        .bom-section { margin-inline: -8px; }
+        #bomContainer { padding-top: 14px; padding-right: 14px !important; }
+        #bomContainer .bom-row { position: relative; overflow: visible; }
+        #bomContainer .bom-row-grid > .bom-action-cell {
+            position: absolute;
+            top: -12.5px;
+            right: -12.5px;
+            width: 25px;
+            z-index: 1;
+        }
+        #bomContainer .bom-action-cell .delete-bom-row {
+            width: 25px;
+            height: 25px;
+            min-height: 25px;
+            font-size: 11px;
+            line-height: 23px;
+            padding: 0;
+            border-radius: 50%;
+            background-color: var(--bs-body-bg, #fff);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .12);
+        }
+        #bomContainer .bom-action-cell .delete-bom-row i {
+            font-size: 11px;
+        }
+        #bomContainer .bom-action-cell .delete-bom-row:hover {
+            background-color: var(--bs-danger, #dc3545);
+        }
+        #bomContainer .select2-selection__rendered { white-space: normal; overflow-wrap: anywhere; }
+        @media (max-width: 767px) {
+            #bomContainer .bom-row-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            #bomContainer .bom-row-grid > div:nth-child(n) { grid-column: auto; grid-row: auto; }
+            #bomContainer .bom-row-grid > div:nth-child(1),
+            #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 1 / -1; }
+            #bomContainer .bom-row-grid > div:nth-child(1) { padding-right: 38px; }
+        }
     </style>
 @endpush
 
@@ -475,9 +521,9 @@
 
                         <div class="col-12 create-step-2">
                             <label class="form-label fw-semibold">BOM (Bill Of Material)</label>
-                            <div class="bom-section bg-light rounded-3 p-3 border">
+                            <div class="bom-section bg-light rounded-3 p-2 border">
                                 <label for="estimateBomSearch" class="form-label small fw-semibold">Search BOM</label>
-                                <div class="input-group mb-3" style="max-width:480px;">
+                                <div class="input-group mb-1" style="max-width:480px;">
                                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                                     <input type="search" id="estimateBomSearch" class="form-control" placeholder="Search BOM by name..." autocomplete="off" aria-controls="bomContainer">
                                 </div>
@@ -514,6 +560,7 @@
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
                                                 </div>
+                                                <textarea name="product_description[]" class="form-control product-description mt-1" rows="3" aria-label="BOM description" style="min-height: 84px; resize: vertical;" placeholder="Add a description to your item"></textarea>
                                             </div>
                                             <div>
                                                 <label class="form-label small fw-semibold">Make</label>
@@ -550,7 +597,7 @@
                                             <div class="bom-action-cell">
                                                 <button type="button" class="btn btn-outline-danger w-100 delete-bom-row"
                                                     style="display: none;">
-                                                    <i class="bi bi-trash"></i>
+                                                    <i class="bi bi-x-lg" aria-hidden="true"></i>
                                                 </button>
                                             </div>
                                         </div>
