@@ -915,6 +915,9 @@
             $('#quick_estimate_type').on('change', function () {
                 var selectedType = $(this).find('option:selected').text().trim().toLowerCase();
                 if (!selectedType || selectedType === 'select type') return;
+                if (!['residential', 'commercial', 'industrial', 'common meter'].includes(selectedType)) {
+                    selectedType = 'basic';
+                }
 
                 var $templateSelect = $('#quick_template_id');
                 var matched = false;

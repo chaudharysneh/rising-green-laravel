@@ -643,5 +643,6 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 6 of 6</span></div>
     </section>
+    @include('crm.estimates.partials.terms-conditions-pdf')
 </body>
 </html>

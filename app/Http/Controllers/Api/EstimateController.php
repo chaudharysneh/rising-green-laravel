@@ -117,6 +117,7 @@ class EstimateController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'estimate_name' => 'required|string|min:1',
             'reference_no' => 'nullable|string|max:255',
+            'terms_conditions' => 'nullable|string|max:10000',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -237,6 +238,7 @@ class EstimateController extends Controller
                 'product_id' => $request->input('product_id'),
                 'estimate_no' => $estimateNo,
                 'reference_no' => $request->input('reference_no'),
+                'terms_conditions' => $request->input('terms_conditions'),
                 'estimate_date' => $estimateDate,
                 'estimate_name' => $estimateName,
                 'type' => $type,
@@ -331,6 +333,7 @@ class EstimateController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'estimate_name' => 'required|string|min:1',
             'reference_no' => 'nullable|string|max:255',
+            'terms_conditions' => 'nullable|string|max:10000',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -469,6 +472,9 @@ class EstimateController extends Controller
 
             if ($request->exists('reference_no')) {
                 $updateData['reference_no'] = $request->input('reference_no');
+            }
+            if ($request->exists('terms_conditions')) {
+                $updateData['terms_conditions'] = $request->input('terms_conditions');
             }
 
             $estimate->update($updateData);

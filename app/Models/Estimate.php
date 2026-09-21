@@ -22,6 +22,7 @@ class Estimate extends Model
         'estimate_name',
         'estimate_no',
         'reference_no',
+        'terms_conditions',
         'type',
         'estimate_date',
         'valid_until',

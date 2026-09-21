@@ -637,5 +637,6 @@ $showCompanyQrCode = (string) ($settings['show_company_qr_code'] ?? '1') !== '0'
 
 
         </div>
+        @include('crm.estimates.partials.terms-conditions-pdf')
     </main>
 </div>
