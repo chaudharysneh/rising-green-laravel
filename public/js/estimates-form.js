@@ -264,6 +264,7 @@
             if (productSelect && productSelect.value) {
                 const option = productSelect.options[productSelect.selectedIndex];
                 products.push({
+                    ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                     product_id: productSelect.value,
                     name: option.dataset.name || '',
                     description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
