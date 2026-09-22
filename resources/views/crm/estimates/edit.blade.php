@@ -22,7 +22,7 @@
         }
 
         #bomContainer .bom-row-grid label.form-label {
-            font-size: 12px !important;
+            font-size: 13px !important;
             font-weight: 500 !important;
             line-height: 1.2;
             margin-bottom: 3px !important;
@@ -31,7 +31,11 @@
 
         #bomContainer .bom-row-grid label.form-label i,
         #bomContainer .bom-row-grid label.form-label .crm-label-icon {
-            display: none !important;
+            display: inline-block !important;
+            font-size: 10px !important;
+            width: 12px;
+            margin-right: 4px;
+            color: #64748b;
         }
 
         .bom-row-grid .form-control,
@@ -264,16 +268,16 @@
             height: 28px !important;
             padding-top: 3px !important;
             padding-bottom: 3px !important;
-            font-size: 12px !important;
+            font-size: 13px !important;
             line-height: 20px !important;
         }
         #bomContainer .bom-row-grid .select2-selection__rendered {
-            font-size: 12px !important;
+            font-size: 13px !important;
             line-height: 20px !important;
         }
         #bomContainer .bom-row-grid .product-description {
             min-height: 56px !important;
-            font-size: 12px !important;
+            font-size: 13px !important;
             padding: 3px 8px;
             line-height: 16px !important;
         }
@@ -283,7 +287,7 @@
             height: 28px !important;
             min-height: 28px !important;
             padding: 0 !important;
-            font-size: 12px !important;
+            font-size: 13px !important;
         }
         #bomContainer .bom-row-grid > .bom-action-cell {
             position: absolute;
@@ -596,7 +600,7 @@
                                     <input type="search" id="estimateBomSearch" class="form-control" placeholder="Search BOM by name..." autocomplete="off" aria-controls="bomContainer">
                                 </div>
                                 <div id="estimateBomSearchEmpty" class="text-muted text-center py-3 d-none" role="status">No matching BOMs found.</div>
-                                <div id="bomContainer" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;margin-bottom:12px;">
+                                <div id="bomContainer" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;">
                                     @foreach ($selectedProducts as $index => $selectedProduct)
                                         @php
                                             $selectedBom = $bomProducts->firstWhere('id', $selectedProduct['product_id'] ?? null);
@@ -609,7 +613,7 @@
                                             <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
                                                 <div>
                                                     <label class="form-label small fw-semibold w-100 d-flex align-items-center gap-2 mb-1">
-                                                        <span>BOM <span class="text-danger">*</span></span>
+                                                        <span><i class="fa-solid fa-cubes crm-label-icon" aria-hidden="true"></i>BOM <span class="text-danger">*</span></span>
                                                     </label>
                                                     <div class="d-flex align-items-start gap-2">
                                                         <select name="service[]" class="form-select product-select" required>
@@ -638,7 +642,7 @@
                                                 <textarea name="product_description[]" class="form-control product-description mt-1" rows="3" aria-label="BOM description" style="min-height: 84px; resize: vertical;" placeholder="Add a description to your item">{{ $selectedProduct['description'] ?? ($selectedBom->description ?? '') }}</textarea>
                                                 </div>
                                                 <div>
-                                                    <label class="form-label small fw-semibold">Make</label>
+                                                    <label class="form-label small fw-semibold"><i class="fa-solid fa-industry crm-label-icon" aria-hidden="true"></i>Make</label>
                                                     <select name="product_make[]" class="form-select product-make"
                                                         data-selected="{{ $selectedProduct['category_name'] ?? '' }}"
                                                         @disabled(empty($selectedProduct['product_id']))>
@@ -646,7 +650,7 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label class="form-label small fw-semibold product-qty-label">Qty <span class="text-danger">*</span></label>
+                                                    <label class="form-label small fw-semibold product-qty-label"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>Qty <span class="text-danger">*</span></label>
                                                     <input type="number" min="0" step="1" name="product_qty[]"
                                                         value="{{ (float) $selectedQuantity > 0 ? $selectedQuantity : '' }}"
                                                         class="form-control" placeholder="Add Quantity">
@@ -658,7 +662,7 @@
                                                         class="form-control product-price" placeholder="0">
                                                 </div>
                                                 <div class="estimate-bom-money-col {{ $estimatePriceMode === 'base' ? 'd-none' : '' }}">
-                                                    <label class="form-label small fw-semibold">Tax</label>
+                                                    <label class="form-label small fw-semibold"><i class="fa-solid fa-percent crm-label-icon" aria-hidden="true"></i>Tax</label>
                                                     <select name="product_tax_rate[]" class="form-select product-tax-rate">
                                                         <option value="0" data-label="" @selected($selectedTaxRate <= 0)>No Tax</option>
                                                         @foreach ($bomTaxOptions as $taxOption)
@@ -693,6 +697,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        @include('crm.estimates.partials.bom-specifications-table')
 
                         <div class="col-lg-6 create-step-3">
                             <div>
@@ -1084,24 +1090,7 @@
             }
 
             $('.create-next-btn').click(function () {
-                let isValid = true;
-                
-                if (currentStep === 1) {
-                    $('#estimateEditForm .create-step-1 [required]').each(function () {
-                        if (!$(this).val()) {
-                            isValid = false;
-                            $(this).addClass('is-invalid');
-                        } else {
-                            $(this).removeClass('is-invalid');
-                        }
-                    });
-                } else if (currentStep === 2) {
-                    if (!validateStep2BOM(true)) {
-                        isValid = false;
-                    }
-                }
-
-                if (isValid && currentStep < totalSteps) {
+                if (currentStep < totalSteps) {
                     currentStep++;
                     updateEditWizardUI();
                 }

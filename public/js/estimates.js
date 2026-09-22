@@ -3169,6 +3169,10 @@
     }
 
     function validateTopFieldsBeforeBom(showErrors) {
+        // Estimates can be filled in any order; validate required fields on submit.
+        if (document.querySelector('#estimateCreateForm, #estimateEditForm')) {
+            return true;
+        }
         const config = getActiveDocumentFormConfig();
         const $form = $(config.formSelector).first();
         if (!$form.length) {
@@ -3246,6 +3250,16 @@
         }
 
         bomHandlersInitialized = true;
+        $(container).on('select2:open.bomSearchFocus', '.product-select', function () {
+            const select = this;
+            // Wait until Select2 has displayed its dropdown and finished moving focus.
+            setTimeout(function () {
+                const instance = $(select).data('select2');
+                if (!instance?.isOpen()) return;
+                const search = instance.$dropdown?.find('.select2-search__field')[0];
+                search?.focus({ preventScroll: true });
+            }, 0);
+        });
         const bomSearch = document.getElementById('estimateBomSearch');
         if (bomSearch) {
             let searchTimer;
@@ -3380,7 +3394,7 @@
                 row.remove();
                 toggleBomError(false);
                 calculateTotals();
-            } else if (container.dataset.prefillAll === 'true') {
+            } else {
                 $(row.querySelector('.product-select')).val('').trigger('change');
                 row.querySelector('.product-price').value = '0';
                 row.querySelector('.product-tax-rate').value = '0';

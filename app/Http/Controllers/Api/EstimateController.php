@@ -118,6 +118,10 @@ class EstimateController extends Controller
             'estimate_name' => 'required|string|min:1',
             'reference_no' => 'nullable|string|max:255',
             'terms_conditions' => 'nullable|string|max:10000',
+            'bom_specifications' => 'nullable|array',
+            'bom_specifications.*' => 'array:make,technical',
+            'bom_specifications.*.make' => 'nullable|string|max:2000',
+            'bom_specifications.*.technical' => 'nullable|string|max:10000',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -239,6 +243,7 @@ class EstimateController extends Controller
                 'estimate_no' => $estimateNo,
                 'reference_no' => $request->input('reference_no'),
                 'terms_conditions' => $request->input('terms_conditions'),
+                'bom_specifications' => $request->input('bom_specifications'),
                 'estimate_date' => $estimateDate,
                 'estimate_name' => $estimateName,
                 'type' => $type,
@@ -334,6 +339,10 @@ class EstimateController extends Controller
             'estimate_name' => 'required|string|min:1',
             'reference_no' => 'nullable|string|max:255',
             'terms_conditions' => 'nullable|string|max:10000',
+            'bom_specifications' => 'nullable|array',
+            'bom_specifications.*' => 'array:make,technical',
+            'bom_specifications.*.make' => 'nullable|string|max:2000',
+            'bom_specifications.*.technical' => 'nullable|string|max:10000',
             'type' => 'required|in:residential,commercial,industrial,common meter,ground mounted,ux template',
             'quantity' => 'required|numeric|gt:0',
             'price' => $useBomPrice ? 'required|numeric|min:0' : 'required|numeric|gt:0',
@@ -475,6 +484,9 @@ class EstimateController extends Controller
             }
             if ($request->exists('terms_conditions')) {
                 $updateData['terms_conditions'] = $request->input('terms_conditions');
+            }
+            if ($request->exists('bom_specifications')) {
+                $updateData['bom_specifications'] = $request->input('bom_specifications');
             }
 
             $estimate->update($updateData);
