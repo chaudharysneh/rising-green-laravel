@@ -22,10 +22,10 @@
         }
 
         #bomContainer .bom-row-grid label.form-label {
-            font-size: 14px !important;
+            font-size: 12px !important;
             font-weight: 500 !important;
             line-height: 1.2;
-            margin-bottom: 6px;
+            margin-bottom: 3px !important;
             white-space: nowrap;
         }
 
@@ -236,7 +236,7 @@
             grid-template-columns: repeat(3, minmax(0, .85fr)) minmax(0, 1fr) minmax(190px, 1.7fr) minmax(0, 1fr) !important;
             align-items: start;
             grid-template-rows: min-content 1fr;
-            gap: 8px 16px;
+            gap: 4px 12px;
         }
         #bomContainer .bom-row-grid > div:nth-child(1) { grid-column: 1 / 4; grid-row: 1 / 3; }
         #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 4 / 6; grid-row: 1; }
@@ -255,7 +255,35 @@
         #bomContainer .bom-row {
             position: relative;
             overflow: visible;
-            padding: 10px !important;
+            padding: 6px !important;
+        }
+        #bomContainer .bom-row-grid input.form-control,
+        #bomContainer .bom-row-grid .form-select,
+        #bomContainer .bom-row-grid .select2-selection {
+            min-height: 28px !important;
+            height: 28px !important;
+            padding-top: 3px !important;
+            padding-bottom: 3px !important;
+            font-size: 12px !important;
+            line-height: 20px !important;
+        }
+        #bomContainer .bom-row-grid .select2-selection__rendered {
+            font-size: 12px !important;
+            line-height: 20px !important;
+        }
+        #bomContainer .bom-row-grid .product-description {
+            min-height: 56px !important;
+            font-size: 12px !important;
+            padding: 3px 8px;
+            line-height: 16px !important;
+        }
+        #bomContainer .bom-row-grid .edit-bom-link,
+        #bomContainer .bom-row-grid .quick-add-bom-row {
+            width: 28px !important;
+            height: 28px !important;
+            min-height: 28px !important;
+            padding: 0 !important;
+            font-size: 12px !important;
         }
         #bomContainer .bom-row-grid > .bom-action-cell {
             position: absolute;
