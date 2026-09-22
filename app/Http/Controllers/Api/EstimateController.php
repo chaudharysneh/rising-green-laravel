@@ -983,6 +983,10 @@ class EstimateController extends Controller
                     'price' => (float) ($product['price'] ?? 0),
                     'tax_rate' => (float) ($product['tax_rate'] ?? 0),
                     'tax_label' => (string) ($product['tax_label'] ?? ''),
+                    ...array_map(
+                        fn ($value) => is_scalar($value) ? (string) $value : null,
+                        array_intersect_key($product, array_flip(['technology_id', 'warranty_id', 'height', 'fitting_material', 'fitting_type', 'thickness', 'size_of_pipe', 'capacity', 'meter', 'nos']))
+                    ),
                 ];
             }, $products)));
         }

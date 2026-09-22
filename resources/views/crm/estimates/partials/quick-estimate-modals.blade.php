@@ -415,6 +415,7 @@
                         </div>
                     </div>
                     {{-- Save Options --}}
+                    @include('crm.estimates.partials.bom-specification-fields')
                     <div class="p-3 bg-light rounded border border-info border-opacity-25">
                         <label class="form-label fw-semibold text-dark mb-2">Save Options</label>
                         <div class="form-check mb-2">

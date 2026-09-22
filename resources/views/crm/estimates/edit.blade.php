@@ -235,7 +235,8 @@
         #bomContainer .bom-row-grid {
             grid-template-columns: repeat(3, minmax(0, .85fr)) minmax(0, 1fr) minmax(190px, 1.7fr) minmax(0, 1fr) !important;
             align-items: start;
-            gap: 16px;
+            grid-template-rows: min-content 1fr;
+            gap: 8px 16px;
         }
         #bomContainer .bom-row-grid > div:nth-child(1) { grid-column: 1 / 4; grid-row: 1 / 3; }
         #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 4 / 6; grid-row: 1; }
@@ -251,7 +252,11 @@
             #bomContainer .bom-without-make .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
         }
         #bomContainer { padding-top: 14px; padding-right: 14px !important; }
-        #bomContainer .bom-row { position: relative; overflow: visible; }
+        #bomContainer .bom-row {
+            position: relative;
+            overflow: visible;
+            padding: 10px !important;
+        }
         #bomContainer .bom-row-grid > .bom-action-cell {
             position: absolute;
             top: -12.5px;
@@ -571,7 +576,8 @@
                                             $selectedQuantity = $selectedProduct['quantity'] ?? 0;
                                             $selectedTaxRate = (float) ($selectedProduct['tax_rate'] ?? 0);
                                         @endphp
-                                        <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm">
+                                        <div class="bom-row mb-3 p-3 bg-white border rounded shadow-sm"
+                                            data-bom-specifications="{{ json_encode([(string) ($selectedProduct['product_id'] ?? '') => array_merge($selectedBom ? $selectedBom->only(['technology_id', 'warranty_id', 'height', 'fitting_material', 'fitting_type', 'thickness', 'size_of_pipe', 'capacity', 'meter', 'nos']) : [], array_intersect_key($selectedProduct, array_flip(['technology_id', 'warranty_id', 'height', 'fitting_material', 'fitting_type', 'thickness', 'size_of_pipe', 'capacity', 'meter', 'nos'])))]) }}">
                                             <div class="bom-row-grid" @style([$estimatePriceMode === 'base' ? 'grid-template-columns: minmax(180px, 2fr) minmax(130px, 1.2fr) minmax(90px, .7fr) minmax(70px, auto)' : ''])>
                                                 <div>
                                                     <label class="form-label small fw-semibold w-100 d-flex align-items-center gap-2 mb-1">

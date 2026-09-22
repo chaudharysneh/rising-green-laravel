@@ -1542,6 +1542,7 @@
                     const taxOption = taxSelect?.options[taxSelect.selectedIndex];
 
                     products.push({
+                    ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                         product_id: String(bomId),
                         name: option?.dataset?.name || option?.textContent?.trim() || '',
                         description: '',
@@ -3411,6 +3412,7 @@
             }
 
             const newRow = firstRow.cloneNode(true);
+            delete newRow.dataset.bomSpecifications;
             newRow.classList.remove('bom-without-make');
             const description = newRow.querySelector('.product-description');
             if (description) description.value = '';
@@ -3537,6 +3539,7 @@
                 }
 
                 products.push({
+                    ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                     product_id: productSelect.value,
                     name: option.dataset.name || '',
                     description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
@@ -4005,8 +4008,13 @@
                 if (!modalEl) return;
 
                 document.getElementById('edit_bom_id').value = select.value;
+                const specifications = window.getEstimateBomSpecifications?.(row, select.value) || {};
+                (window.bomSpecificationFields || []).forEach(field => {
+                    const input = document.getElementById('edit_bom_' + field);
+                    if (input) input.value = specifications[field] ?? '';
+                });
                 document.getElementById('edit_bom_name').value = option.dataset.name || '';
-                document.getElementById('edit_bom_description').value = option.dataset.desc || '';
+                document.getElementById('edit_bom_description').value = row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '';
                 
                 const priceInput = row.querySelector('.product-price') || row.querySelector('.quick-bom-price');
                 document.getElementById('edit_bom_price').value = priceInput ? priceInput.value : (option.dataset.price || '');
@@ -4093,6 +4101,8 @@
                     saveSpinner.classList.remove('d-none');
                     
                     const payload = {
+                        ...Object.fromEntries((window.bomSpecificationFields || []).map(field => [field, document.getElementById('edit_bom_' + field)?.value || null])),
+                        tax_rate: taxRate,
                         product_name: name,
                         description: description,
                         price: price,
@@ -4113,6 +4123,7 @@
                     .then(data => {
                         if (data.success) {
                             applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row);
+                            window.bomSpecificationDefaults[bomId] = window.getEstimateBomSpecifications(row, bomId);
                             
                             // Also update the original option in ALL BOM selects
                             document.querySelectorAll('.product-select option[value="' + bomId + '"], .quick-bom-select option[value="' + bomId + '"]').forEach(opt => {
@@ -4206,6 +4217,11 @@
 
         function applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row) {
             if (!row) return;
+            const specifications = JSON.parse(row.dataset.bomSpecifications || '{}');
+            specifications[bomId] = Object.fromEntries((window.bomSpecificationFields || []).map(field => [field, document.getElementById('edit_bom_' + field)?.value || null]));
+            row.dataset.bomSpecifications = JSON.stringify(specifications);
+            const descriptionInput = row.querySelector('.product-description');
+            if (descriptionInput) descriptionInput.value = description;
 
             const select = row.querySelector('.product-select') || row.querySelector('.quick-bom-select');
             if (select) {
@@ -4263,6 +4279,7 @@
                     const taxLabel = taxSelect && taxSelect.options[taxSelect.selectedIndex] ? taxSelect.options[taxSelect.selectedIndex].dataset.label : '';
 
                     products.push({
+                    ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                         product_id: bomId,
                         name: option.dataset.name || '',
                         description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
