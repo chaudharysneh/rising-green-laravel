@@ -58,7 +58,11 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Price | Tax Type -->
+                <!-- Row 2: HSN/SAC | Price -->
+                <div class="col-md-6">
+                    <label for="hsn_sac" class="form-label fw-semibold bom-label"><i class="fa-solid fa-hashtag me-2"></i>HSN/SAC Code</label>
+                    <input type="text" name="hsn_sac" id="hsn_sac" value="{{ old('hsn_sac', $product?->hsn_sac) }}" class="form-control" placeholder="Enter HSN/SAC code" maxlength="50">
+                </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold bom-label"><i class="fa-solid fa-tag me-2"></i>Price <span class="text-danger">*</span></label>
                     <input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" class="form-control" placeholder="Enter price" step="1" min="1" required>

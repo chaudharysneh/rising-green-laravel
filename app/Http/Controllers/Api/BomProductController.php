@@ -261,6 +261,7 @@ class BomProductController extends ApiBaseController
         return [
             'user_id' => ['nullable', 'exists:users,id'],
             'product_name' => ['required', 'string', 'max:255'],
+            'hsn_sac' => ['nullable', 'string', 'max:50'],
             'category_id' => ['nullable', 'array'],
             'category_id.*' => ['exists:category,id'],
             'price' => $isQuickBom

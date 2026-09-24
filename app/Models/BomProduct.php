@@ -17,6 +17,7 @@ class BomProduct extends Model
     protected $fillable = [
         'user_id',
         'product_name',
+        'hsn_sac',
         'price',
         'tax_type',
         'tax_rate',

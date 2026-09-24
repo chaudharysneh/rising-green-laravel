@@ -11,7 +11,7 @@
         #bomContainer .bom-qty-unit { font-size: 10px; font-weight: 400; }
         .bom-row-grid {
             display: grid;
-            grid-template-columns: minmax(220px, 1.45fr) minmax(145px, 1fr) minmax(90px, .65fr) minmax(120px, .8fr) minmax(130px, .9fr) minmax(145px, 1fr) 42px;
+            grid-template-columns: minmax(200px, 1.35fr) minmax(135px, 1fr) minmax(110px, .75fr) minmax(85px, .65fr) minmax(110px, .8fr) minmax(125px, .9fr) minmax(125px, .9fr) 42px;
             gap: 12px;
             align-items: end;
         }
@@ -22,7 +22,7 @@
         }
 
         #bomContainer .bom-row-grid label.form-label {
-            font-size: 13px !important;
+            font-size: 14px !important;
             font-weight: 500 !important;
             line-height: 1.2;
             margin-bottom: 3px !important;
@@ -41,7 +41,7 @@
         .bom-row-grid .form-control,
         .bom-row-grid .form-select {
             min-height: 38px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
         }
 
@@ -243,17 +243,21 @@
             gap: 4px 12px;
         }
         #bomContainer .bom-row-grid > div:nth-child(1) { grid-column: 1 / 4; grid-row: 1 / 3; }
-        #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 4 / 6; grid-row: 1; }
-        #bomContainer .bom-row-grid > div:nth-child(3) { grid-column: 6; grid-row: 1; }
+        #bomContainer .bom-row-grid > div:nth-child(2) { grid-column: 4 / 7; grid-row: 1; }
+        #bomContainer .bom-row-grid > div:nth-child(3) { grid-column: 7 / 9; grid-row: 1; }
         #bomContainer .bom-row-grid > div:nth-child(4) { grid-column: 4; grid-row: 2; }
         #bomContainer .bom-row-grid > div:nth-child(5) { grid-column: 5; grid-row: 2; }
-        #bomContainer .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
+        #bomContainer .bom-row-grid > div:nth-child(6) { grid-column: 6 / 8; grid-row: 2; }
+        #bomContainer .bom-row-grid > div:nth-child(7) { grid-column: 8; grid-row: 2; }
+        #bomContainer .bom-row-grid > div:nth-child(8) { grid-column: 9; grid-row: 1 / 3; }
         .bom-section { margin-inline: -8px; }
         @media (min-width: 768px) {
-            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(3) { grid-column: 4; grid-row: 1; }
-            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(4) { grid-column: 5 / 7; grid-row: 1; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(2) { display:none; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(3) { grid-column: 4 / 7; grid-row: 1; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(4) { grid-column: 7 / 9; grid-row: 1; }
             #bomContainer .bom-without-make .bom-row-grid > div:nth-child(5) { grid-column: 4 / 6; grid-row: 2; }
-            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(6) { grid-column: 6; grid-row: 2; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(6) { grid-column: 6 / 8; grid-row: 2; }
+            #bomContainer .bom-without-make .bom-row-grid > div:nth-child(7) { grid-column: 8; grid-row: 2; }
         }
         #bomContainer { padding-top: 14px; padding-right: 14px !important; }
         #bomContainer .bom-row {
@@ -600,7 +604,7 @@
                                     <input type="search" id="estimateBomSearch" class="form-control" placeholder="Search BOM by name..." autocomplete="off" aria-controls="bomContainer">
                                 </div>
                                 <div id="estimateBomSearchEmpty" class="text-muted text-center py-3 d-none" role="status">No matching BOMs found.</div>
-                                <div id="bomContainer" style="height:420px;max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;">
+                                <div id="bomContainer" style="max-height:60vh;overflow-y:auto;overflow-x:hidden;padding-right:8px;">
                                     @foreach ($selectedProducts as $index => $selectedProduct)
                                         @php
                                             $selectedBom = $bomProducts->firstWhere('id', $selectedProduct['product_id'] ?? null);
@@ -621,6 +625,7 @@
                                                             @foreach ($bomProducts as $bom)
                                                                 <option value="{{ $bom->id }}"
                                                                     data-name="{{ $bom->product_name }}"
+                                                                    data-hsn="{{ $bom->hsn_sac ?? "" }}"
                                                                     data-desc="{{ $bom->description ?? '' }}"
                                                                     data-categories='{{ json_encode($bom->categories->pluck('name')->toArray()) }}'
                                                                     data-price="{{ $bom->price ?? 0 }}"
@@ -648,6 +653,10 @@
                                                         @disabled(empty($selectedProduct['product_id']))>
                                                         <option value="">Select Make</option>
                                                     </select>
+                                                </div>
+                                                <div>
+                                                    <label class="form-label small fw-semibold"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>HSN/SAC</label>
+                                                    <input type="text" name="product_hsn_sac[]" class="form-control product-hsn-sac mt-1" value="{{ $selectedProduct['hsn_sac'] ?? optional($bomProducts->firstWhere('id', $selectedProduct['product_id'] ?? null))->hsn_sac ?? '' }}" placeholder="HSN/SAC Code">
                                                 </div>
                                                 <div>
                                                     <label class="form-label small fw-semibold product-qty-label"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>Qty <span class="text-danger">*</span></label>
@@ -829,12 +838,14 @@
                             <div class="col-6">
                                 <label class="form-label fw-semibold">Description</label>
                                 <textarea class="form-control" id="quick_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
+                                <input type="text" class="form-control mt-2" id="quick_bom_hsn_sac" placeholder="HSN/SAC Code">
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
                                 <input type="file" class="form-control" id="quick_bom_image" accept="image/jpeg,image/png,image/jpg" style="cursor:pointer;">
                                 <div class="form-text text-muted">Accepted: JPG, PNG, JPEG &mdash; Max 5MB</div>
                                 <div id="quick_bom_image_preview" class="mt-2" style="display:none;">
+                                <button type="button" class="btn btn-sm btn-danger bom-image-remove" data-input="quick_bom_image" data-preview="quick_bom_image_preview" style="position:absolute; margin-left:115px; margin-top:-6px; width:24px; height:24px; padding:0; border-radius:50%;">&times;</button>
                                     <img src="" alt="BOM Image Preview" id="quick_bom_image_thumb"
                                         style="max-height:80px; max-width:140px; border-radius:6px; border:1px solid #dee2e6; object-fit:contain; background:#f8f9fa; padding:3px;">
                                 </div>
