@@ -3832,6 +3832,7 @@ if (isset($after_blocks) && is_array($after_blocks)) {
 
     @endif
     @include('crm.estimates.partials.terms-conditions-pdf')
+    @include('crm.estimates.partials.bom-specifications-rendered')
 </body>
 
 </html>
