@@ -3960,7 +3960,7 @@
         // If it's a brand new form, initialize subsidy. 
         // For existing edit, let user alter quantity to recalculate.
         const quantityVal = document.getElementById('quantity')?.value;
-        if (quantityVal && parseFloat(quantityVal) > 0) {
+        if (quantityVal && parseFloat(quantityVal) > 0 && !window.location.pathname.match(/\/estimates\/\d+\/edit\/?$/)) {
             // Check if user is creating a new form by verifying hidden input ID absence or looking at path?
             // Actually safe approach: Always ensure valid mathematical state on load
             autoCalculateSubsidy();
