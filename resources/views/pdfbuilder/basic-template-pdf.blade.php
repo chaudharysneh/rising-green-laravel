@@ -579,7 +579,25 @@ if (!function_exists('normalize_pdf_image')) {
                     @if (($doc->price_mode ?? '') !== 'bom' && ($usesGlobalTax || $baseSystemValue > 0))
                         <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
                     @endif
-                    <tr><td>Bill of Materials (BOM)</td><td>{!! $usesGlobalTax ? '--' : $money($bomValue) !!}</td></tr>
+                    @forelse ($products as $selectedBom)
+                        @php
+                            $selectedBomQty = (float) ($selectedBom['quantity'] ?? 0);
+                            $selectedBomRate = (float) ($selectedBom['price'] ?? 0);
+                            $selectedBomAmount = $selectedBomQty * $selectedBomRate;
+                            $selectedBomDescription = trim((string) ($selectedBom['description'] ?? ''));
+                        @endphp
+                        <tr>
+                            <td>
+                                <strong>{{ $selectedBom['name'] ?? 'Selected BOM' }}</strong>
+                                @if ($selectedBomDescription !== '')
+                                    <div style="font-size:10.5px; color:#555; white-space:pre-line;">{{ $selectedBomDescription }}</div>
+                                @endif
+                            </td>
+                            <td>{!! $usesGlobalTax ? '--' : $money($selectedBomAmount) !!}</td>
+                        </tr>
+                    @empty
+                        <tr><td>Bill of Materials (BOM)</td><td>{!! $usesGlobalTax ? '--' : $money($bomValue) !!}</td></tr>
+                    @endforelse
                     @if ($gstValue > 0)
                         <tr><td><strong>{{ $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td><td></td></tr>
                         @foreach ($taxLines as $taxLine)
