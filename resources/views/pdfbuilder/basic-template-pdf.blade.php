@@ -65,6 +65,17 @@ if (!function_exists('normalize_pdf_image')) {
     $money = static function ($value) {
         return '&#8377; ' . number_format((float) $value, 2);
     };
+    $amountInWords = static function ($value) {
+        $n = (int) round((float) $value);
+        if ($n === 0) return 'Zero';
+        $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        $under100 = static function ($v) use ($ones, $tens) { return $v < 20 ? $ones[$v] : $tens[intdiv($v, 10)] . ($v % 10 ? ' ' . $ones[$v % 10] : ''); };
+        $parts = [];
+        foreach ([10000000 => 'Crore', 100000 => 'Lakh', 1000 => 'Thousand', 100 => 'Hundred'] as $div => $label) { if ($n >= $div) { $parts[] = ($div === 100 ? $ones[intdiv($n, $div)] : $under100(intdiv($n, $div))) . ' ' . $label; $n %= $div; } }
+        if ($n > 0) $parts[] = $under100($n);
+        return implode(' ', $parts);
+    };
     $plainNumber = static function ($value, int $decimals = 0) {
         return rtrim(rtrim(number_format((float) $value, $decimals), '0'), '.');
     };
@@ -365,8 +376,8 @@ if (!function_exists('normalize_pdf_image')) {
         }
         .data-table tbody tr:nth-child(even) td { background: #f4f8fb; }
         .data-table .total-row td {
-            background: #e6f4ea !important;
-            border-color: #a5d6a7;
+            background: #dbeaf7 !important;
+            border-color: #9fc3df;
             color: #000000 !important;
             font-weight: 700;
         }
@@ -534,19 +545,13 @@ if (!function_exists('normalize_pdf_image')) {
         <div class="section">
             <h2 class="section-title">10. Material Make &amp; Specifications</h2>
             <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Material Category</th><th>Approved Makes / Brands</th><th>Technical Specifications &amp; Standards</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Material Category</th><th>Approved Makes / Brands</th><th>Technical Specifications &amp; Standards</th></tr></thead>
                 <tbody>
                     @foreach ($componentRows as $component)
                         <tr>
                             <td style="vertical-align: middle; text-align: center;">
                                 @if (!empty($component['image_path']))
-                                    <div style="margin-bottom: 5px;">
-                                        <img src="{{ $component['image_path'] }}" alt="" onerror="this.remove();" style="max-width: 60px; max-height: 60px; object-fit: contain; border: 1px solid #d5e0eb; padding: 2px; background: #fff; display: inline-block;">
-                                    </div>
+                                    <div style="margin-bottom: 5px;"><img src="{{ $component['image_path'] }}" alt="" onerror="this.remove();" style="max-width: 60px; max-height: 60px; object-fit: contain; border: 1px solid #d5e0eb; padding: 2px; background: #fff; display: inline-block;"></div>
                                 @endif
                                 <div><strong>{{ $component['type'] }}</strong></div>
                             </td>
@@ -556,6 +561,7 @@ if (!function_exists('normalize_pdf_image')) {
                     @endforeach
                 </tbody>
             </table>
+
             
             <table class="data-table" style="margin-top: 20px;">
                 <tbody>
@@ -573,57 +579,44 @@ if (!function_exists('normalize_pdf_image')) {
         <div class="section commercial-section">
             <h2 class="section-title">11. Price Quote &amp; Commercials</h2>
             <p>Commercial quote schedule valid for precisely 15 calendar days from document date of issue:</p>
-            <table class="data-table">
-                <thead><tr><th>Line Item Description</th><th>Amount (&#8377;)</th></tr></thead>
+            <table class="data-table quotation-items-table" style="font-size:10px; margin-bottom:12px;">
+                <thead><tr><th>#</th><th>Item &amp; Description</th><th>HSN/SAC</th><th>Qty</th><th>Rate</th><th>CGST</th><th>SGST</th><th>Amount</th></tr></thead>
                 <tbody>
-                    @if (($doc->price_mode ?? '') !== 'bom' && ($usesGlobalTax || $baseSystemValue > 0))
-                        <tr><td>Base cost</td><td>{!! $money($baseSystemValue) !!}</td></tr>
-                    @endif
-                    @forelse ($products as $selectedBom)
+                    @forelse ($products as $itemIndex => $selectedBom)
                         @php
-                            $selectedBomQty = (float) ($selectedBom['quantity'] ?? 0);
-                            $selectedBomRate = (float) ($selectedBom['price'] ?? 0);
-                            $selectedBomAmount = $selectedBomQty * $selectedBomRate;
-                            $selectedBomDescription = trim((string) ($selectedBom['description'] ?? ''));
+                            $itemQty = (float) ($selectedBom['quantity'] ?? 0);
+                            $itemRate = (float) ($selectedBom['price'] ?? 0);
+                            $itemAmount = $itemQty * $itemRate;
+                            $itemTax = (float) ($selectedBom['tax_rate'] ?? 0);
+                            $itemCgst = $itemAmount * ($itemTax / 200);
+                            $itemSgst = $itemCgst;
+                            $itemDesc = trim((string) ($selectedBom['description'] ?? ''));
                         @endphp
                         <tr>
-                            <td>
-                                <strong>{{ $selectedBom['name'] ?? 'Selected BOM' }}</strong>
-                                @if ($selectedBomDescription !== '')
-                                    <div style="font-size:10.5px; color:#555; white-space:pre-line;">{{ $selectedBomDescription }}</div>
-                                @endif
-                            </td>
-                            <td>{!! $usesGlobalTax ? '--' : $money($selectedBomAmount) !!}</td>
+                            <td>{{ $itemIndex + 1 }}</td>
+                            <td><strong>{{ $selectedBom['name'] ?? 'Selected BOM' }}</strong>@if($itemDesc)<div>{{ $itemDesc }}</div>@endif</td>
+                            <td>{{ $selectedBom['hsn_sac'] ?? $selectedBom['hsn'] ?? '--' }}</td>
+                            <td>{{ rtrim(rtrim(number_format($itemQty, 2), '0'), '.') }}</td>
+                            <td style="white-space: nowrap;">{!! $money($itemRate) !!}</td>
+                            <td style="white-space: nowrap;">{!! $money($itemCgst) !!}{{ $itemTax > 0 ? ' (' . number_format($itemTax / 2, 1) . '%)' : '' }}</td>
+                            <td style="white-space: nowrap;">{!! $money($itemSgst) !!}{{ $itemTax > 0 ? ' (' . number_format($itemTax / 2, 1) . '%)' : '' }}</td>
+                            <td style="white-space: nowrap;"><strong>{!! $money($itemAmount + $itemCgst + $itemSgst) !!}</strong></td>
                         </tr>
                     @empty
-                        <tr><td>Bill of Materials (BOM)</td><td>{!! $usesGlobalTax ? '--' : $money($bomValue) !!}</td></tr>
+                        <tr><td colspan="8">No BOM items selected</td></tr>
                     @endforelse
-                    @if ($gstValue > 0)
-                        <tr><td><strong>{{ $usesGlobalTax ? 'Global Tax on Base Price' : 'Taxes on Bill of Materials (BOM Only)' }}</strong></td><td></td></tr>
-                        @foreach ($taxLines as $taxLine)
-                            @php
-                                $taxRateText = is_numeric($taxLine['rate'] ?? null)
-                                    ? rtrim(rtrim(number_format((float) $taxLine['rate'], 2, '.', ''), '0'), '.')
-                                    : '';
-                            @endphp
-                            <tr>
-                                <td>{{ $taxLine['label'] }}{{ $taxRateText !== '' ? ' (' . $taxRateText . '%)' : '' }}</td>
-                                <td>{!! $money($taxLine['amount']) !!}</td>
-                            </tr>
-                        @endforeach
-                        <tr><td><strong>{{ $usesGlobalTax ? 'Total Global Tax' : 'Total Taxes on BOM' }}</strong></td><td><strong>{!! $money($gstValue) !!}</strong></td></tr>
-                    @endif
-                    @if ($solarStructureValue > 0)
-                        <tr><td>Solar Structure Charges</td><td>{!! $money($solarStructureValue) !!}</td></tr>
-                    @endif
+                    <tr style="border:0;"><td colspan="7" style="text-align:right; border:0;"><strong>Sub Total</strong></td><td style="white-space: nowrap; border:0;"><strong>{!! $money($bomValue) !!}</strong></td></tr>
+                    @foreach ($taxLines as $taxLine)
+                        <tr style="border:0; background: transparent !important;"><td colspan="7" style="text-align:right; border:0; background: transparent !important;">{{ $taxLine['label'] }}</td><td style="white-space: nowrap; border:0; background: transparent !important;">{!! $money($taxLine['amount']) !!}</td></tr>
+                    @endforeach
                     @if ($discountValue > 0)
-                        <tr><td>Discount</td><td>- {!! $money($discountValue) !!}</td></tr>
+                        <tr style="border:0; background: transparent !important;"><td colspan="7" style="text-align:right; border:0; background: transparent !important;">Discount</td><td style="white-space: nowrap; border:0; background: transparent !important;">- {!! $money($discountValue) !!}</td></tr>
                     @endif
-                    <tr><td><strong>Consumer Net Payable</strong></td><td><strong>{!! $money($grossValue) !!}</strong></td></tr>
                     @if ($subsidyValue > 0)
-                        <tr><td>Subsidy</td><td>- {!! $money($subsidyValue) !!}</td></tr>
+                        <tr style="border:0; background: transparent !important;"><td colspan="7" style="text-align:right; border:0; background: transparent !important;">Subsidy</td><td style="white-space: nowrap; border:0; background: transparent !important;">- {!! $money($subsidyValue) !!}</td></tr>
                     @endif
-                    <tr class="total-row"><td>Net Amount Payable</td><td>{!! $money($netInvestment) !!}</td></tr>
+                    <tr class="total-row" style="border:0;"><td colspan="7" style="text-align:right; border:0;"><strong>Total</strong></td><td style="white-space: nowrap; border:0;"><strong>{!! $money($grossValue) !!}</strong></td></tr>
+                    <tr style="border:0;"><td colspan="7" style="text-align:right; border:0; font-size:10px;">Total in Words</td><td colspan="1" style="border:0; font-size:10px; font-style:italic;">{{ $amountInWords($grossValue) }} Rupees Only</td></tr>
                 </tbody>
             </table>
             @if ($subsidyValue > 0)

@@ -364,6 +364,7 @@
                                                 $product_id = $item['product_id'] ?? null;
                                                 $product_name_display = $item['name'] ?? 'Product name not found';
                                                 $product_name_display = ucwords(strtolower($product_name_display));
+                                                $item_description = trim((string) ($item['description'] ?? ''));
                                                 $product_quantity = (int) ($item['quantity'] ?? 0);
                                                 $product_category_makes = $item['category_name'] ?? '';
 
