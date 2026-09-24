@@ -508,6 +508,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('crm.estimates.partials.bom-specifications-rendered', ['estimate' => $estimate])
                     @endif
                 </div>
 

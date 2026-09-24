@@ -23,6 +23,7 @@ class Estimate extends Model
         'estimate_no',
         'reference_no',
         'terms_conditions',
+        'bom_specifications',
         'type',
         'estimate_date',
         'valid_until',
@@ -54,6 +55,7 @@ class Estimate extends Model
     ];
 
     protected $casts = [
+        'bom_specifications' => 'array',
         'estimate_date' => 'date',
         'valid_until' => 'date',
         'quantity' => 'decimal:2',

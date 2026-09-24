@@ -621,5 +621,6 @@ if (!function_exists('normalize_pdf_image')) {
     @endforelse
 
     @include('crm.estimates.partials.terms-conditions-pdf')
+    @include('crm.estimates.partials.bom-specifications-rendered')
 </body>
 </html>

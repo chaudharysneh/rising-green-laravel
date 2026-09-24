@@ -174,7 +174,25 @@ if (!function_exists('normalize_pdf_image')) {
     $estimateType = $valueOr(ucfirst((string) ($doc->type ?? '')), '--');
     $solarMeterCharges = $valueOr(ucwords(str_replace('_', ' ', (string) ($doc->solar_meter_charges ?? ''))), '--');
     $componentRows = [];
-    foreach (array_slice($products, 0, 5) as $product) {
+    $savedBomSpecifications = is_array($doc->bom_specifications ?? null) ? $doc->bom_specifications : [];
+    $allBomProducts = \App\Models\BomProduct::with(['categories', 'technology', 'warranty'])
+        ->orderByRaw("CASE UPPER(TRIM(product_name)) WHEN 'SUPPLY AND INSTALLATION' THEN 0 WHEN 'STRUCTURE FABRICATION WORK' THEN 1 ELSE 2 END")
+        ->orderBy('product_name')->get();
+    foreach ($allBomProducts as $bomProduct) {
+        $saved = $savedBomSpecifications[$bomProduct->id] ?? [];
+        $technical = collect(['Capacity' => $bomProduct->capacity, 'Technology' => $bomProduct->technology?->title, 'Warranty' => $bomProduct->warranty?->title, 'Height' => $bomProduct->height, 'Fitting Material' => $bomProduct->fitting_material, 'Fitting Type' => $bomProduct->fitting_type, 'Thickness' => $bomProduct->thickness, 'Pipe Size' => $bomProduct->size_of_pipe, 'Meter' => $bomProduct->meter, 'Nos' => $bomProduct->nos])
+            ->filter(fn ($value) => $value !== null && trim((string) $value) !== '')
+            ->map(fn ($value, $label) => $label . ': ' . $value)->implode("\n");
+        if (trim((string) $bomProduct->description) !== '') $technical .= ($technical !== '' ? "\n" : '') . $bomProduct->description;
+        $componentRows[] = [
+            'type' => $bomProduct->product_name,
+            'make' => array_key_exists('make', $saved) ? $saved['make'] : $bomProduct->categories->pluck('name')->implode(', '),
+            'spec' => array_key_exists('technical', $saved) ? $saved['technical'] : $technical,
+            'image_path' => (!empty($bomProduct->image) && ($resolved = normalize_pdf_image($bomProduct->image))) ? $resolved : null,
+        ];
+    }
+    /* Legacy selected-product fallback is intentionally retained only when no BOM master records exist. */
+    if (empty($componentRows)) foreach (array_slice($products, 0, 5) as $product) {
         if (!is_array($product)) {
             continue;
         }
@@ -201,13 +219,12 @@ if (!function_exists('normalize_pdf_image')) {
             'type' => $valueOr($product['name'] ?? '', 'Selected BOM Component'),
             'make' => $valueOr($product['category_name'] ?? '', 'Approved Make'),
             'spec' => $valueOr($product['description'] ?? '', 'As per selected technical BOQ'),
-            'warranty' => 'Standard OEM Warranty',
             'image_path' => $productImagePath,
         ];
     }
     if (empty($componentRows)) {
         $componentRows = [
-            ['type' => 'Solar PV Panels', 'make' => 'Tier-1 Approved Brand', 'spec' => 'Mono PERC / high-efficiency solar module', 'warranty' => '10 Yr Product / 25 Yr Performance'],
+            ['type' => 'Solar PV Panels', 'make' => 'Tier-1 Approved Brand', 'spec' => 'Mono PERC / high-efficiency solar module'],
             ['type' => 'Grid-Tied Inverter', 'make' => 'Approved Inverter Make', 'spec' => 'High efficiency string inverter with app monitoring', 'warranty' => '5 Years Base Warranty'],
             ['type' => 'Mounting Structure', 'make' => 'Custom Engineered', 'spec' => 'Hot-dip galvanized structural steel / aluminium', 'warranty' => '5 Years Structural'],
             ['type' => 'AC / DC Cabling', 'make' => 'Approved Cable Make', 'spec' => 'Multi-strand copper, FRLS, XLPE solar grade', 'warranty' => 'Standard OEM Warranty'],
@@ -519,7 +536,7 @@ if (!function_exists('normalize_pdf_image')) {
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Component Type</th><th>Approved Brand / Make</th><th>Technical Specification</th><th>Warranty Terms</th>
+                        <th>Material Category</th><th>Approved Makes / Brands</th><th>Technical Specifications &amp; Standards</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -528,14 +545,13 @@ if (!function_exists('normalize_pdf_image')) {
                             <td style="vertical-align: middle; text-align: center;">
                                 @if (!empty($component['image_path']))
                                     <div style="margin-bottom: 5px;">
-                                        <img src="{{ $component['image_path'] }}" alt="{{ $component['type'] }}" style="max-width: 60px; max-height: 60px; object-fit: contain; border: 1px solid #d5e0eb; padding: 2px; background: #fff; display: inline-block;">
+                                        <img src="{{ $component['image_path'] }}" alt="" onerror="this.remove();" style="max-width: 60px; max-height: 60px; object-fit: contain; border: 1px solid #d5e0eb; padding: 2px; background: #fff; display: inline-block;">
                                     </div>
                                 @endif
                                 <div><strong>{{ $component['type'] }}</strong></div>
                             </td>
                             <td>{{ $component['make'] }}</td>
                             <td>{{ $component['spec'] }}</td>
-                            <td>{{ $component['warranty'] }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -600,6 +616,12 @@ if (!function_exists('normalize_pdf_image')) {
                     <strong style="color: #14395f;">Note:</strong> {!! nl2br(e($notesContent)) !!}
                 </div>
             @endif
+            @if (trim((string) ($doc->terms_conditions ?? '')) !== '')
+                <div style="margin-top: 18px; padding-top: 10px; border-top: 3px solid #14395f;">
+                    <h2 class="section-title" style="margin: 0 0 10px;">Terms &amp; Conditions</h2>
+                    <div style="font-size: 11.5px; line-height: 1.65; color: #14395f; white-space: pre-line;">{{ $doc->terms_conditions }}</div>
+                </div>
+            @endif
         </div>
 
         <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 5 of 6</span></div>
@@ -616,15 +638,6 @@ if (!function_exists('normalize_pdf_image')) {
                 <li><strong>10% Commissioning Milestone:</strong> Balance due upon successful grid connection synchronization and hand over of system logins.</li>
             </ul>
         </div>
-        <div class="section">
-            <h2 class="section-title">{{ $sectionNum++ }}. Terms &amp; Conditions</h2>
-            <ul>
-                <li><strong>Turnaround Timeline:</strong> Project completion spans 3 to 4 weeks conditional upon localized utility board structural approval speed.</li>
-                <li><strong>Site Handover Readiness:</strong> The client is required to grant clear rooftop clearance, secure storage space for physical components, and a continuous water line connection for maintenance panels cleaning.</li>
-                <li><strong>Civil Variations:</strong> Baseline quotes assume mounting configurations directly onto structurally sound RCC flat roofs. High-raise custom structures or unique modifications will be billed extra as per agreed metrics.</li>
-            </ul>
-        </div>
-
         <div class="section">
             <h2 class="section-title">{{ $sectionNum++ }}. Disclaimer</h2>
             <p>Solar generation metrics are derived parameters calculated utilizing historical long-term satellite climate records for your specific latitude/longitude. Actual real-time production yields may fluctuate in accordance with variations in seasonal weather cycles, structural micro-climate shading patterns (such as subsequent newly erected adjacent high-rises), and regular panel dust wash upkeep consistency.</p>
@@ -643,6 +656,5 @@ if (!function_exists('normalize_pdf_image')) {
         </div>
         <div class="footer">{{ $proposalLabel }}<span class="page-no">Page 6 of 6</span></div>
     </section>
-    @include('crm.estimates.partials.terms-conditions-pdf')
 </body>
 </html>
