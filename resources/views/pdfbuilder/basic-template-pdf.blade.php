@@ -623,7 +623,7 @@ if (!function_exists('normalize_pdf_image')) {
                 </tbody>
             </table>
             @if ($subsidyValue > 0)
-                <p style="margin-top: 6px; margin-bottom: 4px; font-size: 11px; color: #555;"><strong>Note:</strong> Subsidy Amount to be credited in clients account.</p>
+                <p style="margin-top: 6px; margin-bottom: 4px; font-size: 11px; color: #555;"><strong>Subsidy Note:</strong> Subsidy Amount to be credited in clients account.</p>
             @endif
             @if ($notesContent !== '')
                 <div style="margin-top: 8px; font-size: 11.5px; color: #333; background: #f8fbfe; border-left: 3px solid #14395f; padding: 8px 12px; border-radius: 3px;">

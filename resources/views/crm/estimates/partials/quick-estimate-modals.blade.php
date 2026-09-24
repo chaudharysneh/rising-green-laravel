@@ -317,6 +317,7 @@
                             <input type="file" class="form-control" id="quick_bom_image" accept="image/jpeg,image/png,image/jpg" style="cursor:pointer;">
                             <div class="form-text text-muted">Accepted: JPG, PNG, JPEG &mdash; Max 5MB</div>
                             <div id="quick_bom_image_preview" class="mt-2" style="display:none;">
+                                <button type="button" class="btn btn-sm btn-danger bom-image-remove" data-input="quick_bom_image" data-preview="quick_bom_image_preview" style="position:absolute; margin-left:115px; margin-top:-6px; width:24px; height:24px; padding:0; border-radius:50%;">&times;</button>
                                 <img src="" alt="BOM Image Preview" id="quick_bom_image_thumb"
                                     style="max-height:80px; max-width:140px; border-radius:6px; border:1px solid #dee2e6; object-fit:contain; background:#f8f9fa; padding:3px;">
                             </div>
@@ -340,6 +341,23 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        @foreach ([
+                            'technology_id' => ['Technology', \App\Models\Technology::orderBy('title')->get()],
+                            'warranty_id' => ['Warranty', \App\Models\Warranty::orderBy('title')->get()]
+                        ] as $field => [$label, $options])
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">{{ $label }}</label>
+                                <select class="form-select" id="quick_bom_{{ $field }}">
+                                    <option value="">Select {{ $label }}</option>
+                                    @foreach ($options as $option)<option value="{{ $option->id }}">{{ $option->title }}</option>@endforeach
+                                </select>
+                            </div>
+                        @endforeach
+                        @foreach (['height' => 'Height', 'fitting_material' => 'Fitting Material', 'fitting_type' => 'Fitting Type', 'thickness' => 'Thickness', 'size_of_pipe' => 'Pipe Size', 'capacity' => 'Capacity', 'meter' => 'Meter', 'nos' => 'Nos'] as $field => $label)
+                            <div class="col-6"><label class="form-label fw-semibold">{{ $label }}</label><input type="text" class="form-control" id="quick_bom_{{ $field }}"></div>
+                        @endforeach
                     </div>
                 </form>
             </div>
@@ -384,12 +402,14 @@
                         <div class="col-6">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea class="form-control" id="edit_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
+                            <input type="text" class="form-control mt-2" id="edit_bom_hsn_sac" placeholder="HSN/SAC Code">
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
                             <input type="file" class="form-control" id="edit_bom_image" accept="image/jpeg,image/png,image/jpg" style="cursor:pointer;">
                             <div class="form-text text-muted">Accepted: JPG, PNG, JPEG &mdash; Max 5MB</div>
                             <div id="edit_bom_image_preview" class="mt-2" style="display:none;">
+                                <button type="button" class="btn btn-sm btn-danger bom-image-remove" data-input="edit_bom_image" data-preview="edit_bom_image_preview" style="position:absolute; margin-left:115px; margin-top:-6px; width:24px; height:24px; padding:0; border-radius:50%;">&times;</button>
                                 <img src="" alt="BOM Image Preview" id="edit_bom_image_thumb"
                                     style="max-height:80px; max-width:140px; border-radius:6px; border:1px solid #dee2e6; object-fit:contain; background:#f8f9fa; padding:3px;">
                             </div>

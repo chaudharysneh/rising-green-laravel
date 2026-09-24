@@ -84,6 +84,11 @@
                             <div class="invalid-feedback" data-error-for="product_name"></div>
                         </div>
                         <div class="col-12">
+                            <label for="quick_hsn_sac" class="form-label fw-semibold"><i class="bi bi-hash me-2 text-muted" aria-hidden="true"></i>HSN/SAC Code</label>
+                            <input type="text" name="hsn_sac" id="quick_hsn_sac" class="form-control" maxlength="50" placeholder="Enter HSN/SAC code">
+                            <div class="invalid-feedback" data-error-for="hsn_sac"></div>
+                        </div>
+                        <div class="col-12">
                             <label for="quick_category_id" class="form-label fw-semibold"><i class="bi bi-buildings me-2 text-muted" aria-hidden="true"></i>Make</label>
                             <select name="category_id[]" id="quick_category_id" class="form-select quick-bom-select quick-bom-creatable" multiple data-placeholder="Search or create Make">
                                 @foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach

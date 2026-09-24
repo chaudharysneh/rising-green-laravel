@@ -2505,6 +2505,8 @@
                     formData.append('product_name', name);
                     formData.append('price', formatStepOneInputValue(price));
                     formData.append('description', description);
+                    formData.append('hsn_sac', document.getElementById('quick_bom_hsn_sac')?.value || '');
+                    ['technology_id','warranty_id','height','fitting_material','fitting_type','thickness','size_of_pipe','capacity','meter','nos'].forEach(function (field) { formData.append(field, document.getElementById('quick_bom_' + field)?.value || ''); });
                     if (taxRate !== '0') {
                         formData.append('tax_rate', taxRate);
                     }
@@ -2735,6 +2737,7 @@
 
             option.dataset.name = product.product_name || '';
             option.dataset.desc = product.description || '';
+            option.dataset.hsn = product.hsn_sac || product.hsn || '';
             option.dataset.categories = JSON.stringify(categoryNames);
             option.dataset.price = price;
             option.dataset.meter = product.meter || '';
@@ -3318,6 +3321,8 @@
             const option = this.querySelector('option[value="' + this.value + '"]');
             const description = row.querySelector('.product-description');
             if (description) description.value = this.value ? (option?.dataset.desc || '') : '';
+            const hsnInput = row.querySelector('.product-hsn-sac');
+            if (hsnInput) hsnInput.value = this.value ? (option?.dataset.hsn || '') : '';
             let labelText = 'Qty';
             if (option && this.value) {
                 if (priceInput) {
@@ -3968,6 +3973,15 @@
         calculateTotals();
     }
 
+    document.addEventListener('click', function (event) {
+        const removeButton = event.target.closest('.bom-image-remove');
+        if (!removeButton) return;
+        const input = document.getElementById(removeButton.dataset.input);
+        const preview = document.getElementById(removeButton.dataset.preview);
+        if (input) input.value = '';
+        if (preview) preview.style.display = 'none';
+    });
+
     function initEditBom() {
         if (!document.getElementById('editBomModal')) return;
 
@@ -4029,6 +4043,8 @@
                 });
                 document.getElementById('edit_bom_name').value = option.dataset.name || '';
                 document.getElementById('edit_bom_description').value = row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '';
+                const hsnInput = document.getElementById('edit_bom_hsn_sac');
+                if (hsnInput) hsnInput.value = row.querySelector('.product-hsn-sac')?.value ?? '';
                 
                 const priceInput = row.querySelector('.product-price') || row.querySelector('.quick-bom-price');
                 document.getElementById('edit_bom_price').value = priceInput ? priceInput.value : (option.dataset.price || '');
@@ -4083,6 +4099,7 @@
                 const bomId = document.getElementById('edit_bom_id').value;
                 const name = document.getElementById('edit_bom_name').value;
                 const description = document.getElementById('edit_bom_description').value;
+                const hsnSac = document.getElementById('edit_bom_hsn_sac')?.value || '';
                 const price = document.getElementById('edit_bom_price').value;
                 const taxRate = document.getElementById('edit_bom_tax_rate').value;
                 
@@ -4136,7 +4153,7 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row);
+                            applyEditBomChangesToDOM(bomId, name, description, hsnSac, price, taxRate, categoryId, categoryName, row);
                             window.bomSpecificationDefaults[bomId] = window.getEstimateBomSpecifications(row, bomId);
                             
                             // Also update the original option in ALL BOM selects
@@ -4175,7 +4192,7 @@
                         saveSpinner.classList.add('d-none');
                     });
                 } else {
-                    applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row);
+                    applyEditBomChangesToDOM(bomId, name, description, hsnSac, price, taxRate, categoryId, categoryName, row);
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                 }
@@ -4229,13 +4246,15 @@
             });
         }
 
-        function applyEditBomChangesToDOM(bomId, name, description, price, taxRate, categoryId, categoryName, row) {
+        function applyEditBomChangesToDOM(bomId, name, description, hsnSac, price, taxRate, categoryId, categoryName, row) {
             if (!row) return;
             const specifications = JSON.parse(row.dataset.bomSpecifications || '{}');
             specifications[bomId] = Object.fromEntries((window.bomSpecificationFields || []).map(field => [field, document.getElementById('edit_bom_' + field)?.value || null]));
             row.dataset.bomSpecifications = JSON.stringify(specifications);
             const descriptionInput = row.querySelector('.product-description');
             if (descriptionInput) descriptionInput.value = description;
+            const hsnInput = row.querySelector('.product-hsn-sac');
+            if (hsnInput) hsnInput.value = hsnSac;
 
             const select = row.querySelector('.product-select') || row.querySelector('.quick-bom-select');
             if (select) {
