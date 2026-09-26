@@ -1544,6 +1544,7 @@
                     products.push({
                     ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                         product_id: String(bomId),
+                        hsn_sac: row.querySelector('.product-hsn-sac')?.value ?? option?.dataset?.hsn ?? '',
                         name: option?.dataset?.name || option?.textContent?.trim() || '',
                         description: '',
                         category_name: makeSelect?.value || option?.dataset?.make || '',
@@ -3560,6 +3561,7 @@
                 products.push({
                     ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                     product_id: productSelect.value,
+                    hsn_sac: row.querySelector('.product-hsn-sac')?.value ?? option.dataset.hsn ?? '',
                     name: option.dataset.name || '',
                     description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
                     category_name: makeSelect?.value || '',
@@ -4136,6 +4138,7 @@
                         tax_rate: taxRate,
                         product_name: name,
                         description: description,
+                        hsn_sac: hsnSac,
                         price: price,
                         category_id: categoryId ? [categoryId] : []
                     };
@@ -4160,6 +4163,7 @@
                             document.querySelectorAll('.product-select option[value="' + bomId + '"], .quick-bom-select option[value="' + bomId + '"]').forEach(opt => {
                                 opt.dataset.name = name;
                                 opt.dataset.desc = description;
+                                opt.dataset.hsn = hsnSac;
                                 opt.dataset.price = price;
                                 if (categoryName) {
                                     opt.dataset.categories = JSON.stringify([categoryName]);
@@ -4262,6 +4266,7 @@
                 if (option) {
                     option.dataset.name = name;
                     option.dataset.desc = description;
+                    option.dataset.hsn = hsnSac;
                     option.dataset.price = price;
                     if (categoryName) {
                         option.dataset.categories = JSON.stringify([categoryName]);
@@ -4314,6 +4319,7 @@
                     products.push({
                     ...(window.getEstimateBomSpecifications?.(row, row.querySelector('.product-select, .quick-bom-select')?.value) || {}),
                         product_id: bomId,
+                        hsn_sac: row.querySelector('.product-hsn-sac')?.value ?? option.dataset.hsn ?? '',
                         name: option.dataset.name || '',
                         description: row.querySelector('.product-description')?.value ?? option.dataset.desc ?? '',
                         category_name: categoryName,

@@ -215,7 +215,7 @@
             if (!items?.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center py-5">
+                        <td colspan="9" class="text-center py-5">
                             <div class="text-muted mb-3"><i class="bi bi-inbox display-1 opacity-25"></i></div>
                             <p class="text-muted">No BOM records found.</p>
                             ${permissions.create ? '<a href="/add-product" class="btn btn-dark-blue btn-sm rounded-pill px-4">Add BOM</a>' : ''}
@@ -228,6 +228,7 @@
             tableBody.innerHTML = items.map((item, index) => {
                 const srNo = meta && meta.from ? meta.from + index : index + 1;
                 const name = escapeHtml(item.product_name || "-");
+                const hsnSac = escapeHtml(item.hsn_sac ?? "") || "-";
                 const makes = item.categories?.map(c => escapeHtml(c.name)).join(", ") || "-";
                 const technology = escapeHtml(item.technology?.title || "-");
                 const warranty = escapeHtml(item.warranty?.title || "-");
@@ -237,6 +238,7 @@
                     <tr>
                         <td class="ps-4"><span class="text-muted small fw-medium">${srNo}</span></td>
                         <td><div class="fw-bold small">${name}</div></td>
+                        <td class="d-none d-md-table-cell">${hsnSac}</td>
                         <td class="d-none d-md-table-cell">${makes}</td>
                         <td class="d-none d-md-table-cell">${technology}</td>
                         <td class="d-none d-md-table-cell">${warranty}</td>
@@ -255,9 +257,13 @@
                         </td>
                     </tr>
                     <tr class="details-row d-md-none border" id="bom-details-${item.id}" style="display:none;">
-                        <td colspan="8" class="p-0">
+                        <td colspan="9" class="p-0">
                             <div class="details-content">
                                 <div class="row g-3">
+                                    <div class="col-12 d-flex justify-content-between align-items-center">
+                                        <div class="expand-label"><i class="fa-solid fa-hashtag"></i> HSN/SAC :</div>
+                                        <div class="expand-value text-end">${hsnSac}</div>
+                                    </div>
                                     <div class="col-12 d-flex justify-content-between align-items-center">
                                         <div class="expand-label"><i class="fa-solid fa-gear"></i> MAKE :</div>
                                         <div class="expand-value text-end">${makes}</div>
@@ -348,7 +354,7 @@
             const params = new URLSearchParams({ page, ...(window.moduleListFilters?.values() || {}) });
             if (searchInput.value.trim()) params.set("search", searchInput.value.trim());
 
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>`;
 
             try {
                 const response = await fetch(`${config.indexUrl}?${params.toString()}`, {
@@ -365,7 +371,7 @@
                 renderRows(payload?.data?.data || [], payload?.data);
                 renderPagination(payload?.data);
             } catch (_) {
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Error loading BOM records.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted">Error loading BOM records.</td></tr>`;
                 paginationContainer.innerHTML = "";
             }
         }

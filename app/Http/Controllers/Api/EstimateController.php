@@ -990,6 +990,7 @@ class EstimateController extends Controller
                     'product_id' => $productId,
                     'name' => (string) ($product['name'] ?? ''),
                     'description' => (string) ($product['description'] ?? ''),
+                    'hsn_sac' => (string) ($product['hsn_sac'] ?? $product['hsn'] ?? ''),
                     'category_name' => (string) ($product['category_name'] ?? ''),
                     'quantity' => (float) ($product['quantity'] ?? 0),
                     'price' => (float) ($product['price'] ?? 0),
