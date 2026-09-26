@@ -3265,8 +3265,8 @@
             }, 0);
         });
         const bomSearch = document.getElementById('estimateBomSearch');
+        let searchTimer;
         if (bomSearch) {
-            let searchTimer;
             const filterBomRows = () => {
                 const query = bomSearch.value.trim().toLocaleLowerCase();
                 let matches = 0;
@@ -3433,9 +3433,14 @@
 
             const newRow = firstRow.cloneNode(true);
             delete newRow.dataset.bomSpecifications;
-            newRow.classList.remove('bom-without-make');
+            newRow.classList.remove('bom-without-make', 'd-none');
+            // A search must not hide the newly added, unselected row.
+            clearTimeout(searchTimer);
+            if (bomSearch) bomSearch.value = '';
             const description = newRow.querySelector('.product-description');
             if (description) description.value = '';
+            const hsnInput = newRow.querySelector('.product-hsn-sac');
+            if (hsnInput) hsnInput.value = '';
             clearEstimateBomRowValidation(newRow);
             newRow.querySelectorAll('input, select').forEach(function (el) {
                 if (el.tagName === 'SELECT') {
@@ -3461,6 +3466,21 @@
             }
 
             container.appendChild(newRow);
+            // Let the row observer finish initializing Select2 before opening it.
+            requestAnimationFrame(function () {
+                const select = newRow.querySelector('.product-select');
+                const focusTarget = $(select).next('.select2-container').find('.select2-selection')[0] || select;
+                focusTarget?.focus({ preventScroll: true });
+                newRow.scrollIntoView({
+                    // Select2 locks ancestor scrolling while open, so finish scrolling first.
+                    behavior: 'instant',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+                if ($.fn.select2 && $(select).data('select2')) {
+                    $(select).select2('open');
+                }
+            });
         });
 
         if (container.dataset.prefillAll === 'true') {

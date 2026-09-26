@@ -237,7 +237,7 @@
             }
         }
         #bomContainer .bom-row-grid {
-            grid-template-columns: repeat(3, minmax(0, .85fr)) minmax(0, 1fr) minmax(190px, 1.7fr) minmax(0, 1fr) !important;
+            grid-template-columns: repeat(3, minmax(0, 1.3fr)) minmax(0, 1fr) minmax(190px, 1.7fr) minmax(0, 1fr) !important;
             align-items: start;
             grid-template-rows: min-content 1fr;
             gap: 4px 12px;
@@ -321,6 +321,10 @@
         #bomContainer .product-select,
         #bomContainer .product-select + .select2-container .select2-selection__rendered {
             font-weight: 600 !important;
+            white-space: nowrap;
+            overflow-wrap: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         @media (max-width: 767px) {
             #bomContainer .bom-row-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -619,7 +623,7 @@
                                                 <input type="text" name="product_hsn_sac[]" class="form-control product-hsn-sac mt-1" placeholder="HSN/SAC Code">
                                             </div>
                                             <div>
-                                                <label class="form-label small fw-semibold product-qty-label"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>Qty <span class="text-danger">*</span></label>
+                                                <label class="form-label small fw-semibold product-qty-label"><i class="fa-solid fa-cubes-stacked crm-label-icon" aria-hidden="true"></i>Qty <span class="text-danger">*</span></label>
                                                 <input type="number" min="0" step="1" name="product_qty[]"
                                                     value="1" class="form-control" placeholder="Add Quantity">
                                             </div>
@@ -1097,4 +1101,3 @@
         });
     </script>
 @endpush
-
