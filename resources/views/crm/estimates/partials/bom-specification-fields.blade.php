@@ -25,7 +25,7 @@
     @foreach (['height' => 'Height', 'fitting_material' => 'Fitting Material', 'fitting_type' => 'Fitting Type', 'thickness' => 'Thickness', 'size_of_pipe' => 'Pipe Size', 'capacity' => 'Capacity', 'meter' => 'Meter', 'nos' => 'Nos'] as $field => $label)
         <div class="col-md-6">
             <label for="edit_bom_{{ $field }}" class="form-label fw-semibold">{{ $label }}</label>
-            <input type="text" id="edit_bom_{{ $field }}" class="form-control">
+            <input type="text" id="edit_bom_{{ $field }}" class="form-control" placeholder="Enter {{ $label }}">
         </div>
     @endforeach
 </div>
