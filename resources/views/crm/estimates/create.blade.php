@@ -777,7 +777,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="quick_bom_name" required>
+                                <input type="text" class="form-control" id="quick_bom_name" placeholder="Enter BOM name" required>
                                 <div class="invalid-feedback" id="quick_bom_name-error">Please enter BOM name</div>
                             </div>
                             <div class="col-6">
@@ -795,8 +795,8 @@
                             <div class="col-6">
                                 <label class="form-label fw-semibold">Description</label>
                                 <textarea class="form-control" id="quick_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
-                                <label class="form-label fw-semibold">HSN/SAC Code</label>
-                                <input type="text" class="form-control mt-2" id="quick_bom_hsn_sac" placeholder="HSN/SAC Code">
+                                <label for="quick_bom_hsn_sac" class="form-label fw-semibold mt-3"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>HSN/SAC Code</label>
+                                <input type="text" class="form-control" id="quick_bom_hsn_sac" placeholder="HSN/SAC Code">
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
@@ -813,7 +813,7 @@
                         <div class="row g-3 mb-0">
                             <div class="col-6">
                                 <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Rate <span class="text-danger">*</span></label>
-                                <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" required>
+                                <input type="number" min="0" step="1" class="form-control" id="quick_bom_price" placeholder="Enter unit price" required>
                                 <div class="invalid-feedback" id="quick_bom_price-error">Please enter unit price</div>
                             </div>
                             <div class="col-6">
@@ -833,7 +833,7 @@
                             <div class="col-6"><label class="form-label fw-semibold">{{ $field[1] }}</label><select class="form-select" id="quick_bom_{{ $field[0] }}"><option value="">Select {{ $field[1] }}</option>@foreach(($field[0] === "technology_id" ? \App\Models\Technology::orderBy("title")->get() : \App\Models\Warranty::orderBy("title")->get()) as $option)<option value="{{ $option->id }}">{{ $option->title }}</option>@endforeach</select></div>
                         @endforeach
                         @foreach (['height' => 'Height', 'fitting_material' => 'Fitting Material', 'fitting_type' => 'Fitting Type', 'thickness' => 'Thickness', 'size_of_pipe' => 'Pipe Size', 'capacity' => 'Capacity', 'meter' => 'Meter', 'nos' => 'Nos'] as $field => $label)
-                            <div class="col-6"><label class="form-label fw-semibold">{{ $label }}</label><input type="text" class="form-control" id="quick_bom_{{ $field }}"></div>
+                            <div class="col-6"><label class="form-label fw-semibold">{{ $label }}</label><input type="text" class="form-control" id="quick_bom_{{ $field }}" placeholder="Enter {{ $label }}"></div>
                         @endforeach
                     </div>
 </form>

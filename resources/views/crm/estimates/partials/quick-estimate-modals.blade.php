@@ -384,7 +384,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-semibold">BOM Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_bom_name" required>
+                            <input type="text" class="form-control" id="edit_bom_name" placeholder="Enter BOM name" required>
                             <div class="invalid-feedback" id="edit_bom_name-error">Please enter BOM name</div>
                         </div>
                         <div class="col-6">
@@ -402,7 +402,8 @@
                         <div class="col-6">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea class="form-control" id="edit_bom_description" rows="3" placeholder="BOM Description" style="resize:none;"></textarea>
-                            <input type="text" class="form-control mt-2" id="edit_bom_hsn_sac" placeholder="HSN/SAC Code">
+                            <label for="edit_bom_hsn_sac" class="form-label fw-semibold mt-3"><i class="fa-solid fa-hashtag crm-label-icon" aria-hidden="true"></i>HSN/SAC Code</label>
+                            <input type="text" class="form-control" id="edit_bom_hsn_sac" placeholder="HSN/SAC Code">
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold"><i class="bi bi-image crm-label-icon" aria-hidden="true"></i> BOM Image</label>
@@ -419,7 +420,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-semibold crm-label-with-icon"><i class="fa-solid fa-money-bill crm-label-icon" aria-hidden="true"></i>Unit Price <span class="text-danger">*</span></label>
-                            <input type="number" min="0" step="1" class="form-control" id="edit_bom_price" required>
+                            <input type="number" min="0" step="1" class="form-control" id="edit_bom_price" placeholder="Enter unit price" required>
                             <div class="invalid-feedback" id="edit_bom_price-error">Please enter unit price</div>
                         </div>
                         <div class="col-6">
