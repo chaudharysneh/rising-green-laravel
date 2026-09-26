@@ -48,6 +48,7 @@
                         <tr>
                             <th class="ps-4" style="width: 80px;">Sr.No</th>
                             <th>Name</th>
+                            <th class="d-none d-md-table-cell">HSN/SAC</th>
                             <th class="d-none d-md-table-cell">Make</th>
                             <th class="d-none d-md-table-cell">Technology</th>
                             <th class="d-none d-md-table-cell">Warranty</th>
